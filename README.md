@@ -48,6 +48,12 @@ supernova) and the OMEGA Planet Cracker (78-block crater, blood-red sky).
 skyscrapers, roads, street lights and parks (with villagers) to destroy. `/armageddon purge` clears fallout,
 black holes, stars, pending strikes and crater jobs.
 
+**Showcase (screenshots)** — `/armageddon showcase [all|tiers|classic|blocks|uncommon|rare|epic|legendary|mythic|celestial]`
+builds a lit gallery in front of you: every item floats on a tier-coloured pedestal with its name and tier, rows
+step upward so one screenshot shows them all. `/armageddon showcase item <item>` shows a single item large with
+its description (hero shots). `/armageddon showcase clear` removes it and restores the ground. Tip: hide the HUD
+with F1, and use `/time set noon` and `/weather clear`.
+
 **Grenades** — Frag, Plasma (sticky), Cryo, Napalm, Gravity Well, Toxin, Pocket Nuke.
 
 **Tools & gear** — Atomic Excavator (3x3 pickaxe), Fusion Shovel (3x3), Plasma Cutter (tree feller),

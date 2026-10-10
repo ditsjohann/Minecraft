@@ -31,6 +31,7 @@ import java.util.List;
  * /armageddon city [size]  — build a test city around you (size 1-4)
  * /armageddon purge        — remove fallout, black holes, stars, pending strikes, world events and crater jobs
  * /armageddon protect add|remove|list — regions no weapon can damage
+ * /armageddon showcase [section] | item <item> | clear — screenshot gallery
  * /armageddon restore [count] — undo recorded destruction (needs gamerule armageddonRecordRestore)
  */
 public final class ModCommands {
@@ -43,6 +44,7 @@ public final class ModCommands {
 								.then(CommandManager.argument("size", IntegerArgumentType.integer(1, 4))
 										.executes(ctx -> city(ctx, IntegerArgumentType.getInteger(ctx, "size")))))
 						.then(CommandManager.literal("purge").executes(ModCommands::purge))
+						.then(com.armageddon.showcase.Showcase.command(registryAccess))
 						.then(CommandManager.literal("restore")
 								.executes(ctx -> restore(ctx, 100000))
 								.then(CommandManager.argument("count", IntegerArgumentType.integer(1))
