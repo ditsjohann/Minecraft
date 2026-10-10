@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/thermobaric_bomb"
+    },
+    "facing=east": {
+      "model": "armageddon:block/thermobaric_bomb",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/thermobaric_bomb",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/thermobaric_bomb",
+      "y": 270
+    }
+  }
+}

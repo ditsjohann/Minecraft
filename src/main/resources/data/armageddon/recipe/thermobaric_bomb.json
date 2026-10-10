@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "TBT",
+    "ICI",
+    "TBT"
+  ],
+  "key": {
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "B": {
+      "item": "minecraft:blaze_powder"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    }
+  },
+  "result": {
+    "id": "armageddon:thermobaric_bomb",
+    "count": 1
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "GCG",
+    " L ",
+    " T "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_block"
+    },
+    "C": {
+      "item": "minecraft:copper_block"
+    },
+    "L": {
+      "item": "minecraft:lightning_rod"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:storm_caller",
+    "count": 1
+  }
+}

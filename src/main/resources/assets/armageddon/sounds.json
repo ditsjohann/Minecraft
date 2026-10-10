@@ -1,0 +1,417 @@
+{
+  "nuke.detonate": {
+    "subtitle": "subtitles.armageddon.nuke.detonate",
+    "sounds": [
+      {
+        "name": "minecraft:random/explode1",
+        "pitch": 0.45,
+        "attenuation_distance": 64
+      },
+      {
+        "name": "minecraft:random/explode2",
+        "pitch": 0.4,
+        "attenuation_distance": 64
+      },
+      {
+        "name": "minecraft:random/explode3",
+        "pitch": 0.45,
+        "attenuation_distance": 64
+      },
+      {
+        "name": "minecraft:random/explode4",
+        "pitch": 0.4,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "nuke.rumble": {
+    "subtitle": "subtitles.armageddon.nuke.rumble",
+    "sounds": [
+      {
+        "name": "minecraft:ambient/weather/thunder1",
+        "pitch": 0.5,
+        "attenuation_distance": 64
+      },
+      {
+        "name": "minecraft:ambient/weather/thunder2",
+        "pitch": 0.45,
+        "attenuation_distance": 64
+      },
+      {
+        "name": "minecraft:ambient/weather/thunder3",
+        "pitch": 0.5,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "bomb.armed": {
+    "subtitle": "subtitles.armageddon.bomb.armed",
+    "sounds": [
+      {
+        "name": "minecraft:block/beacon/activate",
+        "pitch": 0.8,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "bomb.beep": {
+    "subtitle": "subtitles.armageddon.bomb.beep",
+    "sounds": [
+      {
+        "name": "minecraft:note/pling",
+        "pitch": 1.0,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "bomb.antimatter": {
+    "subtitle": "subtitles.armageddon.bomb.antimatter",
+    "sounds": [
+      {
+        "name": "minecraft:mob/wither/spawn",
+        "pitch": 0.6,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "bomb.freeze": {
+    "subtitle": "subtitles.armageddon.bomb.freeze",
+    "sounds": [
+      {
+        "name": "minecraft:random/glass1",
+        "pitch": 0.5,
+        "attenuation_distance": 64
+      },
+      {
+        "name": "minecraft:random/glass2",
+        "pitch": 0.5,
+        "attenuation_distance": 64
+      },
+      {
+        "name": "minecraft:random/glass3",
+        "pitch": 0.5,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "weapon.plasma_fire": {
+    "subtitle": "subtitles.armageddon.weapon.plasma_fire",
+    "sounds": [
+      {
+        "name": "minecraft:item/crossbow/shoot1",
+        "pitch": 1.8,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:item/crossbow/shoot2",
+        "pitch": 1.7,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:item/crossbow/shoot3",
+        "pitch": 1.9,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.plasma_impact": {
+    "subtitle": "subtitles.armageddon.weapon.plasma_impact",
+    "sounds": [
+      {
+        "name": "minecraft:random/fizz",
+        "pitch": 1.4,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.railgun_charge": {
+    "subtitle": "subtitles.armageddon.weapon.railgun_charge",
+    "sounds": [
+      {
+        "name": "minecraft:block/beacon/activate",
+        "pitch": 1.6,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.railgun_fire": {
+    "subtitle": "subtitles.armageddon.weapon.railgun_fire",
+    "sounds": [
+      {
+        "name": "minecraft:item/trident/thunder1",
+        "pitch": 1.6,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:item/trident/thunder2",
+        "pitch": 1.5,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.minigun_fire": {
+    "subtitle": "subtitles.armageddon.weapon.minigun_fire",
+    "sounds": [
+      {
+        "name": "minecraft:fireworks/blast1",
+        "pitch": 1.5,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:fireworks/blast_far1",
+        "pitch": 1.3,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.minigun_spin": {
+    "subtitle": "subtitles.armageddon.weapon.minigun_spin",
+    "sounds": [
+      {
+        "name": "minecraft:minecart/base",
+        "pitch": 1.6,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.flamethrower": {
+    "subtitle": "subtitles.armageddon.weapon.flamethrower",
+    "sounds": [
+      {
+        "name": "minecraft:mob/blaze/breathe1",
+        "pitch": 0.6,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:mob/blaze/breathe2",
+        "pitch": 0.6,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:fire/fire",
+        "pitch": 1.4,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.arc_zap": {
+    "subtitle": "subtitles.armageddon.weapon.arc_zap",
+    "sounds": [
+      {
+        "name": "minecraft:random/fizz",
+        "pitch": 2.0,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:fire/ignite",
+        "pitch": 1.8,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.cryo_blast": {
+    "subtitle": "subtitles.armageddon.weapon.cryo_blast",
+    "sounds": [
+      {
+        "name": "minecraft:random/glass1",
+        "pitch": 1.4,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:random/glass2",
+        "pitch": 1.3,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.rocket_launch": {
+    "subtitle": "subtitles.armageddon.weapon.rocket_launch",
+    "sounds": [
+      {
+        "name": "minecraft:mob/ghast/fireball4",
+        "pitch": 0.9,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.nuke_launch": {
+    "subtitle": "subtitles.armageddon.weapon.nuke_launch",
+    "sounds": [
+      {
+        "name": "minecraft:mob/ghast/fireball4",
+        "pitch": 0.55,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.reload": {
+    "subtitle": "subtitles.armageddon.weapon.reload",
+    "sounds": [
+      {
+        "name": "minecraft:random/click",
+        "pitch": 0.9,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.dry_fire": {
+    "subtitle": "subtitles.armageddon.weapon.dry_fire",
+    "sounds": [
+      {
+        "name": "minecraft:random/click",
+        "pitch": 2.0,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.gravity_slam": {
+    "subtitle": "subtitles.armageddon.weapon.gravity_slam",
+    "sounds": [
+      {
+        "name": "minecraft:random/anvil_land",
+        "pitch": 0.5,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.blade_dash": {
+    "subtitle": "subtitles.armageddon.weapon.blade_dash",
+    "sounds": [
+      {
+        "name": "minecraft:item/trident/riptide1",
+        "pitch": 1.4,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:item/trident/riptide2",
+        "pitch": 1.4,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "black_hole.hum": {
+    "subtitle": "subtitles.armageddon.black_hole.hum",
+    "sounds": [
+      {
+        "name": "minecraft:portal/portal",
+        "pitch": 0.5,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "black_hole.collapse": {
+    "subtitle": "subtitles.armageddon.black_hole.collapse",
+    "sounds": [
+      {
+        "name": "minecraft:portal/travel",
+        "pitch": 0.6,
+        "attenuation_distance": 64
+      },
+      {
+        "name": "minecraft:random/explode3",
+        "pitch": 0.4,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "orbital.charge": {
+    "subtitle": "subtitles.armageddon.orbital.charge",
+    "sounds": [
+      {
+        "name": "minecraft:block/beacon/activate",
+        "pitch": 1.2,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "orbital.strike": {
+    "subtitle": "subtitles.armageddon.orbital.strike",
+    "sounds": [
+      {
+        "name": "minecraft:item/trident/thunder1",
+        "pitch": 0.7,
+        "attenuation_distance": 64
+      },
+      {
+        "name": "minecraft:item/trident/thunder2",
+        "pitch": 0.6,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "item.geiger_click": {
+    "subtitle": "subtitles.armageddon.item.geiger_click",
+    "sounds": [
+      {
+        "name": "minecraft:random/click",
+        "pitch": 2.0,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:note/hat",
+        "pitch": 2.0,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "item.jetpack": {
+    "subtitle": "subtitles.armageddon.item.jetpack",
+    "sounds": [
+      {
+        "name": "minecraft:fire/fire",
+        "pitch": 1.8,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "item.detonator": {
+    "subtitle": "subtitles.armageddon.item.detonator",
+    "sounds": [
+      {
+        "name": "minecraft:random/click",
+        "pitch": 1.5,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "item.inject": {
+    "subtitle": "subtitles.armageddon.item.inject",
+    "sounds": [
+      {
+        "name": "minecraft:item/bottle/fill",
+        "pitch": 1.6,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "item.equip_power_armor": {
+    "subtitle": "subtitles.armageddon.item.equip_power_armor",
+    "sounds": [
+      {
+        "name": "minecraft:item/armor/equip_netherite1",
+        "pitch": 0.8,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:item/armor/equip_netherite2",
+        "pitch": 0.8,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "item.equip_hazmat": {
+    "subtitle": "subtitles.armageddon.item.equip_hazmat",
+    "sounds": [
+      {
+        "name": "minecraft:item/armor/equip_leather1",
+        "pitch": 0.9,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:item/armor/equip_leather2",
+        "pitch": 0.9,
+        "attenuation_distance": 24
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "CCC",
+    "TFT",
+    "P  "
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:copper_block"
+    },
+    "T": {
+      "item": "armageddon:titanium_plate"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "P": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:railgun",
+    "count": 1
+  }
+}

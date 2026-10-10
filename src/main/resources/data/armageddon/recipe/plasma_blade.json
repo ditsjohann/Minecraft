@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " G ",
+    " G ",
+    "TFT"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:plasma_blade",
+    "count": 1
+  }
+}

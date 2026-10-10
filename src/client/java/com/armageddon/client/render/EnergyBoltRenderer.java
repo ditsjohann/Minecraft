@@ -1,0 +1,65 @@
+package com.armageddon.client.render;
+
+import com.armageddon.entity.ProjectileKind;
+import com.armageddon.entity.WmdProjectileEntity;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.entity.EntityRenderer;
+import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix4f;
+
+/** Plasma, cryo and singularity bolts: layered additive glow with a velocity streak. */
+public class EnergyBoltRenderer extends EntityRenderer<WmdProjectileEntity> {
+	public EnergyBoltRenderer(EntityRendererFactory.Context ctx) {
+		super(ctx);
+	}
+
+	@Override
+	public void render(WmdProjectileEntity entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider consumers, int light) {
+		ProjectileKind kind = entity.getKind();
+		int color;
+		double size;
+		switch (kind) {
+			case CRYO -> {
+				color = 0x8AD8FF;
+				size = 0.45;
+			}
+			case SINGULARITY -> {
+				color = 0xA040FF;
+				size = 0.8;
+			}
+			default -> {
+				color = 0x40FFE0;
+				size = 0.3;
+			}
+		}
+		float pulse = 0.85F + 0.15F * MathHelper.sin((entity.age + tickDelta) * 1.7F);
+		Matrix4f m = matrices.peek().getPositionMatrix();
+		Vec3d[] basis = FxDraw.cameraBasis(this.dispatcher.camera.getYaw(), this.dispatcher.camera.getPitch());
+		Vec3d c = new Vec3d(0, entity.getHeight() * 0.5, 0);
+		VertexConsumer vc = consumers.getBuffer(FxRenderLayers.GLOW);
+		FxDraw.disc(vc, m, c, basis[0], basis[1], size * 2.6 * pulse, color, 0.45F, 0.0F, 20);
+		FxDraw.disc(vc, m, c, basis[0], basis[1], size * 1.1, color, 0.9F, 0.1F, 16);
+		FxDraw.disc(vc, m, c, basis[0], basis[1], size * 0.5, 0xFFFFFF, 1.0F, 0.3F, 12);
+		Vec3d v = entity.getVelocity();
+		if (v.lengthSquared() > 0.01) {
+			Vec3d eye = this.dispatcher.camera.getPos().subtract(entity.getLerpedPos(tickDelta));
+			FxDraw.beam(vc, m, c, c.subtract(v.multiply(1.6)), eye, size * 0.9, color, 0.7F);
+		}
+		if (kind == ProjectileKind.SINGULARITY) {
+			VertexConsumer dark = consumers.getBuffer(FxRenderLayers.VOID);
+			FxDraw.sphere(dark, m, c, size * 0.35, Vec3d.ZERO, 0x000000, 1.0F, 1.0F, 8, 12);
+		}
+		super.render(entity, yaw, tickDelta, matrices, consumers, light);
+	}
+
+	@Override
+	public Identifier getTexture(WmdProjectileEntity entity) {
+		return SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE;
+	}
+}

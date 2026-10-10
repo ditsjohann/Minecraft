@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PEP",
+    " T ",
+    " T "
+  ],
+  "key": {
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "E": {
+      "item": "armageddon:enriched_uranium"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:atomic_pickaxe",
+    "count": 1
+  }
+}

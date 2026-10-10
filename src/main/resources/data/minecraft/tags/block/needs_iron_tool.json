@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "armageddon:uranium_ore",
+    "armageddon:deepslate_uranium_ore",
+    "armageddon:titanium_ore",
+    "armageddon:deepslate_titanium_ore",
+    "armageddon:uranium_block",
+    "armageddon:titanium_block"
+  ]
+}

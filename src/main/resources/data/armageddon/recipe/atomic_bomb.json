@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PEP",
+    "ECE",
+    "PUP"
+  ],
+  "key": {
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "E": {
+      "item": "armageddon:enriched_uranium"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "U": {
+      "item": "armageddon:plutonium_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:atomic_bomb",
+    "count": 1
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "armageddon:block/charred_log"
+    },
+    "axis=z": {
+      "model": "armageddon:block/charred_log_horizontal",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "armageddon:block/charred_log_horizontal",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

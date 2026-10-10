@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "UGU",
+    "GRG",
+    "UGU"
+  ],
+  "key": {
+    "U": {
+      "item": "armageddon:uranium_ingot"
+    },
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "result": {
+    "id": "armageddon:enriched_uranium",
+    "count": 4
+  }
+}

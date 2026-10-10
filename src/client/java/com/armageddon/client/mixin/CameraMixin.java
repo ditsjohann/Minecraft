@@ -1,0 +1,35 @@
+package com.armageddon.client.mixin;
+
+import com.armageddon.client.fx.ClientFx;
+import net.minecraft.client.render.Camera;
+import net.minecraft.util.math.MathHelper;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+/** Screen shake from shockwaves and heavy recoil. */
+@Mixin(Camera.class)
+public abstract class CameraMixin {
+	@Shadow
+	protected abstract void setRotation(float yaw, float pitch);
+
+	@Shadow
+	public abstract float getYaw();
+
+	@Shadow
+	public abstract float getPitch();
+
+	@Inject(method = "update", at = @At("TAIL"))
+	private void armageddon$shake(CallbackInfo ci) {
+		float s = ClientFx.shake;
+		if (s <= 0.0F) {
+			return;
+		}
+		double t = System.nanoTime() / 1.0E9;
+		float dx = (float) (Math.sin(t * 47.0) + Math.sin(t * 89.0) * 0.5) * s;
+		float dy = (float) (Math.cos(t * 53.0) + Math.sin(t * 71.0) * 0.5) * s;
+		this.setRotation(this.getYaw() + dx, MathHelper.clamp(this.getPitch() + dy, -90.0F, 90.0F));
+	}
+}

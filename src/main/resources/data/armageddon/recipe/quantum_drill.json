@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "DDP",
+    "CFP",
+    " TP"
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:quantum_drill",
+    "count": 1
+  }
+}

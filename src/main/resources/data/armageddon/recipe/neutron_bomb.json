@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "ETE",
+    "PCP",
+    "EPE"
+  ],
+  "key": {
+    "E": {
+      "item": "armageddon:enriched_uranium"
+    },
+    "T": {
+      "item": "armageddon:titanium_block"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    }
+  },
+  "result": {
+    "id": "armageddon:neutron_bomb",
+    "count": 1
+  }
+}

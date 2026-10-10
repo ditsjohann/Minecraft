@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " T ",
+    "RGR",
+    " T "
+  ],
+  "key": {
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    }
+  },
+  "result": {
+    "id": "armageddon:plasma_cell",
+    "count": 4
+  }
+}

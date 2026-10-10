@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "KPK",
+    "PCP",
+    "KPK"
+  ],
+  "key": {
+    "K": {
+      "item": "armageddon:cryo_canister"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    }
+  },
+  "result": {
+    "id": "armageddon:cryo_bomb",
+    "count": 1
+  }
+}

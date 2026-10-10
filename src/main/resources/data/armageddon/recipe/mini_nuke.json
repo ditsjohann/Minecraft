@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "ITI",
+    "TET",
+    "ITI"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "E": {
+      "item": "armageddon:enriched_uranium"
+    }
+  },
+  "result": {
+    "id": "armageddon:mini_nuke",
+    "count": 2
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/demolition_charge"
+    },
+    "facing=east": {
+      "model": "armageddon:block/demolition_charge",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/demolition_charge",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/demolition_charge",
+      "y": 270
+    }
+  }
+}

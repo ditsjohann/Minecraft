@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "TTT",
+    "TBC",
+    " PP"
+  ],
+  "key": {
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    },
+    "B": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    }
+  },
+  "result": {
+    "id": "armageddon:minigun",
+    "count": 1
+  }
+}

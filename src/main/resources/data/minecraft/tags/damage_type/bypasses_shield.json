@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "armageddon:radiation",
+    "armageddon:nuclear_blast",
+    "armageddon:annihilation"
+  ]
+}

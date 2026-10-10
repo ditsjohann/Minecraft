@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "ASA",
+    "PCP",
+    "APA"
+  ],
+  "key": {
+    "A": {
+      "item": "armageddon:antimatter_cell"
+    },
+    "S": {
+      "item": "armageddon:singularity_core"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    }
+  },
+  "result": {
+    "id": "armageddon:singularity_bomb",
+    "count": 1
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "armageddon:uranium_ore",
+    "armageddon:deepslate_uranium_ore",
+    "armageddon:titanium_ore",
+    "armageddon:deepslate_titanium_ore",
+    "armageddon:uranium_block",
+    "armageddon:titanium_block",
+    "armageddon:trinitite",
+    "armageddon:reinforced_concrete",
+    "armageddon:hazard_block",
+    "armageddon:demolition_charge",
+    "armageddon:thermobaric_bomb",
+    "armageddon:cryo_bomb",
+    "armageddon:singularity_bomb",
+    "armageddon:neutron_bomb",
+    "armageddon:atomic_bomb",
+    "armageddon:antimatter_bomb",
+    "armageddon:hydrogen_bomb"
+  ]
+}

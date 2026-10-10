@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "item": "armageddon:deepslate_uranium_ore"
+  },
+  "result": {
+    "id": "armageddon:uranium_ingot",
+    "count": 1
+  },
+  "experience": 1.0,
+  "cookingtime": 100
+}

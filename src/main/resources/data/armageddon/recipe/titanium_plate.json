@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "armageddon:titanium_ingot"
+    },
+    {
+      "item": "armageddon:titanium_ingot"
+    },
+    {
+      "item": "armageddon:titanium_ingot"
+    }
+  ],
+  "result": {
+    "id": "armageddon:titanium_plate",
+    "count": 2
+  }
+}

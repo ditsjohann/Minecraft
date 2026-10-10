@@ -1,0 +1,36 @@
+{
+	"schemaVersion": 1,
+	"id": "armageddon",
+	"version": "${version}",
+	"name": "Armageddon Arsenal",
+	"description": "Stylized weapons of mass destruction: nukes with mushroom clouds, hydrogen bombs, antimatter, black holes, orbital lasers, railguns, plasma weapons, power armour and more — with custom particles, 3D models and post-processing shaders.",
+	"authors": [
+		"ditsjohann"
+	],
+	"contact": {
+		"sources": "https://github.com/ditsjohann/Minecraft"
+	},
+	"license": "MIT",
+	"icon": "assets/armageddon/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.armageddon.Armageddon"
+		],
+		"client": [
+			"com.armageddon.client.ArmageddonClient"
+		]
+	},
+	"mixins": [
+		{
+			"config": "armageddon.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PGG",
+    "TCE",
+    "T  "
+  ],
+  "key": {
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "E": {
+      "item": "armageddon:enriched_uranium"
+    }
+  },
+  "result": {
+    "id": "armageddon:plasma_rifle",
+    "count": 1
+  }
+}

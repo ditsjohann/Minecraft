@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": {
+    "item": "armageddon:raw_titanium"
+  },
+  "result": {
+    "id": "armageddon:titanium_ingot",
+    "count": 1
+  },
+  "experience": 0.8,
+  "cookingtime": 100
+}

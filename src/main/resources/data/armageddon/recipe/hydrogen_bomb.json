@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PUP",
+    "FAF",
+    "PUP"
+  ],
+  "key": {
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "U": {
+      "item": "armageddon:plutonium_core"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "A": {
+      "item": "armageddon:atomic_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:hydrogen_bomb",
+    "count": 1
+  }
+}
