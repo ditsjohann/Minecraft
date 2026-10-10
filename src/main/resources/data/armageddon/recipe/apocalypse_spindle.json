@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " R ",
+    "ONO",
+    " S "
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:end_rod"
+    },
+    "O": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "S": {
+      "item": "armageddon:solar_cell"
+    }
+  },
+  "result": {
+    "id": "armageddon:apocalypse_spindle",
+    "count": 1
+  }
+}

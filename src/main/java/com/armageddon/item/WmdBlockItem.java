@@ -19,4 +19,9 @@ public class WmdBlockItem extends BlockItem {
 		super.appendTooltip(stack, context, tooltip, type);
 		Tooltips.describe(this, tooltip);
 	}
+
+	@Override
+	public Text getName(ItemStack stack) {
+		return Tooltips.name(this, super.getName(stack));
+	}
 }

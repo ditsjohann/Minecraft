@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "RAR",
+    "ANA",
+    "RAR"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone_block"
+    },
+    "A": {
+      "item": "armageddon:antimatter_bomb"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "id": "armageddon:bloodstar_collapse",
+    "count": 1
+  }
+}

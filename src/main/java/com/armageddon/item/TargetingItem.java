@@ -66,4 +66,9 @@ public class TargetingItem extends Item {
 	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
 		Tooltips.describe(this, tooltip);
 	}
+
+	@Override
+	public Text getName(ItemStack stack) {
+		return Tooltips.name(this, super.getName(stack));
+	}
 }

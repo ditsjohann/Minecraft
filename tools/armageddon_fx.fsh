@@ -8,6 +8,7 @@
 //  - Rainbow hue cycling for bass weapons
 //  - Radiation-sickness vision: green cast, film grain, vignette, scanline glitches
 //  - Nuclear flash: over-exposure blooming into a white-out
+//  - World-event grading: desaturation, white-out, black-out, signal static, inversion
 
 uniform sampler2D DiffuseSampler;
 
@@ -31,6 +32,11 @@ uniform float GodG;
 uniform float GodB;
 uniform float Ripple;
 uniform float Hue;
+uniform float Desaturate;
+uniform float Whiteout;
+uniform float Blackout;
+uniform float Static;
+uniform float Invert;
 
 in vec2 texCoord;
 in vec2 oneTexel;
@@ -148,6 +154,29 @@ void main() {
         float lum = dot(col, vec3(0.333));
         col += col * Flash * 2.5;
         col = mix(col, fc, clamp(Flash * 1.15 - 0.1 + lum * Flash * 0.3, 0.0, 1.0));
+    }
+
+    // --- World-event colour grading ---
+    if (Desaturate > 0.0) {
+        float lum = dot(col, vec3(0.299, 0.587, 0.114));
+        col = mix(col, vec3(lum), Desaturate);
+    }
+    if (Static > 0.0) {
+        float band = step(0.93, hash(vec2(floor(GTime * 20.0), floor(texCoord.y * 40.0))));
+        vec2 suv = texCoord + vec2((hash(vec2(GTime, texCoord.y)) - 0.5) * 0.06 * band * Static, 0.0);
+        vec3 shifted = texture(DiffuseSampler, suv).rgb;
+        float n = hash(floor(texCoord * InSize / 1.5) + floor(GTime * 30.0));
+        col = mix(col, mix(shifted, vec3(n), 0.45), Static);
+    }
+    if (Invert > 0.0) {
+        col = mix(col, vec3(1.0) - col, Invert);
+    }
+    if (Whiteout > 0.0) {
+        col = mix(col, vec3(1.0), Whiteout);
+    }
+    if (Blackout > 0.0) {
+        float vig = smoothstep(0.2, 0.9, length(center * vec2(aspect, 1.0)));
+        col = mix(col, vec3(0.0), clamp(Blackout * (0.75 + 0.25 * vig), 0.0, 1.0));
     }
 
     fragColor = vec4(col, 1.0);

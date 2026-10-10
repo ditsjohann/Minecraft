@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SSS",
+    "GFG",
+    "T  "
+  ],
+  "key": {
+    "S": {
+      "item": "armageddon:solar_cell"
+    },
+    "G": {
+      "item": "minecraft:gold_block"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:solstice_sunlance",
+    "count": 1
+  }
+}

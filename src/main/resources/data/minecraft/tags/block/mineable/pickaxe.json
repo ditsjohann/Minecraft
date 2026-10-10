@@ -22,6 +22,21 @@
     "armageddon:bass_drop_bomb",
     "armageddon:cluster_nuke",
     "armageddon:nova_bomb",
-    "armageddon:omega_bomb"
+    "armageddon:omega_bomb",
+    "armageddon:helios_crown_bomb",
+    "armageddon:continental_pulse",
+    "armageddon:dawnstar_payload",
+    "armageddon:bloodstar_collapse",
+    "armageddon:last_light",
+    "armageddon:zeropoint",
+    "armageddon:unmaker",
+    "armageddon:godfall",
+    "armageddon:final_existence",
+    "armageddon:energy_crystal",
+    "armageddon:luminous_glass",
+    "armageddon:gold_fissure",
+    "armageddon:crimson_fissure",
+    "armageddon:void_remnant",
+    "armageddon:molten_core"
   ]
 }

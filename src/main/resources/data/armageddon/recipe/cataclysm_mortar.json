@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "OMO",
+    "OFO",
+    "PPP"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "M": {
+      "item": "armageddon:mini_nuke"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    }
+  },
+  "result": {
+    "id": "armageddon:cataclysm_mortar",
+    "count": 1
+  }
+}

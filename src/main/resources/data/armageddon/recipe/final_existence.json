@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CCC",
+    "COC",
+    "CCC"
+  ],
+  "key": {
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "O": {
+      "item": "armageddon:omega_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:final_existence",
+    "count": 1
+  }
+}

@@ -167,6 +167,48 @@ public final class Detonations {
 		}
 	}
 
+	/** Heavy missile impact that gouges along its flight direction. */
+	public static void directional(ServerWorld world, Vec3d pos, Vec3d velocity, @Nullable Entity cause, float radius) {
+		ModNetworking.sendFx(world, pos, 512, new FxPayload(FxType.LAYERED_BLAST, pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, radius, 0xB070FF, 0, 0, 0, 0));
+		blast(world, pos, radius * 2.5, 40.0F, ModDamageTypes.NUCLEAR_BLAST, cause, radius, 1.8);
+		if (blockDamage(world)) {
+			DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(pos), radius, CraterJob.Mode.DIRECTIONAL).withAxis(velocity));
+		}
+		debris(world, pos, radius, 20);
+	}
+
+	/** One of the Midas Cascade's escalating golden spheres. */
+	public static void midas(ServerWorld world, Vec3d pos, @Nullable Entity cause, int index) {
+		float size = 2.0F + index * 0.9F;
+		ModNetworking.sendFx(world, pos, 768, new FxPayload(FxType.LAYERED_BLAST, pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, size, 0xFFC830, 0, 0, 0, 0));
+		world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 4.0F + index, 1.3F - index * 0.1F);
+		blast(world, pos, size * 2.5, 10.0F + index * 6, ModDamageTypes.NUCLEAR_BLAST, cause, size, 1.2);
+		if (index >= 6) {
+			if (blockDamage(world)) {
+				DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(pos), 12, CraterJob.Mode.GLASSED)
+						.withLining(Blocks.YELLOW_STAINED_GLASS.getDefaultState()));
+			}
+			ModNetworking.sendFx(world, pos, 1024, new FxPayload(FxType.DOME, pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, 40, 0xFFD060, 0, 0, 0, 40));
+		} else {
+			com.armageddon.destruction.Destruction.explode(world, null, pos.x, pos.y, pos.z, 2.0F + index * 0.6F, false);
+		}
+		com.armageddon.destruction.EnergyFields.emit(world, com.armageddon.destruction.EnergyFields.Energy.SOLAR, pos, size * 1.5, 100, cause);
+	}
+
+	/** Judgment Engine plasma bolt; hotter barrels hit harder. */
+	public static void judgment(ServerWorld world, Vec3d pos, @Nullable Entity source, int heat) {
+		float power = 1.4F + heat / 45.0F;
+		ModNetworking.sendFx(world, pos, 256, new FxPayload(FxType.FIREBALL, pos, power, 0xFFB020));
+		com.armageddon.destruction.Destruction.explode(world, source, pos.x, pos.y, pos.z, power, false);
+		com.armageddon.destruction.EnergyFields.emit(world, com.armageddon.destruction.EnergyFields.Energy.SOLAR, pos, 3, 60, source);
+	}
+
+	/** Micro Event Horizon: small, hungry, short-lived. */
+	public static void microHorizon(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
+		BlackHoleEntity.spawn(world, pos, 3.0F, 150, true, cause, 160);
+		com.armageddon.destruction.EnergyFields.emit(world, com.armageddon.destruction.EnergyFields.Energy.GRAVITY, pos, 16, 150, cause);
+	}
+
 	/** Cluster nuke: pops, then flings eight warheads that rain down in a ring. */
 	public static void clusterNuke(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
 		highExplosive(world, pos, cause, 4.0F, false);

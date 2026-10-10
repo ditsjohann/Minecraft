@@ -46,7 +46,8 @@ public final class PostFx {
 
 	private static boolean needed() {
 		return ClientFx.flash > 0.002F || ClientFx.distortion > 0.002F || radiation > 0.002F || lensStrength > 0.0F
-				|| godStrength > 0.0F || ClientFx.hue > 0.0F || ClientFx.ripple < 1.0F;
+				|| godStrength > 0.0F || ClientFx.hue > 0.0F || ClientFx.ripple < 1.0F
+				|| ClientFx.SCREEN[0] > 0 || ClientFx.SCREEN[1] > 0 || ClientFx.SCREEN[2] > 0 || ClientFx.SCREEN[3] > 0 || ClientFx.SCREEN[4] > 0;
 	}
 
 	/** Called at the end of GameRenderer#renderWorld (after the hand, before the HUD). */
@@ -93,6 +94,11 @@ public final class PostFx {
 		processor.setUniforms("GodB", (ClientFx.lightColor & 0xFF) / 255.0F);
 		processor.setUniforms("Ripple", ClientFx.ripple);
 		processor.setUniforms("Hue", MathHelper.clamp(ClientFx.hue, 0.0F, 1.0F));
+		processor.setUniforms("Desaturate", ClientFx.SCREEN[0]);
+		processor.setUniforms("Whiteout", ClientFx.SCREEN[1]);
+		processor.setUniforms("Blackout", ClientFx.SCREEN[2]);
+		processor.setUniforms("Static", ClientFx.SCREEN[3]);
+		processor.setUniforms("Invert", ClientFx.SCREEN[4]);
 
 		RenderSystem.disableBlend();
 		RenderSystem.disableDepthTest();

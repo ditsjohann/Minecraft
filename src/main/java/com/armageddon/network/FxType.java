@@ -56,6 +56,66 @@ public final class FxType {
 	/** Earthquake rumble: shake + dust ring. scale = radius. */
 	public static final int QUAKE = 25;
 
+	// ---- Expansion vocabulary (p1/p2/duration carry parameters) ----
+	/** Steam / vapour burst. */
+	public static final int STEAM = 26;
+	/** Antimatter interference glitch. */
+	public static final int GLITCH = 27;
+	/** Sphere: scale=start radius, p1=end radius, p2=mode (0 glow,1 black sun,2 star corona,3 pinprick), duration. */
+	public static final int ORB = 28;
+	/** Wobbling translucent bubble. scale=radius, duration. */
+	public static final int BUBBLE = 29;
+	/** Hexagonal wireframe cage. scale=radius, duration. */
+	public static final int CAGE = 30;
+	/** Wireframe grid: p2=mode (0 sphere, 1 plane through from with normal to, 2 inward ground grid, 3 terrain wireframe). */
+	public static final int GRID = 31;
+	/** Dimensional portal / rift. to=normal, scale=radius, duration. */
+	public static final int PORTAL = 32;
+	/** Sky fractures around the viewer. scale=intensity, duration, p2=style (0 jagged, 1 geometric panels). */
+	public static final int SKY_CRACK = 33;
+	/** Energy crystal from base to tip. scale=width, duration. */
+	public static final int CRYSTAL = 34;
+	/** Paint splatter decals. scale=radius, color (0 = rainbow, -1 = clear), duration. */
+	public static final int PAINT = 35;
+	/** Firework burst. scale=size, seed=shape (0 star,1 burst,2 ball,3 heart,4 smiley). */
+	public static final int FIREWORK = 36;
+	/** Holographic fakes. scale=radius, duration. */
+	public static final int HOLOGRAM = 37;
+	/** Mirrored ghost overlay. scale=radius, duration. */
+	public static final int MIRROR = 38;
+	/** Sound wave rings travelling from -> to. scale=width, p1=pitch pattern. */
+	public static final int SOUNDWAVE = 39;
+	/** Full-screen effect: seed=kind (0 desaturate,1 whiteout,2 blackout,3 static,4 invert), scale=strength, duration. */
+	public static final int SCREEN = 40;
+	/** Layered explosion: flash → fireball → pressure ring → dome → smoke → secondary pulse. scale=size, color palette. */
+	public static final int LAYERED_BLAST = 41;
+	/** Wireframe/afterimage box from min (from) to max (to). duration. */
+	public static final int WIREBOX = 42;
+	/** Energy streak travelling from -> to over duration. scale=width. */
+	public static final int STREAK = 43;
+	/** Light pillar. scale=radius, duration, p2=1 for rainbow. */
+	public static final int PILLAR = 44;
+	/** Shock dome. scale=radius, duration. */
+	public static final int DOME = 45;
+	/** Ring with explicit params. scale=radius, p1=thickness, duration, p2=1 to throw dust. */
+	public static final int RING = 46;
+	/** Swirling vortex. scale=radius, p1=height, duration. */
+	public static final int SPIRAL = 47;
+	/** Charge-up orb that follows entity id (seed). scale=size, duration. */
+	public static final int CHARGE = 48;
+	/** Sky tint: color, scale=strength. */
+	public static final int SKY_TINT = 49;
+	/** God-ray light source at position: scale=strength, color. */
+	public static final int LIGHT = 50;
+	/** Flash only: scale=strength, p1=range, color. */
+	public static final int FLASH = 51;
+	/** Spinning blade (boomerang) is entity-rendered; this is its slice ring burst. */
+	public static final int SLICE = 52;
+	/** World-event warning banner for every player in range. seed=tier. */
+	public static final int WARNING = 53;
+	/** Gravity reversal overlay: rising particles + inverted shake. scale=radius, duration. */
+	public static final int GRAVITY_FLIP = 54;
+
 	private FxType() {
 	}
 }

@@ -23,7 +23,11 @@ public class GrenadeItem extends WmdItem {
 		ItemStack stack = user.getStackInHand(hand);
 		world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_SNOWBALL_THROW, SoundCategory.PLAYERS, 0.7F, 0.6F);
 		if (!world.isClient) {
-			WmdProjectileEntity.fire(world, user, kind, 1.3F, 1.0F);
+			WmdProjectileEntity p = WmdProjectileEntity.fire(world, user, kind, 1.3F, 1.0F);
+			if (kind == ProjectileKind.PAINT_BOMB && user.isSneaking()) {
+				// Sneak-throw: a solvent bomb that washes paint away.
+				p.setPower(-1);
+			}
 		}
 		user.getItemCooldownManager().set(this, 12);
 		stack.decrementUnlessCreative(1, user);

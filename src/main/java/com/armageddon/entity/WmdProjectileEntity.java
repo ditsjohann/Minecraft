@@ -47,6 +47,12 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 	private int stuckTo = -1;
 	private Vec3d stuckOffset = Vec3d.ZERO;
 	private boolean detonated;
+	/** Free parameter (Midas sphere index, Judgment heat...). */
+	private int power;
+	/** Optional homing destination (siege missiles). */
+	@Nullable
+	private Vec3d targetPos;
+	private boolean returning;
 
 	public WmdProjectileEntity(EntityType<? extends WmdProjectileEntity> type, World world) {
 		super(type, world);
@@ -85,6 +91,18 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 
 	public boolean isStuck() {
 		return this.dataTracker.get(STUCK);
+	}
+
+	public void setPower(int power) {
+		this.power = power;
+	}
+
+	public int getPower() {
+		return power;
+	}
+
+	public void setTargetPos(@Nullable Vec3d target) {
+		this.targetPos = target;
 	}
 
 	public void setHomingTarget(@Nullable Entity target) {
@@ -133,6 +151,29 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		if (kind == ProjectileKind.BFG && this.age % 3 == 0) {
 			zapNearby((ServerWorld) world);
 		}
+		if (kind == ProjectileKind.BOOMERANG) {
+			tickBoomerang((ServerWorld) world);
+			return;
+		}
+		if (targetPos != null) {
+			Vec3d to = targetPos.subtract(getPos());
+			Vec3d v = getVelocity();
+			double speed = Math.min(v.length() * 1.04 + 0.02, 2.8);
+			double turn = this.age > 25 ? 0.35 : 0.12;
+			Vec3d dir = v.lengthSquared() < 1.0E-6 ? to.normalize() : v.normalize().lerp(to.normalize(), turn).normalize();
+			setVelocity(dir.multiply(speed));
+			this.velocityDirty = true;
+		}
+		if (kind == ProjectileKind.MIDAS && this.age == 16) {
+			splitMidas((ServerWorld) world);
+			return;
+		}
+		// Gravity fields bend everything that flies through them.
+		Vec3d bent = com.armageddon.destruction.EnergyFields.bend((ServerWorld) world, getPos(), getVelocity());
+		if (bent != getVelocity()) {
+			setVelocity(bent);
+			this.velocityDirty = true;
+		}
 		if (kind.isGrenade()) {
 			fuse--;
 			if (fuse > 0 && fuse <= 20 && fuse % (fuse <= 8 ? 2 : 5) == 0) {
@@ -180,6 +221,81 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		}
 		setVelocity(dir.multiply(speed));
 		this.velocityDirty = true;
+	}
+
+	/** Returning plasma blade: cuts fragile blocks, hits everything, comes back to the thrower. */
+	private void tickBoomerang(ServerWorld world) {
+		Entity owner = getOwner();
+		if (!returning && (this.age > 14 || getVelocity().lengthSquared() < 0.05)) {
+			returning = true;
+		}
+		if (returning) {
+			if (owner == null || !owner.isAlive() || this.age > 200) {
+				dropBoomerang(world);
+				return;
+			}
+			Vec3d to = owner.getEyePos().subtract(0, 0.4, 0).subtract(getPos());
+			if (to.length() < 1.6) {
+				if (owner instanceof net.minecraft.entity.player.PlayerEntity p && !p.getAbilities().creativeMode) {
+					if (!p.getInventory().insertStack(new ItemStack(ModItems.PLASMA_BOOMERANG))) {
+						dropBoomerang(world);
+						return;
+					}
+				}
+				discard();
+				return;
+			}
+			setVelocity(to.normalize().multiply(Math.min(1.8, 0.6 + this.age * 0.03)));
+			this.velocityDirty = true;
+		}
+		// Slice fragile blocks along the path.
+		if (com.armageddon.destruction.Destruction.enabled(world)) {
+			net.minecraft.util.math.BlockPos bp = getBlockPos();
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					net.minecraft.util.math.BlockPos p = bp.add(dx, 0, dz);
+					net.minecraft.block.BlockState s = world.getBlockState(p);
+					float h = s.getHardness(world, p);
+					if (!s.isAir() && h >= 0 && h <= 0.8F && !s.hasBlockEntity()) {
+						world.breakBlock(p, true, getOwner());
+					}
+				}
+			}
+		}
+		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, getBoundingBox().expand(1.2), e -> e != owner && e.isAlive())) {
+			if (e.timeUntilRegen <= 10) {
+				e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA, this, owner), 9.0F);
+				ModNetworking.sendFx(world, getPos(), 96, new FxPayload(FxType.SLICE, getPos(), 1.0F, 0x5AC8FF));
+			}
+		}
+	}
+
+	private void dropBoomerang(ServerWorld world) {
+		world.spawnEntity(new net.minecraft.entity.ItemEntity(world, getX(), getY(), getZ(), new ItemStack(ModItems.PLASMA_BOOMERANG)));
+		discard();
+	}
+
+	/** Midas Cascade: splits at apex into seven golden spheres that land in a spiral, each bigger than the last. */
+	private void splitMidas(ServerWorld world) {
+		Vec3d v = getVelocity();
+		Vec3d flat = new Vec3d(v.x, 0, v.z);
+		Vec3d fwd = flat.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : flat.normalize();
+		Vec3d side = new Vec3d(-fwd.z, 0, fwd.x);
+		ModNetworking.sendFx(world, getPos(), 512, new FxPayload(FxType.FIREBALL, getPos(), 2.0F, 0xFFC830));
+		world.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, SoundCategory.PLAYERS, 6.0F, 0.5F);
+		for (int i = 0; i < 7; i++) {
+			double a = i * 0.9;
+			double r = 0.15 + i * 0.07;
+			WmdProjectileEntity b = new WmdProjectileEntity(ModEntities.ENERGY_BOLT, world);
+			b.setOwner(getOwner());
+			b.setPosition(getX(), getY(), getZ());
+			b.setKind(ProjectileKind.MIDAS_SPHERE);
+			b.setPower(i);
+			Vec3d out = fwd.multiply(Math.cos(a) * r).add(side.multiply(Math.sin(a) * r)).add(fwd.multiply(0.35));
+			b.setVelocity(out.x, 0.25 + i * 0.03, out.z);
+			world.spawnEntity(b);
+		}
+		discard();
 	}
 
 	/** BFG orb: lashes every living thing within 12 blocks with green lightning as it flies. */
@@ -286,7 +402,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 	public void onEntityHit(EntityHitResult hit) {
 		ProjectileKind kind = getKind();
 		Entity target = hit.getEntity();
-		if (getWorld().isClient || detonated) {
+		if (getWorld().isClient || detonated || kind == ProjectileKind.BOOMERANG) {
 			return;
 		}
 		if (kind.isGrenade()) {
@@ -321,6 +437,10 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			return;
 		}
 		ProjectileKind kind = getKind();
+		if (kind == ProjectileKind.BOOMERANG) {
+			returning = true;
+			return;
+		}
 		if (kind.isGrenade()) {
 			if (kind.sticky) {
 				if (!isStuck()) {
@@ -359,7 +479,18 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		}
 		detonated = true;
 		Entity owner = getOwner();
-		switch (getKind()) {
+		ProjectileKind k = getKind();
+		if (k.event != null) {
+			com.armageddon.event.EventEntity.start(world, at, k.event, owner, nbt -> {
+				nbt.putFloat("Yaw", getYaw());
+				nbt.putInt("Power", power);
+				nbt.putDouble("Vx", getVelocity().x);
+				nbt.putDouble("Vz", getVelocity().z);
+			});
+			discard();
+			return;
+		}
+		switch (k) {
 			case MINI_NUKE -> Detonations.nuke(world, at, owner, 8);
 			case POCKET_NUKE -> Detonations.nuke(world, at, owner, 5);
 			case ROCKET, MIRV -> Detonations.highExplosive(world, at, this, 4.0F, false);
@@ -389,6 +520,14 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case GATLING_NUKE -> Detonations.nuke(world, at, owner, 3, false);
 			case FALLING_NUKE -> Detonations.nuke(world, at, owner, 7, false);
 			case AIR_BOMB -> Detonations.highExplosive(world, at, this, 4.5F, true);
+			case SIEGE_MISSILE -> Detonations.directional(world, at, getVelocity(), owner, 7.0F);
+			case MIDAS_SPHERE -> Detonations.midas(world, at, owner, power);
+			case JUDGMENT_BOLT -> Detonations.judgment(world, at, this, power);
+			case MICRO_HORIZON -> Detonations.microHorizon(world, at, owner);
+			case DEVOURER -> DevourerEntity.spawn(world, at, getVelocity(), owner);
+			case MIDAS -> Detonations.midas(world, at, owner, 3);
+			default -> {
+			}
 		}
 		discard();
 	}
@@ -416,6 +555,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		super.writeCustomDataToNbt(nbt);
 		nbt.putInt("Kind", getKind().ordinal());
 		nbt.putInt("Fuse", fuse);
+		nbt.putInt("Power", power);
 	}
 
 	@Override
@@ -423,6 +563,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		super.readCustomDataFromNbt(nbt);
 		this.dataTracker.set(KIND, nbt.getInt("Kind"));
 		this.fuse = nbt.getInt("Fuse");
+		this.power = nbt.getInt("Power");
 	}
 
 	/** Finds the best lock-on target inside a cone in front of the shooter. */

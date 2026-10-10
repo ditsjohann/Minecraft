@@ -61,11 +61,22 @@ public class ProjectileModelRenderer extends EntityRenderer<WmdProjectileEntity>
 			case AIR_BOMB -> 1.3F;
 			case METEOR -> 2.6F;
 			case ROD -> 1.6F;
+			case TITAN_MISSILE -> 3.2F;
+			case SIEGE_MISSILE -> 1.3F;
 			default -> 1.0F;
 		};
 		matrices.scale(s, s, s);
 		if (model != null) {
 			itemRenderer.renderItem(entity.getStack(), ModelTransformationMode.NONE, false, matrices, consumers, light, OverlayTexture.DEFAULT_UV, model);
+		}
+		if (kind == ProjectileKind.TITAN_MISSILE || kind == ProjectileKind.SIEGE_MISSILE) {
+			Matrix4f tm = matrices.peek().getPositionMatrix();
+			VertexConsumer tvc = consumers.getBuffer(FxRenderLayers.GLOW);
+			float f = 0.8F + 0.2F * MathHelper.sin((entity.age + tickDelta) * 5.1F);
+			int c = kind == ProjectileKind.TITAN_MISSILE ? 0xFF9040 : 0xB070FF;
+			FxDraw.sphere(tvc, tm, new Vec3d(-0.6, 0, 0), 0.35 * f, new Vec3d(-3, 0, 0), c, 0.3F, 0.9F, 6, 10);
+			FxDraw.ribbon(tvc, tm, new Vec3d(-0.6, 0, 0), new Vec3d(-3.0 * f, 0, 0), new Vec3d(0, 3, 0), 0.5, c, 0.9F, 0.0F);
+			FxDraw.ribbon(tvc, tm, new Vec3d(-0.6, 0, 0), new Vec3d(-3.0 * f, 0, 0), new Vec3d(0, 0, 3), 0.5, c, 0.9F, 0.0F);
 		}
 		if (kind == ProjectileKind.METEOR || kind == ProjectileKind.ROD) {
 			Matrix4f m = matrices.peek().getPositionMatrix();

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/godfall"
+    },
+    "facing=east": {
+      "model": "armageddon:block/godfall",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/godfall",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/godfall",
+      "y": 270
+    }
+  }
+}

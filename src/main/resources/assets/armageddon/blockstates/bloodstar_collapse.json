@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/bloodstar_collapse"
+    },
+    "facing=east": {
+      "model": "armageddon:block/bloodstar_collapse",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/bloodstar_collapse",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/bloodstar_collapse",
+      "y": 270
+    }
+  }
+}

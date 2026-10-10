@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "FFF",
+    "PCP",
+    "T  "
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:firework_rocket"
+    },
+    "P": {
+      "item": "minecraft:pink_dye"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:party_popper",
+    "count": 1
+  }
+}

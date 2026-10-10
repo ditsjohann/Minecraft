@@ -7,10 +7,14 @@ import com.armageddon.block.RadioactiveBlock;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.ExperienceDroppingBlock;
+import net.minecraft.block.MagmaBlock;
 import net.minecraft.block.MapColor;
+import net.minecraft.block.TransparentBlock;
 import net.minecraft.block.PillarBlock;
 import net.minecraft.block.piston.PistonBehavior;
 import com.armageddon.item.WmdBlockItem;
+import com.armageddon.tier.Tier;
+import com.armageddon.tier.Tiers;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -69,9 +73,45 @@ public final class ModBlocks {
 	public static final BombBlock NOVA_BOMB = bomb("nova_bomb", BombType.NOVA, Rarity.EPIC);
 	public static final BombBlock OMEGA_BOMB = bomb("omega_bomb", BombType.OMEGA, Rarity.EPIC);
 
+	// ---------------------------------------------------------------- arsenal expansion: warheads
+	public static final BombBlock HELIOS_CROWN_BOMB = tiered(bomb("helios_crown_bomb", BombType.HELIOS_CROWN, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock CONTINENTAL_PULSE = tiered(bomb("continental_pulse", BombType.CONTINENTAL, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock DAWNSTAR_PAYLOAD = tiered(bomb("dawnstar_payload", BombType.DAWNSTAR, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock BLOODSTAR_COLLAPSE = tiered(bomb("bloodstar_collapse", BombType.BLOODSTAR, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock LAST_LIGHT = tiered(bomb("last_light", BombType.LAST_LIGHT, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock ZEROPOINT = tiered(bomb("zeropoint", BombType.ZEROPOINT, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock UNMAKER = tiered(bomb("unmaker", BombType.UNMAKER, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock GODFALL = tiered(bomb("godfall", BombType.GODFALL, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock FINAL_EXISTENCE = tiered(bomb("final_existence", BombType.FINAL_EXISTENCE, Rarity.EPIC), Tier.CELESTIAL);
+
+	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks
+	public static final Block ENERGY_CRYSTAL = register("energy_crystal", new TransparentBlock(AbstractBlock.Settings.create()
+			.mapColor(MapColor.PURPLE).strength(1.5F).luminance(s -> 12).nonOpaque().sounds(BlockSoundGroup.AMETHYST_BLOCK)
+			.allowsSpawning((st, w, p, t) -> false).solidBlock((st, w, p) -> false).suffocates((st, w, p) -> false).blockVision((st, w, p) -> false)), Rarity.RARE);
+	public static final Block LUMINOUS_GLASS = register("luminous_glass", new TransparentBlock(AbstractBlock.Settings.create()
+			.mapColor(MapColor.WHITE).strength(0.6F).luminance(s -> 15).nonOpaque().sounds(BlockSoundGroup.GLASS)
+			.allowsSpawning((st, w, p, t) -> false).solidBlock((st, w, p) -> false).suffocates((st, w, p) -> false).blockVision((st, w, p) -> false)), Rarity.EPIC);
+	public static final Block GOLD_FISSURE = register("gold_fissure", new MagmaBlock(AbstractBlock.Settings.create()
+			.mapColor(MapColor.GOLD).strength(1.0F).luminance(s -> 13).sounds(BlockSoundGroup.NETHER_GOLD_ORE).ticksRandomly()
+			.allowsSpawning((st, w, p, t) -> false).postProcess((st, w, p) -> true).emissiveLighting((st, w, p) -> true)), Rarity.RARE);
+	public static final Block CRIMSON_FISSURE = register("crimson_fissure", new MagmaBlock(AbstractBlock.Settings.create()
+			.mapColor(MapColor.DARK_RED).strength(1.0F).luminance(s -> 10).sounds(BlockSoundGroup.NETHERRACK).ticksRandomly()
+			.allowsSpawning((st, w, p, t) -> false).postProcess((st, w, p) -> true).emissiveLighting((st, w, p) -> true)), Rarity.EPIC);
+	public static final Block VOID_REMNANT = register("void_remnant", new Block(AbstractBlock.Settings.create()
+			.mapColor(MapColor.BLACK).strength(3.0F, 1200.0F).luminance(s -> 4).sounds(BlockSoundGroup.SCULK)
+			.emissiveLighting((st, w, p) -> true)), Rarity.EPIC);
+	public static final Block MOLTEN_CORE = register("molten_core", new MagmaBlock(AbstractBlock.Settings.create()
+			.mapColor(MapColor.ORANGE).strength(0.5F).luminance(s -> 15).sounds(BlockSoundGroup.NETHERRACK)
+			.allowsSpawning((st, w, p, t) -> false).postProcess((st, w, p) -> true).emissiveLighting((st, w, p) -> true)), Rarity.UNCOMMON);
+
+	private static BombBlock tiered(BombBlock block, Tier tier) {
+		Tiers.set(BLOCK_ITEMS.get(BLOCK_ITEMS.size() - 1), tier);
+		return block;
+	}
+
 	private static BombBlock bomb(String name, BombType type, Rarity rarity) {
 		BombBlock block = register(name, new BombBlock(type, AbstractBlock.Settings.create().mapColor(MapColor.GRAY)
-				.strength(2.0F, 1.0F).nonOpaque().sounds(BlockSoundGroup.NETHERITE).pistonBehavior(PistonBehavior.DESTROY)), rarity);
+				.strength(2.0F, type.needsConfirmation() ? 3600000.0F : 1.0F).nonOpaque().sounds(BlockSoundGroup.NETHERITE).pistonBehavior(PistonBehavior.DESTROY)), rarity);
 		BOMBS.put(type, block);
 		return block;
 	}
@@ -80,6 +120,9 @@ public final class ModBlocks {
 		Identifier id = Armageddon.id(name);
 		Registry.register(Registries.BLOCK, id, block);
 		Item item = Registry.register(Registries.ITEM, id, new WmdBlockItem(block, new Item.Settings().rarity(rarity)));
+		if (item instanceof net.minecraft.item.BlockItem bi) {
+			bi.appendBlocks(Item.BLOCK_ITEMS, item);
+		}
 		BLOCK_ITEMS.add(item);
 		return block;
 	}

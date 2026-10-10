@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/unmaker"
+    },
+    "facing=east": {
+      "model": "armageddon:block/unmaker",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/unmaker",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/unmaker",
+      "y": 270
+    }
+  }
+}

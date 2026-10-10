@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/final_existence"
+    },
+    "facing=east": {
+      "model": "armageddon:block/final_existence",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/final_existence",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/final_existence",
+      "y": 270
+    }
+  }
+}

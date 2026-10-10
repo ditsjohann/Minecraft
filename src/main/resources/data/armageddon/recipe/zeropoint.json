@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "ICI",
+    "COC",
+    "ICI"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:blue_ice"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "O": {
+      "item": "armageddon:cryo_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:zeropoint",
+    "count": 1
+  }
+}

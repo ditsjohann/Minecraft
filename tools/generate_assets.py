@@ -19,6 +19,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 import gen_textures as T  # noqa: E402
 import models as M  # noqa: E402
 import lang as L  # noqa: E402
+import arsenal_data as AD  # noqa: E402
+import tex_arsenal as TA  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src", "main", "resources")
 NS = "armageddon"
@@ -185,6 +187,16 @@ def gen_textures():
         save_png(img, os.path.join(ASSETS, "textures/item", name + ".png"))
     for name, img in T.block_textures().items():
         save_png(img, os.path.join(ASSETS, "textures/block", name + ".png"))
+    for name, img in TA.tiles().items():
+        path = os.path.join(ASSETS, "textures/item/mat", name + ".png")
+        save_png(img, path)
+        if name in TA.ANIMATED:
+            AD.anim(write_json, path, TA.ANIMATED[name])
+    for name, img in TA.blocks().items():
+        path = os.path.join(ASSETS, "textures/block", name + ".png")
+        save_png(img, path)
+        if name in TA.BLOCK_ANIMATED:
+            AD.anim(write_json, path, TA.BLOCK_ANIMATED[name])
     for name, args in {"hazmat": (0xE6C21A, 0x8AF0FF, 0x2A2A2A, 0x8AF0FF, 41, "hazmat"),
                        "juggernaut": (0x3B4148, 0x9AA3AB, 0x22262A, 0xFF8A1A, 42, "juggernaut"),
                        "thruster": (0x5A636E, 0x3AF2FF, 0x2A2D31, 0x3AF2FF, 43, "thruster"),
@@ -429,6 +441,7 @@ def gen_tags():
     mc = os.path.join(ROOT, "data", "minecraft", "tags")
     ores = [f"{NS}:{n}" for n in ("uranium_ore", "deepslate_uranium_ore", "titanium_ore", "deepslate_titanium_ore")]
     pick = ores + [f"{NS}:{n}" for n in ("uranium_block", "titanium_block", "trinitite", "reinforced_concrete", "hazard_block")] + [f"{NS}:{b}" for b in BOMBS]
+    pick += [f"{NS}:{b}" for b in AD.PICKAXE if f"{NS}:{b}" not in pick]
     tag(os.path.join(mc, "block/mineable/pickaxe.json"), pick)
     tag(os.path.join(mc, "block/mineable/shovel.json"), [f"{NS}:scorched_earth"])
     tag(os.path.join(mc, "block/mineable/axe.json"), [f"{NS}:charred_log"])
@@ -540,7 +553,8 @@ def gen_shaders():
                 {"name": "InSize", "type": "float", "count": 2, "values": [1.0, 1.0]},
                 {"name": "OutSize", "type": "float", "count": 2, "values": [1.0, 1.0]}]
     for n in ("Flash", "FlashR", "FlashG", "FlashB", "Distortion", "Radiation", "GTime", "LensX", "LensY", "LensR", "LensStrength",
-              "GodX", "GodY", "GodStrength", "GodR", "GodG", "GodB", "Ripple", "Hue"):
+              "GodX", "GodY", "GodStrength", "GodR", "GodG", "GodB", "Ripple", "Hue",
+              "Desaturate", "Whiteout", "Blackout", "Static", "Invert"):
         uniforms.append({"name": n, "type": "float", "count": 1, "values": [0.0]})
     prog = os.path.join(ROOT, "assets", "minecraft", "shaders", "program")
     write_json(os.path.join(prog, "armageddon_fx.json"), {
@@ -553,7 +567,9 @@ def gen_shaders():
 
 
 def gen_lang():
-    write_json(os.path.join(ASSETS, "lang", "en_us.json"), L.build())
+    d = L.build()
+    d.update(AD.lang())
+    write_json(os.path.join(ASSETS, "lang", "en_us.json"), d)
 
 
 def main():
@@ -568,6 +584,8 @@ def main():
     gen_worldgen()
     gen_sounds()
     gen_shaders()
+    AD.blocks(write_json, ASSETS, DATA, NS)
+    AD.recipes(shaped, shapeless)
     print("Assets generated into", ROOT)
 
 

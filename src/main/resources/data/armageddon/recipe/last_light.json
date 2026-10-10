@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "SCS",
+    "CHC",
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "item": "armageddon:solar_cell"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "H": {
+      "item": "armageddon:helios_crown_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:last_light",
+    "count": 1
+  }
+}

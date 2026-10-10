@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "SGS",
+    "GFG",
+    "SGS"
+  ],
+  "key": {
+    "S": {
+      "item": "armageddon:solar_cell"
+    },
+    "G": {
+      "item": "minecraft:gold_block"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:helios_crown_bomb",
+    "count": 1
+  }
+}

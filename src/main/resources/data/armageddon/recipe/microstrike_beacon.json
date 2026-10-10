@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " R ",
+    "PCP",
+    "PSP"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "S": {
+      "item": "armageddon:railgun_slug"
+    }
+  },
+  "result": {
+    "id": "armageddon:microstrike_beacon",
+    "count": 1
+  }
+}

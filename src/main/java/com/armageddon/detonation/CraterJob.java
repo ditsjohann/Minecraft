@@ -13,6 +13,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.chunk.WorldChunk;
 
@@ -32,7 +33,25 @@ public class CraterJob implements WorldJob {
 		/** Kills life but leaves structures standing. */
 		NEUTRON,
 		/** Vertical molten shaft (orbital strike). */
-		SHAFT
+		SHAFT,
+		/** Elongated gouge along an impact direction (converging missiles make jagged craters). */
+		DIRECTIONAL,
+		/** Smooth glassy bowl lined with a custom block (Helios Crown, Last Light). */
+		GLASSED
+	}
+
+	private Vec3d axis = new Vec3d(1, 0, 0);
+	private BlockState lining = Blocks.GLASS.getDefaultState();
+
+	public CraterJob withAxis(Vec3d direction) {
+		Vec3d flat = new Vec3d(direction.x, 0, direction.z);
+		this.axis = flat.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : flat.normalize();
+		return this;
+	}
+
+	public CraterJob withLining(BlockState lining) {
+		this.lining = lining;
+		return this;
 	}
 
 	private static final int FLAGS = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
@@ -46,6 +65,10 @@ public class CraterJob implements WorldJob {
 	private final int maxY;
 	private final int width;
 	private final long total;
+	/** Column offsets sorted by distance from the centre, so craters grow outwards. */
+	private final int[] order;
+	private final com.armageddon.destruction.ProtectedRegions regions;
+	private final boolean journal;
 	private final float s1, s2, s3;
 	private final Random random;
 	private long cursor;
@@ -72,6 +95,16 @@ public class CraterJob implements WorldJob {
 				this.minY = center.getY() - outer;
 				this.maxY = center.getY() + outer;
 			}
+			case DIRECTIONAL -> {
+				this.outer = MathHelper.ceil(radius * 2.4);
+				this.minY = center.getY() - MathHelper.ceil(radius * 0.7) - 1;
+				this.maxY = center.getY() + MathHelper.ceil(radius);
+			}
+			case GLASSED -> {
+				this.outer = MathHelper.ceil(radius + 2);
+				this.minY = center.getY() - MathHelper.ceil(radius * 0.6) - 2;
+				this.maxY = center.getY() + MathHelper.ceil(radius);
+			}
 			case SHAFT -> {
 				this.outer = MathHelper.ceil(radius + 2);
 				this.minY = center.getY() - 22;
@@ -84,7 +117,35 @@ public class CraterJob implements WorldJob {
 			}
 		}
 		this.width = outer * 2 + 1;
-		this.total = (long) width * width;
+		this.order = sortedColumns(outer);
+		this.total = order.length;
+		this.regions = com.armageddon.destruction.ProtectedRegions.get(world);
+		this.journal = world.getGameRules().getBoolean(com.armageddon.registry.ModGameRules.RECORD_RESTORE);
+	}
+
+	/** Packs (dx,dz) pairs within the circle into an array sorted by distance. */
+	static int[] sortedColumns(int outer) {
+		int w = outer * 2 + 1;
+		long r2 = (long) outer * outer;
+		long[] keyed = new long[w * w];
+		int n = 0;
+		for (int dz = -outer; dz <= outer; dz++) {
+			for (int dx = -outer; dx <= outer; dx++) {
+				long d2 = (long) dx * dx + (long) dz * dz;
+				if (d2 > r2) {
+					continue;
+				}
+				int packed = ((dx + 32768) << 16) | (dz + 32768);
+				keyed[n++] = (d2 << 32) | (packed & 0xFFFFFFFFL);
+			}
+		}
+		long[] trimmed = java.util.Arrays.copyOf(keyed, n);
+		java.util.Arrays.sort(trimmed);
+		int[] out = new int[n];
+		for (int i = 0; i < n; i++) {
+			out[i] = (int) trimmed[i];
+		}
+		return out;
 	}
 
 	@Override
@@ -103,14 +164,12 @@ public class CraterJob implements WorldJob {
 		int bottom = Math.max(minY, world.getBottomY());
 		int top = Math.min(maxY, world.getTopY() - 1);
 		while (budget > 0 && cursor < total) {
-			int dx = (int) (cursor % width) - outer;
-			int dz = (int) (cursor / width) - outer;
+			int packed = order[(int) cursor];
+			int dx = (packed >>> 16) - 32768;
+			int dz = (packed & 0xFFFF) - 32768;
 			cursor++;
 			budget--;
 			double h2 = dx * dx + dz * dz;
-			if (h2 > (double) outer * outer) {
-				continue;
-			}
 			int x = center.getX() + dx;
 			int z = center.getZ() + dz;
 			if (!world.isChunkLoaded(x >> 4, z >> 4)) {
@@ -148,6 +207,8 @@ public class CraterJob implements WorldJob {
 			case CRYO -> cryo(state, dy, h2);
 			case NEUTRON -> neutron(state, dy, h2);
 			case SHAFT -> shaft(state, dy, h2, theta);
+			case DIRECTIONAL -> directional(state, dx, dy, dz, theta);
+			case GLASSED -> glassed(state, dy, h2, theta);
 		}
 	}
 
@@ -221,6 +282,34 @@ public class CraterJob implements WorldJob {
 		if (severity > 0.2F && isExposed() && state.isOpaqueFullCube(world, pos)) {
 			maybeFire(0.04F * severity);
 		}
+	}
+
+	private void directional(BlockState state, int dx, int dy, int dz, double theta) {
+		double along = dx * axis.x + dz * axis.z;
+		double perp = -dx * axis.z + dz * axis.x;
+		double r = radius * (1.0 + 0.2 * noise(theta, dy * 0.3));
+		double e = Math.sqrt(sq(along / 2.2) + sq(perp / 0.9) + sq(dy < 0 ? dy / 0.6 : dy * 0.8));
+		if (e < r) {
+			set(Blocks.AIR.getDefaultState());
+		} else if (e < r * 1.25 && dy <= 0 && isExposed() && state.isOpaqueFullCube(world, pos) && random.nextFloat() < 0.6F) {
+			set(ModBlocks.SCORCHED_EARTH.getDefaultState());
+			maybeFire(0.05F);
+		}
+	}
+
+	private void glassed(BlockState state, int dy, double h2, double theta) {
+		double vy = dy < 0 ? dy / 0.6 : dy * 0.8;
+		double dist = Math.sqrt(h2 + vy * vy);
+		double r = radius * (1.0 + 0.04 * noise(theta, dy * 0.2));
+		if (dist < r) {
+			set(Blocks.AIR.getDefaultState());
+		} else if (dist < r + 1.6 && dy <= 1 && state.isOpaqueFullCube(world, pos)) {
+			set(lining);
+		}
+	}
+
+	private static double sq(double v) {
+		return v * v;
 	}
 
 	private void antimatter(BlockState state, int dy, double h2, double theta) {
@@ -336,6 +425,12 @@ public class CraterJob implements WorldJob {
 	}
 
 	private void set(BlockState state) {
+		if (!regions.isEmpty() && regions.isProtected(pos)) {
+			return;
+		}
+		if (journal) {
+			com.armageddon.destruction.Destruction.record(world, pos, world.getBlockState(pos));
+		}
 		world.setBlockState(pos, state, FLAGS);
 	}
 }

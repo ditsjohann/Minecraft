@@ -46,6 +46,8 @@ public class BlackHoleEntity extends Entity {
 	private static final TrackedData<Long> START = DataTracker.registerData(BlackHoleEntity.class, TrackedDataHandlerRegistry.LONG);
 
 	private boolean ripBlocks;
+	/** Max blocks this hole may tear out (Integer.MAX_VALUE = unlimited). */
+	private int blockBudget = Integer.MAX_VALUE;
 	@Nullable
 	private Entity owner;
 
@@ -55,7 +57,11 @@ public class BlackHoleEntity extends Entity {
 		this.setNoGravity(true);
 	}
 
-	public static void spawn(ServerWorld world, Vec3d pos, float radius, int lifetime, boolean ripBlocks, @Nullable Entity owner) {
+	public static void spawn(ServerWorld world, Vec3d pos, float radius, int lifetime, boolean ripBlocks, @Nullable Entity owner, int blockBudget) {
+		spawn(world, pos, radius, lifetime, ripBlocks, owner).blockBudget = blockBudget;
+	}
+
+	public static BlackHoleEntity spawn(ServerWorld world, Vec3d pos, float radius, int lifetime, boolean ripBlocks, @Nullable Entity owner) {
 		BlackHoleEntity e = new BlackHoleEntity(ModEntities.BLACK_HOLE, world);
 		e.setPosition(pos.x, pos.y, pos.z);
 		e.dataTracker.set(RADIUS, radius);
@@ -65,6 +71,7 @@ public class BlackHoleEntity extends Entity {
 		e.owner = owner;
 		world.spawnEntity(e);
 		world.playSound(null, pos.x, pos.y, pos.z, ModSounds.BLACK_HOLE, SoundCategory.BLOCKS, 2.0F + radius * 0.4F, 0.5F);
+		return e;
 	}
 
 	@Override
@@ -195,6 +202,9 @@ public class BlackHoleEntity extends Entity {
 			}
 			if (!state.getFluidState().isEmpty()) {
 				world.setBlockState(p, net.minecraft.block.Blocks.AIR.getDefaultState());
+				continue;
+			}
+			if (blockBudget-- <= 0 || com.armageddon.destruction.Destruction.isProtected(world, p)) {
 				continue;
 			}
 			FallingBlockEntity falling = FallingBlockEntity.spawnFromBlock(world, p.toImmutable(), state);

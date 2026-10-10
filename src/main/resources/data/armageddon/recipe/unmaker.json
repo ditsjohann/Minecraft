@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "RCR",
+    "CAC",
+    "RCR"
+  ],
+  "key": {
+    "R": {
+      "item": "armageddon:rift_shard"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "A": {
+      "item": "armageddon:antimatter_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:unmaker",
+    "count": 1
+  }
+}

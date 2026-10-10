@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "RGR",
+    "CSC",
+    "PTP"
+  ],
+  "key": {
+    "R": {
+      "item": "armageddon:rift_shard"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "S": {
+      "item": "armageddon:singularity_core"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:reality_shear_projector",
+    "count": 1
+  }
+}

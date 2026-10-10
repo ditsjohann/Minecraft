@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RNR",
+    "SUS",
+    "RNR"
+  ],
+  "key": {
+    "R": {
+      "item": "armageddon:rift_shard"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "S": {
+      "item": "armageddon:singularity_core"
+    },
+    "U": {
+      "item": "armageddon:solar_cell"
+    }
+  },
+  "result": {
+    "id": "armageddon:celestial_core",
+    "count": 1
+  }
+}

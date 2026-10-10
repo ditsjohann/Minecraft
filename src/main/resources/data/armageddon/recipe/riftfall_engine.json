@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "RRR",
+    "RSR",
+    "CNC"
+  ],
+  "key": {
+    "R": {
+      "item": "armageddon:rift_shard"
+    },
+    "S": {
+      "item": "armageddon:singularity_core"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "id": "armageddon:riftfall_engine",
+    "count": 1
+  }
+}

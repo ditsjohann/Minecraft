@@ -2,6 +2,7 @@ package com.armageddon.block;
 
 import com.armageddon.detonation.Detonations;
 import com.armageddon.entity.StarEntity;
+import com.armageddon.event.EventEntity;
 import com.armageddon.entity.StrikeMarkerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.world.ServerWorld;
@@ -22,7 +23,17 @@ public enum BombType {
 	BASS_DROP(60, 0xFF40FF),
 	CLUSTER(160, 0xFFAA22),
 	NOVA(200, 0xFFD040),
-	OMEGA(300, 0xFF2020);
+	OMEGA(300, 0xFF2020),
+	// Arsenal expansion: event-driven warheads.
+	HELIOS_CROWN(100, 0xFFB000),
+	CONTINENTAL(120, 0xFFA020),
+	DAWNSTAR(120, 0xFFD040),
+	BLOODSTAR(200, 0xFF2020),
+	LAST_LIGHT(200, 0xFFFFFF),
+	ZEROPOINT(200, 0x60F0FF),
+	UNMAKER(200, 0xE0E0FF),
+	GODFALL(200, 0xFFE8A0),
+	FINAL_EXISTENCE(400, 0xFF40FF);
 
 	public final int fuse;
 	public final int color;
@@ -34,6 +45,16 @@ public enum BombType {
 
 	public boolean isStrategic() {
 		return this.ordinal() >= NEUTRON.ordinal();
+	}
+
+	/** Celestial warheads are world events. */
+	public boolean isCelestial() {
+		return this.ordinal() >= LAST_LIGHT.ordinal();
+	}
+
+	/** Must be lit twice (and are immune to redstone and chain detonation). */
+	public boolean needsConfirmation() {
+		return this == BLOODSTAR || isCelestial();
 	}
 
 	public void detonate(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
@@ -51,6 +72,8 @@ public enum BombType {
 			case CLUSTER -> Detonations.clusterNuke(world, pos, cause);
 			case NOVA -> StarEntity.spawn(world, pos, cause);
 			case OMEGA -> StrikeMarkerEntity.spawn(world, pos, StrikeMarkerEntity.OMEGA, cause);
+			default -> EventEntity.start(world, pos, name().toLowerCase(java.util.Locale.ROOT), cause,
+					nbt -> nbt.putFloat("Yaw", cause != null ? cause.getYaw() : 0.0F));
 		}
 	}
 

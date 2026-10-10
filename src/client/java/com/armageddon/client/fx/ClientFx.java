@@ -64,6 +64,8 @@ public final class ClientFx {
 	}
 
 	public static void clear() {
+		java.util.Arrays.fill(SCREEN, 0);
+		java.util.Arrays.fill(SCREEN_HOLD, 0);
 		EFFECTS.clear();
 		DELAYED.clear();
 		flash = 0;
@@ -103,6 +105,22 @@ public final class ClientFx {
 		}
 	}
 
+	public static float cameraYaw() {
+		return MinecraftClient.getInstance().gameRenderer.getCamera().getYaw();
+	}
+
+	/** World-event screen grading: 0 desaturate, 1 white-out, 2 black-out, 3 static, 4 invert. */
+	public static final float[] SCREEN = new float[5];
+	private static final int[] SCREEN_HOLD = new int[5];
+
+	public static void screen(int kind, float strength, int hold) {
+		if (kind < 0 || kind >= SCREEN.length) {
+			return;
+		}
+		SCREEN[kind] = Math.max(SCREEN[kind], MathHelper.clamp(strength, 0.0F, 1.0F));
+		SCREEN_HOLD[kind] = Math.max(SCREEN_HOLD[kind], hold);
+	}
+
 	public static void add(FxEffect effect) {
 		if (EFFECTS.size() < 512) {
 			EFFECTS.add(effect);
@@ -113,7 +131,7 @@ public final class ClientFx {
 		DELAYED.add(new Delayed(clock + Math.max(0, ticks), action));
 	}
 
-	private static Vec3d cameraPos() {
+	public static Vec3d cameraPos() {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		return mc.gameRenderer.getCamera().getPos();
 	}
@@ -140,7 +158,7 @@ public final class ClientFx {
 		mc.getSoundManager().play(new PositionedSoundInstance(sound, SoundCategory.BLOCKS, volume, pitch, RANDOM, at.x, at.y, at.z));
 	}
 
-	private static void playGlobal(SoundEvent sound, float volume, float pitch) {
+	public static void playGlobal(SoundEvent sound, float volume, float pitch) {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		mc.getSoundManager().play(new PositionedSoundInstance(sound.getId(), SoundCategory.BLOCKS, volume, pitch, RANDOM,
 				false, 0, SoundInstance.AttenuationType.NONE, 0, 0, 0, true));
@@ -282,6 +300,49 @@ public final class ClientFx {
 				add(new Effects.Ring(a, s, 0xA08060, 20, 1.0, true));
 				distortion = Math.max(distortion, 0.3F);
 			}
+			case FxType.STEAM -> ArsenalEffects.steam(world, a, s);
+			case FxType.GLITCH -> add(new ArsenalEffects.Glitch(a, s, p.color(), p.seed(), p.duration()));
+			case FxType.ORB -> add(new ArsenalEffects.Orb(a, s, p.p1(), p.color(), (int) p.p2(), p.duration()));
+			case FxType.BUBBLE -> add(new ArsenalEffects.Bubble(a, s, p.color(), p.duration()));
+			case FxType.CAGE -> add(new ArsenalEffects.Cage(a, s, p.color(), p.duration()));
+			case FxType.GRID -> add(new ArsenalEffects.Grid(a, b, s, p.color(), (int) p.p2(), p.duration()));
+			case FxType.PORTAL -> add(new ArsenalEffects.Portal(a, b, s, p.color(), p.duration()));
+			case FxType.SKY_CRACK -> {
+				add(new ArsenalEffects.SkyCrack(a, s, p.color(), (int) p.p2(), p.seed(), p.duration()));
+				skyFlash(4);
+				playGlobal(SoundEvents.BLOCK_GLASS_BREAK, 1.0F, 0.3F);
+			}
+			case FxType.CRYSTAL -> add(new ArsenalEffects.Crystal(a, b, s, p.color(), p.duration()));
+			case FxType.PAINT -> {
+				if (p.color() == -1) {
+					for (FxEffect e : EFFECTS) {
+						if (e instanceof ArsenalEffects.Paint paint && paint.c.distanceTo(a) < s + paint.r) {
+							paint.washed = true;
+						}
+					}
+				} else {
+					add(new ArsenalEffects.Paint(world, a, s, p.color(), p.seed(), p.duration()));
+				}
+			}
+			case FxType.FIREWORK -> ArsenalEffects.firework(world, a, s, p.seed(), p.color());
+			case FxType.HOLOGRAM -> add(new ArsenalEffects.Hologram(a, s, p.color(), p.seed(), p.duration()));
+			case FxType.MIRROR -> add(new ArsenalEffects.Mirror(a, s, p.color(), p.seed(), p.duration()));
+			case FxType.SOUNDWAVE -> add(new ArsenalEffects.Soundwave(a, b, s, p.color(), p.p1()));
+			case FxType.SCREEN -> screen(p.seed(), s, p.duration());
+			case FxType.LAYERED_BLAST -> ArsenalEffects.layeredBlast(world, a, s, p.color());
+			case FxType.WIREBOX -> add(new ArsenalEffects.Wirebox(a, b, p.color(), p.duration()));
+			case FxType.STREAK -> add(new ArsenalEffects.Streak(a, b, s, p.color(), p.duration()));
+			case FxType.PILLAR -> add(new InsaneEffects.Pillar(a, s, Math.max(2, p.duration()), p.color(), p.p2() > 0));
+			case FxType.DOME -> add(new InsaneEffects.Dome(a, s, Math.max(2, p.duration()), p.color()));
+			case FxType.RING -> add(new Effects.Ring(a, s, p.color(), Math.max(2, p.duration()), Math.max(0.2, p.p1()), p.p2() > 0));
+			case FxType.SPIRAL -> add(new ArsenalEffects.Spiral(a, s, p.p1(), p.color(), p.duration()));
+			case FxType.CHARGE -> add(new ArsenalEffects.Charge(p.seed(), a, s, p.color(), p.duration()));
+			case FxType.SKY_TINT -> tintSky(p.color(), s);
+			case FxType.LIGHT -> light(a, s, p.color());
+			case FxType.FLASH -> flash(a, Math.max(16, p.p1()), s, p.color());
+			case FxType.SLICE -> add(new ArsenalEffects.Slice(a, b, s, p.p1(), p.color(), p.duration()));
+			case FxType.WARNING -> add(new ArsenalEffects.Warning(a, p.seed()));
+			case FxType.GRAVITY_FLIP -> add(new ArsenalEffects.GravityFlip(a, s, p.duration()));
 			default -> {
 			}
 		}
@@ -405,6 +466,16 @@ public final class ClientFx {
 		if (!EFFECTS_PENDING.isEmpty()) {
 			EFFECTS.addAll(EFFECTS_PENDING);
 			EFFECTS_PENDING.clear();
+		}
+		for (int k = 0; k < SCREEN.length; k++) {
+			if (SCREEN_HOLD[k] > 0) {
+				SCREEN_HOLD[k]--;
+			} else {
+				SCREEN[k] *= 0.9F;
+				if (SCREEN[k] < 0.005F) {
+					SCREEN[k] = 0;
+				}
+			}
 		}
 		hue *= 0.9F;
 		if (hue < 0.01F) {

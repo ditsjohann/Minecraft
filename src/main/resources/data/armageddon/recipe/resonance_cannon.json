@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "AAP",
+    "BFC",
+    "T  "
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_block"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "B": {
+      "item": "minecraft:bell"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:resonance_cannon",
+    "count": 1
+  }
+}

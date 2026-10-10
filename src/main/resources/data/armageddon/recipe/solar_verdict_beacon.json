@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SSS",
+    "SBS",
+    "CFC"
+  ],
+  "key": {
+    "S": {
+      "item": "armageddon:solar_cell"
+    },
+    "B": {
+      "item": "minecraft:beacon"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:solar_verdict_beacon",
+    "count": 1
+  }
+}

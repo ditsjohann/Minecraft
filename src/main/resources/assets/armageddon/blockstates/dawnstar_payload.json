@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/dawnstar_payload"
+    },
+    "facing=east": {
+      "model": "armageddon:block/dawnstar_payload",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/dawnstar_payload",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/dawnstar_payload",
+      "y": 270
+    }
+  }
+}

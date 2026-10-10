@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "TGT",
+    "GBG",
+    "TGT"
+  ],
+  "key": {
+    "T": {
+      "item": "armageddon:tectonic_bomb"
+    },
+    "G": {
+      "item": "minecraft:gold_block"
+    },
+    "B": {
+      "item": "armageddon:atomic_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:continental_pulse",
+    "count": 1
+  }
+}

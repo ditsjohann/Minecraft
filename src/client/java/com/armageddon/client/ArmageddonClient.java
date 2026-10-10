@@ -46,12 +46,15 @@ public class ArmageddonClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.FALLOUT_CLOUD, EmptyEntityRenderer::new);
 		EntityRendererRegistry.register(ModEntities.STRIKE_MARKER, EmptyEntityRenderer::new);
 		EntityRendererRegistry.register(ModEntities.STAR, StarRenderer::new);
+		EntityRendererRegistry.register(ModEntities.DEVOURER, com.armageddon.client.render.DevourerRenderer::new);
+		EntityRendererRegistry.register(ModEntities.WORLD_EVENT, EmptyEntityRenderer::new);
 
 		ModelLoadingPlugin.register(ctx -> ctx.addModels(
 				ProjectileModelRenderer.ROCKET_MODEL, ProjectileModelRenderer.MINI_NUKE_MODEL, ProjectileModelRenderer.BOMBLET_MODEL,
 				ProjectileModelRenderer.METEOR_MODEL, ProjectileModelRenderer.ROD_MODEL));
 
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getTranslucent(), ModBlocks.BOMBS.values().toArray(new Block[0]));
+		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getTranslucent(), ModBlocks.ENERGY_CRYSTAL, ModBlocks.LUMINOUS_GLASS);
 
 		ClientPlayNetworking.registerGlobalReceiver(FxPayload.ID, (payload, context) -> ClientFx.handle(payload));
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientFx.clear());

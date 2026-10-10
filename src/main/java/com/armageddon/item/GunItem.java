@@ -262,4 +262,9 @@ public abstract class GunItem extends Item {
 				.formatted(Formatting.AQUA));
 		tooltip.add(Text.translatable("tooltip.armageddon.trigger." + trigger.name().toLowerCase()).formatted(Formatting.DARK_AQUA));
 	}
+
+	@Override
+	public Text getName(ItemStack stack) {
+		return Tooltips.name(this, super.getName(stack));
+	}
 }

@@ -766,3 +766,13 @@ GUNS.update(INSANE_GUNS)
 MELEE.update(INSANE_MELEE)
 SMALL.update(INSANE_SMALL)
 BOMBS.update(INSANE_BOMBS)
+
+
+# =========================================================================== arsenal expansion
+import models_arsenal as _ARSENAL  # noqa: E402
+
+GLOW |= _ARSENAL.GLOW
+GUNS.update(_ARSENAL.GUNS)
+MELEE.update(_ARSENAL.MELEE)
+SMALL.update(_ARSENAL.SMALL)
+BOMBS.update(_ARSENAL.BOMBS)

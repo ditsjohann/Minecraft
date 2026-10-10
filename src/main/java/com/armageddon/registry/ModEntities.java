@@ -2,6 +2,7 @@ package com.armageddon.registry;
 
 import com.armageddon.Armageddon;
 import com.armageddon.entity.BlackHoleEntity;
+import com.armageddon.entity.DevourerEntity;
 import com.armageddon.entity.FalloutCloudEntity;
 import com.armageddon.entity.PrimedBombEntity;
 import com.armageddon.entity.StarEntity;
@@ -42,6 +43,13 @@ public final class ModEntities {
 	public static final EntityType<StarEntity> STAR = register("star",
 			EntityType.Builder.<StarEntity>create(StarEntity::new, SpawnGroup.MISC)
 					.dimensions(2.0F, 2.0F).maxTrackingRange(32).trackingTickInterval(2).makeFireImmune());
+
+	public static final EntityType<DevourerEntity> DEVOURER = register("devourer",
+			EntityType.Builder.<DevourerEntity>create(DevourerEntity::new, SpawnGroup.MISC)
+					.dimensions(1.0F, 1.0F).maxTrackingRange(24).trackingTickInterval(2).makeFireImmune());
+	public static final EntityType<com.armageddon.event.EventEntity> WORLD_EVENT = register("world_event",
+			EntityType.Builder.<com.armageddon.event.EventEntity>create(com.armageddon.event.EventEntity::new, SpawnGroup.MISC)
+					.dimensions(0.5F, 0.5F).maxTrackingRange(16).trackingTickInterval(40).makeFireImmune());
 
 	private static <T extends Entity> EntityType<T> register(String name, EntityType.Builder<T> builder) {
 		return Registry.register(Registries.ENTITY_TYPE, Armageddon.id(name), builder.build(Armageddon.id(name).toString()));

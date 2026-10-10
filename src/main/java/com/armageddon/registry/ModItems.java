@@ -4,6 +4,8 @@ import com.armageddon.Armageddon;
 import com.armageddon.entity.ProjectileKind;
 import com.armageddon.entity.StrikeMarkerEntity;
 import com.armageddon.item.*;
+import com.armageddon.tier.Tier;
+import com.armageddon.tier.Tiers;
 import net.minecraft.block.Block;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ArmorMaterial;
@@ -116,6 +118,77 @@ public final class ModItems {
 	public static final Item RAD_X = register("rad_x", new ConsumableItem(new Item.Settings(), ConsumableItem.Kind.RAD_X));
 	public static final Item NANO_MEDKIT = register("nano_medkit", new ConsumableItem(new Item.Settings().rarity(Rarity.UNCOMMON), ConsumableItem.Kind.MEDKIT));
 
+	// ================================================================ ARSENAL EXPANSION
+	// ---------------------------------------------------------------- support gear & ammunition
+	public static final Item SOLAR_CELL = tier(register("solar_cell", new WmdItem(new Item.Settings().maxCount(16), true)), Tier.RARE);
+	public static final Item RIFT_SHARD = tier(register("rift_shard", new WmdItem(new Item.Settings(), true)), Tier.EPIC);
+	public static final Item CELESTIAL_CORE = tier(register("celestial_core", new WmdItem(new Item.Settings().maxCount(1).fireproof(), true)), Tier.CELESTIAL);
+	public static final Item WARDEN_WAND = tier(register("warden_wand", new WardenWandItem(new Item.Settings())), Tier.RARE);
+
+	// ---------------------------------------------------------------- uncommon: chaos, no casualties
+	public static final Item PARTY_POPPER = tier(register("party_popper", new LauncherItem(new Item.Settings(),
+			() -> net.minecraft.item.Items.FIREWORK_ROCKET, 6, 8, 30, ProjectileKind.PARTY_ROCKET, 1.6F, 2.0F, 0.1, false,
+			() -> net.minecraft.sound.SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH)), Tier.UNCOMMON);
+	public static final Item BOUNCE_BOMB = tier(register("bounce_bomb", new GrenadeItem(new Item.Settings(), ProjectileKind.BOUNCE_BOMB)), Tier.UNCOMMON);
+	public static final Item LOOT_TORNADO = tier(register("loot_tornado", new GrenadeItem(new Item.Settings(), ProjectileKind.LOOT_TORNADO)), Tier.UNCOMMON);
+	public static final Item MOONWALK_MINE = tier(register("moonwalk_mine", new GrenadeItem(new Item.Settings(), ProjectileKind.MOONWALK_MINE)), Tier.UNCOMMON);
+	public static final Item SNOW_GLOBE_GRENADE = tier(register("snow_globe_grenade", new GrenadeItem(new Item.Settings(), ProjectileKind.SNOW_GLOBE)), Tier.UNCOMMON);
+	public static final Item SLIMEQUAKE_BOMB = tier(register("slimequake_bomb", new GrenadeItem(new Item.Settings(), ProjectileKind.SLIMEQUAKE)), Tier.UNCOMMON);
+	public static final Item HOLOGRAM_BOMB = tier(register("hologram_bomb", new GrenadeItem(new Item.Settings(), ProjectileKind.HOLOGRAM)), Tier.UNCOMMON);
+	public static final Item MAGNET_MAYHEM = tier(register("magnet_mayhem", new GrenadeItem(new Item.Settings(), ProjectileKind.MAGNET)), Tier.UNCOMMON);
+	public static final Item AIRHORN_CANNON = tier(register("airhorn_cannon", new AirhornItem(new Item.Settings())), Tier.UNCOMMON);
+	public static final Item RAINBOW_PAINT_BOMB = tier(register("rainbow_paint_bomb", new GrenadeItem(new Item.Settings(), ProjectileKind.PAINT_BOMB)), Tier.UNCOMMON);
+
+	// ---------------------------------------------------------------- rare: tactical control
+	public static final Item SHATTERFROST_BOMB = tier(register("shatterfrost_bomb", new GrenadeItem(new Item.Settings(), ProjectileKind.SHATTERFROST)), Tier.RARE);
+	public static final Item ARCFLASH_CHARGE = tier(register("arcflash_charge", new GrenadeItem(new Item.Settings(), ProjectileKind.ARCFLASH)), Tier.RARE);
+	public static final Item SEISMIC_PULSE_MINE = tier(register("seismic_pulse_mine", new GrenadeItem(new Item.Settings(), ProjectileKind.SEISMIC_MINE)), Tier.RARE);
+	public static final Item IMPLOSION_GRENADE = tier(register("implosion_grenade", new GrenadeItem(new Item.Settings(), ProjectileKind.IMPLOSION)), Tier.RARE);
+	public static final Item MICROSTRIKE_BEACON = tier(register("microstrike_beacon", new CallerItem(new Item.Settings().maxDamage(16),
+			160, 200, false, Strikes::microstrike)), Tier.RARE);
+	public static final Item PLASMA_BOOMERANG = tier(register("plasma_boomerang", new BoomerangItem(new Item.Settings())), Tier.RARE);
+	public static final Item GRAVITY_TETHER_GUN = tier(register("gravity_tether_gun", new TetherItem(new Item.Settings())), Tier.RARE);
+	public static final Item ION_FOG_CANISTER = tier(register("ion_fog_canister", new GrenadeItem(new Item.Settings(), ProjectileKind.ION_FOG)), Tier.RARE);
+	public static final Item STASIS_MINE = tier(register("stasis_mine", new GrenadeItem(new Item.Settings(), ProjectileKind.STASIS)), Tier.RARE);
+	public static final Item EMP_DISRUPTOR = tier(register("emp_disruptor", new GrenadeItem(new Item.Settings(), ProjectileKind.EMP)), Tier.RARE);
+
+	// ---------------------------------------------------------------- epic: experimental physics
+	public static final Item ANTIMATTER_LANCE = tier(register("antimatter_lance", new AntimatterLanceItem(new Item.Settings().fireproof())), Tier.EPIC);
+	public static final Item CATACLYSM_MORTAR = tier(register("cataclysm_mortar", new LauncherItem(new Item.Settings().fireproof(),
+			() -> ROCKET, 1, 50, 40, ProjectileKind.MORTAR, 1.6F, 0.5F, 0.4, false, () -> ModSounds.NUKE_LAUNCH)), Tier.EPIC);
+	public static final Item QUANTUM_FRACTURE_BOMB = tier(register("quantum_fracture_bomb", new GrenadeItem(new Item.Settings(), ProjectileKind.QUANTUM)), Tier.EPIC);
+	public static final Item RIFT_BORER = tier(register("rift_borer", new RiftBorerItem(new Item.Settings().fireproof())), Tier.EPIC);
+	public static final Item CRYSTAL_CATACLYSM = tier(register("crystal_cataclysm", new GrenadeItem(new Item.Settings(), ProjectileKind.CRYSTAL_SEED)), Tier.EPIC);
+	public static final Item VOIDSTORM_GENERATOR = tier(register("voidstorm_generator", new GrenadeItem(new Item.Settings(), ProjectileKind.VOIDSTORM)), Tier.EPIC);
+	public static final Item SIEGEBREAKER_ARRAY = tier(register("siegebreaker_array", new CallerItem(new Item.Settings().maxDamage(24).fireproof(),
+			192, 160, false, Strikes::siegebreaker)), Tier.EPIC);
+	public static final Item MICRO_EVENT_HORIZON = tier(register("micro_event_horizon", new GrenadeItem(new Item.Settings(), ProjectileKind.MICRO_HORIZON)), Tier.EPIC);
+	public static final Item RESONANCE_CANNON = tier(register("resonance_cannon", new ResonanceCannonItem(new Item.Settings())), Tier.EPIC);
+	public static final Item MIRROR_DIMENSION_BOMB = tier(register("mirror_dimension_bomb", new GrenadeItem(new Item.Settings(), ProjectileKind.MIRROR)), Tier.EPIC);
+
+	// ---------------------------------------------------------------- legendary: superweapons
+	public static final Item SOLSTICE_SUNLANCE = tier(register("solstice_sunlance", new SunlanceItem(new Item.Settings().fireproof())), Tier.LEGENDARY);
+	public static final Item WORLDSPLITTER_HAMMER = tier(register("worldsplitter_hammer", new WorldsplitterItem(ModMaterials.PLASMA,
+			new Item.Settings().fireproof().attributeModifiers(SwordItem.createAttributeModifiers(ModMaterials.PLASMA, 14, -3.3F)))), Tier.LEGENDARY);
+	public static final Item SOLAR_VERDICT_BEACON = tier(register("solar_verdict_beacon", new CallerItem(new Item.Settings().maxDamage(8).fireproof(),
+			256, 600, false, CallerItem.event("solar_verdict"))), Tier.LEGENDARY);
+	public static final Item TITANFALL_WARHEAD = tier(register("titanfall_warhead", new CallerItem(new Item.Settings().maxDamage(8).fireproof(),
+			256, 400, false, Strikes::titanfall)), Tier.LEGENDARY);
+	public static final Item MIDAS_CASCADE = tier(register("midas_cascade", new LauncherItem(new Item.Settings().fireproof(),
+			() -> net.minecraft.item.Items.GOLD_BLOCK, 1, 80, 40, ProjectileKind.MIDAS, 1.4F, 0.0F, 0.6, false, () -> ModSounds.PLASMA_FIRE)), Tier.LEGENDARY);
+	public static final Item REALITY_SHEAR_PROJECTOR = tier(register("reality_shear_projector", new CallerItem(new Item.Settings().maxDamage(8).fireproof(),
+			128, 600, true, CallerItem.event("reality_shear"))), Tier.LEGENDARY);
+	public static final Item JUDGMENT_ENGINE = tier(register("judgment_engine", new JudgmentEngineItem(new Item.Settings().fireproof())), Tier.LEGENDARY);
+
+	// ---------------------------------------------------------------- mythic: catastrophes
+	public static final Item RIFTFALL_ENGINE = tier(register("riftfall_engine", new CallerItem(new Item.Settings().maxDamage(4).fireproof(),
+			384, 1200, true, CallerItem.event("riftfall"))), Tier.MYTHIC);
+	public static final Item APOCALYPSE_SPINDLE = tier(register("apocalypse_spindle", new CallerItem(new Item.Settings().maxDamage(4).fireproof(),
+			384, 1200, true, CallerItem.event("spindle"))), Tier.MYTHIC);
+	public static final Item DEVOURER_CORE = tier(register("devourer_core", new GrenadeItem(new Item.Settings().fireproof(), ProjectileKind.DEVOURER)), Tier.MYTHIC);
+	public static final Item EXTINCTION_CHOIR = tier(register("extinction_choir", new CallerItem(new Item.Settings().maxDamage(4).fireproof(),
+			384, 1200, true, CallerItem.event("extinction"))), Tier.MYTHIC);
+
 	// ---------------------------------------------------------------- armour
 	public static final Item HAZMAT_HELMET = armor("hazmat_helmet", ModMaterials.HAZMAT, ArmorItem.Type.HELMET, 20, "hazmat", Rarity.UNCOMMON);
 	public static final Item HAZMAT_SUIT = armor("hazmat_suit", ModMaterials.HAZMAT, ArmorItem.Type.CHESTPLATE, 20, "hazmat", Rarity.UNCOMMON);
@@ -130,6 +203,10 @@ public final class ModItems {
 
 	private static Item armor(String name, RegistryEntry<ArmorMaterial> material, ArmorItem.Type type, int durability, String set, Rarity rarity) {
 		return register(name, new WmdArmorItem(material, type, new Item.Settings().rarity(rarity).maxDamage(type.getMaxDamage(durability)), set));
+	}
+
+	private static <T extends Item> T tier(T item, Tier tier) {
+		return Tiers.set(item, tier);
 	}
 
 	private static <T extends Item> T register(String name, T item) {

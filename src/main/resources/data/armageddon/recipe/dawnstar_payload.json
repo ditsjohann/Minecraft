@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "SGS",
+    "GNG",
+    "SGS"
+  ],
+  "key": {
+    "S": {
+      "item": "armageddon:solar_cell"
+    },
+    "G": {
+      "item": "minecraft:gold_block"
+    },
+    "N": {
+      "item": "armageddon:nova_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:dawnstar_payload",
+    "count": 1
+  }
+}

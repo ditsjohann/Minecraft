@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SSG",
+    "MFC",
+    " PP"
+  ],
+  "key": {
+    "S": {
+      "item": "armageddon:solar_cell"
+    },
+    "G": {
+      "item": "minecraft:gold_block"
+    },
+    "M": {
+      "item": "armageddon:minigun"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    }
+  },
+  "result": {
+    "id": "armageddon:judgment_engine",
+    "count": 1
+  }
+}
