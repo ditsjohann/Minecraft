@@ -21,7 +21,7 @@ import net.minecraft.world.chunk.WorldChunk;
  * cylinder and spends a per-tick "budget" of block checks, so even a 50-block-radius crater
  * is carved smoothly over a few seconds without a lag spike.
  */
-public class CraterJob {
+public class CraterJob implements WorldJob {
 	public enum Mode {
 		/** Bowl crater, vaporised core, scorched/glassed rim, fires, flattened forest. */
 		NUKE,
@@ -87,11 +87,18 @@ public class CraterJob {
 		this.total = (long) width * width;
 	}
 
+	@Override
+	public ServerWorld world() {
+		return world;
+	}
+
+	@Override
 	public boolean isDone() {
 		return cursor >= total;
 	}
 
 	/** Processes columns until the budget is spent. Returns the remaining budget. */
+	@Override
 	public int step(int budget) {
 		int bottom = Math.max(minY, world.getBottomY());
 		int top = Math.min(maxY, world.getTopY() - 1);

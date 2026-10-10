@@ -33,6 +33,10 @@ public class EnergyBoltRenderer extends EntityRenderer<WmdProjectileEntity> {
 				color = 0xA040FF;
 				size = 0.8;
 			}
+			case BFG -> {
+				color = 0x5AFF3A;
+				size = 1.4;
+			}
 			default -> {
 				color = 0x40FFE0;
 				size = 0.3;
@@ -50,6 +54,13 @@ public class EnergyBoltRenderer extends EntityRenderer<WmdProjectileEntity> {
 		if (v.lengthSquared() > 0.01) {
 			Vec3d eye = this.dispatcher.camera.getPos().subtract(entity.getLerpedPos(tickDelta));
 			FxDraw.beam(vc, m, c, c.subtract(v.multiply(1.6)), eye, size * 0.9, color, 0.7F);
+		}
+		if (kind == ProjectileKind.BFG) {
+			float spin = (entity.age + tickDelta) * 0.15F;
+			Vec3d r1 = new Vec3d(Math.cos(spin), 0, Math.sin(spin));
+			Vec3d r2 = new Vec3d(0, 1, 0);
+			FxDraw.ring(vc, m, c, r1, r2, size * 1.6, size * 2.0, 0xB0FF90, 0.0F, 0.8F, 0.0F, 32);
+			FxDraw.ring(vc, m, c, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), size * 2.2, size * 2.6, color, 0.0F, 0.6F, 0.0F, 32);
 		}
 		if (kind == ProjectileKind.SINGULARITY) {
 			VertexConsumer dark = consumers.getBuffer(FxRenderLayers.VOID);

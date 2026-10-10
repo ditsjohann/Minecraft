@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/nova_bomb"
+    },
+    "facing=east": {
+      "model": "armageddon:block/nova_bomb",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/nova_bomb",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/nova_bomb",
+      "y": 270
+    }
+  }
+}

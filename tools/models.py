@@ -570,3 +570,199 @@ BOMBS = {
     "singularity_bomb": singularity_bomb, "neutron_bomb": neutron_bomb, "atomic_bomb": atomic_bomb,
     "antimatter_bomb": antimatter_bomb, "hydrogen_bomb": hydrogen_bomb,
 }
+
+
+# =========================================================================== INSANE TIER
+
+RAINBOW = ["glow_red", "glow_orange", "glow_green", "glow_cyan", "glow_blue", "glow_purple", "glow_magenta"]
+
+
+def dubstep_gun():
+    m = [B(4, 7, 2, 12, 14, 18, "carbon")]
+    m += [B(3.8, 8, 5, 4, 13, 15, "speaker"), B(12, 8, 5, 12.2, 13, 15, "speaker")]
+    m += [B(4.5, 7.5, 1, 11.5, 13.5, 2, "speaker")]
+    m += ring_z(8, 10.5, 0, 1, 3.6, 4.4, "glow_magenta")
+    m += [B(6, 8.5, -4, 10, 12.5, 0, "chrome"), B(5.5, 8, -5, 10.5, 13, -4, "glow_cyan")]
+    for i, mat in enumerate(RAINBOW):
+        h = [2, 4, 3, 5, 3.5, 2.5, 4.5][i]
+        m += [B(5 + i * 0.85, 14, 6 + i * 1.4, 5.7 + i * 0.85, 14 + h, 7 + i * 1.4, mat)]
+    m += [B(6, 14, 3, 10, 15, 4, "gunmetal"), B(6, 14, 16, 10, 15, 17, "gunmetal")]
+    m += [grip(8, 7, 15)]
+    m += [B(6.5, 6, 18, 9.5, 12, 24, "carbon"), B(6, 5, 24, 10, 12.5, 25, "glow_magenta")]
+    return m, (8, 4, 15)
+
+
+def death_ray():
+    m = [B(6, 7, 4, 10, 12, 20, "white"), B(5.9, 9, 6, 6, 11, 18, "glow_red"), B(10, 9, 6, 10.1, 11, 18, "glow_red")]
+    m += cyl_z(8, 9.5, -10, 4, 1.4, "chrome")
+    for z in (-8, -5, -2, 1):
+        m += ring_z(8, 9.5, z, z + 0.8, 1.5, 2.3, "glow_red")
+    m += [B(7.2, 8.7, -11, 8.8, 10.3, -10, "glow_white")]
+    m += [B(6.5, 12, 6, 9.5, 15, 14, "glass_magenta"), B(7, 12.5, 7, 9, 14.5, 13, "glow_red")]
+    m += [B(4.5, 8, 10, 6, 11, 16, "vent"), B(10, 8, 10, 11.5, 11, 16, "vent")]
+    m += [B(7, 4, 8, 9, 7, 12, "glow_orange")]
+    m += [grip(8, 7, 16)]
+    m += [B(7, 7, 20, 9, 11, 26, "white"), B(6.5, 6, 26, 9.5, 11.5, 27, "red")]
+    return m, (8, 4, 16)
+
+
+def apocalypse_gatling():
+    m = []
+    for k in range(6):
+        a = math.radians(k * 60)
+        bx, by = 8 + 3.4 * math.cos(a), 10.5 + 3.4 * math.sin(a)
+        m += [B(bx - 1.1, by - 1.1, -12, bx + 1.1, by + 1.1, 8, "gunmetal"), B(bx - 1.2, by - 1.2, -12.5, bx + 1.2, by + 1.2, -11.5, "hazard")]
+    m += [B(7, 9.5, -11, 9, 11.5, 8, "glow_green")]
+    for z in (-9, -3, 3):
+        m += ring_z(8, 10.5, z, z + 1.2, 4.5, 5.6, "fatman")
+    m += [B(2.5, 5, 8, 13.5, 16, 19, "olive"), B(2.4, 4.9, 13, 13.6, 16.1, 14, "hazard")]
+    m += cyl_z(8, 2, 9, 18, 3.6, "fatman") + [B(5.8, -1.8, 12, 10.2, -1.6, 15, "radiation")]
+    m += [B(7, 16, 10, 9, 19, 12, "rubber"), B(5, 18, 8, 11, 19, 16, "rubber")]
+    m += [B(2.4, 10, 16, 2.5, 12, 18, "glow_green"), B(13.5, 10, 16, 13.6, 12, 18, "glow_green")]
+    m += [grip(8, 5, 19, length=5)]
+    return m, (8, 2, 19)
+
+
+def annihilator_cannon():
+    m = [B(3, 5, 0, 13, 15, 18, "gunmetal")]
+    m += [B(4, 6, -1, 12, 14, 0, "glow_green"), B(5.5, 7.5, -1.2, 10.5, 12.5, -1, "glow_white")]
+    m += ring_z(8, 10, -2, -1, 4.5, 5.6, "chrome")
+    for z in (3, 7, 11):
+        m += [B(2.8, 7, z, 3, 13, z + 2, "glow_green"), B(13, 7, z, 13.2, 13, z + 2, "glow_green")]
+    m += [B(5, 15, 4, 11, 16, 14, "vent"), B(7, 16, 6, 9, 18.5, 8, "rubber"), B(7, 16, 11, 9, 18.5, 13, "rubber"), B(7, 18, 6, 9, 18.5, 13, "rubber")]
+    m += [B(2.9, 5.5, 14, 13.1, 14.5, 15, "hazard")]
+    m += [grip(8, 5, 14)]
+    m += [B(6, 6, 18, 10, 13, 24, "gunmetal")]
+    return m, (8, 2, 14)
+
+
+def kinetic_designator():
+    m = [B(4, 6, 2, 12, 12, 14, "titanium")]
+    m += cyl_z(8, 9, 0.3, 2, 2.2, "black") + [B(6, 7, 0.2, 10, 11, 0.3, "glow_white")]
+    m += [B(5, 12, 4, 11, 13, 12, "gunmetal"), B(7.2, 13, 3, 8.8, 14.6, 13, "chrome"), B(7.5, 13.2, 1.5, 8.5, 14.4, 3, "copper")]
+    m += [B(5, 7, 14, 11, 11, 14.2, "screen")]
+    m += [B(3.8, 8, 4, 4, 10, 12, "yellow"), B(12, 8, 4, 12.2, 10, 12, "yellow")]
+    m += [B(7, 2, 8, 9, 6, 11, "rubber")]
+    return m, (8, 3, 9.5)
+
+
+def meteor_staff():
+    m = [B(7.3, -8, 7.3, 8.7, 18, 8.7, "black")]
+    for y in (-6, 2, 10):
+        m += [B(7, y, 7, 9, y + 1, 9, "glow_orange")]
+    m += [B(5.5, 17, 7.5, 6.5, 22, 8.5, "black"), B(9.5, 17, 7.5, 10.5, 22, 8.5, "black"),
+          B(7.5, 17, 5.5, 8.5, 22, 6.5, "black"), B(7.5, 17, 9.5, 8.5, 22, 10.5, "black")]
+    m += ball(8, 24, 8, 3.2, "rock")
+    m += [B(6, 22, 5.6, 7, 26, 5.7, "glow_orange"), B(9, 23, 10.3, 10, 26, 10.4, "glow_orange"), B(10.3, 22, 7, 10.4, 25, 9, "glow_orange")]
+    m += [B(3.5, 23.6, 3.5, 12.5, 24.4, 12.5, "glow_orange", ("y", 45, [8, 24, 8]))]
+    return m, (8, 2, 8)
+
+
+def airstrike_beacon():
+    return [B(6, 1, 6, 10, 11, 10, "red"), B(6.5, 11, 6.5, 9.5, 12, 9.5, "black"), B(7, 12, 7, 9, 14, 9, "glow_red"),
+            B(5.9, 4, 5.9, 10.1, 6, 10.1, "hazard"), B(9.5, 9, 7.5, 10.5, 16, 8.5, "steel"), B(9.3, 16, 7.3, 10.7, 17, 8.7, "glow_red"),
+            B(6.5, 7, 5.8, 9.5, 9, 6, "screen_red")]
+
+
+def nuke_barrage():
+    return [B(2, 1, 4, 14, 4, 12, "black"), B(2, 4, 11, 14, 13, 12, "black"), B(3, 5, 10.9, 13, 12, 11, "screen_red"),
+            B(3, 4, 5, 13, 4.2, 10, "gunmetal"), B(6.5, 4.2, 6, 9.5, 5.5, 9, "glow_red"), B(6, 4.1, 5.5, 10, 4.3, 9.5, "hazard"),
+            B(6, 1, 3, 10, 2.5, 4, "gunmetal"), B(4, 7, 10.8, 7, 10, 10.9, "radiation")]
+
+
+def city_capsule():
+    m = [B(4, 1, 4, 12, 2, 12, "gunmetal"), B(4, 13, 4, 12, 14, 12, "gunmetal")]
+    m += [B(5, 2, 5, 7, 9, 7, "white"), B(8, 2, 5, 11, 12, 8, "glass_cyan"), B(5, 2, 8, 8, 6, 11, "yellow"), B(9, 2, 9, 11, 8, 11, "white")]
+    m += [B(8.8, 12, 6.3, 9.2, 13, 6.7, "glow_red")]
+    m += [B(3.8, 2, 3.8, 12.2, 13, 12.2, "glass_cyan")]
+    return m
+
+
+def overdrive_stim():
+    return [B(7, 2, 7, 9, 12, 9, "glass_magenta"), B(7.3, 3, 7.3, 8.7, 11, 8.7, "glow_magenta"),
+            B(6, 12, 6, 10, 13.5, 10, "gunmetal"), B(7.6, 0, 7.6, 8.4, 2, 8.4, "chrome"), B(7.5, 13.5, 7.5, 8.5, 15.5, 8.5, "glow_red")]
+
+
+INSANE_GUNS = {"dubstep_gun": dubstep_gun, "death_ray": death_ray, "apocalypse_gatling": apocalypse_gatling,
+               "annihilator_cannon": annihilator_cannon, "kinetic_designator": kinetic_designator}
+INSANE_MELEE = {"meteor_staff": meteor_staff}
+INSANE_SMALL = {"airstrike_beacon": airstrike_beacon, "nuke_barrage": nuke_barrage, "city_capsule": city_capsule,
+                "overdrive_stim": overdrive_stim}
+
+
+def tectonic_bomb():
+    m = [B(1, 0, 1, 15, 1, 15, "gunmetal")]
+    m += [B(7, -4, 7, 9, 2, 9, "chrome")]
+    m += cyl_y(8, 8, 1, 10, 4.5, "yellow")
+    m += [B(3.3, 4, 3.3, 12.7, 5, 12.7, "hazard"), B(3.4, 7, 3.4, 12.6, 8, 12.6, "black")]
+    m += [B(6, 10, 6, 10, 14, 10, "gunmetal"), B(6.5, 14, 6.5, 9.5, 15, 9.5, "glow_orange")]
+    for (x, z) in ((1.5, 1.5), (13, 1.5), (1.5, 13), (13, 13)):
+        m += [B(x, 1, z, x + 1.5, 6, z + 1.5, "steel")]
+    m += [B(3.6, 2, 7, 3.7, 6, 9, "vent"), B(12.3, 2, 7, 12.4, 6, 9, "vent")]
+    return m
+
+
+def bass_drop_bomb():
+    m = [B(1, 0, 1, 15, 15, 15, "carbon")]
+    m += [B(2, 2, 0.9, 14, 14, 1, "speaker"), B(2, 2, 15, 14, 14, 15.1, "speaker"),
+          B(0.9, 2, 2, 1, 14, 14, "speaker"), B(15, 2, 2, 15.1, 14, 14, "speaker")]
+    edges = [(0.6, 0.6), (14.6, 0.6), (0.6, 14.6), (14.6, 14.6)]
+    for i, (x, z) in enumerate(edges):
+        m += [B(x, 0, z, x + 0.8, 15, z + 0.8, RAINBOW[i * 2 % 7])]
+    m += [B(1, 15, 1, 15, 15.6, 15, "glow_magenta"), B(5, 15.6, 5, 11, 16, 11, "glow_cyan")]
+    return m
+
+
+def cluster_nuke():
+    m = [B(1, 0, 1, 15, 3, 15, "olive"), B(0.9, 1, 0.9, 15.1, 2, 15.1, "hazard")]
+    for (x, z) in ((4, 4), (12, 4), (4, 12), (12, 12)):
+        m += cyl_y(x, z, 3, 11, 2.4, "olive")
+        m += [B(x - 1.6, 11, z - 1.6, x + 1.6, 13, z + 1.6, "fatman"), B(x - 0.8, 13, z - 0.8, x + 0.8, 14.5, z + 0.8, "red")]
+    m += [B(6.5, 3, 6.5, 9.5, 9, 9.5, "gunmetal"), B(7, 9, 7, 9, 10, 9, "glow_red")]
+    return m
+
+
+def nova_bomb():
+    m = [B(1, 0, 1, 15, 2, 15, "gunmetal"), B(1, 14, 1, 15, 15.5, 15, "gunmetal")]
+    for (x, z) in ((1, 1), (13.5, 1), (1, 13.5), (13.5, 13.5)):
+        m += [B(x, 2, z, x + 1.5, 14, z + 1.5, "fatman")]
+    m += ball(8, 8, 8, 3.6, "glow_orange")
+    m += [B(3.5, 3, 3.5, 12.5, 13, 12.5, "glass_cyan")]
+    m += [B(2.5, 7.6, 2.5, 13.5, 8.4, 13.5, "glow_white"), B(7.6, 2.5, 2.5, 8.4, 13.5, 13.5, "glow_white")]
+    return m
+
+
+def omega_bomb():
+    m = [B(0, 0, 0, 16, 2, 16, "hazard"), B(2, 2, 2, 14, 16, 14, "black")]
+    for y in (4, 8, 12):
+        m += [B(1.8, y, 1.8, 14.2, y + 0.6, 14.2, "glow_red")]
+    m += [B(7.5, 2, 1.9, 8.5, 16, 2, "glow_red"), B(7.5, 2, 14, 8.5, 16, 14.1, "glow_red"),
+          B(1.9, 2, 7.5, 2, 16, 8.5, "glow_red"), B(14, 2, 7.5, 14.1, 16, 8.5, "glow_red")]
+    m += [B(5, 16, 5, 11, 16.5, 11, "glow_white"), B(5.5, 6, 1.8, 10.5, 11, 1.9, "radiation")]
+    return m
+
+
+INSANE_BOMBS = {"tectonic_bomb": tectonic_bomb, "bass_drop_bomb": bass_drop_bomb, "cluster_nuke": cluster_nuke,
+                "nova_bomb": nova_bomb, "omega_bomb": omega_bomb}
+
+
+def entity_meteor():
+    m = ball(8, 8, 8, 4.5, "rock")
+    m += [B(3.6, 6, 6, 3.7, 10, 9, "glow_orange"), B(12.3, 7, 5, 12.4, 9, 11, "glow_orange"),
+          B(6, 12.3, 6, 10, 12.4, 8, "glow_orange"), B(7, 3.6, 7, 9, 3.7, 11, "glow_orange")]
+    return m
+
+
+def entity_rod():
+    m = cyl_x(8, 8, -6, 22, 1.1, "chrome")
+    m += [B(22, 7.3, 7.3, 24, 8.7, 8.7, "copper")]
+    m += [B(-6, 5.5, 7.6, -2, 10.5, 8.4, "gunmetal"), B(-6, 7.6, 5.5, -2, 8.4, 10.5, "gunmetal")]
+    return m
+
+
+ENTITIES["meteor"] = entity_meteor
+ENTITIES["rod"] = entity_rod
+GUNS.update(INSANE_GUNS)
+MELEE.update(INSANE_MELEE)
+SMALL.update(INSANE_SMALL)
+BOMBS.update(INSANE_BOMBS)

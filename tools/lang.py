@@ -28,6 +28,11 @@ NAMES = {
     "hazmat_helmet": "Hazmat Respirator", "hazmat_suit": "Hazmat Suit", "hazmat_leggings": "Hazmat Trousers",
     "hazmat_boots": "Hazmat Boots", "juggernaut_helmet": "Juggernaut Helm", "juggernaut_chestplate": "Juggernaut Chestplate",
     "juggernaut_leggings": "Juggernaut Greaves", "juggernaut_boots": "Juggernaut Boots", "thruster_pack": "Thruster Pack",
+    # insane tier
+    "dubstep_gun": "WUB-9000 Dubstep Gun", "death_ray": "Oblivion Death Ray", "apocalypse_gatling": "Apocalypse Gatling",
+    "annihilator_cannon": "BFG Annihilator Cannon", "meteor_staff": "Staff of Extinction", "kinetic_designator": "Rods from God Uplink",
+    "airstrike_beacon": "Airstrike Beacon", "nuke_barrage": "Nuclear Football", "city_capsule": "Test City Capsule",
+    "overdrive_stim": "Overdrive Stim", "titan_boots": "Titan Boots",
 }
 
 BLOCKS = {
@@ -38,6 +43,8 @@ BLOCKS = {
     "demolition_charge": "Demolition Charge", "thermobaric_bomb": "Thermobaric Bomb", "cryo_bomb": "Cryogenic Bomb",
     "singularity_bomb": "Singularity Bomb", "neutron_bomb": "Neutron Bomb", "atomic_bomb": "Atomic Bomb",
     "antimatter_bomb": "Antimatter Bomb", "hydrogen_bomb": "Tsar Hydrogen Bomb",
+    "tectonic_bomb": "Tectonic Earthquake Bomb", "bass_drop_bomb": "Bass Drop Bomb", "cluster_nuke": "Cluster Nuke",
+    "nova_bomb": "Nova Bomb", "omega_bomb": "OMEGA Planet Cracker",
 }
 
 DESC = {
@@ -79,6 +86,17 @@ DESC = {
     "rad_x": "Purges radiation sickness.",
     "nano_medkit": "Instant heal + regeneration.",
     "thruster_pack": "Double-tap jump to fly.",
+    "dubstep_gun": "Hold to drop the bass. Every second bar: THE DROP.",
+    "death_ray": "Continuous beam that bores tunnels and cooks everything.",
+    "apocalypse_gatling": "Spins up, then fires a stream of tactical nukes.",
+    "annihilator_cannon": "Slow orb that lashes everything nearby with lightning.",
+    "meteor_staff": "Calls down a meteor shower on the target.",
+    "kinetic_designator": "Tungsten rods from orbit. Deep holes.",
+    "airstrike_beacon": "Calls in a bomber that carpet-bombs along your aim.",
+    "nuke_barrage": "Eight tactical nukes from the sky.",
+    "city_capsule": "Use on the ground to build a city. Then destroy it.",
+    "overdrive_stim": "Strength, speed, haste, resistance. Briefly.",
+    "titan_boots": "Super jump. Landing from height creates a shockwave.",
 }
 
 BLOCK_DESC = {
@@ -93,6 +111,11 @@ BLOCK_DESC = {
     "trinitite": "Glassified sand from a nuclear blast. Mildly radioactive.",
     "uranium_block": "Glows. Warm to the touch. Do not stand on it.",
     "reinforced_concrete": "Survives the outer blast zone of a nuke.",
+    "tectonic_bomb": "Triggers an earthquake: ground heave, fissures, lava.",
+    "bass_drop_bomb": "Builds up for 5 seconds. Then the bass drops.",
+    "cluster_nuke": "Flings eight tactical nukes in a ring.",
+    "nova_bomb": "Ignites a miniature star that scorches the land, then goes supernova.",
+    "omega_bomb": "5-second charge-up. 78-block crater. Red skies. Run.",
 }
 
 EXTRA = {
@@ -124,6 +147,10 @@ EXTRA = {
     "gamerule.armageddonBlockDamage": "Armageddon: weapons damage terrain",
     "gamerule.armageddonFallout": "Armageddon: nukes leave fallout",
     "gamerule.armageddonCraterSpeed": "Armageddon: crater blocks processed per tick",
+    "tooltip.armageddon.set.titan": "Super jump + shockwave landings, no fall damage",
+    "message.armageddon.city.building": "Constructing test city...",
+    "message.armageddon.purged": "Purged %s WMD effects",
+    "entity.armageddon.star": "Nova",
 }
 
 DEATH = {
@@ -149,6 +176,8 @@ SUBTITLES = {
     "orbital.strike": "Orbital strike", "item.geiger_click": "Geiger counter clicks", "item.jetpack": "Thrusters burn",
     "item.detonator": "Detonator clicks", "item.inject": "Injector hisses", "item.equip_power_armor": "Power armour clanks",
     "item.equip_hazmat": "Hazmat suit rustles",
+    "weapon.dubstep_wub": "WUB", "weapon.dubstep_drop": "The bass drops", "weapon.death_ray": "Death ray hums",
+    "strike.jet_flyby": "Jet roars overhead", "item.titan_landing": "Titan landing",
 }
 
 

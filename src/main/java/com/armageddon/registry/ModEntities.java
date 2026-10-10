@@ -4,6 +4,7 @@ import com.armageddon.Armageddon;
 import com.armageddon.entity.BlackHoleEntity;
 import com.armageddon.entity.FalloutCloudEntity;
 import com.armageddon.entity.PrimedBombEntity;
+import com.armageddon.entity.StarEntity;
 import com.armageddon.entity.StrikeMarkerEntity;
 import com.armageddon.entity.WmdProjectileEntity;
 import net.minecraft.entity.Entity;
@@ -37,6 +38,10 @@ public final class ModEntities {
 	public static final EntityType<StrikeMarkerEntity> STRIKE_MARKER = register("strike_marker",
 			EntityType.Builder.<StrikeMarkerEntity>create(StrikeMarkerEntity::new, SpawnGroup.MISC)
 					.dimensions(0.5F, 0.5F).maxTrackingRange(16).trackingTickInterval(20).makeFireImmune());
+
+	public static final EntityType<StarEntity> STAR = register("star",
+			EntityType.Builder.<StarEntity>create(StarEntity::new, SpawnGroup.MISC)
+					.dimensions(2.0F, 2.0F).maxTrackingRange(32).trackingTickInterval(2).makeFireImmune());
 
 	private static <T extends Entity> EntityType<T> register(String name, EntityType.Builder<T> builder) {
 		return Registry.register(Registries.ENTITY_TYPE, Armageddon.id(name), builder.build(Armageddon.id(name).toString()));

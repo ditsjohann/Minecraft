@@ -172,7 +172,7 @@ def model_json(boxes, display=None, parent=None):
 MATERIAL_SPRITES = ["raw_uranium", "uranium_ingot", "enriched_uranium", "plutonium_core", "raw_titanium",
                     "titanium_ingot", "titanium_plate", "circuit_board", "fusion_core", "antimatter_cell", "singularity_core"]
 ARMOR = ["hazmat_helmet", "hazmat_suit", "hazmat_leggings", "hazmat_boots", "juggernaut_helmet", "juggernaut_chestplate",
-         "juggernaut_leggings", "juggernaut_boots", "thruster_pack"]
+         "juggernaut_leggings", "juggernaut_boots", "thruster_pack", "titan_boots"]
 SIMPLE_BLOCKS = ["uranium_ore", "deepslate_uranium_ore", "titanium_ore", "deepslate_titanium_ore", "uranium_block",
                  "titanium_block", "trinitite", "scorched_earth", "reinforced_concrete", "hazard_block"]
 BOMBS = list(M.BOMBS.keys())
@@ -187,7 +187,8 @@ def gen_textures():
         save_png(img, os.path.join(ASSETS, "textures/block", name + ".png"))
     for name, args in {"hazmat": (0xE6C21A, 0x8AF0FF, 0x2A2A2A, 0x8AF0FF, 41, "hazmat"),
                        "juggernaut": (0x3B4148, 0x9AA3AB, 0x22262A, 0xFF8A1A, 42, "juggernaut"),
-                       "thruster": (0x5A636E, 0x3AF2FF, 0x2A2D31, 0x3AF2FF, 43, "thruster")}.items():
+                       "thruster": (0x5A636E, 0x3AF2FF, 0x2A2D31, 0x3AF2FF, 43, "thruster"),
+                       "titan": (0xD8701A, 0x3AF2FF, 0x2A2D31, 0x3AF2FF, 44, "juggernaut")}.items():
         l1, l2 = T.armor_layers(*args)
         save_png(l1, os.path.join(ASSETS, "textures/models/armor", name + "_layer_1.png"))
         save_png(l2, os.path.join(ASSETS, "textures/models/armor", name + "_layer_2.png"))
@@ -382,6 +383,24 @@ def gen_recipes():
     shaped("antimatter_bomb", ["GAG", "AFA", "PCP"], {"G": "minecraft:glass", "A": "antimatter_cell", "F": "fusion_core", "P": "titanium_plate", "C": "circuit_board"}, category="redstone")
     shaped("hydrogen_bomb", ["PUP", "FAF", "PUP"], {"P": "titanium_plate", "U": "plutonium_core", "F": "fusion_core", "A": "atomic_bomb"}, category="redstone")
 
+    # Insane tier
+    shaped("dubstep_gun", ["NJN", "PCP", "T  "], {"N": "minecraft:note_block", "J": "minecraft:jukebox", "P": "titanium_plate", "C": "circuit_board", "T": Ti})
+    shaped("death_ray", ["AFA", "PCP", "T  "], {"A": "minecraft:amethyst_shard", "F": "fusion_core", "P": "titanium_plate", "C": "circuit_board", "T": Ti})
+    shaped("apocalypse_gatling", ["NNN", "MCF", "PP "], {"N": "mini_nuke", "M": "minigun", "C": "circuit_board", "F": "fusion_core", "P": "titanium_plate"})
+    shaped("annihilator_cannon", ["AEA", "PFP", "T  "], {"A": "antimatter_cell", "E": "minecraft:emerald_block", "P": "titanium_plate", "F": "fusion_core", "T": Ti})
+    shaped("meteor_staff", ["FMF", " B ", " O "], {"F": "minecraft:fire_charge", "M": "minecraft:magma_block", "B": "minecraft:blaze_rod", "O": "minecraft:obsidian"})
+    shaped("kinetic_designator", ["BBB", "CFC", "PPP"], {"B": "titanium_block", "C": "circuit_board", "F": "fusion_core", "P": "titanium_plate"})
+    shaped("airstrike_beacon", [" R ", "ICI", " T "], {"R": "minecraft:redstone_torch", "I": "minecraft:iron_ingot", "C": "circuit_board", "T": "minecraft:tnt"})
+    shaped("nuke_barrage", ["NNN", "CFC", "PUP"], {"N": "mini_nuke", "C": "circuit_board", "F": "fusion_core", "P": "titanium_plate", "U": "plutonium_core"})
+    shaped("city_capsule", ["GGG", "BCB", "SSS"], {"G": "minecraft:glass", "B": "minecraft:bricks", "C": "circuit_board", "S": "minecraft:stone"}, count=2)
+    shapeless("overdrive_stim", ["minecraft:glass_bottle", "minecraft:blaze_powder", "minecraft:sugar", "minecraft:redstone", "minecraft:glowstone_dust"], count=2)
+    shaped("titan_boots", ["PFP", "S S"], {"P": "titanium_plate", "F": "fusion_core", "S": "minecraft:slime_block"})
+    shaped("tectonic_bomb", ["TPT", "PCP", "TPT"], {"T": "minecraft:tnt", "P": "minecraft:piston", "C": "circuit_board"}, category="redstone")
+    shaped("bass_drop_bomb", ["NJN", "JTJ", "NJN"], {"N": "minecraft:note_block", "J": "minecraft:jukebox", "T": "minecraft:tnt"}, category="redstone")
+    shaped("cluster_nuke", ["MMM", "MCM", "MMM"], {"M": "mini_nuke", "C": "circuit_board"}, category="redstone")
+    shaped("nova_bomb", ["GFG", "FUF", "GFG"], {"G": "minecraft:glass", "F": "fusion_core", "U": "plutonium_core"}, category="redstone")
+    shaped("omega_bomb", ["AHA", "SCS", "AHA"], {"A": "antimatter_bomb", "H": "hydrogen_bomb", "S": "singularity_core", "C": "circuit_board"}, category="redstone")
+
 
 def gen_loot():
     lt = os.path.join(DATA, "loot_table/blocks")
@@ -495,6 +514,11 @@ SOUNDS = {
     "item.inject": [("item/bottle/fill", 1.6)],
     "item.equip_power_armor": [("item/armor/equip_netherite1", 0.8), ("item/armor/equip_netherite2", 0.8)],
     "item.equip_hazmat": [("item/armor/equip_leather1", 0.9), ("item/armor/equip_leather2", 0.9)],
+    "weapon.dubstep_wub": [("note/bass", 1.0), ("note/bassattack", 1.0)],
+    "weapon.dubstep_drop": [("mob/enderdragon/growl1", 0.5), ("random/explode1", 0.6)],
+    "weapon.death_ray": [("mob/guardian/attack_loop", 1.4)],
+    "strike.jet_flyby": [("item/elytra/elytra_loop", 0.5)],
+    "item.titan_landing": [("random/anvil_land", 0.6), ("random/explode2", 0.8)],
 }
 
 
@@ -502,7 +526,7 @@ def gen_sounds():
     out = {}
     for key, entries in SOUNDS.items():
         out[key] = {"subtitle": f"subtitles.{NS}.{key}",
-                    "sounds": [{"name": f"minecraft:{n}", "pitch": p, "attenuation_distance": 64 if key.startswith(("nuke", "bomb", "orbital", "black_hole")) else 24}
+                    "sounds": [{"name": f"minecraft:{n}", "pitch": p, "attenuation_distance": 64 if key.startswith(("nuke", "bomb", "orbital", "black_hole", "strike")) else 24}
                                for n, p in entries]}
     write_json(os.path.join(ASSETS, "sounds.json"), out)
 
@@ -515,7 +539,8 @@ def gen_shaders():
     uniforms = [{"name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]},
                 {"name": "InSize", "type": "float", "count": 2, "values": [1.0, 1.0]},
                 {"name": "OutSize", "type": "float", "count": 2, "values": [1.0, 1.0]}]
-    for n in ("Flash", "FlashR", "FlashG", "FlashB", "Distortion", "Radiation", "GTime", "LensX", "LensY", "LensR", "LensStrength"):
+    for n in ("Flash", "FlashR", "FlashG", "FlashB", "Distortion", "Radiation", "GTime", "LensX", "LensY", "LensR", "LensStrength",
+              "GodX", "GodY", "GodStrength", "GodR", "GodG", "GodB", "Ripple", "Hue"):
         uniforms.append({"name": n, "type": "float", "count": 1, "values": [0.0]})
     prog = os.path.join(ROOT, "assets", "minecraft", "shaders", "program")
     write_json(os.path.join(prog, "armageddon_fx.json"), {

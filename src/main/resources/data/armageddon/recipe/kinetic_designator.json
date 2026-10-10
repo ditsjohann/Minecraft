@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "BBB",
+    "CFC",
+    "PPP"
+  ],
+  "key": {
+    "B": {
+      "item": "armageddon:titanium_block"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    }
+  },
+  "result": {
+    "id": "armageddon:kinetic_designator",
+    "count": 1
+  }
+}

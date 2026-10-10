@@ -17,6 +17,11 @@
     "armageddon:neutron_bomb",
     "armageddon:atomic_bomb",
     "armageddon:antimatter_bomb",
-    "armageddon:hydrogen_bomb"
+    "armageddon:hydrogen_bomb",
+    "armageddon:tectonic_bomb",
+    "armageddon:bass_drop_bomb",
+    "armageddon:cluster_nuke",
+    "armageddon:nova_bomb",
+    "armageddon:omega_bomb"
   ]
 }

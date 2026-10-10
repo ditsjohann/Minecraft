@@ -25,6 +25,9 @@ public final class ModMaterials {
 	public static final RegistryEntry<ArmorMaterial> THRUSTER = armor("thruster", 3, 6, 8, 3, 8, 15, ModSounds.EQUIP_POWER_ARMOR, 2.0F, 0.0F,
 			() -> Ingredient.ofItems(ModItems.TITANIUM_PLATE));
 
+	public static final RegistryEntry<ArmorMaterial> TITAN = armor("titan", 6, 9, 10, 5, 12, 20, ModSounds.EQUIP_POWER_ARMOR, 4.0F, 0.2F,
+			() -> Ingredient.ofItems(ModItems.TITANIUM_PLATE));
+
 	public static final ToolMaterial TITANIUM = new Tool(2400, 11.0F, 4.0F, 18, BlockTags.INCORRECT_FOR_NETHERITE_TOOL,
 			() -> Ingredient.ofItems(ModItems.TITANIUM_INGOT));
 	public static final ToolMaterial PLASMA = new Tool(3600, 16.0F, 6.0F, 22, BlockTags.INCORRECT_FOR_NETHERITE_TOOL,

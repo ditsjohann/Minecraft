@@ -38,6 +38,16 @@ or a Remote Detonator. Warheads caught in an explosion detonate sympathetically.
 - Gravity Hammer — launches enemies; right-click for a seismic ground slam
 - Annihilator Plasma Blade — ignites on hit; right-click to phase-dash through enemies
 
+**Insane tier** — WUB-9000 Dubstep Gun, Oblivion Death Ray (bores tunnels), Apocalypse Gatling (fires nukes),
+BFG Annihilator Cannon, Staff of Extinction (meteor shower), Rods from God Uplink (kinetic bombardment), Airstrike
+Beacon (bomber carpet-bombs your aim line), Nuclear Football (8-nuke barrage), Titan Boots (super jump + shockwave
+landings), Overdrive Stim. Bombs: Tectonic Earthquake Bomb, Bass Drop Bomb, Cluster Nuke, Nova Bomb (mini sun →
+supernova) and the OMEGA Planet Cracker (78-block crater, blood-red sky).
+
+**Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-4]`, to build a city of
+skyscrapers, roads, street lights and parks (with villagers) to destroy. `/armageddon purge` clears fallout,
+black holes, stars, pending strikes and crater jobs.
+
 **Grenades** — Frag, Plasma (sticky), Cryo, Napalm, Gravity Well, Toxin, Pocket Nuke.
 
 **Tools & gear** — Atomic Excavator (3x3 pickaxe), Fusion Shovel (3x3), Plasma Cutter (tree feller),

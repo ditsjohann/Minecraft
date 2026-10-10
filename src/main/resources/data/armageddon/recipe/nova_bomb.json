@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "GFG",
+    "FUF",
+    "GFG"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "U": {
+      "item": "armageddon:plutonium_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:nova_bomb",
+    "count": 1
+  }
+}

@@ -31,6 +31,31 @@ public final class FxType {
 	/** Screen shake only. scale = intensity. */
 	public static final int SHAKE = 13;
 
+	/** Planet-cracker detonation: red sky, mega shock dome, double flash. scale = radius. */
+	public static final int OMEGA = 14;
+	/** Omega charge-up: light pillar + converging energy. scale = ticks. */
+	public static final int OMEGA_CHARGE = 15;
+	/** Kinetic rod impact: tall dust column + shock dome. */
+	public static final int KINETIC_IMPACT = 16;
+	/** BFG detonation: green sphere + arcs. */
+	public static final int BFG_BURST = 17;
+	/** Dubstep beam pulse from -> to. seed = beat index. scale = width. */
+	public static final int DUBSTEP_BEAM = 18;
+	/** Rhythmic rainbow bass pulse. scale = radius, seed = beat. */
+	public static final int BASS_PULSE = 19;
+	/** The drop. scale = radius. */
+	public static final int BASS_DROP = 20;
+	/** Bomber jet flying from -> to. */
+	public static final int JET_FLYOVER = 21;
+	/** Continuous death-ray segment (short-lived, refreshed every tick). */
+	public static final int DEATH_RAY = 22;
+	/** Star heat-ray from star to ground. */
+	public static final int HEAT_RAY = 23;
+	/** Supernova: star collapse + blast. scale = radius. */
+	public static final int SUPERNOVA = 24;
+	/** Earthquake rumble: shake + dust ring. scale = radius. */
+	public static final int QUAKE = 25;
+
 	private FxType() {
 	}
 }

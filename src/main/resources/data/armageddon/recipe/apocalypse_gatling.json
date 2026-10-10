@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "NNN",
+    "MCF",
+    "PP "
+  ],
+  "key": {
+    "N": {
+      "item": "armageddon:mini_nuke"
+    },
+    "M": {
+      "item": "armageddon:minigun"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    }
+  },
+  "result": {
+    "id": "armageddon:apocalypse_gatling",
+    "count": 1
+  }
+}

@@ -76,6 +76,23 @@ public final class ModItems {
 	public static final Item PLASMA_BLADE = register("plasma_blade", new PlasmaBladeItem(ModMaterials.PLASMA,
 			new Item.Settings().rarity(Rarity.EPIC).fireproof().attributeModifiers(SwordItem.createAttributeModifiers(ModMaterials.PLASMA, 6, -2.2F))));
 
+	// ---------------------------------------------------------------- insane tier
+	public static final Item DUBSTEP_GUN = register("dubstep_gun", new DubstepGunItem(new Item.Settings().rarity(Rarity.EPIC)));
+	public static final Item DEATH_RAY = register("death_ray", new DeathRayItem(new Item.Settings().rarity(Rarity.EPIC).fireproof()));
+	public static final Item APOCALYPSE_GATLING = register("apocalypse_gatling", new GatlingItem(new Item.Settings().rarity(Rarity.EPIC).fireproof()));
+	public static final Item ANNIHILATOR_CANNON = register("annihilator_cannon", new LauncherItem(new Item.Settings().rarity(Rarity.EPIC).fireproof(),
+			() -> ANTIMATTER_CELL, 1, 100, 60, ProjectileKind.BFG, 0.75F, 0.0F, 0.6, false, () -> ModSounds.BLACK_HOLE));
+	public static final Item METEOR_STAFF = register("meteor_staff", new TargetingItem(new Item.Settings().rarity(Rarity.EPIC).maxDamage(32).fireproof(),
+			StrikeMarkerEntity.METEOR, 192, 240));
+	public static final Item KINETIC_DESIGNATOR = register("kinetic_designator", new TargetingItem(new Item.Settings().rarity(Rarity.EPIC).maxDamage(16).fireproof(),
+			StrikeMarkerEntity.KINETIC, 384, 300));
+	public static final Item AIRSTRIKE_BEACON = register("airstrike_beacon", new TargetingItem(new Item.Settings().rarity(Rarity.RARE).maxDamage(16),
+			StrikeMarkerEntity.AIRSTRIKE, 256, 300));
+	public static final Item NUKE_BARRAGE = register("nuke_barrage", new TargetingItem(new Item.Settings().rarity(Rarity.EPIC).maxDamage(8).fireproof(),
+			StrikeMarkerEntity.BARRAGE, 384, 600));
+	public static final Item CITY_CAPSULE = register("city_capsule", new CityCapsuleItem(new Item.Settings().rarity(Rarity.EPIC)));
+	public static final Item OVERDRIVE_STIM = register("overdrive_stim", new ConsumableItem(new Item.Settings().rarity(Rarity.RARE), ConsumableItem.Kind.OVERDRIVE));
+
 	// ---------------------------------------------------------------- grenades
 	public static final Item FRAG_GRENADE = register("frag_grenade", new GrenadeItem(new Item.Settings(), ProjectileKind.FRAG));
 	public static final Item PLASMA_GRENADE = register("plasma_grenade", new GrenadeItem(new Item.Settings().rarity(Rarity.UNCOMMON), ProjectileKind.PLASMA_GRENADE));
@@ -109,6 +126,7 @@ public final class ModItems {
 	public static final Item JUGGERNAUT_LEGGINGS = armor("juggernaut_leggings", ModMaterials.JUGGERNAUT, ArmorItem.Type.LEGGINGS, 45, "juggernaut", Rarity.EPIC);
 	public static final Item JUGGERNAUT_BOOTS = armor("juggernaut_boots", ModMaterials.JUGGERNAUT, ArmorItem.Type.BOOTS, 45, "juggernaut", Rarity.EPIC);
 	public static final Item THRUSTER_PACK = armor("thruster_pack", ModMaterials.THRUSTER, ArmorItem.Type.CHESTPLATE, 35, "thruster", Rarity.EPIC);
+	public static final Item TITAN_BOOTS = armor("titan_boots", ModMaterials.TITAN, ArmorItem.Type.BOOTS, 40, "titan", Rarity.EPIC);
 
 	private static Item armor(String name, RegistryEntry<ArmorMaterial> material, ArmorItem.Type type, int durability, String set, Rarity rarity) {
 		return register(name, new WmdArmorItem(material, type, new Item.Settings().rarity(rarity).maxDamage(type.getMaxDamage(durability)), set));

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "AEA",
+    "PFP",
+    "T  "
+  ],
+  "key": {
+    "A": {
+      "item": "armageddon:antimatter_cell"
+    },
+    "E": {
+      "item": "minecraft:emerald_block"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:annihilator_cannon",
+    "count": 1
+  }
+}

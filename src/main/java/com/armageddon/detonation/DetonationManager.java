@@ -14,7 +14,7 @@ import java.util.List;
  * and runs short delayed actions (implosion → detonation timing, etc).
  */
 public final class DetonationManager {
-	private static final List<CraterJob> JOBS = new ArrayList<>();
+	private static final List<WorldJob> JOBS = new ArrayList<>();
 	private static final List<Delayed> DELAYED = new ArrayList<>();
 
 	private record Delayed(ServerWorld world, long at, Runnable action) {
@@ -28,7 +28,7 @@ public final class DetonationManager {
 		});
 	}
 
-	public static void add(CraterJob job) {
+	public static void add(WorldJob job) {
 		JOBS.add(job);
 	}
 
@@ -38,6 +38,14 @@ public final class DetonationManager {
 
 	public static boolean isBusy() {
 		return !JOBS.isEmpty();
+	}
+
+	/** Cancels every pending crater/city job and delayed action. */
+	public static int clear() {
+		int n = JOBS.size() + DELAYED.size();
+		JOBS.clear();
+		DELAYED.clear();
+		return n;
 	}
 
 	private static void tick(ServerWorld world) {
@@ -58,10 +66,10 @@ public final class DetonationManager {
 			return;
 		}
 		int budget = world.getGameRules().getInt(ModGameRules.CRATER_SPEED);
-		Iterator<CraterJob> it = JOBS.iterator();
+		Iterator<WorldJob> it = JOBS.iterator();
 		while (it.hasNext() && budget > 0) {
-			CraterJob job = it.next();
-			if (job.world != world) {
+			WorldJob job = it.next();
+			if (job.world() != world) {
 				continue;
 			}
 			budget = job.step(budget);

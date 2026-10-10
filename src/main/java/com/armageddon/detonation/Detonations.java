@@ -2,6 +2,9 @@ package com.armageddon.detonation;
 
 import com.armageddon.entity.BlackHoleEntity;
 import com.armageddon.entity.FalloutCloudEntity;
+import com.armageddon.entity.ProjectileKind;
+import com.armageddon.entity.WmdProjectileEntity;
+import com.armageddon.registry.ModEntities;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
@@ -12,6 +15,10 @@ import com.armageddon.registry.ModSounds;
 import com.armageddon.util.ArmorSets;
 import net.minecraft.block.AbstractFireBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.entity.FallingBlockEntity;
+import net.minecraft.world.Heightmap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.ItemEntity;
@@ -45,7 +52,14 @@ public final class Detonations {
 
 	/** Fission/fusion warhead. radius = crater radius in blocks (blast reaches ~3x). */
 	public static void nuke(ServerWorld world, Vec3d pos, @Nullable Entity cause, int radius) {
+		nuke(world, pos, cause, radius, true);
+	}
+
+	public static void nuke(ServerWorld world, Vec3d pos, @Nullable Entity cause, int radius, boolean leaveFallout) {
 		ModNetworking.sendFx(world, pos, STRATEGIC_FX_RANGE, new FxPayload(FxType.NUKE, pos, radius, 0xFFDD88));
+		if (radius >= 8) {
+			debris(world, pos, radius * 1.1, Math.min(140, radius * 3));
+		}
 		world.emitGameEvent(cause, net.minecraft.world.event.GameEvent.EXPLODE, pos);
 
 		blast(world, pos, radius * 3.2, 40.0F + radius * 5.0F, ModDamageTypes.NUCLEAR_BLAST, cause, radius * 2.4, 3.5);
@@ -54,7 +68,7 @@ public final class Detonations {
 		if (blockDamage(world)) {
 			DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(pos), radius, CraterJob.Mode.NUKE));
 		}
-		if (world.getGameRules().getBoolean(ModGameRules.FALLOUT)) {
+		if (leaveFallout && world.getGameRules().getBoolean(ModGameRules.FALLOUT)) {
 			int minutes = radius >= 40 ? 10 : radius >= 15 ? 5 : 2;
 			FalloutCloudEntity.spawn(world, pos, radius * 2.6F, 20 * 60 * minutes, radius >= 40 ? 2 : radius >= 15 ? 1 : 0);
 		}
@@ -131,6 +145,125 @@ public final class Detonations {
 		blast(world, pos, 14, 70.0F, ModDamageTypes.PLASMA, cause, 9, 2.2);
 		if (blockDamage(world)) {
 			DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(pos), 4.5F, CraterJob.Mode.SHAFT));
+		}
+	}
+
+
+	// ------------------------------------------------------------------ insane tier
+
+	/** "Planet Cracker": antimatter-boosted thermonuclear device. Called after its charge-up sequence. */
+	public static void omega(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
+		int radius = 78;
+		ModNetworking.sendFx(world, pos, 4096, new FxPayload(FxType.OMEGA, pos, radius, 0xFF3020));
+		ModNetworking.sendFx(world, pos, 4096, new FxPayload(FxType.NUKE, pos, radius, 0xFFDD88));
+		debris(world, pos, radius, 220);
+		blast(world, pos, radius * 3.5, 2000.0F, ModDamageTypes.ANNIHILATION, cause, radius * 3.0, 6.0);
+		irradiate(world, pos, radius * 4.0, 3, 2400);
+		if (blockDamage(world)) {
+			DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(pos), radius, CraterJob.Mode.NUKE));
+		}
+		if (world.getGameRules().getBoolean(ModGameRules.FALLOUT)) {
+			FalloutCloudEntity.spawn(world, pos, radius * 2.8F, 20 * 60 * 15, 3);
+		}
+	}
+
+	/** Cluster nuke: pops, then flings eight warheads that rain down in a ring. */
+	public static void clusterNuke(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
+		highExplosive(world, pos, cause, 4.0F, false);
+		world.playSound(null, pos.x, pos.y, pos.z, ModSounds.NUKE_LAUNCH, SoundCategory.BLOCKS, 10.0F, 0.6F);
+		for (int i = 0; i < 8; i++) {
+			double a = Math.PI * 2 * i / 8 + world.random.nextDouble() * 0.3;
+			double speed = 0.7 + world.random.nextDouble() * 0.5;
+			WmdProjectileEntity p = new WmdProjectileEntity(ModEntities.PROJECTILE, world);
+			p.setOwner(cause);
+			p.setKind(ProjectileKind.FALLING_NUKE);
+			p.setPosition(pos.x, pos.y + 1.5, pos.z);
+			p.setVelocity(Math.cos(a) * speed, 1.4 + world.random.nextDouble() * 0.4, Math.sin(a) * speed);
+			world.spawnEntity(p);
+		}
+		if (world.getGameRules().getBoolean(ModGameRules.FALLOUT)) {
+			FalloutCloudEntity.spawn(world, pos, 60, 20 * 60 * 5, 1);
+		}
+	}
+
+	/** Meteor strike: fiery crater, burning splatter, shockwave. */
+	public static void meteorImpact(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
+		ModNetworking.sendFx(world, pos, 512, new FxPayload(FxType.FIREBALL, pos, 6.0F, 0xFF5010));
+		ModNetworking.sendFx(world, pos, 512, new FxPayload(FxType.SHOCKWAVE, pos, 18.0F, 0xFF9050));
+		world.createExplosion(null, pos.x, pos.y, pos.z, 5.0F, true, blockDamage(world) ? World.ExplosionSourceType.TNT : World.ExplosionSourceType.NONE);
+		blast(world, pos, 10, 30.0F, ModDamageTypes.NUCLEAR_BLAST, cause, 8, 1.6);
+		if (blockDamage(world)) {
+			DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(pos), 4.5F, CraterJob.Mode.NUKE));
+			BlockPos.Mutable p = new BlockPos.Mutable();
+			for (int i = 0; i < 10; i++) {
+				p.set(pos.x + world.random.nextGaussian() * 3, pos.y - 1 - world.random.nextInt(3), pos.z + world.random.nextGaussian() * 3);
+				if (!world.getBlockState(p).isAir() && world.getBlockState(p).getHardness(world, p) >= 0) {
+					world.setBlockState(p, Blocks.MAGMA_BLOCK.getDefaultState(), Block.NOTIFY_ALL);
+				}
+			}
+		}
+		debris(world, pos, 5, 18);
+	}
+
+	/** Tungsten rod at Mach 10: deep narrow shaft, enormous shock. */
+	public static void kineticImpact(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
+		ModNetworking.sendFx(world, pos, 1024, new FxPayload(FxType.KINETIC_IMPACT, pos, 10.0F, 0xFFF0D0));
+		world.playSound(null, pos.x, pos.y, pos.z, ModSounds.ORBITAL_STRIKE, SoundCategory.BLOCKS, 10.0F, 0.6F);
+		world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 10.0F, 0.4F);
+		blast(world, pos, 22, 80.0F, ModDamageTypes.NUCLEAR_BLAST, cause, 4, 3.0);
+		if (blockDamage(world)) {
+			DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(pos), 3.0F, CraterJob.Mode.SHAFT));
+			DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(pos), 7.0F, CraterJob.Mode.NUKE));
+		}
+		debris(world, pos, 7, 40);
+	}
+
+	/** BFG orb impact: green annihilation wave that arcs to everything in range. */
+	public static void bfgBurst(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
+		ModNetworking.sendFx(world, pos, 512, new FxPayload(FxType.BFG_BURST, pos, 9.0F, 0x5AFF3A));
+		world.playSound(null, pos.x, pos.y, pos.z, ModSounds.BLACK_HOLE_COLLAPSE, SoundCategory.PLAYERS, 6.0F, 1.4F);
+		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, new Box(pos, pos).expand(24), LivingEntity::isAlive)) {
+			if (e == cause || e.getPos().distanceTo(pos) > 24) {
+				continue;
+			}
+			ModNetworking.sendFx(world, pos, 256, new FxPayload(FxType.ARC, pos, e.getPos().add(0, e.getHeight() / 2, 0), 0.2F, 0x5AFF3A, world.random.nextInt()));
+			e.timeUntilRegen = 0;
+			e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, cause), 40.0F);
+		}
+		world.createExplosion(null, pos.x, pos.y, pos.z, 6.0F, false, blockDamage(world) ? World.ExplosionSourceType.TNT : World.ExplosionSourceType.NONE);
+	}
+
+	/**
+	 * Hurls real blocks out of the ground around a blast as flying debris. Blocks come from the
+	 * terrain surface on a ring and are launched outward and upward; they land as rubble.
+	 */
+	public static void debris(ServerWorld world, Vec3d center, double radius, int count) {
+		if (!blockDamage(world)) {
+			return;
+		}
+		BlockPos.Mutable p = new BlockPos.Mutable();
+		for (int i = 0; i < count; i++) {
+			double a = world.random.nextDouble() * Math.PI * 2;
+			double r = radius * (0.8 + world.random.nextDouble() * 0.6);
+			int x = MathHelper.floor(center.x + Math.cos(a) * r);
+			int z = MathHelper.floor(center.z + Math.sin(a) * r);
+			if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+				continue;
+			}
+			int y = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
+			p.set(x, y, z);
+			BlockState state = world.getBlockState(p);
+			float hardness = state.getHardness(world, p);
+			if (state.isAir() || hardness < 0 || hardness > 20 || state.hasBlockEntity() || !state.getFluidState().isEmpty()) {
+				continue;
+			}
+			FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, p.toImmutable(), state);
+			double speed = 0.6 + world.random.nextDouble() * (0.6 + radius / 40.0);
+			fb.setVelocity(Math.cos(a) * speed, 0.8 + world.random.nextDouble() * (0.8 + radius / 50.0), Math.sin(a) * speed);
+			fb.velocityModified = true;
+			if (world.random.nextFloat() < 0.5F) {
+				fb.setDestroyedOnLanding();
+			}
 		}
 	}
 

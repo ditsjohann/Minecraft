@@ -37,6 +37,7 @@ public class Armageddon implements ModInitializer {
 		ModNetworking.init();
 		DetonationManager.init();
 		ModEvents.init();
+		ModCommands.init();
 		LOGGER.info("Armageddon Arsenal armed. {} items registered.", ModItems.ALL.size());
 	}
 }

@@ -413,5 +413,70 @@
         "attenuation_distance": 24
       }
     ]
+  },
+  "weapon.dubstep_wub": {
+    "subtitle": "subtitles.armageddon.weapon.dubstep_wub",
+    "sounds": [
+      {
+        "name": "minecraft:note/bass",
+        "pitch": 1.0,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:note/bassattack",
+        "pitch": 1.0,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.dubstep_drop": {
+    "subtitle": "subtitles.armageddon.weapon.dubstep_drop",
+    "sounds": [
+      {
+        "name": "minecraft:mob/enderdragon/growl1",
+        "pitch": 0.5,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:random/explode1",
+        "pitch": 0.6,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "weapon.death_ray": {
+    "subtitle": "subtitles.armageddon.weapon.death_ray",
+    "sounds": [
+      {
+        "name": "minecraft:mob/guardian/attack_loop",
+        "pitch": 1.4,
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "strike.jet_flyby": {
+    "subtitle": "subtitles.armageddon.strike.jet_flyby",
+    "sounds": [
+      {
+        "name": "minecraft:item/elytra/elytra_loop",
+        "pitch": 0.5,
+        "attenuation_distance": 64
+      }
+    ]
+  },
+  "item.titan_landing": {
+    "subtitle": "subtitles.armageddon.item.titan_landing",
+    "sounds": [
+      {
+        "name": "minecraft:random/anvil_land",
+        "pitch": 0.6,
+        "attenuation_distance": 24
+      },
+      {
+        "name": "minecraft:random/explode2",
+        "pitch": 0.8,
+        "attenuation_distance": 24
+      }
+    ]
   }
 }

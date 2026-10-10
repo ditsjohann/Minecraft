@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "NJN",
+    "JTJ",
+    "NJN"
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:note_block"
+    },
+    "J": {
+      "item": "minecraft:jukebox"
+    },
+    "T": {
+      "item": "minecraft:tnt"
+    }
+  },
+  "result": {
+    "id": "armageddon:bass_drop_bomb",
+    "count": 1
+  }
+}

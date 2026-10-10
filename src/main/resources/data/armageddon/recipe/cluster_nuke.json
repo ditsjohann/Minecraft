@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "MMM",
+    "MCM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "armageddon:mini_nuke"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    }
+  },
+  "result": {
+    "id": "armageddon:cluster_nuke",
+    "count": 1
+  }
+}

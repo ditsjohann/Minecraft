@@ -176,6 +176,33 @@ def mat_biohazard():
     return bevel(big.resize((16, 16), Image.LANCZOS))
 
 
+def mat_speaker():
+    img = Image.new("RGBA", (16, 16), (20, 20, 24, 255))
+    px = img.load()
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x - 7.5, y - 7.5)
+            if d < 7.5:
+                ring = int(d) % 3 == 0
+                v = 34 + int(30 * (1 - d / 7.5)) + (18 if ring else 0)
+                px[x, y] = (v, v, v + 6, 255)
+            if d < 2.2:
+                px[x, y] = (70, 70, 80, 255)
+    return bevel(img, 1.3, 0.6)
+
+
+def mat_rock():
+    img = noise_tile((62, 50, 44), 0.3, seed=77)
+    px = img.load()
+    r = random.Random(77)
+    for _ in range(4):
+        x, y = r.randint(0, 15), r.randint(0, 15)
+        for k in range(5):
+            xx, yy = (x + k) % 16, (y + r.randint(-1, 1)) % 16
+            px[xx, yy] = (255, 120 + r.randint(0, 60), 20, 255)
+    return img
+
+
 def material_tiles():
     t = {}
     t["gunmetal"] = mat_metal(0x3B4148, 1, rivets=True)
@@ -203,6 +230,8 @@ def material_tiles():
     for name, c in [("cyan", 0x3AF2FF), ("green", 0x5AFF3A), ("orange", 0xFF8A1A), ("purple", 0xA040FF),
                     ("red", 0xFF2A2A), ("blue", 0x3A8CFF), ("magenta", 0xFF3AD8), ("white", 0xFFF4E0)]:
         t["glow_" + name] = mat_glow(c, name)
+    t["speaker"] = mat_speaker()
+    t["rock"] = mat_rock()
     t["glass_cyan"] = mat_glass(0x8AF0FF)
     t["glass_magenta"] = mat_glass(0xFF8AF0, 120)
     t["glass_purple"] = mat_glass(0xB070FF, 130)
@@ -400,6 +429,7 @@ def item_sprites():
     for kind in ["helmet", "chestplate", "leggings", "boots"]:
         s["juggernaut_" + kind] = sprite_armor(kind, 0x3B4148, 0xFF8A1A, 0x9AA3AB)
     s["thruster_pack"] = sprite_armor("pack", 0x5A636E, 0x3AF2FF, 0x2A2D31)
+    s["titan_boots"] = sprite_armor("boots", 0xD8701A, 0x3AF2FF, 0x2A2D31)
     return s
 
 

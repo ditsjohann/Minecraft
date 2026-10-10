@@ -127,8 +127,11 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			splitMirv((ServerWorld) world);
 			return;
 		}
-		if (kind.isRocket() && kind != ProjectileKind.BOMBLET && kind != ProjectileKind.MINI_NUKE) {
+		if (kind == ProjectileKind.ROCKET || kind == ProjectileKind.MIRV) {
 			steer(world);
+		}
+		if (kind == ProjectileKind.BFG && this.age % 3 == 0) {
+			zapNearby((ServerWorld) world);
 		}
 		if (kind.isGrenade()) {
 			fuse--;
@@ -139,7 +142,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 				detonate(getPos(), null);
 			}
 		} else if (this.age > (kind.isEnergy() ? 120 : 600)) {
-			if (kind == ProjectileKind.SINGULARITY) {
+			if (kind == ProjectileKind.SINGULARITY || kind == ProjectileKind.BFG) {
 				detonate(getPos(), null);
 			} else {
 				discard();
@@ -179,6 +182,21 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		this.velocityDirty = true;
 	}
 
+	/** BFG orb: lashes every living thing within 12 blocks with green lightning as it flies. */
+	private void zapNearby(ServerWorld world) {
+		Entity owner = getOwner();
+		int zapped = 0;
+		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, getBoundingBox().expand(12), e -> e.isAlive() && e != owner)) {
+			if (zapped++ > 6) {
+				break;
+			}
+			Vec3d to = e.getPos().add(0, e.getHeight() * 0.5, 0);
+			ModNetworking.sendFx(world, getPos(), 160, new FxPayload(FxType.ARC, getPos(), to, 0.14F, 0x5AFF3A, random.nextInt()));
+			e.timeUntilRegen = 0;
+			e.damage(ModDamageTypes.source(world, ModDamageTypes.ELECTROCUTION, this, owner), 5.0F);
+		}
+	}
+
 	private void splitMirv(ServerWorld world) {
 		Vec3d v = getVelocity();
 		ModNetworking.sendFx(world, getPos(), 256, new FxPayload(FxType.FIREBALL, getPos(), 1.5F, 0xFFCC66));
@@ -200,7 +218,24 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		Vec3d v = getVelocity();
 		Vec3d tail = getPos().subtract(v.lengthSquared() > 1.0E-4 ? v.normalize().multiply(0.6) : Vec3d.ZERO);
 		switch (kind) {
-			case ROCKET, MIRV, MINI_NUKE, BOMBLET -> {
+			case METEOR -> {
+				for (int i = 0; i < 4; i++) {
+					w.addImportantParticle(ModParticles.NAPALM_FLAME, true, getX() + random.nextGaussian() * 0.5, getY() + random.nextGaussian() * 0.5,
+							getZ() + random.nextGaussian() * 0.5, -v.x * 0.2, -v.y * 0.2, -v.z * 0.2);
+				}
+				w.addImportantParticle(ParticleTypes.CAMPFIRE_SIGNAL_SMOKE, true, tail.x, tail.y, tail.z, 0, 0.02, 0);
+				w.addParticle(ModParticles.EMBER, getX(), getY(), getZ(), random.nextGaussian() * 0.2, random.nextGaussian() * 0.2, random.nextGaussian() * 0.2);
+			}
+			case ROD -> {
+				w.addImportantParticle(ModParticles.PLASMA_SPARK, true, getX(), getY() + 1, getZ(), random.nextGaussian() * 0.1, 0.3, random.nextGaussian() * 0.1);
+				w.addImportantParticle(ParticleTypes.CLOUD, true, getX(), getY() + 2, getZ(), 0, 0.1, 0);
+			}
+			case BFG -> {
+				for (int i = 0; i < 4; i++) {
+					w.addParticle(ModParticles.RADIATION, getX() + random.nextGaussian(), getY() + random.nextGaussian(), getZ() + random.nextGaussian(), 0, 0, 0);
+				}
+			}
+			case ROCKET, MIRV, MINI_NUKE, BOMBLET, GATLING_NUKE, FALLING_NUKE, AIR_BOMB -> {
 				w.addParticle(ParticleTypes.FLAME, tail.x, tail.y, tail.z, -v.x * 0.1, -v.y * 0.1, -v.z * 0.1);
 				w.addParticle(ModParticles.EMBER, tail.x, tail.y, tail.z, 0, 0, 0);
 				w.addImportantParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, true, tail.x, tail.y, tail.z, 0, 0.01, 0);
@@ -348,6 +383,12 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case INCENDIARY -> Detonations.incendiary(world, at, owner, 6);
 			case GRAVITY -> Detonations.singularity(world, at, owner, 2.4F, 100, false);
 			case TOXIC -> toxicCloud(world, at);
+			case METEOR -> Detonations.meteorImpact(world, at, owner);
+			case ROD -> Detonations.kineticImpact(world, at, owner);
+			case BFG -> Detonations.bfgBurst(world, at, owner);
+			case GATLING_NUKE -> Detonations.nuke(world, at, owner, 3, false);
+			case FALLING_NUKE -> Detonations.nuke(world, at, owner, 7, false);
+			case AIR_BOMB -> Detonations.highExplosive(world, at, this, 4.5F, true);
 		}
 		discard();
 	}

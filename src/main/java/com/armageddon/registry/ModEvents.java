@@ -1,12 +1,19 @@
 package com.armageddon.registry;
 
 import com.armageddon.item.GunItem;
+import com.armageddon.network.FxPayload;
+import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
 import com.armageddon.util.ArmorSets;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.Box;
 import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
@@ -43,6 +50,12 @@ public final class ModEvents {
 			if (ArmorSets.hasFullJuggernaut(entity) && (source.isIn(DamageTypeTags.IS_EXPLOSION) || source.isIn(DamageTypeTags.IS_FIRE))) {
 				return false;
 			}
+			if (source.isIn(DamageTypeTags.IS_FALL) && entity.getEquippedStack(EquipmentSlot.FEET).isOf(ModItems.TITAN_BOOTS)) {
+				if (amount >= 3.0F && entity.getWorld() instanceof ServerWorld world) {
+					titanLanding(world, entity, amount);
+				}
+				return false;
+			}
 			return true;
 		});
 	}
@@ -51,6 +64,31 @@ public final class ModEvents {
 		tickTriggers(server);
 		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
 			tickJetpack(player);
+			if (player.age % 20 == 0 && player.getEquippedStack(EquipmentSlot.FEET).isOf(ModItems.TITAN_BOOTS)) {
+				player.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 40, 3, true, false, true));
+				player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 40, 1, true, false, true));
+			}
+		}
+	}
+
+	/** Superhero landing: the harder you fall, the bigger the crater-less shockwave. */
+	private static void titanLanding(ServerWorld world, LivingEntity entity, float fallDamage) {
+		Vec3d c = entity.getPos();
+		float radius = Math.min(14.0F, 3.0F + fallDamage * 0.6F);
+		ModNetworking.sendFx(world, c, 192, new FxPayload(FxType.SHOCKWAVE, c.add(0, 0.1, 0), radius, 0xFFB050));
+		ModNetworking.sendFx(world, c, 64, new FxPayload(FxType.SHAKE, c, Math.min(2.5F, fallDamage * 0.15F), 0));
+		world.playSound(null, c.x, c.y, c.z, ModSounds.TITAN_LANDING, SoundCategory.PLAYERS, 3.0F, 0.6F);
+		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, new Box(c, c).expand(radius), x -> x != entity && x.isAlive())) {
+			Vec3d d = e.getPos().subtract(c);
+			double len = Math.max(0.5, d.length());
+			if (len > radius) {
+				continue;
+			}
+			double f = 1.0 - len / radius;
+			e.damage(entity instanceof PlayerEntity p ? world.getDamageSources().playerAttack(p) : world.getDamageSources().mobAttack(entity),
+					(float) (fallDamage * 0.8 * f + 2));
+			e.addVelocity(d.x / len * 1.6 * f, 0.6 + f, d.z / len * 1.6 * f);
+			e.velocityModified = true;
 		}
 	}
 

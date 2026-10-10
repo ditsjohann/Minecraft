@@ -16,6 +16,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 
+import org.joml.Matrix4f;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +29,8 @@ import java.util.List;
  */
 public final class ClientFx {
 	static final List<FxEffect> EFFECTS = new ArrayList<>();
+	/** Effects created while ticking other effects (avoids concurrent modification). */
+	static final List<FxEffect> EFFECTS_PENDING = new ArrayList<>();
 	private static final List<Delayed> DELAYED = new ArrayList<>();
 	private static final Random RANDOM = Random.create();
 
@@ -38,6 +42,17 @@ public final class ClientFx {
 	public static float shake;
 	/** Chromatic aberration / heat distortion strength 0..1. */
 	public static float distortion;
+	/** Rainbow hue-shift strength 0..1 (dubstep). */
+	public static float hue;
+	/** Screen-space shockwave ripple: progress 0..1 (1 = finished). */
+	public static float ripple = 1.0F;
+	/** Sky / fog tint colour and strength 0..1. */
+	public static int skyTint = 0xFF5020;
+	public static float skyTintStrength;
+	/** Brightest current light source for god rays (world space) and its strength. */
+	public static Vec3d lightPos;
+	public static float lightStrength;
+	public static int lightColor = 0xFFF0C0;
 
 	private record Delayed(int at, Runnable action) {
 	}
@@ -54,6 +69,38 @@ public final class ClientFx {
 		flash = 0;
 		shake = 0;
 		distortion = 0;
+		hue = 0;
+		ripple = 1.0F;
+		skyTintStrength = 0;
+		lightStrength = 0;
+		lightPos = null;
+	}
+
+	public static void hueKick(float amount) {
+		hue = Math.max(hue, amount);
+	}
+
+	public static void tintSky(int color, float strength) {
+		if (strength >= skyTintStrength) {
+			skyTint = color;
+			skyTintStrength = Math.min(1.0F, strength);
+		}
+	}
+
+	public static void light(Vec3d pos, float strength, int color) {
+		if (strength >= lightStrength) {
+			lightPos = pos;
+			lightStrength = Math.min(1.5F, strength);
+			lightColor = color;
+		}
+	}
+
+	/** Lightning-style sky flash. */
+	public static void skyFlash(int ticks) {
+		MinecraftClient mc = MinecraftClient.getInstance();
+		if (mc.world != null) {
+			mc.world.setLightningTicksLeft(Math.max(mc.world.getLightningTicksLeft(), ticks));
+		}
 	}
 
 	public static void add(FxEffect effect) {
@@ -164,6 +211,77 @@ public final class ClientFx {
 				burst(world, a, ModParticles.PLASMA_SPARK, (int) (14 * s), 0.25);
 			}
 			case FxType.SHAKE -> shake = Math.max(shake, s);
+			case FxType.OMEGA -> omega(world, a, s);
+			case FxType.OMEGA_CHARGE -> {
+				add(new InsaneEffects.Pillar(a, 3.0, (int) s + 10, 0xFF2030, false));
+				add(new Effects.Ring(a, 120, 0xFF2030, (int) s, 3.0, true));
+				tintSky(0x400008, 0.7F);
+				shake(a, 600, 0.6F);
+			}
+			case FxType.KINETIC_IMPACT -> {
+				add(new InsaneEffects.DustColumn(a, s));
+				add(new InsaneEffects.Dome(a, s * 4, 30, 0xFFF0D0));
+				add(new Effects.Ring(a, s * 6, 0xFFE0B0, 40, 2.0, true));
+				add(new Effects.Fireball(a, s * 0.6, 3, 16, 0xFFFFFF, 0xFF8040));
+				flash(a, 300, 0.6F, 0xFFF4E0);
+				shockArrival(a, s, 2.5F, 1.4F);
+				skyFlash(3);
+			}
+			case FxType.BFG_BURST -> {
+				add(new Effects.Fireball(a, s, 4, 30, 0xEFFFE0, 0x30FF20));
+				add(new InsaneEffects.Dome(a, s * 3, 24, 0x5AFF3A));
+				add(new Effects.Ring(a, s * 3, 0x5AFF3A, 30, 1.5, true));
+				flash(a, s * 20, 0.7F, 0xC8FFB0);
+				tintSky(0x20FF30, 0.5F);
+				light(a, 0.9F, 0x80FF60);
+				burst(world, a, ModParticles.RADIATION, 200, 1.2);
+				shake(a, s * 10, 2.0F);
+			}
+			case FxType.DUBSTEP_BEAM -> add(new InsaneEffects.DubstepBeam(a, b, s, p.seed()));
+			case FxType.BASS_PULSE -> {
+				add(new InsaneEffects.BassPulse(a, s, p.seed()));
+				hueKick(1.0F);
+				shake(a, s * 4, 1.0F);
+				ripple = 0.0F;
+				tintSky(InsaneEffects.rainbow(p.seed() * 0.13F), 0.5F);
+			}
+			case FxType.BASS_DROP -> {
+				add(new InsaneEffects.Pillar(a, 4.0, 80, 0xFFFFFF, true));
+				add(new InsaneEffects.Dome(a, s * 1.5, 40, 0xFF60FF));
+				for (int i = 0; i < 6; i++) {
+					add(new InsaneEffects.BassPulse(a, s * (0.6 + i * 0.3), i * 3));
+				}
+				add(new Effects.Fireball(a, 10, 4, 30, 0xFFFFFF, 0xFF40FF));
+				flash(a, 400, 1.0F, 0xFFD8FF);
+				hueKick(1.0F);
+				ripple = 0.0F;
+				shake(a, 300, 3.0F);
+				tintSky(0xFF40FF, 1.0F);
+				light(a.add(0, 6, 0), 1.2F, 0xFF80FF);
+				skyFlash(4);
+			}
+			case FxType.JET_FLYOVER -> add(new InsaneEffects.JetFlyover(a, b));
+			case FxType.DEATH_RAY -> {
+				FxEffect beam = new InsaneEffects.ContinuousBeam(a, b, s, p.color());
+				add(beam);
+				distortion = Math.max(distortion, 0.15F);
+			}
+			case FxType.HEAT_RAY -> {
+				add(new InsaneEffects.ContinuousBeam(a, b, s, p.color()));
+				burst(world, b, ParticleTypes.FLAME, 8, 0.2);
+			}
+			case FxType.SUPERNOVA -> {
+				add(new InsaneEffects.Supernova(a, s));
+				flash(a, 2000, 1.0F, 0xE8F0FF);
+				light(a, 1.5F, 0xE0E8FF);
+				tintSky(0x6A8CFF, 1.0F);
+				skyFlash(5);
+			}
+			case FxType.QUAKE -> {
+				shake(a, s * 4, 2.2F);
+				add(new Effects.Ring(a, s, 0xA08060, 20, 1.0, true));
+				distortion = Math.max(distortion, 0.3F);
+			}
 			default -> {
 			}
 		}
@@ -179,7 +297,59 @@ public final class ClientFx {
 		for (int i = 0; i < 4; i++) {
 			world.addImportantParticle(ParticleTypes.EXPLOSION_EMITTER, true, at.x, at.y, at.z, 0, 0, 0);
 		}
+		add(new InsaneEffects.Dome(at, radius * 7, (int) (radius * 7 / 5.0) + 10, 0xFFE8C8));
+		add(new Lightning(at, radius));
+		light(at.add(0, radius * 0.5, 0), 1.5F, 0xFFE0A0);
+		tintSky(0xFF6A20, 1.0F);
+		skyFlash(3);
 		shockArrival(at, radius, 3.5F, 1.0F);
+	}
+
+	private static void omega(ClientWorld world, Vec3d at, float radius) {
+		add(new Effects.Antimatter(at, radius));
+		add(new InsaneEffects.Dome(at, radius * 9, 70, 0xFF6060));
+		add(new InsaneEffects.Dome(at, radius * 5, 50, 0xFFFFFF));
+		add(new Effects.Ring(at, radius * 14, 0xFF4030, 110, radius * 0.6, true));
+		add(new InsaneEffects.Supernova(at.add(0, radius * 0.4, 0), radius * 0.6));
+		tintSky(0xC01008, 1.0F);
+		light(at.add(0, radius, 0), 1.5F, 0xFFC0A0);
+		flash(at, 6000, 1.0F, 0xFFFFFF);
+		skyFlash(6);
+		for (int i = 0; i < 12; i++) {
+			double a = Math.PI * 2 * i / 12;
+			add(new Effects.Arc(at.add(0, radius * 0.6, 0), at.add(Math.cos(a) * radius * 1.4, radius * (0.2 + RANDOM.nextDouble()), Math.sin(a) * radius * 1.4),
+					radius * 0.04, 0xFFD0FF, RANDOM.nextInt()));
+		}
+	}
+
+	/** Lightning tendrils crackling through a fresh fireball. */
+	private static class Lightning extends FxEffect {
+		private final Vec3d center;
+		private final double radius;
+
+		Lightning(Vec3d center, double radius) {
+			super(70);
+			this.center = center;
+			this.radius = radius;
+		}
+
+		@Override
+		public boolean tick(ClientWorld world) {
+			if (age % 4 == 0 && RANDOM.nextFloat() < 0.8F) {
+				double rise = Math.min(1.0, age / 40.0) * radius * 3;
+				Vec3d c = center.add(0, rise, 0);
+				Vec3d d = new Vec3d(RANDOM.nextGaussian(), RANDOM.nextGaussian() * 0.6, RANDOM.nextGaussian()).normalize().multiply(radius * (0.8 + RANDOM.nextDouble()));
+				EFFECTS_PENDING.add(new Effects.Arc(c, c.add(d), Math.max(0.15, radius * 0.02), 0xD8E8FF, RANDOM.nextInt()));
+				if (RANDOM.nextFloat() < 0.3F) {
+					skyFlash(2);
+				}
+			}
+			return super.tick(world);
+		}
+
+		@Override
+		public void render(Matrix4f m, net.minecraft.client.render.VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float yaw, float pitch) {
+		}
 	}
 
 	/** Shake + boom arrive later the further away you are (speed of sound ≈ 17 blocks/tick). */
@@ -189,6 +359,9 @@ public final class ClientFx {
 		float vol = (float) MathHelper.clamp(1.0 - d / (radius * 60.0), 0.08, 1.0);
 		later(delay, () -> {
 			shake = Math.max(shake, shakeStrength * (float) MathHelper.clamp(1.0 - d / (radius * 25.0), 0.05, 1.0));
+			if (d < radius * 30) {
+				ripple = 0.0F;
+			}
 			playGlobal(ModSounds.NUKE_DETONATE, vol, pitch);
 			playGlobal(SoundEvents.ENTITY_GENERIC_EXPLODE.value(), vol, 0.5F * pitch);
 		});
@@ -229,6 +402,26 @@ public final class ClientFx {
 			due.forEach(d -> d.action.run());
 		}
 		EFFECTS.removeIf(e -> !e.tick(mc.world));
+		if (!EFFECTS_PENDING.isEmpty()) {
+			EFFECTS.addAll(EFFECTS_PENDING);
+			EFFECTS_PENDING.clear();
+		}
+		hue *= 0.9F;
+		if (hue < 0.01F) {
+			hue = 0;
+		}
+		if (ripple < 1.0F) {
+			ripple = Math.min(1.0F, ripple + 0.04F);
+		}
+		skyTintStrength *= skyTintStrength > 0.5F ? 0.997F : 0.99F;
+		if (skyTintStrength < 0.01F) {
+			skyTintStrength = 0;
+		}
+		lightStrength *= 0.975F;
+		if (lightStrength < 0.02F) {
+			lightStrength = 0;
+			lightPos = null;
+		}
 
 		flash *= flash > 0.6F ? 0.95F : 0.88F;
 		if (flash < 0.003F) {

@@ -11,6 +11,7 @@ import com.armageddon.client.render.EnergyBoltRenderer;
 import com.armageddon.client.render.GrenadeRenderer;
 import com.armageddon.client.render.PrimedBombRenderer;
 import com.armageddon.client.render.ProjectileModelRenderer;
+import com.armageddon.client.render.StarRenderer;
 import com.armageddon.network.FxPayload;
 import com.armageddon.registry.ModBlocks;
 import com.armageddon.registry.ModEntities;
@@ -44,9 +45,11 @@ public class ArmageddonClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.BLACK_HOLE, BlackHoleRenderer::new);
 		EntityRendererRegistry.register(ModEntities.FALLOUT_CLOUD, EmptyEntityRenderer::new);
 		EntityRendererRegistry.register(ModEntities.STRIKE_MARKER, EmptyEntityRenderer::new);
+		EntityRendererRegistry.register(ModEntities.STAR, StarRenderer::new);
 
 		ModelLoadingPlugin.register(ctx -> ctx.addModels(
-				ProjectileModelRenderer.ROCKET_MODEL, ProjectileModelRenderer.MINI_NUKE_MODEL, ProjectileModelRenderer.BOMBLET_MODEL));
+				ProjectileModelRenderer.ROCKET_MODEL, ProjectileModelRenderer.MINI_NUKE_MODEL, ProjectileModelRenderer.BOMBLET_MODEL,
+				ProjectileModelRenderer.METEOR_MODEL, ProjectileModelRenderer.ROD_MODEL));
 
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getTranslucent(), ModBlocks.BOMBS.values().toArray(new Block[0]));
 

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PFP",
+    "S S"
+  ],
+  "key": {
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "S": {
+      "item": "minecraft:slime_block"
+    }
+  },
+  "result": {
+    "id": "armageddon:titan_boots",
+    "count": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "NNN",
+    "CFC",
+    "PUP"
+  ],
+  "key": {
+    "N": {
+      "item": "armageddon:mini_nuke"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "U": {
+      "item": "armageddon:plutonium_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:nuke_barrage",
+    "count": 1
+  }
+}

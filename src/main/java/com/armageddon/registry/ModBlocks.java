@@ -63,6 +63,11 @@ public final class ModBlocks {
 	public static final BombBlock ATOMIC_BOMB = bomb("atomic_bomb", BombType.ATOMIC, Rarity.RARE);
 	public static final BombBlock ANTIMATTER_BOMB = bomb("antimatter_bomb", BombType.ANTIMATTER, Rarity.EPIC);
 	public static final BombBlock HYDROGEN_BOMB = bomb("hydrogen_bomb", BombType.HYDROGEN, Rarity.EPIC);
+	public static final BombBlock TECTONIC_BOMB = bomb("tectonic_bomb", BombType.TECTONIC, Rarity.RARE);
+	public static final BombBlock BASS_DROP_BOMB = bomb("bass_drop_bomb", BombType.BASS_DROP, Rarity.EPIC);
+	public static final BombBlock CLUSTER_NUKE = bomb("cluster_nuke", BombType.CLUSTER, Rarity.EPIC);
+	public static final BombBlock NOVA_BOMB = bomb("nova_bomb", BombType.NOVA, Rarity.EPIC);
+	public static final BombBlock OMEGA_BOMB = bomb("omega_bomb", BombType.OMEGA, Rarity.EPIC);
 
 	private static BombBlock bomb(String name, BombType type, Rarity rarity) {
 		BombBlock block = register(name, new BombBlock(type, AbstractBlock.Settings.create().mapColor(MapColor.GRAY)

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "TPT",
+    "PCP",
+    "TPT"
+  ],
+  "key": {
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    }
+  },
+  "result": {
+    "id": "armageddon:tectonic_bomb",
+    "count": 1
+  }
+}

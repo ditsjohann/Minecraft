@@ -1,6 +1,8 @@
 package com.armageddon.block;
 
 import com.armageddon.detonation.Detonations;
+import com.armageddon.entity.StarEntity;
+import com.armageddon.entity.StrikeMarkerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
@@ -15,7 +17,12 @@ public enum BombType {
 	NEUTRON(160, 0x66FF44),
 	ATOMIC(200, 0xFFDD55),
 	ANTIMATTER(200, 0xEE66FF),
-	HYDROGEN(300, 0xFFFFFF);
+	HYDROGEN(300, 0xFFFFFF),
+	TECTONIC(120, 0xA08060),
+	BASS_DROP(60, 0xFF40FF),
+	CLUSTER(160, 0xFFAA22),
+	NOVA(200, 0xFFD040),
+	OMEGA(300, 0xFF2020);
 
 	public final int fuse;
 	public final int color;
@@ -39,6 +46,11 @@ public enum BombType {
 			case ATOMIC -> Detonations.nuke(world, pos, cause, 26);
 			case ANTIMATTER -> Detonations.antimatter(world, pos, cause, 30);
 			case HYDROGEN -> Detonations.nuke(world, pos, cause, 52);
+			case TECTONIC -> StrikeMarkerEntity.spawn(world, pos, StrikeMarkerEntity.TECTONIC, cause);
+			case BASS_DROP -> StrikeMarkerEntity.spawn(world, pos, StrikeMarkerEntity.BASS_DROP, cause);
+			case CLUSTER -> Detonations.clusterNuke(world, pos, cause);
+			case NOVA -> StarEntity.spawn(world, pos, cause);
+			case OMEGA -> StrikeMarkerEntity.spawn(world, pos, StrikeMarkerEntity.OMEGA, cause);
 		}
 	}
 

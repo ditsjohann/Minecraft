@@ -37,6 +37,11 @@ public final class ModSounds {
 	public static final SoundEvent INJECT = register("item.inject");
 	public static final SoundEvent ANTIMATTER = register("bomb.antimatter");
 	public static final SoundEvent FREEZE = register("bomb.freeze");
+	public static final SoundEvent DUBSTEP_WUB = register("weapon.dubstep_wub");
+	public static final SoundEvent DUBSTEP_DROP = register("weapon.dubstep_drop");
+	public static final SoundEvent DEATH_RAY = register("weapon.death_ray");
+	public static final SoundEvent JET_FLYBY = register("strike.jet_flyby");
+	public static final SoundEvent TITAN_LANDING = register("item.titan_landing");
 
 	public static final RegistryEntry<SoundEvent> EQUIP_POWER_ARMOR = registerEntry("item.equip_power_armor");
 	public static final RegistryEntry<SoundEvent> EQUIP_HAZMAT = registerEntry("item.equip_hazmat");

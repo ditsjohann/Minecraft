@@ -3,7 +3,9 @@
 	"package": "com.armageddon.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
+		"BackgroundRendererMixin",
 		"CameraMixin",
+		"ClientWorldMixin",
 		"GameRendererMixin"
 	],
 	"injectors": {

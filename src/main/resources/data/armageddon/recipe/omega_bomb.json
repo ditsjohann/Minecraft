@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "AHA",
+    "SCS",
+    "AHA"
+  ],
+  "key": {
+    "A": {
+      "item": "armageddon:antimatter_bomb"
+    },
+    "H": {
+      "item": "armageddon:hydrogen_bomb"
+    },
+    "S": {
+      "item": "armageddon:singularity_core"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    }
+  },
+  "result": {
+    "id": "armageddon:omega_bomb",
+    "count": 1
+  }
+}

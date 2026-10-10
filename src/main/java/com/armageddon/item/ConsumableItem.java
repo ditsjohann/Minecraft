@@ -13,7 +13,7 @@ import net.minecraft.world.World;
 
 /** Rad-X injector and Nano-Medkit. */
 public class ConsumableItem extends WmdItem {
-	public enum Kind { RAD_X, MEDKIT }
+	public enum Kind { RAD_X, MEDKIT, OVERDRIVE }
 
 	private final Kind kind;
 
@@ -30,6 +30,13 @@ public class ConsumableItem extends WmdItem {
 				case RAD_X -> {
 					user.removeStatusEffect(ModEffects.RADIATION);
 					user.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 200, 0));
+				}
+				case OVERDRIVE -> {
+					user.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, 600, 2));
+					user.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 600, 2));
+					user.addStatusEffect(new StatusEffectInstance(StatusEffects.HASTE, 600, 2));
+					user.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 600, 1));
+					user.addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 600, 1));
 				}
 				case MEDKIT -> {
 					user.heal(12.0F);

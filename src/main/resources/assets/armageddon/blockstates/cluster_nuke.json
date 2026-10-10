@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/cluster_nuke"
+    },
+    "facing=east": {
+      "model": "armageddon:block/cluster_nuke",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/cluster_nuke",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/cluster_nuke",
+      "y": 270
+    }
+  }
+}
