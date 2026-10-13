@@ -173,7 +173,8 @@ public final class Vfx {
 	}
 
 	public static void cinematic(ServerWorld w, Vec3d anchor, int scene, Vec3d heading, int ticks) {
-		send(w, anchor, FAR * 4, p(FxType.CINEMATIC, anchor, heading, 1, 0, scene, 0, 0, ticks));
+		// Only players near enough to have the area loaded get the camera cutscene.
+		send(w, anchor, 640, p(FxType.CINEMATIC, anchor, heading, 1, 0, scene, 0, 0, ticks));
 	}
 
 	public static void twister(ServerWorld w, Vec3d start, Vec3d dir, float radius, float speed, int ticks) {

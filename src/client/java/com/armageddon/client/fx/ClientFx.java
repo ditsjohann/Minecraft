@@ -337,10 +337,15 @@ public final class ClientFx {
 			case FxType.MOON -> add(new ArsenalEffects.Moon(a, s, p.p1(), p.color(), p.duration()));
 			case FxType.CINEMATIC -> {
 				Cinematics.Cine c = Cinematics.create(p.seed(), a, b, p.duration());
+				MinecraftClient client = MinecraftClient.getInstance();
+				if (cine == null) {
+					// Only remember the player's own setting, never one we forced ourselves.
+					hudWasHidden = client.options.hudHidden;
+				} else {
+					cine.done = true;
+				}
 				cine = c;
 				add(c);
-				MinecraftClient client = MinecraftClient.getInstance();
-				hudWasHidden = client.options.hudHidden;
 				client.options.hudHidden = true;
 			}
 			case FxType.TWISTER -> add(new MegaEffects.Twister(a, b, s, p.p1(), p.duration()));

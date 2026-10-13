@@ -36,12 +36,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * WORLD DESTRUCTION tier. Every event here opens with letterbox bars and a full-screen title,
+ * CITY DESTRUCTION tier. Every event here opens with letterbox bars and a full-screen title,
  * hits with anime impact frames, FOV punches and shake, and then really does reshape the map
  * (always within the max-radius gamerule and protected regions).
  */
-public final class WorldDestructionEvents {
-	private WorldDestructionEvents() {
+public final class CityDestructionEvents {
+	private CityDestructionEvents() {
 	}
 
 	static void open(ServerWorld w, Vec3d c, String key, int barTicks) {

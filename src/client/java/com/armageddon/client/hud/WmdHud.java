@@ -38,6 +38,27 @@ public final class WmdHud {
 			ctx.fill(0, 0, w, bar, 0xFF000000);
 			ctx.fill(0, h - bar, w, h, 0xFF000000);
 		}
+		com.armageddon.client.fx.Cinematics.Cine cine = ClientFx.activeCine();
+		if (cine != null) {
+			com.armageddon.client.fx.Cinematics.Caption cap = cine.caption(cine.time(counter.getTickDelta(false)));
+			if (cap != null && cap.alpha() > 0.02F) {
+				int alpha = Math.max(5, (int) (cap.alpha() * 255)) << 24;
+				TextRenderer f = mc.textRenderer;
+				float big = cap.title().length() <= 3 ? 6.0F : 3.0F;
+				ctx.getMatrices().push();
+				ctx.getMatrices().translate(w / 2.0F, h * 0.70F, 0);
+				ctx.getMatrices().scale(big, big, 1);
+				ctx.drawCenteredTextWithShadow(f, Text.literal(cap.title()), 0, -4, alpha | (cap.color() & 0xFFFFFF));
+				ctx.getMatrices().pop();
+				if (!cap.sub().isEmpty()) {
+					ctx.getMatrices().push();
+					ctx.getMatrices().translate(w / 2.0F, h * 0.70F + big * 7 + 6, 0);
+					ctx.getMatrices().scale(1.5F, 1.5F, 1);
+					ctx.drawCenteredTextWithShadow(f, Text.literal(cap.sub()), 0, 0, alpha | 0xC8C8C8);
+					ctx.getMatrices().pop();
+				}
+			}
+		}
 		if (player == null || mc.options.hudHidden) {
 			return;
 		}

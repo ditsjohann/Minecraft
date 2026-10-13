@@ -57,7 +57,7 @@ public final class WorldCutsceneEvents {
 
 	/** A cosmic giant tears the sky open, looks around, winds up, and punches the ground so hard the planet rings. */
 	public static class GalacticSmash extends WorldEvent {
-		private static final int CINE = 640, SMASH = 440;
+		private static final int CINE = 760, SMASH = 460;
 		private List<FallingBlockEntity> heaved = new ArrayList<>();
 		private Vec3d fwd;
 
@@ -78,17 +78,17 @@ public final class WorldCutsceneEvents {
 			if (t >= 150 && t < 330 && t % 25 == 0) {
 				Kit.sound(world, g, ModSounds.BOMB_BEEP, 64.0F, 0.35F);
 			}
-			if (t == 215) {
+			if (t == 300) {
 				frames(g, 0);
 				Vfx.fov(world, g, 8.0F, 10);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, 64.0F, 0.3F);
 			}
 			if (t == 330) {
 				Kit.sound(world, g, ModSounds.ORBITAL_CHARGE, 64.0F, 0.3F);
-				Vfx.spiral(world, g.add(fwd.multiply(300)).add(0, 340, 0), 150.0F, 120.0F, 0xFFB070, 110);
+				Vfx.spiral(world, g.add(fwd.multiply(230)).add(0, 340, 0), 150.0F, 120.0F, 0xFFB070, 130);
 			}
-			if (t == 400 || t == 420) {
-				frames(g, t == 400 ? 1 : 2, 0);
+			if (t == 420 || t == 440) {
+				frames(g, t == 420 ? 1 : 2, 0);
 				Vfx.fov(world, g, 14.0F, 12);
 			}
 			if (t == SMASH - 8) {
@@ -150,7 +150,7 @@ public final class WorldCutsceneEvents {
 		}
 
 		private void frames(Vec3d g, int... styles) {
-			WorldDestructionEvents.frames(world, g, styles);
+			CityDestructionEvents.frames(world, g, styles);
 		}
 
 		@Override
@@ -180,6 +180,9 @@ public final class WorldCutsceneEvents {
 			}
 			if (t < T0 && t % 20 == 0) {
 				Kit.sound(world, g, ModSounds.BOMB_BEEP, 8.0F + t * 0.04F, 0.6F + t * 0.0012F);
+				// A visible heartbeat that grows with every tick.
+				Vfx.ring(world, g.add(0, 0.3, 0), 2.0F + t * 0.03F, 0.4F, 0xFF3030, false, 12);
+				Vfx.orb(world, g.add(0, 1.2, 0), 0.4F + t * 0.0015F, 0.2F + t * 0.001F, 0xFF3030, 0, 12);
 			}
 			if (t < T0 && t % GAP == 0) {
 				int i = t / GAP;
@@ -194,7 +197,7 @@ public final class WorldCutsceneEvents {
 					Kit.sound(world, g, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), (float) Math.min(64, 1.0 + i * 5.5), (float) Math.max(0.35, 1.5 - i * 0.1));
 					Vfx.shake(world, g, 128 + r * 10, (float) Math.min(9.0, 0.3 + i * 0.8));
 					Vfx.fov(world, g, (float) Math.min(40.0, i * 3.5), 14);
-					Destruction.explode(world, null, g.x, g.y, g.z, (float) Math.min(40.0, Math.max(1.0, r * 0.5)), i > 3);
+					Destruction.explode(world, null, g.x, g.y, g.z, (float) Math.min(16.0, Math.max(1.0, r * 0.5)), i > 3);
 					Detonations.blast(world, g, r * 1.8 + 4, (float) (i * i * 6), ModDamageTypes.NUCLEAR_BLAST, owner(), r * 0.5, 1.0 + i * 0.25);
 					if (i >= 5 && Destruction.enabled(world)) {
 						DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, (float) (r * 0.55)), CraterJob.Mode.NUKE));
@@ -219,14 +222,14 @@ public final class WorldCutsceneEvents {
 					double d = Math.sqrt(world.random.nextDouble()) * 115;
 					Vec3d p = Kit.ground(world, g.x + Math.cos(a) * d, g.z + Math.sin(a) * d);
 					Vfx.layeredBlast(world, p, 4.0F + world.random.nextInt(8), world.random.nextBoolean() ? 0xFF8040 : 0xFFD080);
-					Destruction.explode(world, null, p.x, p.y, p.z, 6.0F + world.random.nextInt(8), true);
+					Destruction.explode(world, null, p.x, p.y, p.z, 5.0F + world.random.nextInt(6), true);
 				}
 				if (k % 6 == 0) {
 					Kit.sound(world, g, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 40.0F, 0.5F);
 				}
 			}
 			if (t == T0 + CINE - 4) {
-				WorldDestructionEvents.frames(world, g, 3, 1, 0, 2, 3, 1);
+				CityDestructionEvents.frames(world, g, 3, 1, 0, 2, 3, 1);
 				Vfx.screen(world, g, 100000, 1, 1.0F, 60);
 				Vfx.fov(world, g, 70.0F, 60);
 				Vfx.shake(world, g, 100000, 10.0F);
@@ -273,16 +276,16 @@ public final class WorldCutsceneEvents {
 				Kit.sound(world, g, ModSounds.BOMB_BEEP, 64.0F, 1.0F + n * 0.0F);
 			}
 			if (t == 240) {
-				WorldDestructionEvents.frames(world, g, 0, 1, 0);
+				CityDestructionEvents.frames(world, g, 0, 1, 0);
 				Vfx.shake(world, g, 100000, 3.0F);
 				Kit.sound(world, g, ModSounds.ROCKET_LAUNCH, 64.0F, 0.4F);
 			}
 			if (t == 282) {
-				WorldDestructionEvents.frames(world, g, 2, 0);
+				CityDestructionEvents.frames(world, g, 2, 0);
 				Kit.sound(world, g, ModSounds.NUKE_LAUNCH, 64.0F, 0.4F);
 			}
 			if (t == CINE - 14) {
-				WorldDestructionEvents.frames(world, g, 3, 1, 0, 2, 3);
+				CityDestructionEvents.frames(world, g, 3, 1, 0, 2, 3);
 			}
 			if (t == CINE - 6) {
 				Vfx.alienRocket(world, g.add(fwd.x * 900, 1000, fwd.z * 900), g.add(0, 2, 0), 150.0F, ARRIVE + 6);
@@ -317,11 +320,11 @@ public final class WorldCutsceneEvents {
 				Kit.sound(world, g, ModSounds.ANTIMATTER, 64.0F, 0.3F);
 			}
 			if (k == ARRIVE - 16) {
-				WorldDestructionEvents.frames(world, g, 1, 0, 2);
+				CityDestructionEvents.frames(world, g, 1, 0, 2);
 				Vfx.fov(world, g, 30.0F, 20);
 			}
 			if (k == ARRIVE) {
-				WorldDestructionEvents.frames(world, g, 3, 1, 0, 2, 3, 1, 0, 3);
+				CityDestructionEvents.frames(world, g, 3, 1, 0, 2, 3, 1, 0, 3);
 				Vfx.screen(world, g, 100000, 1, 1.0F, 70);
 				Vfx.fov(world, g, 80.0F, 70);
 				Vfx.shake(world, g, 100000, 12.0F);

@@ -8,36 +8,43 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 
 /**
- * Blocks that revert after a while: slime patches, snow piles, EMP-disabled redstone, glowing
- * void boundaries. Survives only while the server runs (everything reverts on shutdown).
+ * Blocks that revert after a while: slime patches, snow piles, EMP-disabled redstone, milk splashes,
+ * Chrono Break's erased sphere. Entries live in a queue ordered by expiry, so even hundreds of
+ * thousands of them cost O(log n) each. Survives only while the server runs (everything reverts on
+ * shutdown).
  */
 public final class TemporaryBlocks {
 	private record Temp(ServerWorld world, BlockPos pos, BlockState original, BlockState placed, long expires) {
 	}
 
-	private static final Map<Long, Temp> ACTIVE = new HashMap<>();
-	private static final List<Temp> ORDER = new ArrayList<>();
+	private static final int REVERTS_PER_TICK = 6000;
+	private static final Map<ServerWorld, Map<Long, Temp>> ACTIVE = new HashMap<>();
+	private static final PriorityQueue<Temp> QUEUE = new PriorityQueue<>(Comparator.comparingLong(Temp::expires));
 
 	public static void init() {
 		ServerTickEvents.END_WORLD_TICK.register(TemporaryBlocks::tick);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-			for (Temp t : ORDER) {
-				revert(t);
+			for (Map<Long, Temp> perWorld : ACTIVE.values()) {
+				for (Temp t : perWorld.values()) {
+					revert(t);
+				}
 			}
-			ORDER.clear();
 			ACTIVE.clear();
+			QUEUE.clear();
 		});
 	}
 
 	/**
 	 * Places {@code state} at {@code pos} for {@code ticks}, then restores whatever was there.
-	 * Respects protected regions; returns false if refused.
+	 * Re-placing an active position extends it and keeps the original block. Respects protected
+	 * regions; returns false if refused.
 	 */
 	public static boolean place(ServerWorld world, BlockPos pos, BlockState state, int ticks) {
 		if (Destruction.isProtected(world, pos)) {
@@ -47,51 +54,50 @@ public final class TemporaryBlocks {
 		if (current.getHardness(world, pos) < 0 || current.hasBlockEntity()) {
 			return false;
 		}
-		long key = pos.asLong() ^ ((long) world.getRegistryKey().getValue().hashCode() << 40);
-		Temp existing = ACTIVE.get(key);
+		Map<Long, Temp> perWorld = ACTIVE.computeIfAbsent(world, w -> new HashMap<>());
+		Temp existing = perWorld.get(pos.asLong());
 		BlockState original = existing != null ? existing.original : current;
-		Temp t = new Temp(world, pos.toImmutable(), original, state, world.getTime() + ticks);
-		if (existing != null) {
-			ORDER.remove(existing);
-		}
-		ACTIVE.put(key, t);
-		ORDER.add(t);
+		Temp t = new Temp(world, pos.toImmutable(), original, state, world.getTime() + Math.max(1, ticks));
+		perWorld.put(pos.asLong(), t);
+		QUEUE.add(t);
 		world.setBlockState(pos, state, Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
 		return true;
 	}
 
 	/** Reverts every temporary block in {@code world} right now (purge). */
 	public static int revertAll(ServerWorld world) {
-		int n = 0;
-		Iterator<Temp> it = ORDER.iterator();
-		while (it.hasNext()) {
-			Temp t = it.next();
-			if (t.world == world) {
-				revert(t);
-				it.remove();
-				ACTIVE.remove(t.pos.asLong() ^ ((long) world.getRegistryKey().getValue().hashCode() << 40));
-				n++;
-			}
+		Map<Long, Temp> perWorld = ACTIVE.remove(world);
+		if (perWorld == null) {
+			return 0;
 		}
-		return n;
+		for (Temp t : perWorld.values()) {
+			revert(t);
+		}
+		QUEUE.removeIf(t -> t.world == world);
+		return perWorld.size();
 	}
 
 	private static void tick(ServerWorld world) {
-		if (ORDER.isEmpty()) {
+		if (QUEUE.isEmpty()) {
 			return;
 		}
 		long now = world.getTime();
-		Iterator<Temp> it = ORDER.iterator();
-		int budget = 4000;
-		while (it.hasNext() && budget-- > 0) {
-			Temp t = it.next();
-			if (t.world != world || t.expires > now) {
+		List<Temp> otherWorlds = new ArrayList<>();
+		int budget = REVERTS_PER_TICK;
+		while (budget-- > 0 && !QUEUE.isEmpty() && QUEUE.peek().expires <= now) {
+			Temp t = QUEUE.poll();
+			if (t.world != world) {
+				otherWorlds.add(t);
 				continue;
 			}
-			revert(t);
-			it.remove();
-			ACTIVE.remove(t.pos.asLong() ^ ((long) world.getRegistryKey().getValue().hashCode() << 40));
+			Map<Long, Temp> perWorld = ACTIVE.get(world);
+			// Stale entries (the position was re-placed later) are skipped; only the latest one reverts.
+			if (perWorld != null && perWorld.get(t.pos.asLong()) == t) {
+				perWorld.remove(t.pos.asLong());
+				revert(t);
+			}
 		}
+		QUEUE.addAll(otherWorlds);
 	}
 
 	private static void revert(Temp t) {

@@ -4,7 +4,7 @@ import com.armageddon.event.events.BombEvents;
 import com.armageddon.event.events.CelestialEvents;
 import com.armageddon.event.events.CelestialIIEvents;
 import com.armageddon.event.events.WorldCutsceneEvents;
-import com.armageddon.event.events.WorldDestructionEvents;
+import com.armageddon.event.events.CityDestructionEvents;
 import com.armageddon.event.events.EpicEvents;
 import com.armageddon.event.events.LegendaryEvents;
 import com.armageddon.event.events.MythicEvents;
@@ -77,11 +77,11 @@ public final class Events {
 		EVENTS.put("cyclone", BombEvents.Cyclone::new);
 		EVENTS.put("doomsday_clock", BombEvents.DoomsdayClock::new);
 		// World destruction
-		EVENTS.put("moonfall", WorldDestructionEvents.Moonfall::new);
-		EVENTS.put("big_bang", WorldDestructionEvents.BigBang::new);
-		EVENTS.put("world_eater", WorldDestructionEvents.WorldEater::new);
-		EVENTS.put("chrono_break", WorldDestructionEvents.ChronoBreak::new);
-		EVENTS.put("ragnarok", WorldDestructionEvents.Ragnarok::new);
+		EVENTS.put("moonfall", CityDestructionEvents.Moonfall::new);
+		EVENTS.put("big_bang", CityDestructionEvents.BigBang::new);
+		EVENTS.put("world_eater", CityDestructionEvents.WorldEater::new);
+		EVENTS.put("chrono_break", CityDestructionEvents.ChronoBreak::new);
+		EVENTS.put("ragnarok", CityDestructionEvents.Ragnarok::new);
 		// Celestial expansion II
 		EVENTS.put("exploding_cows", CelestialIIEvents.ExplodingCows::new);
 		EVENTS.put("deadly_twister", CelestialIIEvents.DeadlyTwister::new);

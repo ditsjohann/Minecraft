@@ -6,7 +6,8 @@
 		"BackgroundRendererMixin",
 		"CameraMixin",
 		"ClientWorldMixin",
-		"GameRendererMixin"
+		"GameRendererMixin",
+		"KeyboardInputMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0

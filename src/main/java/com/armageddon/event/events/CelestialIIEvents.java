@@ -181,6 +181,9 @@ public final class CelestialIIEvents {
 					continue;
 				}
 				cow.setVelocity(cow.getVelocity().x * 0.9, Math.min(cow.getVelocity().y, -0.9) - 0.02, cow.getVelocity().z * 0.9);
+				float sc = scales.get(cow);
+				world.spawnParticles(ParticleTypes.CLOUD, cow.getX(), cow.getY() + sc, cow.getZ(), 1 + (int) sc, sc * 0.3, sc * 0.3, sc * 0.3, 0.01);
+				world.spawnParticles(ParticleTypes.FIREWORK, cow.getX(), cow.getY() + sc * 1.4, cow.getZ(), 1, 0.1, 0.1, 0.1, 0.02);
 				if (cow.isOnGround() || t - en.getValue() > 220) {
 					boom(cow, scales.get(cow));
 					done.add(cow);
@@ -303,7 +306,7 @@ public final class CelestialIIEvents {
 				surfaceY = Kit.surface(world, b.getX(), b.getZ()).getY();
 				bottomY = world.getBottomY() + 6;
 				int depth = Math.max(20, surfaceY - bottomY);
-				steps = (int) Math.ceil(depth / 0.9);
+				steps = (int) Math.ceil(depth / 0.6);
 				CelestialEvents.announce(world, c, "block.armageddon.colossal_spear");
 				Vfx.skyTint(world, c, 100000, 0x503010, 0.5F);
 				Vfx.grid(world, c.add(0, 0.2, 0), new Vec3d(0, 1, 0), 34.0F, 0xFFB050, 1, THROW + 4);
@@ -324,7 +327,7 @@ public final class CelestialIIEvents {
 			}
 			int drill = t - (THROW + 24);
 			if (drill >= 0 && drill < steps && Destruction.enabled(world)) {
-				double y = surfaceY - drill * 0.9;
+				double y = surfaceY - drill * 0.6;
 				double psi = drill * 0.38;
 				int R = 12;
 				for (int layer = 0; layer < 2; layer++) {
@@ -559,7 +562,7 @@ public final class CelestialIIEvents {
 
 	/** A city-wide saucer crosses the sky, painting the ground with a blue death beam, then leaves. */
 	public static class UfoInvasion extends WorldEvent {
-		private static final int LIFE = 460;
+		private static final int LIFE = 640;
 		private Vec3d from, to, dir;
 
 		@Override
@@ -599,8 +602,16 @@ public final class CelestialIIEvents {
 						}
 					}
 				}
+				// Tractor ring: things near the beam are lifted toward the ship before the core vaporises them.
+				for (Entity e : Kit.entities(world, g, 22, x -> !Kit.creativeOrSpectator(x) && !(x instanceof FallingBlockEntity)
+						&& !(x instanceof com.armageddon.event.EventEntity))) {
+					Vec3d in = new Vec3d(g.x - e.getX(), 0, g.z - e.getZ());
+					Kit.push(e, in.multiply(0.03).add(0, 0.16, 0));
+					e.fallDistance = 0;
+				}
 				if (t % 2 == 0) {
-					Kit.damage(world, g, 13, 1000.0F, ModDamageTypes.ANNIHILATION, null, owner());
+					Kit.damage(world, g, 7, 1000.0F, ModDamageTypes.ANNIHILATION, null, owner());
+					Kit.damage(world, g.add(0, 25, 0), 8, 1000.0F, ModDamageTypes.ANNIHILATION, null, owner());
 				}
 				if (t % 5 == 0) {
 					Destruction.explode(world, null, g.x, g.y, g.z, 5.0F, true);
