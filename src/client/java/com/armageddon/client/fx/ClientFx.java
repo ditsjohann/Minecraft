@@ -64,6 +64,9 @@ public final class ClientFx {
 	}
 
 	public static void clear() {
+		letterbox = letterboxPrev = 0;
+		letterboxHold = impactTicks = 0;
+		fovPunch = 0;
 		java.util.Arrays.fill(SCREEN, 0);
 		java.util.Arrays.fill(SCREEN_HOLD, 0);
 		EFFECTS.clear();
@@ -112,6 +115,19 @@ public final class ClientFx {
 	/** World-event screen grading: 0 desaturate, 1 white-out, 2 black-out, 3 static, 4 invert. */
 	public static final float[] SCREEN = new float[5];
 	private static final int[] SCREEN_HOLD = new int[5];
+
+	/** Letterbox amount 0..1 (eased) and its remaining hold. */
+	public static float letterbox, letterboxPrev;
+	public static int letterboxHold;
+	/** Impact frame: remaining ticks and style. */
+	public static int impactTicks, impactStyle;
+	/** FOV punch in degrees, decaying. */
+	public static float fovPunch, fovPunchDecay = 0.85F;
+
+	public static void impact(int style, int frames) {
+		impactStyle = style;
+		impactTicks = Math.max(impactTicks, Math.max(1, frames));
+	}
 
 	public static void screen(int kind, float strength, int hold) {
 		if (kind < 0 || kind >= SCREEN.length) {
@@ -300,6 +316,13 @@ public final class ClientFx {
 				add(new Effects.Ring(a, s, 0xA08060, 20, 1.0, true));
 				distortion = Math.max(distortion, 0.3F);
 			}
+			case FxType.CUTSCENE -> letterboxHold = Math.max(letterboxHold, p.duration());
+			case FxType.IMPACT -> impact(p.seed(), p.duration());
+			case FxType.FOV -> {
+				fovPunch = Math.max(fovPunch, s);
+				fovPunchDecay = (float) Math.pow(0.02, 1.0 / Math.max(2, p.duration()));
+			}
+			case FxType.MOON -> add(new ArsenalEffects.Moon(a, s, p.p1(), p.color(), p.duration()));
 			case FxType.STEAM -> ArsenalEffects.steam(world, a, s);
 			case FxType.GLITCH -> add(new ArsenalEffects.Glitch(a, s, p.color(), p.seed(), p.duration()));
 			case FxType.ORB -> add(new ArsenalEffects.Orb(a, s, p.p1(), p.color(), (int) p.p2(), p.duration()));
@@ -476,6 +499,20 @@ public final class ClientFx {
 					SCREEN[k] = 0;
 				}
 			}
+		}
+		letterboxPrev = letterbox;
+		if (letterboxHold > 0) {
+			letterboxHold--;
+			letterbox = Math.min(1.0F, letterbox + 0.08F);
+		} else {
+			letterbox = Math.max(0.0F, letterbox - 0.05F);
+		}
+		if (impactTicks > 0) {
+			impactTicks--;
+		}
+		fovPunch *= fovPunchDecay;
+		if (fovPunch < 0.05F) {
+			fovPunch = 0;
 		}
 		hue *= 0.9F;
 		if (hue < 0.01F) {

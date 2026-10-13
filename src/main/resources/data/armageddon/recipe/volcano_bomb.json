@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PFP",
+    "SCS",
+    "PFP"
+  ],
+  "key": {
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "S": {
+      "item": "armageddon:solar_cell"
+    },
+    "C": {
+      "item": "minecraft:magma_block"
+    }
+  },
+  "result": {
+    "id": "armageddon:volcano_bomb",
+    "count": 1
+  }
+}

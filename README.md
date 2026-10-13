@@ -48,6 +48,12 @@ supernova) and the OMEGA Planet Cracker (78-block crater, blood-red sky).
 skyscrapers, roads, street lights and parks (with villagers) to destroy. `/armageddon purge` clears fallout,
 black holes, stars, pending strikes and crater jobs.
 
+**WORLD DESTRUCTION tier** — five bombs above Celestial, each a scripted cutscene with letterbox bars, anime impact
+frames, FOV punches and real terrain destruction: MOONFALL (a cratered moon falls out of the sky), BIG BANG,
+WORLD EATER, CHRONO BREAK (a sphere of world is erased, then rewound) and RAGNAROK. They need two lights to
+confirm, respect protected regions and `armageddonMaxRadius`, and can be disabled with
+`armageddonAllowCelestial`. Fifteen more bombs fill Uncommon (6), Rare (3), Legendary (3) and Mythic (3).
+
 **Showcase (screenshots)** — `/armageddon showcase [all|tiers|classic|blocks|uncommon|rare|epic|legendary|mythic|celestial]`
 builds a lit gallery in front of you: every item floats on a tier-coloured pedestal with its name and tier, rows
 step upward so one screenshot shows them all. `/armageddon showcase item <item>` shows a single item large with

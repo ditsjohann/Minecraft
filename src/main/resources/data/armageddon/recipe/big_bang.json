@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CXC",
+    "KOK",
+    "CXC"
+  ],
+  "key": {
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "X": {
+      "item": "armageddon:singularity_core"
+    },
+    "K": {
+      "item": "armageddon:last_light"
+    },
+    "O": {
+      "item": "armageddon:omega_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:big_bang",
+    "count": 1
+  }
+}

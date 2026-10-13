@@ -47,7 +47,7 @@ public final class PostFx {
 	private static boolean needed() {
 		return ClientFx.flash > 0.002F || ClientFx.distortion > 0.002F || radiation > 0.002F || lensStrength > 0.0F
 				|| godStrength > 0.0F || ClientFx.hue > 0.0F || ClientFx.ripple < 1.0F
-				|| ClientFx.SCREEN[0] > 0 || ClientFx.SCREEN[1] > 0 || ClientFx.SCREEN[2] > 0 || ClientFx.SCREEN[3] > 0 || ClientFx.SCREEN[4] > 0;
+				|| ClientFx.impactTicks > 0 || ClientFx.SCREEN[0] > 0 || ClientFx.SCREEN[1] > 0 || ClientFx.SCREEN[2] > 0 || ClientFx.SCREEN[3] > 0 || ClientFx.SCREEN[4] > 0;
 	}
 
 	/** Called at the end of GameRenderer#renderWorld (after the hand, before the HUD). */
@@ -99,6 +99,8 @@ public final class PostFx {
 		processor.setUniforms("Blackout", ClientFx.SCREEN[2]);
 		processor.setUniforms("Static", ClientFx.SCREEN[3]);
 		processor.setUniforms("Invert", ClientFx.SCREEN[4]);
+		processor.setUniforms("Impact", ClientFx.impactTicks > 0 ? 1.0F : 0.0F);
+		processor.setUniforms("ImpactMode", ClientFx.impactStyle);
 
 		RenderSystem.disableBlend();
 		RenderSystem.disableDepthTest();

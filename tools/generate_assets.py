@@ -554,7 +554,7 @@ def gen_shaders():
                 {"name": "OutSize", "type": "float", "count": 2, "values": [1.0, 1.0]}]
     for n in ("Flash", "FlashR", "FlashG", "FlashB", "Distortion", "Radiation", "GTime", "LensX", "LensY", "LensR", "LensStrength",
               "GodX", "GodY", "GodStrength", "GodR", "GodG", "GodB", "Ripple", "Hue",
-              "Desaturate", "Whiteout", "Blackout", "Static", "Invert"):
+              "Desaturate", "Whiteout", "Blackout", "Static", "Invert", "Impact", "ImpactMode"):
         uniforms.append({"name": n, "type": "float", "count": 1, "values": [0.0]})
     prog = os.path.join(ROOT, "assets", "minecraft", "shaders", "program")
     write_json(os.path.join(prog, "armageddon_fx.json"), {

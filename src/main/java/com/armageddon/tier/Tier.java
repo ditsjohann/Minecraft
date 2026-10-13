@@ -16,7 +16,9 @@ public enum Tier {
 	EPIC(0xFF55FF, "epic"),
 	LEGENDARY(0xFFB000, "legendary"),
 	MYTHIC(0xFF2020, "mythic"),
-	CELESTIAL(0xFFFFFF, "celestial");
+	CELESTIAL(0xFFFFFF, "celestial"),
+	/** Above Celestial: strobing red/white/black with glitching glyphs. */
+	WORLD_DESTRUCTION(0xFF0000, "world_destruction");
 
 	public final int color;
 	public final String key;
@@ -30,6 +32,7 @@ public enum Tier {
 	public Text decorate(Text name) {
 		return switch (this) {
 			case CELESTIAL -> shimmer(name.getString());
+			case WORLD_DESTRUCTION -> strobe(name.getString());
 			case MYTHIC -> name.copy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(pulse(0xFF2020, 0x8A0000))).withBold(true));
 			case LEGENDARY -> name.copy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(pulse(0xFFC830, 0xFF8A00))).withBold(true));
 			default -> name.copy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(color)));
@@ -42,7 +45,31 @@ public enum Tier {
 		if (this == CELESTIAL) {
 			return shimmer("✦ " + t.getString() + " ✦");
 		}
+		if (this == WORLD_DESTRUCTION) {
+			return strobe("☢ " + t.getString() + " ☢");
+		}
 		return Text.literal("◆ ").append(t).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(color)).withBold(this.ordinal() >= LEGENDARY.ordinal()));
+	}
+
+	/** Hard red/white/black strobe, travelling along the name; letters glitch into obfuscated glyphs. */
+	private static Text strobe(String s) {
+		MutableText out = Text.empty();
+		long now = System.currentTimeMillis();
+		long beat = now / 90L;
+		for (int i = 0; i < s.length(); i++) {
+			int phase = (int) ((beat + i * 2L) % 6L);
+			int rgb = switch (phase) {
+				case 0, 1 -> 0xFF1010;
+				case 2 -> 0xFFFFFF;
+				case 3 -> 0xFF5050;
+				case 4 -> 0x8A0000;
+				default -> 0xFF2020;
+			};
+			boolean glitch = s.charAt(i) != ' ' && ((beat * 17 + i * 31) % 19 == 0);
+			Style style = Style.EMPTY.withColor(TextColor.fromRgb(rgb)).withBold(true).withObfuscated(glitch);
+			out.append(Text.literal(String.valueOf(s.charAt(i))).setStyle(style));
+		}
+		return out;
 	}
 
 	private static int pulse(int a, int b) {

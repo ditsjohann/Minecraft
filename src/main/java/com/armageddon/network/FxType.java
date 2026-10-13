@@ -118,4 +118,14 @@ public final class FxType {
 
 	private FxType() {
 	}
+
+	// ---- World Destruction cutscene vocabulary ----
+	/** Letterbox bars. duration = ticks. */
+	public static final int CUTSCENE = 55;
+	/** Anime impact frame. seed = style (0 ink, 1 inverted ink, 2 red ink, 3 white), duration = ticks. */
+	public static final int IMPACT = 56;
+	/** FOV punch. scale = degrees, duration = ticks of decay. */
+	public static final int FOV = 57;
+	/** A falling moon. scale = radius, p1 = start height, duration = ticks until impact. */
+	public static final int MOON = 58;
 }

@@ -1008,6 +1008,95 @@ public final class ArsenalEffects {
 		}
 	}
 
+
+	// ============================================================== the moon
+
+	/** A cratered moon that falls out of the sky: slow at first, then faster than anything should fall. */
+	public static class Moon extends FxEffect {
+		private final Vec3d ground;
+		private final float radius, startHeight;
+
+		public Moon(Vec3d ground, float radius, float startHeight, int color, int life) {
+			super(Math.max(20, life));
+			this.ground = ground;
+			this.radius = radius;
+			this.startHeight = Math.max(startHeight, radius * 3);
+		}
+
+		private Vec3d centre(float a) {
+			float t = Math.min(1.0F, a / lifetime);
+			double e = Math.pow(t, 2.4);
+			double y = ground.y + radius * 0.92 + (startHeight - radius * 0.92) * (1 - e);
+			return new Vec3d(ground.x, y, ground.z);
+		}
+
+		@Override
+		public boolean tick(ClientWorld world) {
+			float t = age / (float) lifetime;
+			if (t > 0.55F) {
+				ClientFx.shake = Math.max(ClientFx.shake, (t - 0.55F) * 4.0F);
+			}
+			if (age % 6 == 0) {
+				ClientFx.tintSky(0x0A0A18, 0.4F + 0.6F * t);
+			}
+			if (t > 0.7F) {
+				Vec3d c = centre(age);
+				for (int i = 0; i < 8; i++) {
+					double ang = world.random.nextDouble() * MathHelper.TAU;
+					Vec3d p = ground.add(Math.cos(ang) * radius * 1.5, 1 + world.random.nextDouble() * 8, Math.sin(ang) * radius * 1.5);
+					world.addImportantParticle(ModParticles.SHOCK_DUST, true, p.x, p.y, p.z, -Math.cos(ang) * 0.4, 0.1, -Math.sin(ang) * 0.4);
+				}
+			}
+			return super.tick(world);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			float t = Math.min(1.0F, a / lifetime);
+			Vec3d c = centre(a).subtract(cam);
+			Vec3d sun = new Vec3d(0.45, 0.8, 0.35).normalize();
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.VOID);
+			int lat = 28, lon = 56;
+			for (int i = 0; i < lat; i++) {
+				double t0 = Math.PI * i / lat - Math.PI / 2, t1 = Math.PI * (i + 1) / lat - Math.PI / 2;
+				for (int j = 0; j < lon; j++) {
+					double p0 = MathHelper.TAU * j / lon, p1 = MathHelper.TAU * (j + 1) / lon;
+					Vec3d mid = Cage.unit((t0 + t1) / 2, (p0 + p1) / 2);
+					double h = hash(i, j);
+					double mare = 0.5 + 0.5 * Math.sin(i * 0.55) * Math.cos(j * 0.31 + 1.7);
+					double grey = 0.62 + 0.16 * h - 0.2 * mare * mare;
+					if (hash(i * 3 + 1, j * 5 + 2) > 0.93) {
+						grey *= 0.55;
+					}
+					double light = 0.28 + 0.72 * Math.max(0.0, mid.dotProduct(sun));
+					// Re-entry scorching on the side facing the ground.
+					double heat = Math.max(0.0, -mid.y) * t * t;
+					int r = (int) MathHelper.clamp(255 * grey * light + 255 * heat * 0.9, 0, 255);
+					int g = (int) MathHelper.clamp(255 * grey * light * 0.97 + 255 * heat * 0.35, 0, 255);
+					int b = (int) MathHelper.clamp(255 * grey * light * 1.03, 0, 255);
+					int col = (r << 16) | (g << 8) | b;
+					Vec3d[] q = {Cage.unit(t0, p0), Cage.unit(t0, p1), Cage.unit(t1, p1), Cage.unit(t1, p0)};
+					for (Vec3d n : q) {
+						Vec3d pt = c.add(n.multiply(radius));
+						FxDraw.vertex(solid, m, pt.x, pt.y, pt.z, col, 1.0F);
+					}
+				}
+			}
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			FxDraw.sphere(glow, m, c, radius * 1.04, Vec3d.ZERO, 0xFFE0B0, 0.0F, 0.25F + 0.2F * t, 14, 28);
+			FxDraw.sphere(glow, m, c, radius * (1.08 + 0.12 * t), Vec3d.ZERO, 0xFF7020, 0.0F, 0.5F * t * t, 14, 28);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			FxDraw.disc(glow, m, c, cb[0], cb[1], radius * 1.9, 0xFF8030, 0.12F * t, 0.0F, 40);
+		}
+
+		private static double hash(int x, int y) {
+			long h = x * 374761393L + y * 668265263L;
+			h = (h ^ (h >>> 13)) * 1274126177L;
+			return ((h ^ (h >>> 16)) & 0xFFFF) / 65535.0;
+		}
+	}
+
 	// ============================================================== steam
 
 	public static void steam(ClientWorld world, Vec3d c, float r) {

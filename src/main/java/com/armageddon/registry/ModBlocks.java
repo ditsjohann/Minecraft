@@ -84,6 +84,28 @@ public final class ModBlocks {
 	public static final BombBlock GODFALL = tiered(bomb("godfall", BombType.GODFALL, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock FINAL_EXISTENCE = tiered(bomb("final_existence", BombType.FINAL_EXISTENCE, Rarity.EPIC), Tier.CELESTIAL);
 
+	// ---------------------------------------------------------------- bomb expansion II
+	public static final BombBlock DISCO_BOMB = tiered(bomb("disco_bomb", BombType.DISCO, Rarity.UNCOMMON), Tier.UNCOMMON);
+	public static final BombBlock GLITTER_BOMB = tiered(bomb("glitter_bomb", BombType.GLITTER, Rarity.UNCOMMON), Tier.UNCOMMON);
+	public static final BombBlock PUMPKIN_PATCH_BOMB = tiered(bomb("pumpkin_patch_bomb", BombType.PUMPKIN_PATCH, Rarity.UNCOMMON), Tier.UNCOMMON);
+	public static final BombBlock COBWEB_BOMB = tiered(bomb("cobweb_bomb", BombType.COBWEB, Rarity.UNCOMMON), Tier.UNCOMMON);
+	public static final BombBlock BALLOON_BOMB = tiered(bomb("balloon_bomb", BombType.BALLOON, Rarity.UNCOMMON), Tier.UNCOMMON);
+	public static final BombBlock SPRINKLER_BOMB = tiered(bomb("sprinkler_bomb", BombType.SPRINKLER, Rarity.UNCOMMON), Tier.UNCOMMON);
+	public static final BombBlock THERMITE_BOMB = tiered(bomb("thermite_bomb", BombType.THERMITE, Rarity.RARE), Tier.RARE);
+	public static final BombBlock TESLA_BOMB = tiered(bomb("tesla_bomb", BombType.TESLA, Rarity.RARE), Tier.RARE);
+	public static final BombBlock SINKHOLE_BOMB = tiered(bomb("sinkhole_bomb", BombType.SINKHOLE, Rarity.RARE), Tier.RARE);
+	public static final BombBlock TSUNAMI_BOMB = tiered(bomb("tsunami_bomb", BombType.TSUNAMI, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock VOLCANO_BOMB = tiered(bomb("volcano_bomb", BombType.VOLCANO, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock ICE_AGE_BOMB = tiered(bomb("ice_age_bomb", BombType.ICE_AGE, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock HELLMOUTH_BOMB = tiered(bomb("hellmouth_bomb", BombType.HELLMOUTH, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock CYCLONE_BOMB = tiered(bomb("cyclone_bomb", BombType.CYCLONE, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock DOOMSDAY_CLOCK = tiered(bomb("doomsday_clock", BombType.DOOMSDAY_CLOCK, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock MOONFALL = tiered(bomb("moonfall", BombType.MOONFALL, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock BIG_BANG = tiered(bomb("big_bang", BombType.BIG_BANG, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock WORLD_EATER = tiered(bomb("world_eater", BombType.WORLD_EATER, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock CHRONO_BREAK = tiered(bomb("chrono_break", BombType.CHRONO_BREAK, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock RAGNAROK = tiered(bomb("ragnarok", BombType.RAGNAROK, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks
 	public static final Block ENERGY_CRYSTAL = register("energy_crystal", new TransparentBlock(AbstractBlock.Settings.create()
 			.mapColor(MapColor.PURPLE).strength(1.5F).luminance(s -> 12).nonOpaque().sounds(BlockSoundGroup.AMETHYST_BLOCK)

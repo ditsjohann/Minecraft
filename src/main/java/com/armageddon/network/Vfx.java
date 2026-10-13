@@ -152,6 +152,26 @@ public final class Vfx {
 		send(w, c, FAR, p(FxType.SLICE, c, normal, half, color, 0, height, 0, duration));
 	}
 
+	/** Letterbox bars for a cutscene. */
+	public static void cutscene(ServerWorld w, Vec3d c, int ticks) {
+		send(w, c, FAR * 4, p(FxType.CUTSCENE, c, c, 1, 0, 0, 0, 0, ticks));
+	}
+
+	/** Anime impact frame. style: 0 ink, 1 inverted ink, 2 red ink, 3 white. */
+	public static void impact(ServerWorld w, Vec3d c, int style, int frames) {
+		send(w, c, FAR * 4, p(FxType.IMPACT, c, c, 1, 0, style, 0, 0, frames));
+	}
+
+	/** Sharp field-of-view kick that eases back. */
+	public static void fov(ServerWorld w, Vec3d c, float degrees, int ticks) {
+		send(w, c, FAR * 4, p(FxType.FOV, c, c, degrees, 0, 0, 0, 0, ticks));
+	}
+
+	/** A moon falling onto {@code ground}. */
+	public static void moon(ServerWorld w, Vec3d ground, float radius, float startHeight, int ticks) {
+		send(w, ground, FAR * 4, p(FxType.MOON, ground, ground, radius, 0xC8C8D0, 0, startHeight, 0, ticks));
+	}
+
 	private Vfx() {
 	}
 }

@@ -454,3 +454,199 @@ BOMBS = {"helios_crown_bomb": helios_crown_bomb, "continental_pulse": continenta
          "godfall": godfall, "final_existence": final_existence}
 
 _unused = (cyl_x, cradle)
+
+
+# =========================================================================== bomb expansion II (blocks)
+
+def _base(mat="gunmetal"):
+    return [B(1, 0, 1, 15, 2, 15, mat)]
+
+
+def disco_bomb():
+    m = _base("black")
+    m += ball(8, 8, 8, 5.2, "glow_rainbow")
+    for y in (4, 7, 10, 13):
+        m += [B(3, y, 3, 13, y + 0.5, 13, "glass_cyan")]
+    m += [B(7, 13.5, 7, 9, 16, 9, "chrome")]
+    return m
+
+
+def glitter_bomb():
+    m = _base("gold")
+    m += cyl_y(8, 8, 2, 11, 4.5, "glass_gold")
+    m += cyl_y(8, 8, 3, 10, 3.2, "glow_gold")
+    m += [B(5, 11, 5, 11, 12.5, 11, "gold"), B(7.5, 12.5, 7.5, 8.5, 14.5, 8.5, "glow_white")]
+    return m
+
+
+def pumpkin_patch_bomb():
+    m = _base("olive")
+    m += ball(8, 7, 8, 5.4, "glow_orange")
+    m += [B(7, 11.6, 7, 9, 14, 9, "olive"), B(5.2, 7.2, 2.6, 7, 9, 3, "black"), B(9, 7.2, 2.6, 10.8, 9, 3, "black"),
+          B(5.5, 4.5, 2.6, 10.5, 5.6, 3, "black")]
+    return m
+
+
+def cobweb_bomb():
+    m = _base("white")
+    m += ball(8, 8, 8, 4.4, "pearl")
+    for r in (0, 60, 120):
+        m += [B(1.5, 7.7, 7.7, 14.5, 8.3, 8.3, "white", ("y", r, [8, 8, 8])), B(7.7, 1.5, 7.7, 8.3, 14.5, 8.3, "white", ("x", r, [8, 8, 8]))]
+    return m
+
+
+def balloon_bomb():
+    m = _base("pink")
+    m += [B(7.7, 2, 7.7, 8.3, 8, 8.3, "white")]
+    m += ball(5, 11, 8, 3.0, "glow_pink") + ball(11, 11, 8, 3.0, "glow_cyan") + ball(8, 13.5, 8, 2.6, "glow_gold")
+    return m
+
+
+def sprinkler_bomb():
+    m = _base("steel")
+    m += cyl_y(8, 8, 2, 8, 3.2, "chrome")
+    m += [B(3, 8, 7, 13, 9.4, 9, "steel"), B(7, 8, 3, 9, 9.4, 13, "steel")]
+    for (x, z) in ((2.6, 7.4), (13, 7.4), (7.4, 2.6), (7.4, 13)):
+        m += [B(x, 8.6, z, x + 0.5, 10, z + 0.5, "glow_ice")]
+    m += [B(6, 9.4, 6, 10, 11.4, 10, "glass_cyan")]
+    return m
+
+
+def thermite_bomb():
+    m = _base("black")
+    m += cyl_y(8, 8, 2, 12, 4.2, "copper")
+    m += [B(3.6, 5, 3.6, 12.4, 6, 12.4, "hazard"), B(4.6, 2, 7, 11.4, 4, 9, "glow_orange")]
+    m += [B(6.5, 12, 6.5, 9.5, 15, 9.5, "gunmetal"), B(7.2, 15, 7.2, 8.8, 16, 8.8, "glow_orange")]
+    return m
+
+
+def tesla_bomb():
+    m = _base("gunmetal")
+    m += cyl_y(8, 8, 2, 7, 4.6, "copper")
+    for i in range(3):
+        m += cyl_y(8, 8, 7 + i * 2.2, 8.6 + i * 2.2, 4.0 - i * 0.8, "chrome")
+    m += [B(7.4, 13.5, 7.4, 8.6, 16, 8.6, "glow_blue"), B(7, 2, 3.4, 9, 3, 12.6, "glow_blue")]
+    return m
+
+
+def sinkhole_bomb():
+    m = _base("rock")
+    m += [B(3, 2, 3, 13, 6, 13, "rock"), B(5, 6, 5, 11, 7, 11, "black"), B(6, 7, 6, 10, 8, 10, "black")]
+    m += [B(1.5, 2, 7, 3, 3, 9, "glow_orange"), B(13, 2, 7, 14.5, 3, 9, "glow_orange")]
+    m += cyl_y(8, 8, 2, 12, 1.4, "gunmetal") + [B(7.3, 12, 7.3, 8.7, 14, 8.7, "red")]
+    return m
+
+
+def tsunami_bomb():
+    m = _base("steel")
+    m += [B(2, 2, 2, 14, 11, 14, "glass_cyan")]
+    m += [B(2.4, 2.4, 2.4, 13.6, 7, 13.6, "glow_blue"), B(2.4, 7, 2.4, 13.6, 8.2, 13.6, "glow_white")]
+    for (x, z) in ((1.5, 1.5), (13.2, 1.5), (1.5, 13.2), (13.2, 13.2)):
+        m += [B(x, 2, z, x + 1.3, 12, z + 1.3, "chrome")]
+    m += [B(2, 11, 2, 14, 13, 14, "steel")]
+    return m
+
+
+def volcano_bomb():
+    m = _base("obsidian")
+    m += [B(2, 2, 2, 14, 5, 14, "rock"), B(3.5, 5, 3.5, 12.5, 8, 12.5, "rock"), B(5, 8, 5, 11, 11, 11, "rock"), B(6.2, 11, 6.2, 9.8, 13, 9.8, "rock")]
+    m += [B(6.8, 12.4, 6.8, 9.2, 13.6, 9.2, "glow_orange"), B(7.4, 8, 3.4, 8.6, 11, 3.6, "glow_orange"), B(3.4, 4, 7.4, 3.6, 7, 8.6, "glow_orange")]
+    return m
+
+
+def ice_age_bomb():
+    m = _base("white")
+    m += ball(8, 8, 8, 4.6, "glass_ice")
+    for r in (0, 45, 90, 135):
+        m += [B(7.5, 1.5, 7.5, 8.5, 15, 8.5, "glow_ice", ("z", r, [8, 8, 8]))]
+    m += [B(6, 14, 6, 10, 16, 10, "glow_ice")]
+    return m
+
+
+def hellmouth_bomb():
+    m = _base("obsidian")
+    m += [B(2, 2, 2, 14, 12, 14, "crimson")]
+    m += [B(4, 12, 4, 12, 12.6, 12, "glow_crimson"), B(5.5, 12.6, 5.5, 10.5, 14, 10.5, "black")]
+    m += [B(2, 5, 1.8, 14, 6, 2, "glow_orange"), B(2, 9, 1.8, 14, 10, 2, "glow_orange")]
+    for (x, z) in ((1.2, 1.2), (13.8, 1.2), (1.2, 13.8), (13.8, 13.8)):
+        m += [B(x, 2, z, x + 1, 15, z + 1, "obsidian"), B(x, 15, z, x + 1, 16, z + 1, "glow_crimson")]
+    return m
+
+
+def cyclone_bomb():
+    m = _base("gunmetal")
+    for i, (r, y) in enumerate(((5, 2), (4.2, 5), (3.4, 8), (2.6, 11), (1.8, 13))):
+        m += cyl_y(8 + (i % 2) * 0.6, 8 - (i % 2) * 0.6, y, y + 3, r, "pearl" if i % 2 == 0 else "steel")
+    m += [B(7.5, 15, 7.5, 8.5, 16, 8.5, "glow_ice")]
+    return m
+
+
+def doomsday_clock():
+    m = [B(0, 0, 0, 16, 2, 16, "obsidian"), B(1, 2, 1, 15, 3, 15, "crimson")]
+    m += cyl_y(8, 8, 3, 6, 7.2, "gunmetal")
+    for (x, z) in ((7.5, 1.6), (7.5, 13.6), (1.6, 7.5), (13.6, 7.5)):
+        m += [B(x, 6, z, x + 1, 6.5, z + 1, "glow_crimson")]
+    m += [B(7.6, 6, 8, 8.4, 6.6, 12.4, "glow_crimson"), B(8, 6, 7.6, 11, 6.6, 8.4, "glow_white")]
+    m += [B(2, 3, 2, 14, 9, 14, "glass_gold"), B(7, 8, 7, 9, 12, 9, "glow_crimson")]
+    return m
+
+
+def moonfall():
+    m = [B(0, 0, 0, 16, 2, 16, "obsidian")]
+    m += ball(8, 9, 8, 6.0, "steel") + ball(8, 9, 8, 4.0, "pearl")
+    for (x, y) in ((6, 12), (10, 9), (7, 6)):
+        m += [B(x - 1, y, 2.0, x + 1, y + 1.4, 3.0, "obsidian")]
+    m += [B(0.5, 2, 0.5, 15.5, 3, 15.5, "glow_white"), B(7.4, 15.4, 7.4, 8.6, 16.5, 8.6, "celestial")]
+    return m
+
+
+def big_bang():
+    m = [B(0, 0, 0, 16, 2, 16, "black"), B(0, 14, 0, 16, 16, 16, "black")]
+    m += [B(1, 2, 1, 15, 14, 15, "glass_cyan")]
+    m += ball(8, 8, 8, 1.6, "glow_white")
+    for r in (0, 45):
+        m += [B(1.5, 7.7, 7.7, 14.5, 8.3, 8.3, "glow_rainbow", ("y", r, [8, 8, 8])), B(7.7, 1.5, 7.7, 8.3, 14.5, 8.3, "glow_rainbow", ("z", r, [8, 8, 8]))]
+    m += [B(0, 2, 0, 1, 14, 1, "celestial"), B(15, 2, 15, 16, 14, 16, "celestial")]
+    return m
+
+
+def world_eater():
+    m = [B(0, 0, 0, 16, 3, 16, "obsidian")]
+    m += ball(8, 9, 8, 5.4, "black")
+    for rot in (0, 60, 120):
+        m += [B(1.5, 8.6, 7.6, 14.5, 9.4, 8.4, "glow_void", ("y", rot, [8, 9, 8]))]
+    m += [B(6, 7.5, 2.4, 10, 11.5, 2.8, "glow_crimson"), B(7, 8.5, 2.2, 9, 10.5, 2.5, "black")]
+    for (x, z) in ((1, 1), (13.5, 1), (1, 13.5), (13.5, 13.5)):
+        m += [B(x, 3, z, x + 1.5, 9, z + 1.5, "obsidian", ("z", 12 if x < 8 else -12, [x, 3, z]))]
+    return m
+
+
+def chrono_break():
+    m = [B(0, 0, 0, 16, 2, 16, "chrome")]
+    m += cyl_y(8, 8, 2, 4, 7.4, "titanium")
+    m += cyl_y(8, 8, 4, 5, 6.6, "glass_cyan")
+    for (x, z) in ((7.4, 1.4), (7.4, 14), (1.4, 7.4), (14, 7.4)):
+        m += [B(x, 5, z, x + 1.2, 5.6, z + 1.2, "glow_ice")]
+    m += [B(7.6, 5, 8, 8.4, 6, 13, "glow_ice"), B(8, 5, 7.6, 12, 6, 8.4, "glow_white")]
+    m += [B(2, 5, 2, 14, 15, 14, "glass_cyan")]
+    m += [B(6, 7, 6, 10, 13, 10, "glow_ice", ("y", 45, [8, 10, 8])), B(7.3, 15, 7.3, 8.7, 16, 8.7, "celestial")]
+    return m
+
+
+def ragnarok():
+    m = [B(0, 0, 0, 16, 3, 16, "obsidian"), B(0.5, 3, 0.5, 15.5, 4, 15.5, "glow_crimson")]
+    m += [B(3, 4, 3, 13, 11, 13, "crimson"), B(2.8, 6.5, 2.8, 13.2, 7.5, 13.2, "glow_orange")]
+    m += [B(7, 11, 7, 9, 16, 9, "gold"), B(5, 14, 7.4, 11, 15, 8.6, "gold"), B(7.4, 14, 5, 8.6, 15, 11, "gold")]
+    m += [B(7.3, 16, 7.3, 8.7, 17, 8.7, "glow_orange")]
+    for (x, z) in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        m += [B(x, 4, z, x + 1, 13, z + 1, "glow_crimson")]
+    return m
+
+
+BOMBS.update({
+    "disco_bomb": disco_bomb, "glitter_bomb": glitter_bomb, "pumpkin_patch_bomb": pumpkin_patch_bomb, "cobweb_bomb": cobweb_bomb,
+    "balloon_bomb": balloon_bomb, "sprinkler_bomb": sprinkler_bomb, "thermite_bomb": thermite_bomb, "tesla_bomb": tesla_bomb,
+    "sinkhole_bomb": sinkhole_bomb, "tsunami_bomb": tsunami_bomb, "volcano_bomb": volcano_bomb, "ice_age_bomb": ice_age_bomb,
+    "hellmouth_bomb": hellmouth_bomb, "cyclone_bomb": cyclone_bomb, "doomsday_clock": doomsday_clock, "moonfall": moonfall,
+    "big_bang": big_bang, "world_eater": world_eater, "chrono_break": chrono_break, "ragnarok": ragnarok,
+})

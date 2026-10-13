@@ -196,6 +196,7 @@ public final class Showcase {
 			case 0xFFB000 -> Blocks.ORANGE_STAINED_GLASS;
 			case 0xFF2020 -> Blocks.RED_STAINED_GLASS;
 			case 0xFFFFFF -> Blocks.WHITE_STAINED_GLASS;
+			case 0xFF0000 -> Blocks.BLACK_STAINED_GLASS;
 			default -> Blocks.GRAY_STAINED_GLASS;
 		};
 	}

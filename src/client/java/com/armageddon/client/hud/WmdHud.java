@@ -32,6 +32,12 @@ public final class WmdHud {
 			int a = (int) (MathHelper.clamp(ClientFx.flash, 0, 1) * 255);
 			ctx.fill(0, 0, w, h, (a << 24) | (ClientFx.flashColor & 0xFFFFFF));
 		}
+		float bars = MathHelper.lerp(counter.getTickDelta(false), ClientFx.letterboxPrev, ClientFx.letterbox);
+		if (bars > 0.001F) {
+			int bar = (int) (h * 0.12F * bars);
+			ctx.fill(0, 0, w, bar, 0xFF000000);
+			ctx.fill(0, h - bar, w, h, 0xFF000000);
+		}
 		if (player == null || mc.options.hudHidden) {
 			return;
 		}

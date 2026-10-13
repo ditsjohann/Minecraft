@@ -1,6 +1,8 @@
 package com.armageddon.event;
 
+import com.armageddon.event.events.BombEvents;
 import com.armageddon.event.events.CelestialEvents;
+import com.armageddon.event.events.WorldDestructionEvents;
 import com.armageddon.event.events.EpicEvents;
 import com.armageddon.event.events.LegendaryEvents;
 import com.armageddon.event.events.MythicEvents;
@@ -56,6 +58,28 @@ public final class Events {
 		EVENTS.put("riftfall", MythicEvents.Riftfall::new);
 		EVENTS.put("spindle", MythicEvents.Spindle::new);
 		EVENTS.put("extinction", MythicEvents.Extinction::new);
+		// Bomb expansion II
+		EVENTS.put("disco", BombEvents.Disco::new);
+		EVENTS.put("glitter", BombEvents.Glitter::new);
+		EVENTS.put("pumpkin_patch", BombEvents.PumpkinPatch::new);
+		EVENTS.put("cobweb", BombEvents.Cobweb::new);
+		EVENTS.put("balloon", BombEvents.Balloon::new);
+		EVENTS.put("sprinkler", BombEvents.Sprinkler::new);
+		EVENTS.put("thermite", BombEvents.Thermite::new);
+		EVENTS.put("tesla", BombEvents.Tesla::new);
+		EVENTS.put("sinkhole", BombEvents.Sinkhole::new);
+		EVENTS.put("tsunami", BombEvents.Tsunami::new);
+		EVENTS.put("volcano", BombEvents.Volcano::new);
+		EVENTS.put("ice_age", BombEvents.IceAge::new);
+		EVENTS.put("hellmouth", BombEvents.Hellmouth::new);
+		EVENTS.put("cyclone", BombEvents.Cyclone::new);
+		EVENTS.put("doomsday_clock", BombEvents.DoomsdayClock::new);
+		// World destruction
+		EVENTS.put("moonfall", WorldDestructionEvents.Moonfall::new);
+		EVENTS.put("big_bang", WorldDestructionEvents.BigBang::new);
+		EVENTS.put("world_eater", WorldDestructionEvents.WorldEater::new);
+		EVENTS.put("chrono_break", WorldDestructionEvents.ChronoBreak::new);
+		EVENTS.put("ragnarok", WorldDestructionEvents.Ragnarok::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);
 		EVENTS.put("zeropoint", CelestialEvents.Zeropoint::new);

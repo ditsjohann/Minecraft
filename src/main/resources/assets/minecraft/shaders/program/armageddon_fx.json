@@ -247,6 +247,22 @@
       "values": [
         0.0
       ]
+    },
+    {
+      "name": "Impact",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "ImpactMode",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
     }
   ]
 }

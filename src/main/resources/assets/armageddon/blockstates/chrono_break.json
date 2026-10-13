@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/chrono_break"
+    },
+    "facing=east": {
+      "model": "armageddon:block/chrono_break",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/chrono_break",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/chrono_break",
+      "y": 270
+    }
+  }
+}

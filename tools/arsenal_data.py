@@ -86,7 +86,38 @@ DESC = {
     "extinction_choir": ["The sky cracks. Four meteor waves sing down. Then the big one.", "Use twice to confirm."],
 }
 
+NEW_BOMBS = {
+    "disco_bomb": "Disco Bomb", "glitter_bomb": "Glitter Bomb", "pumpkin_patch_bomb": "Pumpkin Patch Bomb",
+    "cobweb_bomb": "Cobweb Bomb", "balloon_bomb": "Balloon Bomb", "sprinkler_bomb": "Sprinkler Bomb",
+    "thermite_bomb": "Thermite Bomb", "tesla_bomb": "Tesla Bomb", "sinkhole_bomb": "Sinkhole Bomb",
+    "tsunami_bomb": "Tsunami Bomb", "volcano_bomb": "Volcano Bomb", "ice_age_bomb": "Ice Age Bomb",
+    "hellmouth_bomb": "Hellmouth", "cyclone_bomb": "Cyclone Bomb", "doomsday_clock": "Doomsday Clock",
+    "moonfall": "MOONFALL", "big_bang": "BIG BANG", "world_eater": "WORLD EATER",
+    "chrono_break": "CHRONO BREAK", "ragnarok": "RAGNAROK",
+}
+BLOCKS.update(NEW_BOMBS)
+
 BLOCK_DESC = {
+    "disco_bomb": "A dance floor, rainbow rings and a beat that bounces everyone. Harmless.",
+    "glitter_bomb": "A storm of sparkle. Everything glows for thirty seconds. Harmless.",
+    "pumpkin_patch_bomb": "Dozens of jack-o'-lanterns sprout from the ground, then wither away.",
+    "cobweb_bomb": "A web bursts outward and sticks to everything. It dissolves later.",
+    "balloon_bomb": "A bouquet of balloons lifts everyone gently skyward, then pops.",
+    "sprinkler_bomb": "A rain cloud: puts out fires, grows plants, heals.",
+    "thermite_bomb": "Burns a glowing shaft straight down through the ground.",
+    "tesla_bomb": "Eight seconds of lightning around the blast point.",
+    "sinkhole_bomb": "The ground funnels away into a deep conical pit.",
+    "tsunami_bomb": "A three-block wall of water races outward and sweeps everything away.",
+    "volcano_bomb": "A cone of basalt rises, then erupts lava bombs for ten seconds.",
+    "ice_age_bomb": "A creeping wave of frost: frozen water, snowy land, towering ice spires.",
+    "hellmouth_bomb": "The ground opens into a lava-floored pit. Hellfire pillars. Light twice.",
+    "cyclone_bomb": "A tornado that wanders, ripping up the ground and everything on it. Light twice.",
+    "doomsday_clock": "A sweeping hand carves a trench; every hour a strike; midnight ends it. Light twice.",
+    "moonfall": "WORLD DESTRUCTION. The moon leaves orbit. Light twice.",
+    "big_bang": "WORLD DESTRUCTION. Silence, a point, then everything outward. Light twice.",
+    "world_eater": "WORLD DESTRUCTION. Six rifts, six Devourers, one black hole. Light twice.",
+    "chrono_break": "WORLD DESTRUCTION. Time stops; a sphere of world is erased, then rewound. Light twice.",
+    "ragnarok": "WORLD DESTRUCTION. The sky splits, a giant blade circles, the land ends. Light twice.",
     "helios_crown_bomb": "Twelve golden pillars race outward, burn a ring, then collapse to the centre.",
     "continental_pulse": "Five expanding waves of cracks seamed with molten gold.",
     "dawnstar_payload": "A golden star rises, gathers a ring of debris, then falls.",
@@ -105,6 +136,15 @@ BLOCK_DESC = {
 }
 
 EXTRA = {
+    "tier.armageddon.world_destruction": "WORLD DESTRUCTION",
+    "message.armageddon.world_destruction": "Cutscene event — it will not be subtle",
+    "message.armageddon.moonfall.title": "THE MOON IS FALLING",
+    "message.armageddon.moonfall.sub": "There is nowhere to hide",
+    "message.armageddon.ragnarok.title": "THE BLADE RISES",
+    "message.armageddon.ragnarok.sub": "Ragnarok",
+    "message.armageddon.hellmouth": "The ground is opening",
+    "message.armageddon.cyclone": "A cyclone is forming",
+    "message.armageddon.doomsday": "The clock has started",
     "tier.armageddon.uncommon": "UNCOMMON", "tier.armageddon.rare": "RARE", "tier.armageddon.epic": "EPIC",
     "tier.armageddon.legendary": "LEGENDARY", "tier.armageddon.mythic": "MYTHIC", "tier.armageddon.celestial": "CELESTIAL",
     "tooltip.armageddon.confirm": "Catastrophic: use twice within 5 s to confirm",
@@ -179,7 +219,30 @@ def anim(write_json, path, frametime):
     write_json(path + ".mcmeta", {"animation": {"frametime": frametime, "interpolate": True}})
 
 
+def bomb_recipes(shaped):
+    P, C, F = "titanium_plate", "circuit_board", "fusion_core"
+    cat = "redstone"
+    U = {"disco_bomb": "minecraft:note_block", "glitter_bomb": "minecraft:glowstone_dust", "pumpkin_patch_bomb": "minecraft:carved_pumpkin",
+         "cobweb_bomb": "minecraft:cobweb", "balloon_bomb": "minecraft:slime_ball", "sprinkler_bomb": "minecraft:water_bucket"}
+    for name, core in U.items():
+        shaped(name, ["TIT", "ICI", "TIT"], {"T": "minecraft:tnt", "I": "minecraft:iron_ingot", "C": core}, category=cat)
+    R = {"thermite_bomb": "minecraft:blaze_powder", "tesla_bomb": "minecraft:lightning_rod", "sinkhole_bomb": "minecraft:piston"}
+    for name, core in R.items():
+        shaped(name, ["PTP", "TCT", "PTP"], {"P": P, "T": "minecraft:tnt", "C": core}, category=cat)
+    L = {"tsunami_bomb": "minecraft:prismarine_crystals", "volcano_bomb": "minecraft:magma_block", "ice_age_bomb": "minecraft:blue_ice"}
+    for name, core in L.items():
+        shaped(name, ["PFP", "SCS", "PFP"], {"P": P, "F": F, "S": "solar_cell", "C": core}, category=cat)
+    M = {"hellmouth_bomb": "minecraft:netherite_ingot", "cyclone_bomb": "minecraft:elytra", "doomsday_clock": "minecraft:clock"}
+    for name, core in M.items():
+        shaped(name, ["RAR", "NCN", "RAR"], {"R": "rift_shard", "A": "antimatter_cell", "N": "minecraft:nether_star", "C": core}, category=cat)
+    W = {"moonfall": "minecraft:end_crystal", "big_bang": "last_light", "world_eater": "devourer_core",
+         "chrono_break": "zeropoint", "ragnarok": "extinction_choir"}
+    for name, core in W.items():
+        shaped(name, ["CXC", "KOK", "CXC"], {"C": "celestial_core", "X": "singularity_core", "K": core, "O": "omega_bomb"}, category=cat)
+
+
 def recipes(shaped, shapeless):
+    bomb_recipes(shaped)
     Ti, P, C, F = "titanium_ingot", "titanium_plate", "circuit_board", "fusion_core"
     shaped("solar_cell", [" G ", "GSG", " T "], {"G": "minecraft:glass", "S": "minecraft:glowstone", "T": Ti}, count=4)
     shaped("rift_shard", ["OEO", "EAE", "OEO"], {"O": "minecraft:crying_obsidian", "E": "minecraft:ender_pearl", "A": "antimatter_cell"}, count=2, category="misc")
@@ -237,5 +300,5 @@ def recipes(shaped, shapeless):
     shaped("final_existence", ["CCC", "COC", "CCC"], {"C": "celestial_core", "O": "omega_bomb"}, category="redstone")
 
 
-PICKAXE = NEW_BLOCKS + ["helios_crown_bomb", "continental_pulse", "dawnstar_payload", "bloodstar_collapse",
+PICKAXE = NEW_BLOCKS + list(NEW_BOMBS) + ["helios_crown_bomb", "continental_pulse", "dawnstar_payload", "bloodstar_collapse",
                         "last_light", "zeropoint", "unmaker", "godfall", "final_existence"]

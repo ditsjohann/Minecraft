@@ -33,7 +33,32 @@ public enum BombType {
 	ZEROPOINT(200, 0x60F0FF),
 	UNMAKER(200, 0xE0E0FF),
 	GODFALL(200, 0xFFE8A0),
-	FINAL_EXISTENCE(400, 0xFF40FF);
+	FINAL_EXISTENCE(400, 0xFF40FF),
+	// Bomb expansion II: uncommon
+	DISCO(60, 0xFF40FF),
+	GLITTER(60, 0xFFE8A0),
+	PUMPKIN_PATCH(60, 0xFF8020),
+	COBWEB(60, 0xE8E8E8),
+	BALLOON(60, 0xFF70B0),
+	SPRINKLER(60, 0x60B0FF),
+	// rare
+	THERMITE(80, 0xFF6A10),
+	TESLA(80, 0x80C0FF),
+	SINKHOLE(80, 0x8A6A40),
+	// legendary
+	TSUNAMI(120, 0x2080FF),
+	VOLCANO(120, 0xFF4010),
+	ICE_AGE(120, 0xBFEFFF),
+	// mythic
+	HELLMOUTH(200, 0xC01010),
+	CYCLONE(200, 0xA0B0C0),
+	DOOMSDAY_CLOCK(200, 0xFF3030),
+	// world destruction
+	MOONFALL(400, 0xC8C8D0),
+	BIG_BANG(400, 0xFFFFFF),
+	WORLD_EATER(400, 0x6010A0),
+	CHRONO_BREAK(400, 0x50FFD0),
+	RAGNAROK(400, 0xFF1010);
 
 	public final int fuse;
 	public final int color;
@@ -49,12 +74,26 @@ public enum BombType {
 
 	/** Celestial warheads are world events. */
 	public boolean isCelestial() {
-		return this.ordinal() >= LAST_LIGHT.ordinal();
+		return switch (this) {
+			case LAST_LIGHT, ZEROPOINT, UNMAKER, GODFALL, FINAL_EXISTENCE -> true;
+			default -> isWorldDestruction();
+		};
+	}
+
+	/** The WORLD DESTRUCTION tier: cutscenes, impact frames, the end of the map. */
+	public boolean isWorldDestruction() {
+		return switch (this) {
+			case MOONFALL, BIG_BANG, WORLD_EATER, CHRONO_BREAK, RAGNAROK -> true;
+			default -> false;
+		};
 	}
 
 	/** Must be lit twice (and are immune to redstone and chain detonation). */
 	public boolean needsConfirmation() {
-		return this == BLOODSTAR || isCelestial();
+		return switch (this) {
+			case BLOODSTAR, HELLMOUTH, CYCLONE, DOOMSDAY_CLOCK -> true;
+			default -> isCelestial();
+		};
 	}
 
 	public void detonate(ServerWorld world, Vec3d pos, @Nullable Entity cause) {

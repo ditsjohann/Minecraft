@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/cobweb_bomb"
+    },
+    "facing=east": {
+      "model": "armageddon:block/cobweb_bomb",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/cobweb_bomb",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/cobweb_bomb",
+      "y": 270
+    }
+  }
+}

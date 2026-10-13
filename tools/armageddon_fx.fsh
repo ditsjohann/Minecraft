@@ -37,6 +37,8 @@ uniform float Whiteout;
 uniform float Blackout;
 uniform float Static;
 uniform float Invert;
+uniform float Impact;
+uniform float ImpactMode;
 
 in vec2 texCoord;
 in vec2 oneTexel;
@@ -170,6 +172,25 @@ void main() {
     }
     if (Invert > 0.0) {
         col = mix(col, vec3(1.0) - col, Invert);
+    }
+    // --- Anime impact frame: hard threshold + ink outlines ---
+    if (Impact > 0.5) {
+        float l0 = dot(col, vec3(0.299, 0.587, 0.114));
+        float lx = dot(texture(DiffuseSampler, texCoord + vec2(oneTexel.x * 2.0, 0.0)).rgb, vec3(0.299, 0.587, 0.114));
+        float ly = dot(texture(DiffuseSampler, texCoord + vec2(0.0, oneTexel.y * 2.0)).rgb, vec3(0.299, 0.587, 0.114));
+        float edge = smoothstep(0.08, 0.2, abs(l0 - lx) + abs(l0 - ly));
+        float fill = step(0.38, l0);
+        vec3 ink;
+        if (ImpactMode < 0.5) {
+            ink = vec3(fill) * (1.0 - edge);
+        } else if (ImpactMode < 1.5) {
+            ink = vec3(1.0 - fill) * (1.0 - edge) + vec3(edge);
+        } else if (ImpactMode < 2.5) {
+            ink = mix(vec3(0.0), vec3(1.0, 0.05, 0.05), fill) * (1.0 - edge) + vec3(edge);
+        } else {
+            ink = vec3(1.0);
+        }
+        col = ink;
     }
     if (Whiteout > 0.0) {
         col = mix(col, vec3(1.0), Whiteout);

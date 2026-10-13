@@ -1,0 +1,6 @@
+-d
+/tmp/claude-0/javac_out
+-proc:none
+-Xmaxerrs
+100000
+@/tmp/claude-0/srcs.txt

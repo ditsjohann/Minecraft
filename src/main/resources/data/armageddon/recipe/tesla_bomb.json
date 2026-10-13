@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "PTP",
+    "TCT",
+    "PTP"
+  ],
+  "key": {
+    "P": {
+      "item": "armageddon:titanium_plate"
+    },
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "C": {
+      "item": "minecraft:lightning_rod"
+    }
+  },
+  "result": {
+    "id": "armageddon:tesla_bomb",
+    "count": 1
+  }
+}
