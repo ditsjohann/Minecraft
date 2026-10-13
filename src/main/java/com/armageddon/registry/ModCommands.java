@@ -45,6 +45,10 @@ public final class ModCommands {
 										.executes(ctx -> city(ctx, IntegerArgumentType.getInteger(ctx, "size")))))
 						.then(CommandManager.literal("purge").executes(ModCommands::purge))
 						.then(com.armageddon.showcase.Showcase.command(registryAccess))
+						.then(CommandManager.literal("event")
+								.then(CommandManager.argument("id", StringArgumentType.word())
+										.suggests((ctx, b) -> net.minecraft.command.CommandSource.suggestMatching(com.armageddon.event.Events.ids(), b))
+										.executes(ModCommands::startEvent)))
 						.then(CommandManager.literal("restore")
 								.executes(ctx -> restore(ctx, 100000))
 								.then(CommandManager.argument("count", IntegerArgumentType.integer(1))
@@ -59,6 +63,20 @@ public final class ModCommands {
 										.then(CommandManager.argument("name", StringArgumentType.word())
 												.executes(ModCommands::protectRemove)))
 								.then(CommandManager.literal("list").executes(ModCommands::protectList)))));
+	}
+
+	/** Starts a scripted event at your feet, facing where you look (testing without crafting bombs). */
+	private static int startEvent(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+		String id = StringArgumentType.getString(ctx, "id");
+		if (!com.armageddon.event.Events.ids().contains(id)) {
+			ctx.getSource().sendError(Text.literal("Unknown event: " + id));
+			return 0;
+		}
+		Entity player = ctx.getSource().getEntityOrThrow();
+		float yaw = player.getYaw();
+		EventEntity.start(ctx.getSource().getWorld(), player.getPos(), id, player, nbt -> nbt.putFloat("Yaw", yaw));
+		ctx.getSource().sendFeedback(() -> Text.literal("Started event " + id), true);
+		return 1;
 	}
 
 	private static int restore(CommandContext<ServerCommandSource> ctx, int count) {

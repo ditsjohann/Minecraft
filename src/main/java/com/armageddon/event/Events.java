@@ -100,6 +100,10 @@ public final class Events {
 		EVENTS.put("final_existence", CelestialEvents.FinalExistence::new);
 	}
 
+	public static java.util.Set<String> ids() {
+		return java.util.Collections.unmodifiableSet(new java.util.TreeSet<>(EVENTS.keySet()));
+	}
+
 	@Nullable
 	public static WorldEvent create(String id) {
 		Supplier<WorldEvent> s = EVENTS.get(id);

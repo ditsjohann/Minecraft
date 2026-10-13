@@ -27,6 +27,11 @@ public class EventEntity extends Entity {
 	private UUID ownerUuid;
 	@Nullable
 	private Entity ownerCache;
+	/**
+	 * The event's own clock. Not {@link Entity#age}: the world increments that before calling
+	 * {@link #tick()}, so it is already 1 on the first tick and every "t == 0" setup step was skipped.
+	 */
+	private int eventTicks;
 
 	public EventEntity(EntityType<? extends EventEntity> type, World world) {
 		super(type, world);
@@ -58,6 +63,10 @@ public class EventEntity extends Entity {
 		return ownerCache;
 	}
 
+	public int eventAge() {
+		return eventTicks;
+	}
+
 	public String getEventId() {
 		return eventId;
 	}
@@ -83,8 +92,17 @@ public class EventEntity extends Entity {
 		boolean finished;
 		try {
 			finished = event.tick();
+			eventTicks++;
 		} catch (RuntimeException ex) {
 			com.armageddon.Armageddon.LOGGER.error("Armageddon event {} crashed; stopping it", eventId, ex);
+			net.minecraft.text.Text msg = net.minecraft.text.Text.literal("[Armageddon] event '" + eventId + "' failed at tick " + eventTicks
+					+ ": " + ex.getClass().getSimpleName() + (ex.getMessage() != null ? " - " + ex.getMessage() : "") + " (details in the log)")
+					.formatted(net.minecraft.util.Formatting.RED);
+			for (net.minecraft.server.network.ServerPlayerEntity p : world.getPlayers()) {
+				if (p.squaredDistanceTo(this) < 512 * 512) {
+					p.sendMessage(msg, false);
+				}
+			}
 			finished = true;
 		}
 		if (finished) {
@@ -99,6 +117,15 @@ public class EventEntity extends Entity {
 			event.finish();
 		}
 		discard();
+	}
+
+	/**
+	 * Events keep live state in memory (lifted blocks, frozen mobs, spawned cows), so one reloaded
+	 * from disk mid-way could not resume correctly. They are not saved; an unloaded event just ends.
+	 */
+	@Override
+	public boolean shouldSave() {
+		return false;
 	}
 
 	@Override
@@ -120,7 +147,7 @@ public class EventEntity extends Entity {
 	public void writeCustomDataToNbt(NbtCompound nbt) {
 		nbt.putString("Event", eventId);
 		nbt.put("Data", data);
-		nbt.putInt("Age", age);
+		nbt.putInt("Age", eventTicks);
 		if (ownerUuid != null) {
 			nbt.putUuid("Owner", ownerUuid);
 		}
@@ -130,7 +157,7 @@ public class EventEntity extends Entity {
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		eventId = nbt.getString("Event");
 		data = nbt.getCompound("Data");
-		age = nbt.getInt("Age");
+		eventTicks = nbt.getInt("Age");
 		if (nbt.containsUuid("Owner")) {
 			ownerUuid = nbt.getUuid("Owner");
 		}

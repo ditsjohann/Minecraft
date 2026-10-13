@@ -31,8 +31,9 @@ public abstract class WorldEvent {
 		return host.getOwner();
 	}
 
+	/** Ticks since this event started: 0 on its very first tick. */
 	protected int age() {
-		return host.age;
+		return host.eventAge();
 	}
 
 	/** Advances the event by one tick. Return true when finished. */

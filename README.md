@@ -65,6 +65,9 @@ All of these need two lights to confirm, respect protected regions and `armagedd
 can be disabled with `armageddonAllowCelestial`. Players are protected during camera cutscenes.
 Fifteen more bombs fill Uncommon (6), Rare (3), Legendary (3) and Mythic (3).
 
+**Testing events** — `/armageddon event <id>` starts any scripted event (every bomb, Celestial and
+cutscene) at your feet, facing where you look, without crafting or lighting anything.
+
 **Showcase (screenshots)** — `/armageddon showcase [all|tiers|classic|blocks|uncommon|rare|epic|legendary|mythic|celestial]`
 builds a lit gallery in front of you: every item floats on a tier-coloured pedestal with its name and tier, rows
 step upward so one screenshot shows them all. `/armageddon showcase item <item>` shows a single item large with
