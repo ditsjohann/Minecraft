@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/colossal_spear"
+    },
+    "facing=east": {
+      "model": "armageddon:block/colossal_spear",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/colossal_spear",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/colossal_spear",
+      "y": 270
+    }
+  }
+}

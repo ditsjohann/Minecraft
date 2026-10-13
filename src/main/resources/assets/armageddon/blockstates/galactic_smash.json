@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/galactic_smash"
+    },
+    "facing=east": {
+      "model": "armageddon:block/galactic_smash",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/galactic_smash",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/galactic_smash",
+      "y": 270
+    }
+  }
+}

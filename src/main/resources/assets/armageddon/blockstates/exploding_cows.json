@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/exploding_cows"
+    },
+    "facing=east": {
+      "model": "armageddon:block/exploding_cows",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/exploding_cows",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/exploding_cows",
+      "y": 270
+    }
+  }
+}

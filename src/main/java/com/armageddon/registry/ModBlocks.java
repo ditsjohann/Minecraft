@@ -100,11 +100,19 @@ public final class ModBlocks {
 	public static final BombBlock HELLMOUTH_BOMB = tiered(bomb("hellmouth_bomb", BombType.HELLMOUTH, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock CYCLONE_BOMB = tiered(bomb("cyclone_bomb", BombType.CYCLONE, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock DOOMSDAY_CLOCK = tiered(bomb("doomsday_clock", BombType.DOOMSDAY_CLOCK, Rarity.EPIC), Tier.MYTHIC);
-	public static final BombBlock MOONFALL = tiered(bomb("moonfall", BombType.MOONFALL, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock BIG_BANG = tiered(bomb("big_bang", BombType.BIG_BANG, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock WORLD_EATER = tiered(bomb("world_eater", BombType.WORLD_EATER, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock CHRONO_BREAK = tiered(bomb("chrono_break", BombType.CHRONO_BREAK, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock RAGNAROK = tiered(bomb("ragnarok", BombType.RAGNAROK, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock MOONFALL = tiered(bomb("moonfall", BombType.MOONFALL, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock BIG_BANG = tiered(bomb("big_bang", BombType.BIG_BANG, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock WORLD_EATER = tiered(bomb("world_eater", BombType.WORLD_EATER, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock CHRONO_BREAK = tiered(bomb("chrono_break", BombType.CHRONO_BREAK, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock RAGNAROK = tiered(bomb("ragnarok", BombType.RAGNAROK, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock EXPLODING_COWS = tiered(bomb("exploding_cows", BombType.EXPLODING_COWS, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock DEADLY_TWISTER = tiered(bomb("deadly_twister", BombType.DEADLY_TWISTER, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock COLOSSAL_SPEAR = tiered(bomb("colossal_spear", BombType.COLOSSAL_SPEAR, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock ZOMBIE_APOCALYPSE = tiered(bomb("zombie_apocalypse", BombType.ZOMBIE_APOCALYPSE, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock UFO_INVASION = tiered(bomb("ufo_invasion", BombType.UFO_INVASION, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock GALACTIC_SMASH = tiered(bomb("galactic_smash", BombType.GALACTIC_SMASH, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock BOOMING_TICK = tiered(bomb("booming_tick", BombType.BOOMING_TICK, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock ALIEN_DEATH_RAY = tiered(bomb("alien_death_ray", BombType.ALIEN_DEATH_RAY, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks
 	public static final Block ENERGY_CRYSTAL = register("energy_crystal", new TransparentBlock(AbstractBlock.Settings.create()

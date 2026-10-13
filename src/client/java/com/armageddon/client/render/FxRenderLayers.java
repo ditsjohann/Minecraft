@@ -48,6 +48,16 @@ public final class FxRenderLayers {
 					.cull(RenderPhase.ENABLE_CULLING)
 					.build(false));
 
+	/** Opaque unlit colour, double-sided: giant bodies, moons, planets, ships. */
+	public static final RenderLayer SOLID = RenderLayer.of("armageddon_solid", VertexFormats.POSITION_COLOR,
+			VertexFormat.DrawMode.QUADS, 8192, false, false,
+			RenderLayer.MultiPhaseParameters.builder()
+					.program(RenderPhase.COLOR_PROGRAM)
+					.transparency(RenderPhase.NO_TRANSPARENCY)
+					.writeMaskState(RenderPhase.ALL_MASK)
+					.cull(RenderPhase.DISABLE_CULLING)
+					.build(false));
+
 	private FxRenderLayers() {
 	}
 }

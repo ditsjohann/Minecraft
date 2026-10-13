@@ -123,23 +123,28 @@ public final class WorldDestructionEvents {
 				Vfx.ring(world, g, 220.0F, 6.0F, 0xFF8030, true, 100);
 				Vfx.pillar(world, g, 14.0F, 0xFFB060, false, 120);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.4F);
-				Detonations.blast(world, g, 150, 5000.0F, ModDamageTypes.ANNIHILATION, owner(), 80, 8.0);
+				Detonations.blast(world, g, 300, 9000.0F, ModDamageTypes.ANNIHILATION, owner(), 160, 11.0);
 				if (Destruction.enabled(world)) {
-					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 70.0F), CraterJob.Mode.NUKE));
+					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 130.0F), CraterJob.Mode.NUKE));
+					DetonationManager.add(new ShellJob(world, BlockPos.ofFloored(g.add(0, 40, 0)), 90, false, ShellJob.Pattern.NONE, null, 0.0F));
 				}
-				Detonations.debris(world, g, 50, 250);
+				Detonations.debris(world, g, 90, 500);
+				for (int i = 0; i < 18; i++) {
+					Vec3d d = Kit.dir(i * 20.0F + world.random.nextFloat() * 10);
+					Kit.fissure(world, g.add(d.multiply(40)), d, 130, 12, 4, Blocks.LAVA.getDefaultState());
+				}
 				EnergyFields.emit(world, EnergyFields.Energy.ANTIMATTER, g, 60, 600, owner());
 			}
-			if (t > FALL && t < FALL + 120 && t % 4 == 0) {
-				Kit.meteor(world, around(world, g, 110), owner());
+			if (t > FALL && t < FALL + 220 && t % 2 == 0) {
+				Kit.meteor(world, around(world, g, 190), owner());
 			}
 			if (t == FALL + 20) {
 				Vfx.skyTint(world, g, 100000, 0x303030, 0.9F);
 			}
-			if (t > FALL + 20 && t % 10 == 0 && t < FALL + 120) {
+			if (t > FALL + 20 && t % 10 == 0 && t < FALL + 220) {
 				Vfx.ring(world, g, 60.0F + (t - FALL) * 2, 4.0F, 0xA09080, true, 30);
 			}
-			return t > FALL + 130;
+			return t > FALL + 230;
 		}
 	}
 
@@ -188,10 +193,11 @@ public final class WorldDestructionEvents {
 				}
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 1.4F);
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F);
-				Detonations.blast(world, g, 130, 5000.0F, ModDamageTypes.ANNIHILATION, owner(), 60, 8.0);
+				Detonations.blast(world, g, 240, 9000.0F, ModDamageTypes.ANNIHILATION, owner(), 120, 10.0);
 				if (Destruction.enabled(world)) {
-					DetonationManager.add(new ShellJob(world, BlockPos.ofFloored(point), 100, false, ShellJob.Pattern.NONE,
+					DetonationManager.add(new ShellJob(world, BlockPos.ofFloored(point), 170, false, ShellJob.Pattern.NONE,
 							ModBlocks.LUMINOUS_GLASS.getDefaultState(), 0.2F));
+					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 90.0F), CraterJob.Mode.ANTIMATTER));
 				}
 			}
 			if (t == 120) {
@@ -251,6 +257,7 @@ public final class WorldDestructionEvents {
 					Vec3d p = rift(i);
 					Vec3d dir = g.subtract(p).multiply(1, 0, 1).normalize().multiply(0.32);
 					DevourerEntity.spawn(world, p.add(0, 2, 0), dir, owner());
+					DevourerEntity.spawn(world, p.add(world.random.nextGaussian() * 4, 2, world.random.nextGaussian() * 4), dir.multiply(0.8), owner());
 				}
 				Vfx.screen(world, g, 100000, 2, 0.5F, 40);
 				frames(world, g, 2, 0);
@@ -264,7 +271,7 @@ public final class WorldDestructionEvents {
 				Vfx.charge(world, host.getId(), g.add(0, 10, 0), 50.0F, 0xA040FF, 40);
 			}
 			if (t == 300) {
-				BlackHoleEntity.spawn(world, g.add(0, 8, 0), 13.0F, 360, true, owner(), 5000);
+				BlackHoleEntity.spawn(world, g.add(0, 8, 0), 22.0F, 420, true, owner(), 14000);
 				frames(world, g, 1, 0, 2, 1);
 				Vfx.screen(world, g, 100000, 4, 0.9F, 3);
 				Vfx.screen(world, g, 100000, 2, 0.8F, 30);
@@ -272,9 +279,9 @@ public final class WorldDestructionEvents {
 				Vfx.shake(world, g, 100000, 6.0F);
 				Vfx.ring(world, g, 140.0F, 5.0F, 0xA040FF, true, 60);
 				Kit.sound(world, g, ModSounds.BLACK_HOLE_COLLAPSE, 64.0F, 0.4F);
-				Detonations.blast(world, g, 60, 1000.0F, ModDamageTypes.ANNIHILATION, owner(), 0, 5.0);
+				Detonations.blast(world, g, 110, 3000.0F, ModDamageTypes.ANNIHILATION, owner(), 0, 7.0);
 				if (Destruction.enabled(world)) {
-					DetonationManager.add(new ShellJob(world, BlockPos.ofFloored(g), 36, true, ShellJob.Pattern.HEX,
+					DetonationManager.add(new ShellJob(world, BlockPos.ofFloored(g), 64, true, ShellJob.Pattern.HEX,
 							ModBlocks.VOID_REMNANT.getDefaultState(), 0.4F));
 				}
 			}
@@ -349,7 +356,7 @@ public final class WorldDestructionEvents {
 			int t = age();
 			Vec3d g = center();
 			if (t == 0) {
-				radius = Math.min(26, Destruction.radius(world, 26));
+				radius = Math.min(38, Destruction.radius(world, 38));
 				restoreAt = ERASE_AT + radius + 90;
 				open(world, g, "block.armageddon.chrono_break", restoreAt + radius * 2 + 40);
 				Vfx.screen(world, g, 100000, 0, 1.0F, restoreAt + radius * 2);
@@ -442,8 +449,8 @@ public final class WorldDestructionEvents {
 				Vfx.shake(world, g, 4096, 2.0F);
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F);
 			}
-			if (t >= 20 && t < 220 && t % 2 == 0) {
-				Vec3d hit = around(world, g, 70);
+			if (t >= 20 && t < 240) {
+				Vec3d hit = around(world, g, 110);
 				Vec3d sky = hit.add(world.random.nextGaussian() * 8, 60, world.random.nextGaussian() * 8);
 				Vfx.beam(world, sky, hit, 1.6F, 0xFFFFFF, 6);
 				Vfx.flash(world, hit, 0.3F, 128, 0xFFE0C0);
@@ -453,13 +460,13 @@ public final class WorldDestructionEvents {
 					Destruction.explode(world, null, hit.x, hit.y, hit.z, 3.0F, true);
 				}
 			}
-			if (t >= 60 && t < 200 && t % 20 == 0) {
+			if (t >= 60 && t < 220 && t % 10 == 0) {
 				Vec3d d = Kit.dir(world.random.nextFloat() * 360);
-				Kit.fissure(world, g.add(d.multiply(3)), d, 55, 9, 3, Blocks.LAVA.getDefaultState());
+				Kit.fissure(world, g.add(d.multiply(3)), d, 120, 12, 4, Blocks.LAVA.getDefaultState());
 				Vfx.shake(world, g, 2048, 3.0F);
 			}
-			if (t >= 100 && t < 320 && t % 4 == 0) {
-				Kit.meteor(world, around(world, g, 65), owner());
+			if (t >= 100 && t < 340 && t % 2 == 0) {
+				Kit.meteor(world, around(world, g, 110), owner());
 			}
 			if (t == 60 || t == 150 || t == 260) {
 				frames(world, g, 2, 0);
@@ -471,7 +478,7 @@ public final class WorldDestructionEvents {
 			}
 			if (t >= 240 && t < 360) {
 				double a = (t - 240) * Math.PI * 2 / 120.0;
-				Vec3d pos = Kit.ground(world, g.x + Math.cos(a) * 44, g.z + Math.sin(a) * 44);
+				Vec3d pos = Kit.ground(world, g.x + Math.cos(a) * 70, g.z + Math.sin(a) * 70);
 				Vfx.beam(world, pos.add(0, 250, 0), pos, 5.0F, 0xFFFFFF, 3);
 				Vfx.pillar(world, pos, 5.0F, 0xFF4010, false, 6);
 				if (Destruction.enabled(world)) {
@@ -497,11 +504,11 @@ public final class WorldDestructionEvents {
 				Vfx.dome(world, g, 140.0F, 0xFF3010, 80);
 				Vfx.ring(world, g, 260.0F, 7.0F, 0xFF6040, true, 90);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.4F);
-				Detonations.blast(world, g, 110, 5000.0F, ModDamageTypes.ANNIHILATION, owner(), 70, 7.0);
+				Detonations.blast(world, g, 220, 9000.0F, ModDamageTypes.ANNIHILATION, owner(), 140, 10.0);
 				if (Destruction.enabled(world)) {
-					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 44.0F), CraterJob.Mode.NUKE));
+					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 90.0F), CraterJob.Mode.NUKE));
 				}
-				Detonations.debris(world, g, 44, 200);
+				Detonations.debris(world, g, 80, 450);
 			}
 			return t > 430;
 		}

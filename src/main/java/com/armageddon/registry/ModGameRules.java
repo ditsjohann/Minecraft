@@ -17,7 +17,7 @@ public final class ModGameRules {
 
 	/** Upper bound for any WMD destruction radius (blocks). */
 	public static final GameRules.Key<GameRules.IntRule> MAX_RADIUS =
-			GameRuleRegistry.register("armageddonMaxRadius", GameRules.Category.MISC, GameRuleFactory.createIntRule(160, 4, 512));
+			GameRuleRegistry.register("armageddonMaxRadius", GameRules.Category.MISC, GameRuleFactory.createIntRule(256, 4, 512));
 	/** Celestial superweapons can be disabled entirely. */
 	public static final GameRules.Key<GameRules.BooleanRule> ALLOW_CELESTIAL =
 			GameRuleRegistry.register("armageddonAllowCelestial", GameRules.Category.MISC, GameRuleFactory.createBooleanRule(true));

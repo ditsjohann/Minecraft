@@ -1056,7 +1056,7 @@ public final class ArsenalEffects {
 			float t = Math.min(1.0F, a / lifetime);
 			Vec3d c = centre(a).subtract(cam);
 			Vec3d sun = new Vec3d(0.45, 0.8, 0.35).normalize();
-			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.VOID);
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 			int lat = 28, lon = 56;
 			for (int i = 0; i < lat; i++) {
 				double t0 = Math.PI * i / lat - Math.PI / 2, t1 = Math.PI * (i + 1) / lat - Math.PI / 2;

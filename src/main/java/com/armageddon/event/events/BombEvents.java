@@ -345,19 +345,21 @@ public final class BombEvents {
 		public boolean tick() {
 			int t = age();
 			Vec3d c = center();
+			float scale = data.contains("Scale") ? data.getFloat("Scale") : 1.0F;
+			int wall = Math.round(3 * scale);
 			if (t == 0) {
 				Vfx.warning(world, c, 0);
 				Vfx.skyTint(world, c, 192, 0x2060A0, 0.4F);
 				Kit.sound(world, c, ModSounds.ORBITAL_CHARGE, 8.0F, 0.5F);
 			}
 			if (t >= 20 && t < 150) {
-				double r = 2 + (t - 20) * 0.38;
+				double r = 2 + (t - 20) * 0.38 * scale;
 				if (t % 2 == 0) {
-					int n = (int) Math.min(200, r * 6);
+					int n = (int) Math.min(520, r * 6);
 					for (int i = 0; i < n; i++) {
 						double a = Math.PI * 2 * i / n;
 						BlockPos g = top(world, c.x + Math.cos(a) * r, c.z + Math.sin(a) * r).up();
-						for (int h = 0; h < 3; h++) {
+						for (int h = 0; h < wall; h++) {
 							BlockPos p = g.up(h);
 							if (world.getBlockState(p).isAir()) {
 								TemporaryBlocks.place(world, p, Blocks.WATER.getDefaultState(), 28);

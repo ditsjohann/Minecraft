@@ -2,6 +2,8 @@ package com.armageddon.event;
 
 import com.armageddon.event.events.BombEvents;
 import com.armageddon.event.events.CelestialEvents;
+import com.armageddon.event.events.CelestialIIEvents;
+import com.armageddon.event.events.WorldCutsceneEvents;
 import com.armageddon.event.events.WorldDestructionEvents;
 import com.armageddon.event.events.EpicEvents;
 import com.armageddon.event.events.LegendaryEvents;
@@ -80,6 +82,16 @@ public final class Events {
 		EVENTS.put("world_eater", WorldDestructionEvents.WorldEater::new);
 		EVENTS.put("chrono_break", WorldDestructionEvents.ChronoBreak::new);
 		EVENTS.put("ragnarok", WorldDestructionEvents.Ragnarok::new);
+		// Celestial expansion II
+		EVENTS.put("exploding_cows", CelestialIIEvents.ExplodingCows::new);
+		EVENTS.put("deadly_twister", CelestialIIEvents.DeadlyTwister::new);
+		EVENTS.put("colossal_spear", CelestialIIEvents.ColossalSpear::new);
+		EVENTS.put("zombie_apocalypse", CelestialIIEvents.ZombieApocalypse::new);
+		EVENTS.put("ufo_invasion", CelestialIIEvents.UfoInvasion::new);
+		// True world destruction
+		EVENTS.put("galactic_smash", WorldCutsceneEvents.GalacticSmash::new);
+		EVENTS.put("booming_tick", WorldCutsceneEvents.BoomingTick::new);
+		EVENTS.put("alien_death_ray", WorldCutsceneEvents.AlienDeathRay::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);
 		EVENTS.put("zeropoint", CelestialEvents.Zeropoint::new);

@@ -172,6 +172,26 @@ public final class Vfx {
 		send(w, ground, FAR * 4, p(FxType.MOON, ground, ground, radius, 0xC8C8D0, 0, startHeight, 0, ticks));
 	}
 
+	public static void cinematic(ServerWorld w, Vec3d anchor, int scene, Vec3d heading, int ticks) {
+		send(w, anchor, FAR * 4, p(FxType.CINEMATIC, anchor, heading, 1, 0, scene, 0, 0, ticks));
+	}
+
+	public static void twister(ServerWorld w, Vec3d start, Vec3d dir, float radius, float speed, int ticks) {
+		send(w, start, FAR * 2, p(FxType.TWISTER, start, dir, radius, 0, 0, speed, 0, ticks));
+	}
+
+	public static void ufo(ServerWorld w, Vec3d from, Vec3d to, float radius, int ticks) {
+		send(w, from.lerp(to, 0.5), FAR * 2, p(FxType.UFO, from, to, radius, 0, 0, 0, 0, ticks));
+	}
+
+	public static void spear(ServerWorld w, Vec3d target, float length, float sinkDepth, int ticks) {
+		send(w, target, FAR * 2, p(FxType.SPEAR, target, target, length, 0, 0, sinkDepth, 0, ticks));
+	}
+
+	public static void alienRocket(ServerWorld w, Vec3d from, Vec3d to, float length, int ticks) {
+		send(w, to, FAR * 4, p(FxType.ALIEN_ROCKET, to, from, length, 0, 0, 0, 0, ticks));
+	}
+
 	private Vfx() {
 	}
 }

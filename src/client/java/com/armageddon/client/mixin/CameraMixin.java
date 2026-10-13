@@ -1,7 +1,11 @@
 package com.armageddon.client.mixin;
 
 import com.armageddon.client.fx.ClientFx;
+import com.armageddon.client.fx.Cinematics;
 import net.minecraft.client.render.Camera;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.BlockView;
 import net.minecraft.util.math.MathHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,6 +24,25 @@ public abstract class CameraMixin {
 
 	@Shadow
 	public abstract float getPitch();
+
+	@Shadow
+	protected abstract void setPos(Vec3d pos);
+
+	@Shadow
+	private boolean thirdPerson;
+
+	/** Scripted cinematics take over the camera entirely. */
+	@Inject(method = "update", at = @At("TAIL"))
+	private void armageddon$cinematic(BlockView area, Entity focused, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo ci) {
+		Cinematics.Cine cine = ClientFx.activeCine();
+		if (cine == null) {
+			return;
+		}
+		Cinematics.State s = cine.frame(tickDelta);
+		this.setPos(s.pos);
+		this.setRotation(s.yaw, s.pitch);
+		this.thirdPerson = true;
+	}
 
 	@Inject(method = "update", at = @At("TAIL"))
 	private void armageddon$shake(CallbackInfo ci) {

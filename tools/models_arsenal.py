@@ -650,3 +650,96 @@ BOMBS.update({
     "hellmouth_bomb": hellmouth_bomb, "cyclone_bomb": cyclone_bomb, "doomsday_clock": doomsday_clock, "moonfall": moonfall,
     "big_bang": big_bang, "world_eater": world_eater, "chrono_break": chrono_break, "ragnarok": ragnarok,
 })
+
+
+# =========================================================================== celestial / world destruction II
+
+def exploding_cows():
+    m = _base("pearl")
+    m += [B(3, 2, 4, 13, 9, 12, "white")]
+    for (x, y, z, w, h) in ((4, 5, 3.8, 3, 2.5), (8.5, 3, 3.8, 3.5, 3), (5.5, 7, 12.1, 3, 1.8), (9, 5, 12.1, 3, 2.6)):
+        m += [B(x, y, z, x + w, y + h, z + 0.2, "black")]
+    m += [B(4, 6, 1, 12, 12, 5, "white"), B(3.2, 11, 1.8, 4.2, 13, 2.8, "gold"), B(11.8, 11, 1.8, 12.8, 13, 2.8, "gold")]
+    m += [B(6, 6.5, 0.6, 10, 9.2, 1, "pink"), B(6.8, 7.2, 0.4, 7.4, 7.8, 0.6, "black"), B(8.6, 7.2, 0.4, 9.2, 7.8, 0.6, "black")]
+    m += [B(6.5, 2, 12, 9.5, 3.8, 13.4, "pink"), B(7.4, 9, 5, 8.6, 13.4, 6, "glow_orange")]
+    m += [B(7.5, 13, 5.3, 8.5, 15.5, 6.3, "black"), B(7.2, 15.5, 5.1, 8.8, 16.2, 6.5, "glow_red")]
+    return m
+
+
+def deadly_twister():
+    m = _base("steel")
+    for i, (r, y) in enumerate(((2.0, 2), (2.8, 4.5), (3.6, 7), (4.5, 9.5), (5.5, 12), (6.5, 14))):
+        m += cyl_y(8 + (0.8 if i % 2 else -0.8), 8 + (-0.6 if i % 2 else 0.6), y, y + 2.6, r, "pearl" if i % 2 == 0 else "steel")
+    m += [B(2, 14.2, 7.7, 14, 14.6, 8.3, "glow_ice"), B(7.7, 14.2, 2, 8.3, 14.6, 14, "glow_ice")]
+    m += [B(7.4, 2, 7.4, 8.6, 15, 8.6, "glow_white")]
+    return m
+
+
+def colossal_spear():
+    m = _base("gold")
+    m += [B(2, 2, 2, 14, 4, 14, "obsidian"), B(4, 4, 4, 12, 5, 12, "rock")]
+    m += [B(7.2, 4, 7.2, 8.8, 14, 8.8, "copper"), B(6.7, 6, 6.7, 9.3, 7, 9.3, "glow_gold"), B(6.7, 9, 6.7, 9.3, 10, 9.3, "glow_gold")]
+    m += [B(5.5, 14, 7, 10.5, 15, 9, "gold"), B(6.8, 15, 7, 9.2, 17, 9, "chrome"), B(7.4, 17, 7.4, 8.6, 19, 8.6, "chrome")]
+    m += [B(6.6, 4, 6.6, 6.8, 13, 9.4, "glow_orange"), B(9.2, 4, 6.6, 9.4, 13, 9.4, "glow_orange")]
+    return m
+
+
+def zombie_apocalypse():
+    m = _base("black")
+    m += [B(2, 2, 2, 14, 12, 14, "toxic"), B(1.8, 6, 1.8, 14.2, 7.5, 14.2, "biohazard")]
+    m += [B(4, 12, 4, 12, 14, 12, "olive"), B(5, 12.2, 3.8, 7, 13.6, 4, "glow_red"), B(9, 12.2, 3.8, 11, 13.6, 4, "glow_red")]
+    m += [B(5.5, 3.5, 1.8, 10.5, 4.6, 2, "glow_green"), B(3, 14, 3, 5, 16, 5, "glow_green"), B(11, 14, 11, 13, 16, 13, "glow_green")]
+    m += [B(0.5, 2, 0.5, 2, 12, 2, "rock"), B(14, 2, 14, 15.5, 12, 15.5, "rock")]
+    return m
+
+
+def ufo_invasion():
+    m = _base("obsidian")
+    m += [B(7, 2, 7, 9, 5, 9, "chrome")]
+    m += cyl_y(8, 8, 5, 7, 7.2, "steel") + cyl_y(8, 8, 7, 8.5, 5.6, "titanium")
+    m += [B(1.2, 6.4, 1.2, 14.8, 6.8, 14.8, "glow_cyan", ("y", 45, [8, 6.6, 8]))]
+    m += cyl_y(8, 8, 8.5, 12, 3.2, "glass_cyan") + [B(7, 9, 7, 9, 11, 9, "glow_green")]
+    for (x, z) in ((3, 8), (13, 8), (8, 3), (8, 13)):
+        m += [B(x - 0.5, 5.6, z - 0.5, x + 0.5, 6.1, z + 0.5, "glow_white")]
+    m += [B(6, 2, 6, 10, 2.4, 10, "glow_cyan")]
+    return m
+
+
+def galactic_smash():
+    m = [B(0, 0, 0, 16, 2, 16, "obsidian"), B(0.5, 2, 0.5, 15.5, 2.8, 15.5, "glow_void")]
+    m += ball(8, 9, 8, 6.0, "celestial") + ball(8, 9, 8, 4.4, "obsidian")
+    m += [B(1, 8.6, 7.6, 15, 9.4, 8.4, "glow_rainbow", ("y", 0, [8, 9, 8])), B(7.6, 1.5, 7.6, 8.4, 14.5, 8.4, "glow_rainbow")]
+    m += [B(5.5, 9, 1.4, 6.5, 10.2, 2, "glow_white"), B(9.5, 9, 1.4, 10.5, 10.2, 2, "glow_white")]
+    m += [B(7, 14.5, 7, 9, 16.5, 9, "glow_white")]
+    for (x, z) in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        m += [B(x, 2.8, z, x + 1, 13, z + 1, "celestial")]
+    return m
+
+
+def booming_tick():
+    m = _base("black")
+    m += ball(8, 8.5, 8, 5.6, "black") + [B(3, 8.2, 3, 13, 8.8, 13, "glow_red", ("y", 45, [8, 8.5, 8]))]
+    m += [B(6.5, 13.5, 6.5, 9.5, 15, 9.5, "steel"), B(7.4, 15, 7.4, 8.6, 16.6, 8.6, "glow_orange")]
+    m += [B(5.8, 6.5, 2.4, 10.2, 11, 2.6, "screen_red"), B(7.8, 7.2, 2.2, 8.2, 9.8, 2.5, "glow_white"), B(8, 8.7, 2.2, 9.6, 9.1, 2.5, "glow_white")]
+    for k in range(12):
+        import math
+        a = k * math.pi / 6
+        m += [B(8 + math.cos(a) * 3.6 - 0.3, 8.8 + math.sin(a) * 3.6 - 0.3, 2.0, 8 + math.cos(a) * 3.6 + 0.3, 8.8 + math.sin(a) * 3.6 + 0.3, 2.3, "glow_red")]
+    return m
+
+
+def alien_death_ray():
+    m = [B(0, 0, 0, 16, 2, 16, "obsidian"), B(1, 2, 1, 15, 3, 15, "glow_void")]
+    m += cyl_y(8, 8, 3, 12, 3.0, "obsidian") + [B(4.8, 5, 4.8, 11.2, 5.6, 11.2, "glow_lime"), B(4.8, 8.4, 4.8, 11.2, 9, 11.2, "glow_lime")]
+    m += [B(7, 12, 7, 9, 15, 9, "obsidian"), B(7.4, 15, 7.4, 8.6, 16.6, 8.6, "glow_lime")]
+    for (x, z) in ((2, 7.4), (12.8, 7.4), (7.4, 2), (7.4, 12.8)):
+        m += [B(x, 3, z, x + 1.2, 10, z + 1.2, "obsidian"), B(x + 0.3, 10, z + 0.3, x + 0.9, 13, z + 0.9, "glow_void")]
+    m += [B(2.4, 9, 7.8, 5, 9.6, 8.2, "glow_lime"), B(11, 9, 7.8, 13.6, 9.6, 8.2, "glow_lime")]
+    return m
+
+
+BOMBS.update({
+    "exploding_cows": exploding_cows, "deadly_twister": deadly_twister, "colossal_spear": colossal_spear,
+    "zombie_apocalypse": zombie_apocalypse, "ufo_invasion": ufo_invasion, "galactic_smash": galactic_smash,
+    "booming_tick": booming_tick, "alien_death_ray": alien_death_ray,
+})

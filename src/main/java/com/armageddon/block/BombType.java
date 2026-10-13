@@ -58,7 +58,17 @@ public enum BombType {
 	BIG_BANG(400, 0xFFFFFF),
 	WORLD_EATER(400, 0x6010A0),
 	CHRONO_BREAK(400, 0x50FFD0),
-	RAGNAROK(400, 0xFF1010);
+	RAGNAROK(400, 0xFF1010),
+	// celestial expansion II
+	EXPLODING_COWS(300, 0xFFFFFF),
+	DEADLY_TWISTER(300, 0x8090A0),
+	COLOSSAL_SPEAR(300, 0xFFB000),
+	ZOMBIE_APOCALYPSE(300, 0x40C040),
+	UFO_INVASION(300, 0x40A0FF),
+	// true world destruction
+	GALACTIC_SMASH(600, 0xA070FF),
+	BOOMING_TICK(600, 0xFF4040),
+	ALIEN_DEATH_RAY(600, 0x60FFA0);
 
 	public final int fuse;
 	public final int color;
@@ -75,15 +85,24 @@ public enum BombType {
 	/** Celestial warheads are world events. */
 	public boolean isCelestial() {
 		return switch (this) {
-			case LAST_LIGHT, ZEROPOINT, UNMAKER, GODFALL, FINAL_EXISTENCE -> true;
-			default -> isWorldDestruction();
+			case LAST_LIGHT, ZEROPOINT, UNMAKER, GODFALL, FINAL_EXISTENCE,
+					EXPLODING_COWS, DEADLY_TWISTER, COLOSSAL_SPEAR, ZOMBIE_APOCALYPSE, UFO_INVASION -> true;
+			default -> isCityDestruction() || isWorldDestruction();
 		};
 	}
 
-	/** The WORLD DESTRUCTION tier: cutscenes, impact frames, the end of the map. */
-	public boolean isWorldDestruction() {
+	/** The CITY DESTRUCTION tier: impact frames, letterbox bars, the end of the map. */
+	public boolean isCityDestruction() {
 		return switch (this) {
 			case MOONFALL, BIG_BANG, WORLD_EATER, CHRONO_BREAK, RAGNAROK -> true;
+			default -> false;
+		};
+	}
+
+	/** The true WORLD DESTRUCTION tier: scripted camera cutscenes. */
+	public boolean isWorldDestruction() {
+		return switch (this) {
+			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY -> true;
 			default -> false;
 		};
 	}

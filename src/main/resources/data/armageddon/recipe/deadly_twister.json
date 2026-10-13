@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CSC",
+    "SKS",
+    "CSC"
+  ],
+  "key": {
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "S": {
+      "item": "minecraft:wind_charge"
+    },
+    "K": {
+      "item": "minecraft:elytra"
+    }
+  },
+  "result": {
+    "id": "armageddon:deadly_twister",
+    "count": 1
+  }
+}

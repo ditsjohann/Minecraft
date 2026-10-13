@@ -48,11 +48,22 @@ supernova) and the OMEGA Planet Cracker (78-block crater, blood-red sky).
 skyscrapers, roads, street lights and parks (with villagers) to destroy. `/armageddon purge` clears fallout,
 black holes, stars, pending strikes and crater jobs.
 
-**WORLD DESTRUCTION tier** — five bombs above Celestial, each a scripted cutscene with letterbox bars, anime impact
-frames, FOV punches and real terrain destruction: MOONFALL (a cratered moon falls out of the sky), BIG BANG,
-WORLD EATER, CHRONO BREAK (a sphere of world is erased, then rewound) and RAGNAROK. They need two lights to
-confirm, respect protected regions and `armageddonMaxRadius`, and can be disabled with
-`armageddonAllowCelestial`. Fifteen more bombs fill Uncommon (6), Rare (3), Legendary (3) and Mythic (3).
+**Celestial II** — EXPLODING COWS (cows fall as bombs, wave after wave, bigger each time, then one enormous cow),
+DEADLY TWISTER (a mile-high twister that wanders and drags players from safety), COLOSSAL SPEAR (a
+building-sized spear spins down through the world, drilling a hole to the core), ZOMBIE APOCALYPSE (a growing
+undead tide and stomping giants that explode green) and UFO INVASION (a city-wide saucer with a blue beam of death).
+
+**CITY DESTRUCTION tier** — scripted bombs with letterbox bars, anime impact frames, FOV punches and very
+heavy destruction: MOONFALL (a cratered moon falls out of the sky), BIG BANG, WORLD EATER, CHRONO BREAK (a sphere
+of world is erased, then rewound) and RAGNAROK.
+
+**WORLD DESTRUCTION tier (the real one)** — actual camera cutscenes. GALACTIC SMASH: a cosmic giant tears the
+sky open, looks around, winds up and punches the ground. BOOMING TICK: a laughable pop that doubles every five
+seconds for a minute, then a cutscene over the carpet-bombed site and out to Earth exploding. ALIEN DEATH RAY: a
+cutscene to an alien world where the rocket is loaded and fired, then an EMP, a tsunami and the biggest boom.
+All of these need two lights to confirm, respect protected regions and `armageddonMaxRadius` (default 256), and
+can be disabled with `armageddonAllowCelestial`. Players are protected during camera cutscenes.
+Fifteen more bombs fill Uncommon (6), Rare (3), Legendary (3) and Mythic (3).
 
 **Showcase (screenshots)** — `/armageddon showcase [all|tiers|classic|blocks|uncommon|rare|epic|legendary|mythic|celestial]`
 builds a lit gallery in front of you: every item floats on a tier-coloured pedestal with its name and tier, rows

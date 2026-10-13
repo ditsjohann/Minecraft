@@ -18,7 +18,9 @@ public enum Tier {
 	MYTHIC(0xFF2020, "mythic"),
 	CELESTIAL(0xFFFFFF, "celestial"),
 	/** Above Celestial: strobing red/white/black with glitching glyphs. */
-	WORLD_DESTRUCTION(0xFF0000, "world_destruction");
+	CITY_DESTRUCTION(0xFF0000, "city_destruction"),
+	/** The true top tier: real cutscenes. Rainbow-white strobe with glitching glyphs. */
+	WORLD_DESTRUCTION(0xFFFFFF, "world_destruction");
 
 	public final int color;
 	public final String key;
@@ -32,7 +34,8 @@ public enum Tier {
 	public Text decorate(Text name) {
 		return switch (this) {
 			case CELESTIAL -> shimmer(name.getString());
-			case WORLD_DESTRUCTION -> strobe(name.getString());
+			case CITY_DESTRUCTION -> strobe(name.getString());
+			case WORLD_DESTRUCTION -> prism(name.getString());
 			case MYTHIC -> name.copy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(pulse(0xFF2020, 0x8A0000))).withBold(true));
 			case LEGENDARY -> name.copy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(pulse(0xFFC830, 0xFF8A00))).withBold(true));
 			default -> name.copy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(color)));
@@ -45,8 +48,11 @@ public enum Tier {
 		if (this == CELESTIAL) {
 			return shimmer("✦ " + t.getString() + " ✦");
 		}
-		if (this == WORLD_DESTRUCTION) {
+		if (this == CITY_DESTRUCTION) {
 			return strobe("☢ " + t.getString() + " ☢");
+		}
+		if (this == WORLD_DESTRUCTION) {
+			return prism("☄ " + t.getString() + " ☄");
 		}
 		return Text.literal("◆ ").append(t).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(color)).withBold(this.ordinal() >= LEGENDARY.ordinal()));
 	}
@@ -66,6 +72,21 @@ public enum Tier {
 				default -> 0xFF2020;
 			};
 			boolean glitch = s.charAt(i) != ' ' && ((beat * 17 + i * 31) % 19 == 0);
+			Style style = Style.EMPTY.withColor(TextColor.fromRgb(rgb)).withBold(true).withObfuscated(glitch);
+			out.append(Text.literal(String.valueOf(s.charAt(i))).setStyle(style));
+		}
+		return out;
+	}
+
+	/** Fast rainbow sweep with white flashes: the true top tier. */
+	private static Text prism(String s) {
+		MutableText out = Text.empty();
+		long now = System.currentTimeMillis();
+		long beat = now / 70L;
+		for (int i = 0; i < s.length(); i++) {
+			float hue = ((now % 1400L) / 1400.0F + i * 0.06F) % 1.0F;
+			int rgb = (beat + i) % 7 == 0 ? 0xFFFFFF : MathHelper.hsvToRgb(hue, 0.85F, 1.0F);
+			boolean glitch = s.charAt(i) != ' ' && ((beat * 13 + i * 29) % 17 == 0);
 			Style style = Style.EMPTY.withColor(TextColor.fromRgb(rgb)).withBold(true).withObfuscated(glitch);
 			out.append(Text.literal(String.valueOf(s.charAt(i))).setStyle(style));
 		}

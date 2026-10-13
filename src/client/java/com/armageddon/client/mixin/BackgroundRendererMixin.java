@@ -33,4 +33,14 @@ public abstract class BackgroundRendererMixin {
 		blue = (float) tinted.z;
 		RenderSystem.clearColor(red, green, blue, 0.0F);
 	}
+
+	/** Space has no fog: stars and planets must stay crisp at hundreds of blocks. */
+	@Inject(method = "applyFog", at = @At("TAIL"))
+	private static void armageddon$spaceFog(Camera camera, BackgroundRenderer.FogType fogType, float viewDistance, boolean thickFog, float tickDelta, CallbackInfo ci) {
+		com.armageddon.client.fx.Cinematics.Cine cine = com.armageddon.client.fx.ClientFx.activeCine();
+		if (cine != null && cine.frame(tickDelta).space) {
+			RenderSystem.setShaderFogStart(1.0E6F);
+			RenderSystem.setShaderFogEnd(2.0E6F);
+		}
+	}
 }

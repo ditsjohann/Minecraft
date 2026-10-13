@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CSC",
+    "SKS",
+    "CSC"
+  ],
+  "key": {
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "S": {
+      "item": "minecraft:rotten_flesh"
+    },
+    "K": {
+      "item": "minecraft:zombie_head"
+    }
+  },
+  "result": {
+    "id": "armageddon:zombie_apocalypse",
+    "count": 1
+  }
+}

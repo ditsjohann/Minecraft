@@ -25,6 +25,8 @@ public final class FxWorldRenderer {
 		for (FxEffect effect : ClientFx.EFFECTS) {
 			effect.render(m, consumers, cam, tickDelta, camera.getYaw(), camera.getPitch());
 		}
+		consumers.draw(FxRenderLayers.SOLID);
+		consumers.draw(FxRenderLayers.VOID);
 		consumers.draw(FxRenderLayers.SHADE);
 		consumers.draw(FxRenderLayers.GLOW);
 		consumers.draw(FxRenderLayers.GLOW_NO_DEPTH);

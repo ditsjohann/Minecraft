@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/booming_tick"
+    },
+    "facing=east": {
+      "model": "armageddon:block/booming_tick",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/booming_tick",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/booming_tick",
+      "y": 270
+    }
+  }
+}

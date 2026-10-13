@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/deadly_twister"
+    },
+    "facing=east": {
+      "model": "armageddon:block/deadly_twister",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/deadly_twister",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/deadly_twister",
+      "y": 270
+    }
+  }
+}

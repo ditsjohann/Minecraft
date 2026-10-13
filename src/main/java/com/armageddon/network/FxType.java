@@ -128,4 +128,16 @@ public final class FxType {
 	public static final int FOV = 57;
 	/** A falling moon. scale = radius, p1 = start height, duration = ticks until impact. */
 	public static final int MOON = 58;
+
+	// ---- Megastructure effects and scripted cinematics ----
+	/** Scripted camera cinematic. seed = scene id (1 Galactic Smash, 2 Booming Tick, 3 Alien Launch), b = horizontal heading. */
+	public static final int CINEMATIC = 60;
+	/** A mile-high twister. a = start, b = heading, scale = radius, p1 = speed (blocks/tick), duration. */
+	public static final int TWISTER = 61;
+	/** A city-sized UFO flying a -> b. scale = radius. */
+	public static final int UFO = 62;
+	/** A building-sized spear thrown at a. scale = length, p1 = sink depth. */
+	public static final int SPEAR = 63;
+	/** The alien rocket arriving. a = impact point, b = start, scale = length. */
+	public static final int ALIEN_ROCKET = 64;
 }

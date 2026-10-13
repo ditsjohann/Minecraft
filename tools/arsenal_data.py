@@ -95,9 +95,22 @@ NEW_BOMBS = {
     "moonfall": "MOONFALL", "big_bang": "BIG BANG", "world_eater": "WORLD EATER",
     "chrono_break": "CHRONO BREAK", "ragnarok": "RAGNAROK",
 }
+NEW_BOMBS.update({
+    "exploding_cows": "EXPLODING COWS", "deadly_twister": "DEADLY TWISTER", "colossal_spear": "COLOSSAL SPEAR",
+    "zombie_apocalypse": "ZOMBIE APOCALYPSE", "ufo_invasion": "UFO INVASION",
+    "galactic_smash": "GALACTIC SMASH", "booming_tick": "BOOMING TICK", "alien_death_ray": "ALIEN DEATH RAY",
+})
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
+    "exploding_cows": "Cows fall from the sky as bombs, wave after wave, bigger each time. Then one enormous cow. Light twice.",
+    "deadly_twister": "A mile-high twister crosses the land and drags players from safety. Light twice.",
+    "colossal_spear": "A building-sized spear lands, then spins down through the world, drilling a hole to the core. Light twice.",
+    "zombie_apocalypse": "An undead tide that keeps growing, five stomping giants, and a green detonation each. Light twice.",
+    "ufo_invasion": "A city-wide saucer crosses the sky with a blue beam of death, then leaves. Light twice.",
+    "galactic_smash": "WORLD DESTRUCTION. A cosmic giant appears, looks around, and punches the ground. Camera cutscene. Light twice.",
+    "booming_tick": "WORLD DESTRUCTION. It starts as a laughable pop. Sixty seconds later, the Earth. Camera cutscene. Light twice.",
+    "alien_death_ray": "WORLD DESTRUCTION. A cutscene to another world, a rocket, an EMP, a tsunami, the biggest boom. Light twice.",
     "disco_bomb": "A dance floor, rainbow rings and a beat that bounces everyone. Harmless.",
     "glitter_bomb": "A storm of sparkle. Everything glows for thirty seconds. Harmless.",
     "pumpkin_patch_bomb": "Dozens of jack-o'-lanterns sprout from the ground, then wither away.",
@@ -113,11 +126,11 @@ BLOCK_DESC = {
     "hellmouth_bomb": "The ground opens into a lava-floored pit. Hellfire pillars. Light twice.",
     "cyclone_bomb": "A tornado that wanders, ripping up the ground and everything on it. Light twice.",
     "doomsday_clock": "A sweeping hand carves a trench; every hour a strike; midnight ends it. Light twice.",
-    "moonfall": "WORLD DESTRUCTION. The moon leaves orbit. Light twice.",
-    "big_bang": "WORLD DESTRUCTION. Silence, a point, then everything outward. Light twice.",
-    "world_eater": "WORLD DESTRUCTION. Six rifts, six Devourers, one black hole. Light twice.",
-    "chrono_break": "WORLD DESTRUCTION. Time stops; a sphere of world is erased, then rewound. Light twice.",
-    "ragnarok": "WORLD DESTRUCTION. The sky splits, a giant blade circles, the land ends. Light twice.",
+    "moonfall": "CITY DESTRUCTION. The moon leaves orbit. Light twice.",
+    "big_bang": "CITY DESTRUCTION. Silence, a point, then everything outward. Light twice.",
+    "world_eater": "CITY DESTRUCTION. Six rifts, six Devourers, one black hole. Light twice.",
+    "chrono_break": "CITY DESTRUCTION. Time stops; a sphere of world is erased, then rewound. Light twice.",
+    "ragnarok": "CITY DESTRUCTION. The sky splits, a giant blade circles, the land ends. Light twice.",
     "helios_crown_bomb": "Twelve golden pillars race outward, burn a ring, then collapse to the centre.",
     "continental_pulse": "Five expanding waves of cracks seamed with molten gold.",
     "dawnstar_payload": "A golden star rises, gathers a ring of debris, then falls.",
@@ -136,6 +149,7 @@ BLOCK_DESC = {
 }
 
 EXTRA = {
+    "tier.armageddon.city_destruction": "CITY DESTRUCTION",
     "tier.armageddon.world_destruction": "WORLD DESTRUCTION",
     "message.armageddon.world_destruction": "Cutscene event — it will not be subtle",
     "message.armageddon.moonfall.title": "THE MOON IS FALLING",
@@ -219,7 +233,22 @@ def anim(write_json, path, frametime):
     write_json(path + ".mcmeta", {"animation": {"frametime": frametime, "interpolate": True}})
 
 
+def bomb_recipes2(shaped):
+    cat = "redstone"
+    X = {"exploding_cows": ("minecraft:cow_spawn_egg", "minecraft:milk_bucket"),
+         "deadly_twister": ("minecraft:elytra", "minecraft:wind_charge"),
+         "colossal_spear": ("minecraft:trident", "minecraft:netherite_block"),
+         "zombie_apocalypse": ("minecraft:zombie_head", "minecraft:rotten_flesh"),
+         "ufo_invasion": ("minecraft:end_crystal", "minecraft:ender_eye")}
+    for name, (core, side) in X.items():
+        shaped(name, ["CSC", "SKS", "CSC"], {"C": "celestial_core", "S": side, "K": core}, category=cat)
+    W = {"galactic_smash": "big_bang", "booming_tick": "chrono_break", "alien_death_ray": "moonfall"}
+    for name, core in W.items():
+        shaped(name, ["CXC", "NKN", "CXC"], {"C": "celestial_core", "X": "singularity_core", "N": "minecraft:nether_star", "K": core}, category=cat)
+
+
 def bomb_recipes(shaped):
+    bomb_recipes2(shaped)
     P, C, F = "titanium_plate", "circuit_board", "fusion_core"
     cat = "redstone"
     U = {"disco_bomb": "minecraft:note_block", "glitter_bomb": "minecraft:glowstone_dust", "pumpkin_patch_bomb": "minecraft:carved_pumpkin",

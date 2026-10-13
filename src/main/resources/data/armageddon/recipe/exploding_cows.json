@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CSC",
+    "SKS",
+    "CSC"
+  ],
+  "key": {
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "S": {
+      "item": "minecraft:milk_bucket"
+    },
+    "K": {
+      "item": "minecraft:cow_spawn_egg"
+    }
+  },
+  "result": {
+    "id": "armageddon:exploding_cows",
+    "count": 1
+  }
+}

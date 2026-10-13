@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CSC",
+    "SKS",
+    "CSC"
+  ],
+  "key": {
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "S": {
+      "item": "minecraft:netherite_block"
+    },
+    "K": {
+      "item": "minecraft:trident"
+    }
+  },
+  "result": {
+    "id": "armageddon:colossal_spear",
+    "count": 1
+  }
+}

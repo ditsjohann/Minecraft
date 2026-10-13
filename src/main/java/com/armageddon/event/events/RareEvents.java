@@ -366,18 +366,19 @@ public final class RareEvents {
 			int t = age();
 			Vec3d c = center();
 			int dur = 300;
+			int R = data.contains("R") ? data.getInt("R") : 16;
 			if (t == 0) {
-				Vfx.ring(world, c, 16.0F, 1.5F, 0x5AA8FF, false, 25);
-				Vfx.dome(world, c, 16.0F, 0x5AA8FF, 20);
-				Vfx.screen(world, c, 24, 3, 0.8F, 60);
+				Vfx.ring(world, c, R, 1.5F, 0x5AA8FF, false, 25);
+				Vfx.dome(world, c, R, 0x5AA8FF, 20);
+				Vfx.screen(world, c, R + 8, 3, 0.8F, 60);
 				Kit.sound(world, c, ModSounds.ORBITAL_STRIKE, 4.0F, 2.0F);
-				EnergyFields.emit(world, EnergyFields.Energy.ELECTRIC, c, 16, 60, owner());
+				EnergyFields.emit(world, EnergyFields.Energy.ELECTRIC, c, R, 60, owner());
 				BlockPos b = BlockPos.ofFloored(c);
 				BlockPos.Mutable p = new BlockPos.Mutable();
-				for (int dx = -16; dx <= 16; dx++) {
-					for (int dy = -8; dy <= 8; dy++) {
-						for (int dz = -16; dz <= 16; dz++) {
-							if (dx * dx + dy * dy + dz * dz > 256) {
+				for (int dx = -R; dx <= R; dx++) {
+					for (int dy = -R / 2; dy <= R / 2; dy++) {
+						for (int dz = -R; dz <= R; dz++) {
+							if (dx * dx + dy * dy + dz * dz > R * R) {
 								continue;
 							}
 							p.set(b.getX() + dx, b.getY() + dy, b.getZ() + dz);
@@ -398,7 +399,7 @@ public final class RareEvents {
 				}
 			}
 			if (t % 10 == 0) {
-				for (LivingEntity e : Kit.living(world, c, 16)) {
+				for (LivingEntity e : Kit.living(world, c, Math.max(16, R * 3))) {
 					if (e instanceof CreeperEntity creeper) {
 						creeper.setFuseSpeed(-1);
 					}

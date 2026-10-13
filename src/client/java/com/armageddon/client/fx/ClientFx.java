@@ -64,6 +64,10 @@ public final class ClientFx {
 	}
 
 	public static void clear() {
+		if (cine != null) {
+			MinecraftClient.getInstance().options.hudHidden = hudWasHidden;
+			cine = null;
+		}
 		letterbox = letterboxPrev = 0;
 		letterboxHold = impactTicks = 0;
 		fovPunch = 0;
@@ -123,6 +127,14 @@ public final class ClientFx {
 	public static int impactTicks, impactStyle;
 	/** FOV punch in degrees, decaying. */
 	public static float fovPunch, fovPunchDecay = 0.85F;
+
+	/** The running scripted cinematic, if any. It owns the camera until it finishes. */
+	public static Cinematics.Cine cine;
+	private static boolean hudWasHidden;
+
+	public static Cinematics.Cine activeCine() {
+		return cine != null && !cine.done ? cine : null;
+	}
 
 	public static void impact(int style, int frames) {
 		impactStyle = style;
@@ -323,6 +335,18 @@ public final class ClientFx {
 				fovPunchDecay = (float) Math.pow(0.02, 1.0 / Math.max(2, p.duration()));
 			}
 			case FxType.MOON -> add(new ArsenalEffects.Moon(a, s, p.p1(), p.color(), p.duration()));
+			case FxType.CINEMATIC -> {
+				Cinematics.Cine c = Cinematics.create(p.seed(), a, b, p.duration());
+				cine = c;
+				add(c);
+				MinecraftClient client = MinecraftClient.getInstance();
+				hudWasHidden = client.options.hudHidden;
+				client.options.hudHidden = true;
+			}
+			case FxType.TWISTER -> add(new MegaEffects.Twister(a, b, s, p.p1(), p.duration()));
+			case FxType.UFO -> add(new MegaEffects.Ufo(a, b, s, p.duration()));
+			case FxType.SPEAR -> add(new MegaEffects.Spear(a, s, p.p1(), p.duration()));
+			case FxType.ALIEN_ROCKET -> add(new MegaEffects.AlienRocket(a, b, s, p.duration()));
 			case FxType.STEAM -> ArsenalEffects.steam(world, a, s);
 			case FxType.GLITCH -> add(new ArsenalEffects.Glitch(a, s, p.color(), p.seed(), p.duration()));
 			case FxType.ORB -> add(new ArsenalEffects.Orb(a, s, p.p1(), p.color(), (int) p.p2(), p.duration()));
@@ -499,6 +523,10 @@ public final class ClientFx {
 					SCREEN[k] = 0;
 				}
 			}
+		}
+		if (cine != null && cine.done) {
+			cine = null;
+			MinecraftClient.getInstance().options.hudHidden = hudWasHidden;
 		}
 		letterboxPrev = letterbox;
 		if (letterboxHold > 0) {
