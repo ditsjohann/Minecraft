@@ -77,7 +77,8 @@ public final class Cinematics {
 		public State frame(float tickDelta) {
 			float a = age + tickDelta;
 			direct(a, st);
-			float h = handheld(a);
+			// Handheld wobble, toned down and capped so even the big moments stay watchable.
+			float h = Math.min(0.5F, handheld(a) * 0.35F);
 			if (h > 0) {
 				double t = a * 0.05;
 				st.pos = st.pos.add((Math.sin(t * 7.1) + Math.sin(t * 13.3) * 0.5) * h * 0.4,

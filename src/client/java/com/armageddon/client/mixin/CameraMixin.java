@@ -51,11 +51,11 @@ public abstract class CameraMixin {
 
 	@Inject(method = "update", at = @At("TAIL"))
 	private void armageddon$shake(CallbackInfo ci) {
-		float s = ClientFx.shake;
+		float s = ClientFx.shakeView();
 		if (s <= 0.0F) {
 			return;
 		}
-		double t = System.nanoTime() / 1.0E9;
+		double t = System.nanoTime() / 1.0E9 * 0.6;
 		float dx = (float) (Math.sin(t * 47.0) + Math.sin(t * 89.0) * 0.5) * s;
 		float dy = (float) (Math.cos(t * 53.0) + Math.sin(t * 71.0) * 0.5) * s;
 		this.setRotation(this.getYaw() + dx, MathHelper.clamp(this.getPitch() + dy, -90.0F, 90.0F));

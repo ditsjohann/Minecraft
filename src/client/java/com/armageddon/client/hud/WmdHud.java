@@ -29,7 +29,7 @@ public final class WmdHud {
 		int h = ctx.getScaledWindowHeight();
 
 		if (!PostFx.renderedThisFrame && ClientFx.flash > 0.01F) {
-			int a = (int) (MathHelper.clamp(ClientFx.flash, 0, 1) * 255);
+			int a = (int) (MathHelper.clamp(ClientFx.flash, 0, ClientFx.FLASH_MAX) * 255);
 			ctx.fill(0, 0, w, h, (a << 24) | (ClientFx.flashColor & 0xFFFFFF));
 		}
 		float bars = MathHelper.lerp(counter.getTickDelta(false), ClientFx.letterboxPrev, ClientFx.letterbox);

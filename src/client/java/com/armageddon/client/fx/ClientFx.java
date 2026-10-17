@@ -146,6 +146,11 @@ public final class ClientFx {
 		if (kind < 0 || kind >= SCREEN.length) {
 			return;
 		}
+		if (kind == 1) {
+			// White-outs are brief and partial: a full white screen for a second is just unpleasant.
+			strength = Math.min(strength, 0.45F);
+			hold = Math.min(hold, 4);
+		}
 		SCREEN[kind] = Math.max(SCREEN[kind], MathHelper.clamp(strength, 0.0F, 1.0F));
 		SCREEN_HOLD[kind] = Math.max(SCREEN_HOLD[kind], hold);
 	}
@@ -177,12 +182,21 @@ public final class ClientFx {
 	/** Adds a flash that falls off with distance. */
 	public static void flash(Vec3d at, double range, float strength, int color) {
 		double d = cameraPos().distanceTo(at);
-		float f = (float) (strength * MathHelper.clamp(1.0 - d / range, 0.0, 1.0));
+		float f = (float) (Math.min(strength, FLASH_MAX) * MathHelper.clamp(1.0 - d / range, 0.0, 1.0));
 		if (f > flash) {
 			flash = f;
 			flashColor = color;
 		}
 		distortion = Math.max(distortion, f);
+	}
+
+	/** Comfort limits: raw shake/flash values come from many effects, these keep the screen readable. */
+	public static final float SHAKE_SCALE = 0.35F, SHAKE_MAX = 1.1F, FLASH_MAX = 0.55F;
+
+	/** The camera wobble actually applied (degrees): scaled down and soft-capped so big blasts never get violent. */
+	public static float shakeView() {
+		float s = shake * SHAKE_SCALE;
+		return s <= 0.0F ? 0.0F : SHAKE_MAX * s / (SHAKE_MAX + s);
 	}
 
 	public static void shake(Vec3d at, double range, float strength) {
@@ -341,7 +355,7 @@ public final class ClientFx {
 			case FxType.CUTSCENE -> letterboxHold = Math.max(letterboxHold, p.duration());
 			case FxType.IMPACT -> impact(p.seed(), p.duration());
 			case FxType.FOV -> {
-				fovPunch = Math.max(fovPunch, s);
+				fovPunch = Math.max(fovPunch, Math.min(s * 0.6F, 14.0F));
 				fovPunchDecay = (float) Math.pow(0.02, 1.0 / Math.max(2, p.duration()));
 			}
 			case FxType.MOON -> add(new ArsenalEffects.Moon(a, s, p.p1(), p.color(), p.duration()));
@@ -548,7 +562,7 @@ public final class ClientFx {
 			if (SCREEN_HOLD[k] > 0) {
 				SCREEN_HOLD[k]--;
 			} else {
-				SCREEN[k] *= 0.9F;
+				SCREEN[k] *= k == 1 ? 0.8F : 0.9F;
 				if (SCREEN[k] < 0.005F) {
 					SCREEN[k] = 0;
 				}
@@ -589,15 +603,15 @@ public final class ClientFx {
 			lightPos = null;
 		}
 
-		flash *= flash > 0.6F ? 0.95F : 0.88F;
+		flash = Math.min(flash, FLASH_MAX) * 0.82F;
 		if (flash < 0.003F) {
 			flash = 0;
 		}
-		shake *= 0.9F;
+		shake *= 0.86F;
 		if (shake < 0.01F) {
 			shake = 0;
 		}
-		distortion = Math.max(distortion * 0.97F, shake * 0.15F);
+		distortion = Math.min(0.6F, Math.max(distortion * 0.95F, shakeView() * 0.1F));
 		if (distortion < 0.003F) {
 			distortion = 0;
 		}

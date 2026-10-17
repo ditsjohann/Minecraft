@@ -73,7 +73,9 @@ public final class CelestialIIEvents {
 			if (scaleAttr != null) {
 				scaleAttr.setBaseValue(scale);
 			}
+			// NoAI mobs never run travel(), so gravity does nothing: the event moves the cows itself (see fall()).
 			cow.setAiDisabled(true);
+			cow.setNoGravity(true);
 			cow.setInvulnerable(true);
 			cow.setPersistent();
 			cow.setVelocity(world.random.nextGaussian() * 0.05, -0.9, world.random.nextGaussian() * 0.05);
@@ -127,6 +129,26 @@ public final class CelestialIIEvents {
 			cow.discard();
 		}
 
+		/** Moves a falling cow one tick (accelerating, tumbling); true once it reaches the ground or water. */
+		private boolean fall(CowEntity cow, float scale) {
+			Vec3d v = cow.getVelocity();
+			v = new Vec3d(v.x * 0.92, Math.max(-3.2, Math.min(v.y, -0.6) - 0.06), v.z * 0.92);
+			Vec3d next = cow.getPos().add(v);
+			double floor = Kit.ground(world, next.x, next.z).y;
+			boolean landed = next.y <= floor || !world.getBlockState(BlockPos.ofFloored(next)).getFluidState().isEmpty();
+			if (landed) {
+				next = new Vec3d(next.x, Math.max(floor, next.y), next.z);
+			}
+			cow.setVelocity(v);
+			cow.setPosition(next);
+			// Tumble: small cows flail, big ones turn slowly.
+			float spin = 14.0F / Math.max(1.0F, scale * 0.6F);
+			cow.setYaw(cow.getYaw() + spin);
+			cow.setBodyYaw(cow.getYaw());
+			cow.setHeadYaw(cow.getYaw());
+			return landed;
+		}
+
 		@Override
 		public boolean tick() {
 			int t = age();
@@ -164,7 +186,7 @@ public final class CelestialIIEvents {
 					}
 				}
 				if (big != null) {
-					big.setVelocity(0, -1.2, 0);
+					big.setVelocity(0, -0.8, 0);
 					Vfx.pillar(world, Kit.ground(world, big.getX(), big.getZ()), 16.0F, 0xFFFFFF, false, 120);
 					Vfx.screen(world, c, 100000, 0, 0.5F, 100);
 				}
@@ -180,11 +202,11 @@ public final class CelestialIIEvents {
 					done.add(cow);
 					continue;
 				}
-				cow.setVelocity(cow.getVelocity().x * 0.9, Math.min(cow.getVelocity().y, -0.9) - 0.02, cow.getVelocity().z * 0.9);
 				float sc = scales.get(cow);
+				boolean landed = fall(cow, sc);
 				world.spawnParticles(ParticleTypes.CLOUD, cow.getX(), cow.getY() + sc, cow.getZ(), 1 + (int) sc, sc * 0.3, sc * 0.3, sc * 0.3, 0.01);
 				world.spawnParticles(ParticleTypes.FIREWORK, cow.getX(), cow.getY() + sc * 1.4, cow.getZ(), 1, 0.1, 0.1, 0.1, 0.02);
-				if (cow.isOnGround() || t - en.getValue() > 220) {
+				if (landed || t - en.getValue() > 260) {
 					boom(cow, scales.get(cow));
 					done.add(cow);
 				}

@@ -154,8 +154,8 @@ void main() {
     if (Flash > 0.0) {
         vec3 fc = vec3(FlashR, FlashG, FlashB);
         float lum = dot(col, vec3(0.333));
-        col += col * Flash * 2.5;
-        col = mix(col, fc, clamp(Flash * 1.15 - 0.1 + lum * Flash * 0.3, 0.0, 1.0));
+        col += col * Flash * 1.2;
+        col = mix(col, fc, clamp(Flash * 0.7 + lum * Flash * 0.15, 0.0, 0.5));
     }
 
     // --- World-event colour grading ---
@@ -188,12 +188,12 @@ void main() {
         } else if (ImpactMode < 2.5) {
             ink = mix(vec3(0.0), vec3(1.0, 0.05, 0.05), fill) * (1.0 - edge) + vec3(edge);
         } else {
-            ink = vec3(1.0);
+            ink = mix(vec3(0.82), vec3(0.15), edge);
         }
         col = ink;
     }
     if (Whiteout > 0.0) {
-        col = mix(col, vec3(1.0), Whiteout);
+        col = mix(col, vec3(1.0), min(Whiteout, 0.5));
     }
     if (Blackout > 0.0) {
         float vig = smoothstep(0.2, 0.9, length(center * vec2(aspect, 1.0)));
