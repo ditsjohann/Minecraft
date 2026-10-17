@@ -96,7 +96,7 @@ public final class Vfx {
 	}
 
 	public static void spiral(ServerWorld w, Vec3d c, float r, float height, int color, int duration) {
-		send(w, c, 256, p(FxType.SPIRAL, c, c, r, color, 0, height, 0, duration));
+		send(w, c, Math.max(256, r * 2 + height + 256), p(FxType.SPIRAL, c, c, r, color, 0, height, 0, duration));
 	}
 
 	public static void charge(ServerWorld w, int entityId, Vec3d near, float size, int color, int duration) {

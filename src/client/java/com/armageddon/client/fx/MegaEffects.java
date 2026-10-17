@@ -198,8 +198,8 @@ public final class MegaEffects {
 			}
 			Vec3d emitter = p.add(0, -R * 0.2, 0);
 			Solids.dot(glow, m, emitter, cb, R * 0.3, 0x40A0FF, 0.5F);
-			if (beamOn(a)) {
-				Vec3d target = lastBeam.subtract(cam);
+			if (beamOn(a) && lastBeam != Vec3d.ZERO) {
+				Vec3d target = beamPoint(net.minecraft.client.MinecraftClient.getInstance().world, a).subtract(cam);
 				double ramp = Math.min(1.0, Math.min((a - lifetime * 0.12) / 14.0, (lifetime * 0.88 - a) / 14.0));
 				Solids.tube(glow, m, emitter, target, R * 0.08, R * 0.2, 14, 0x2080FF, (float) (0.22 * ramp), false);
 				Solids.tube(glow, m, emitter, target, R * 0.03, R * 0.08, 10, 0x80C8FF, (float) (0.5 * ramp), false);
@@ -250,7 +250,8 @@ public final class MegaEffects {
 				double u = a / THROW;
 				return target.subtract(throwDir.multiply(380 * (1 - u * u)));
 			}
-			double sink = depth * ease((a - THROW - 24) / (lifetime - THROW - 40.0));
+			// Matches the server drill: 0.6 blocks per tick from 24 ticks after the throw lands.
+			double sink = Math.min(depth, Math.max(0, a - THROW - 24) * 0.6);
 			return target.add(0, -sink, 0);
 		}
 

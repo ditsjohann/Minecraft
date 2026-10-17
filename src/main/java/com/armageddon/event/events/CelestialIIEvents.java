@@ -254,6 +254,7 @@ public final class CelestialIIEvents {
 			Vec3d c = Kit.ground(world, p.x, p.z);
 			host.setPosition(c.x, c.y, c.z);
 			double ramp = Math.min(1.0, t / 60.0) * (t > LIFE - 60 ? (LIFE - t) / 60.0 : 1.0);
+			blocks.removeIf(fb -> !fb.isAlive());
 			if (t % 4 == 0 && blocks.size() < 220 && t < LIFE - 80) {
 				blocks.addAll(Kit.lift(world, c, R * 0.9, 9, true, true));
 			}
@@ -410,7 +411,7 @@ public final class CelestialIIEvents {
 
 	/** An undead tide that never stops growing, five stomping giants, and a green detonation each. */
 	public static class ZombieApocalypse extends WorldEvent {
-		private static final int LIFE = 1700;
+		private static final int LIFE = 1820;
 		private static final int GIANT_FUSE = 420;
 		private final List<ZombieEntity> zombies = new ArrayList<>();
 		private final Map<GiantEntity, Integer> giants = new HashMap<>();
@@ -508,7 +509,10 @@ public final class CelestialIIEvents {
 			for (Map.Entry<GiantEntity, Integer> en : giants.entrySet()) {
 				GiantEntity giant = en.getKey();
 				if (!giant.isAlive()) {
-					giantBoom(giant);
+					// Killed: it goes off. Removed without dying (e.g. Peaceful despawn): just forget it.
+					if (giant.isDead()) {
+						giantBoom(giant);
+					}
 					dead.add(giant);
 					continue;
 				}
@@ -538,7 +542,7 @@ public final class CelestialIIEvents {
 							}
 						}
 					}
-					if (f.getY() > 0 && giant.isOnGround() && to.length() > 3 && giant.getVelocity().horizontalLengthSquared() < 0.0004) {
+					if (f.getY() > 0 && giant.isOnGround() && to.length() > 3 && giant.horizontalCollision) {
 						giant.setVelocity(giant.getVelocity().x, 0.6, giant.getVelocity().z);
 					}
 				}
@@ -547,7 +551,14 @@ public final class CelestialIIEvents {
 					Vfx.shake(world, foot, 260, 2.5F);
 					Vfx.ring(world, foot.add(0, 0.2, 0), 14.0F, 1.0F, 0x70A060, true, 10);
 					Kit.sound(world, foot, SoundEvents.ENTITY_IRON_GOLEM_STEP, 32.0F, 0.2F);
-					Kit.damage(world, foot, 8, 24.0F, ModDamageTypes.SHRAPNEL, giant, owner());
+					// Not Kit.damage: that would hit the giant itself (and the other giants) every stomp.
+					for (net.minecraft.entity.LivingEntity e : Kit.living(world, foot, 8)) {
+						if (e instanceof GiantEntity) {
+							continue;
+						}
+						e.timeUntilRegen = 0;
+						e.damage(ModDamageTypes.source(world, ModDamageTypes.SHRAPNEL, giant, owner()), (float) Math.max(1.0, 24.0 * (1.0 - e.getPos().distanceTo(foot) / 8.0)));
+					}
 					Detonations.debris(world, foot, 6, 10);
 				}
 				if (t - en.getValue() > GIANT_FUSE) {
@@ -607,8 +618,9 @@ public final class CelestialIIEvents {
 				Vfx.shake(world, new Vec3d(ship.x, c.y, ship.z), 500, 2.5F);
 			}
 			boolean on = t > LIFE * 0.12 && t < LIFE * 0.88;
-			if (on) {
-				Vec3d b = Paths.ufoBeam(new Vec3d(ship.x, 0, ship.z), dir, t);
+			Vec3d b = on ? Paths.ufoBeam(new Vec3d(ship.x, 0, ship.z), dir, t) : null;
+			// Far out of view the beam only paints the sky: carving unloaded chunks would load them (lag) and hit bedrock.
+			if (on && world.isChunkLoaded(BlockPos.ofFloored(b))) {
 				Vec3d g = Kit.ground(world, b.x, b.z);
 				BlockPos bp = BlockPos.ofFloored(g).down();
 				if (Destruction.enabled(world)) {
