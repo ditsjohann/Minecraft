@@ -64,6 +64,7 @@ public final class ClientFx {
 	}
 
 	public static void clear() {
+		EFFECTS_PENDING.clear();
 		if (cine != null) {
 			MinecraftClient.getInstance().options.hudHidden = hudWasHidden;
 			cine = null;
@@ -149,7 +150,16 @@ public final class ClientFx {
 		SCREEN_HOLD[kind] = Math.max(SCREEN_HOLD[kind], hold);
 	}
 
+	/** True while effects are being ticked; anything added then is queued (adding mid-iteration would crash). */
+	private static boolean ticking;
+
 	public static void add(FxEffect effect) {
+		if (ticking) {
+			if (EFFECTS.size() + EFFECTS_PENDING.size() < 512) {
+				EFFECTS_PENDING.add(effect);
+			}
+			return;
+		}
 		if (EFFECTS.size() < 512) {
 			EFFECTS.add(effect);
 		}
@@ -514,7 +524,22 @@ public final class ClientFx {
 			}
 			due.forEach(d -> d.action.run());
 		}
-		EFFECTS.removeIf(e -> !e.tick(mc.world));
+		ticking = true;
+		try {
+			EFFECTS.removeIf(e -> {
+				try {
+					return !e.tick(mc.world);
+				} catch (RuntimeException ex) {
+					com.armageddon.Armageddon.LOGGER.error("Armageddon effect {} failed while ticking; removing it", e.getClass().getSimpleName(), ex);
+					if (e instanceof Cinematics.Cine c) {
+						c.done = true;
+					}
+					return true;
+				}
+			});
+		} finally {
+			ticking = false;
+		}
 		if (!EFFECTS_PENDING.isEmpty()) {
 			EFFECTS.addAll(EFFECTS_PENDING);
 			EFFECTS_PENDING.clear();

@@ -68,7 +68,10 @@ Fifteen more bombs fill Uncommon (6), Rare (3), Legendary (3) and Mythic (3).
 **Testing events** — `/armageddon event <id>` starts any scripted event (every bomb, Celestial and
 cutscene) at your feet, facing where you look, without crafting or lighting anything.
 
-**Showcase (screenshots)** — `/armageddon showcase [all|tiers|classic|blocks|uncommon|rare|epic|legendary|mythic|celestial]`
+**Creative tabs** — Weapons, Explosives, Bombs, Cataclysms (Celestial, City and World Destruction) and Gear & Materials,
+each grouped by kind and sorted by power.
+
+**Showcase (screenshots)** — `/armageddon showcase [all|weapons|explosives|bombs|cataclysms|gear|tiers|<tier>]`
 builds a lit gallery in front of you: every item floats on a tier-coloured pedestal with its name and tier, rows
 step upward so one screenshot shows them all. `/armageddon showcase item <item>` shows a single item large with
 its description (hero shots). `/armageddon showcase clear` removes it and restores the ground. Tip: hide the HUD

@@ -119,8 +119,6 @@ BLOCK_DESC = {
 }
 
 EXTRA = {
-    "itemGroup.armageddon.arsenal": "Armageddon Arsenal",
-    "itemGroup.armageddon.warheads": "Armageddon Warheads",
     "effect.armageddon.radiation": "Radiation Sickness",
     "entity.armageddon.projectile": "Warhead",
     "entity.armageddon.energy_bolt": "Energy Bolt",

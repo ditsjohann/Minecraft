@@ -22,8 +22,20 @@ public final class FxWorldRenderer {
 		MatrixStack matrices = new MatrixStack();
 		Matrix4f m = matrices.peek().getPositionMatrix();
 		VertexConsumerProvider.Immediate consumers = mc.getBufferBuilders().getEntityVertexConsumers();
+		java.util.List<FxEffect> broken = null;
 		for (FxEffect effect : ClientFx.EFFECTS) {
-			effect.render(m, consumers, cam, tickDelta, camera.getYaw(), camera.getPitch());
+			try {
+				effect.render(m, consumers, cam, tickDelta, camera.getYaw(), camera.getPitch());
+			} catch (RuntimeException ex) {
+				com.armageddon.Armageddon.LOGGER.error("Armageddon effect {} failed while rendering; removing it", effect.getClass().getSimpleName(), ex);
+				if (broken == null) {
+					broken = new java.util.ArrayList<>();
+				}
+				broken.add(effect);
+			}
+		}
+		if (broken != null) {
+			ClientFx.EFFECTS.removeAll(broken);
 		}
 		consumers.draw(FxRenderLayers.SOLID);
 		consumers.draw(FxRenderLayers.VOID);

@@ -149,6 +149,11 @@ BLOCK_DESC = {
 }
 
 EXTRA = {
+    "itemGroup.armageddon.weapons": "Armageddon: Weapons",
+    "itemGroup.armageddon.explosives": "Armageddon: Explosives",
+    "itemGroup.armageddon.bombs": "Armageddon: Bombs",
+    "itemGroup.armageddon.cataclysms": "Armageddon: Cataclysms",
+    "itemGroup.armageddon.gear": "Armageddon: Gear & Materials",
     "tier.armageddon.city_destruction": "CITY DESTRUCTION",
     "tier.armageddon.world_destruction": "WORLD DESTRUCTION",
     "message.armageddon.world_destruction": "Cutscene event — it will not be subtle",

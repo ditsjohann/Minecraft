@@ -1,5 +1,6 @@
 package com.armageddon.showcase;
 
+import com.armageddon.registry.Catalog;
 import com.armageddon.registry.ModBlocks;
 import com.armageddon.registry.ModItems;
 import com.armageddon.tier.Tier;
@@ -44,7 +45,7 @@ import java.util.Map;
 /**
  * Screenshot gallery for mod pages.
  * <pre>
- * /armageddon showcase [all|tiers|classic|blocks|uncommon|rare|epic|legendary|mythic|celestial]
+ * /armageddon showcase [all|weapons|explosives|bombs|cataclysms|gear|tiers|&lt;tier&gt;]
  * /armageddon showcase item &lt;item&gt;   — one item, large, with name, tier and description
  * /armageddon showcase clear          — remove the gallery and restore the ground
  * </pre>
@@ -72,8 +73,8 @@ public final class Showcase {
 						.then(CommandManager.argument("item", ItemStackArgumentType.itemStack(access))
 								.executes(ctx -> single(ctx, ItemStackArgumentType.getItemStackArgument(ctx, "item").getItem()))))
 				.then(CommandManager.argument("section", StringArgumentType.word())
-						.suggests((ctx, b) -> CommandSource.suggestMatching(List.of("all", "tiers", "classic", "blocks",
-								"uncommon", "rare", "epic", "legendary", "mythic", "celestial"), b))
+						.suggests((ctx, b) -> CommandSource.suggestMatching(List.of("all", "weapons", "explosives", "bombs", "cataclysms", "gear", "tiers",
+								"uncommon", "rare", "epic", "legendary", "mythic", "celestial", "city_destruction", "world_destruction"), b))
 						.executes(ctx -> gallery(ctx, StringArgumentType.getString(ctx, "section"))));
 	}
 
@@ -82,26 +83,36 @@ public final class Showcase {
 	private record Section(Text title, int color, List<Item> items) {
 	}
 
+	private static int categoryColor(Catalog.Category c) {
+		return switch (c) {
+			case WEAPONS -> 0x7AF6FF;
+			case EXPLOSIVES -> 0xFFB040;
+			case BOMBS -> 0xFF6030;
+			case CATACLYSMS -> 0xFF40FF;
+			case GEAR -> 0xC8D0D8;
+		};
+	}
+
+	/**
+	 * "all" (the creative tabs, in order), one category key, "tiers" (every arsenal tier), or one
+	 * tier key.
+	 */
 	private static List<Section> sections(String filter) {
 		List<Section> out = new ArrayList<>();
-		List<Item> all = new ArrayList<>(ModItems.ALL);
-		all.addAll(ModBlocks.BLOCK_ITEMS);
+		for (Catalog.Category c : Catalog.Category.values()) {
+			if (filter.equals("all") || filter.equals(c.key)) {
+				out.add(new Section(Text.translatable("itemGroup.armageddon." + c.key), categoryColor(c), Catalog.of(c)));
+			}
+		}
+		List<Item> all = Catalog.all();
 		for (Tier tier : Tier.values()) {
-			if (!filter.equals("all") && !filter.equals("tiers") && !filter.equals(tier.key)) {
+			if (!filter.equals("tiers") && !filter.equals(tier.key)) {
 				continue;
 			}
 			List<Item> items = all.stream().filter(i -> Tiers.of(i) == tier).toList();
 			if (!items.isEmpty()) {
 				out.add(new Section(Text.translatable("tier.armageddon." + tier.key), tier.color, items));
 			}
-		}
-		if (filter.equals("all") || filter.equals("classic")) {
-			List<Item> classic = ModItems.ALL.stream().filter(i -> Tiers.of(i) == null).toList();
-			out.add(new Section(Text.literal("ARSENAL"), 0xC8D0D8, classic));
-		}
-		if (filter.equals("all") || filter.equals("blocks")) {
-			List<Item> blocks = ModBlocks.BLOCK_ITEMS.stream().filter(i -> Tiers.of(i) == null).toList();
-			out.add(new Section(Text.literal("WARHEADS & BLOCKS"), 0xFF9040, blocks));
 		}
 		return out;
 	}

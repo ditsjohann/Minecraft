@@ -38,10 +38,15 @@ public abstract class CameraMixin {
 		if (cine == null) {
 			return;
 		}
-		Cinematics.State s = cine.frame(tickDelta);
-		this.setPos(s.pos);
-		this.setRotation(s.yaw, s.pitch);
-		this.thirdPerson = true;
+		try {
+			Cinematics.State s = cine.frame(tickDelta);
+			this.setPos(s.pos);
+			this.setRotation(s.yaw, s.pitch);
+			this.thirdPerson = true;
+		} catch (RuntimeException ex) {
+			com.armageddon.Armageddon.LOGGER.error("Armageddon cinematic camera failed; ending the cutscene", ex);
+			cine.done = true;
+		}
 	}
 
 	@Inject(method = "update", at = @At("TAIL"))
