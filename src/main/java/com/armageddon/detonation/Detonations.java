@@ -359,8 +359,14 @@ public final class Detonations {
 	/** Radial blast damage with quadratic falloff, ignition and knockback. Vaporises dropped items near ground zero. */
 	public static void blast(ServerWorld world, Vec3d c, double range, float maxDamage, RegistryKey<DamageType> type,
 			@Nullable Entity cause, double fireRange, double knock) {
+		blast(world, c, range, maxDamage, type, cause, fireRange, knock, cause instanceof PlayerEntity ? null : cause);
+	}
+
+	/** As above, but spares {@code exclude} (e.g. a wielder standing at ground zero). */
+	public static void blast(ServerWorld world, Vec3d c, double range, float maxDamage, RegistryKey<DamageType> type,
+			@Nullable Entity cause, double fireRange, double knock, @Nullable Entity exclude) {
 		Box box = new Box(c, c).expand(range);
-		for (Entity e : world.getOtherEntities(cause instanceof PlayerEntity ? null : cause, box)) {
+		for (Entity e : world.getOtherEntities(exclude, box)) {
 			double d = e.getPos().distanceTo(c);
 			if (d > range || !e.isAlive()) {
 				continue;

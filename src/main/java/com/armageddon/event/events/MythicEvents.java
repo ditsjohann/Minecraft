@@ -43,7 +43,8 @@ public final class MythicEvents {
 			Vec3d star = g.add(0, 28, 0);
 			if (t == 0) {
 				warn(this, world, g, "message.armageddon.bloodstar");
-				Vfx.orb(world, star, 1.0F, 7.0F, CRIMSON, 0, LIFE);
+				// Ends as the collapse orb (t == LIFE - 40) begins, or it would hide the implosion.
+				Vfx.orb(world, star, 1.0F, 7.0F, CRIMSON, 0, LIFE - 40);
 				Vfx.skyTint(world, g, 512, 0x500808, 0.9F);
 				Vfx.screen(world, g, 256, 0, 0.4F, LIFE);
 				Kit.sound(world, g, ModSounds.ANTIMATTER, 16.0F, 0.4F);
@@ -118,12 +119,14 @@ public final class MythicEvents {
 				Kit.sound(world, hit, ModSounds.PLASMA_IMPACT, 6.0F, 0.6F);
 			}
 			if (t >= 100 && t < 170 && t % 6 == 0) {
+				// t is always even here, so t % 4 would only ever pick rifts 0 and 2.
+				Vec3d from = rift((t / 6) % 4);
 				Vec3d hit = Kit.ground(world, g.x + world.random.nextGaussian() * 22, g.z + world.random.nextGaussian() * 22);
-				Kit.projectile(world, com.armageddon.entity.ProjectileKind.METEOR, rift(i), hit.subtract(rift(i)).normalize().multiply(2.8), owner());
+				Kit.projectile(world, com.armageddon.entity.ProjectileKind.METEOR, from, hit.subtract(from).normalize().multiply(2.8), owner());
 			}
 			if (t >= 180 && t < 220 && t % 10 == 0) {
 				Vec3d hit = Kit.ground(world, g.x + Math.cos(t) * 20, g.z + Math.sin(t) * 20);
-				Vfx.streak(world, rift(i), hit, 1.5F, 0xFF8040, 8);
+				Vfx.streak(world, rift((t / 10) % 4), hit, 1.5F, 0xFF8040, 8);
 				Detonations.nuke(world, hit, owner(), 6, false);
 			}
 			if (t == 240) {
@@ -207,12 +210,12 @@ public final class MythicEvents {
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 16.0F, 0.4F);
 			}
 			int wave = (t - 30) / 40;
+			if (t >= 30 && wave < 4 && (t - 30) % 40 == 0) {
+				Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 16.0F, 0.5F + wave * 0.15F);
+			}
 			if (t >= 30 && wave < 4 && (t - 30) % 40 < 20 && t % 3 == 0) {
 				double spread = 20 + wave * 8;
 				Kit.meteor(world, Kit.ground(world, g.x + world.random.nextGaussian() * spread, g.z + world.random.nextGaussian() * spread), owner());
-				if ((t - 30) % 40 == 0) {
-					Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 16.0F, 0.5F + wave * 0.15F);
-				}
 			}
 			if (t == 200) {
 				Vfx.streak(world, g.add(-120, 260, -60), g, 8.0F, 0xFF7020, 40);

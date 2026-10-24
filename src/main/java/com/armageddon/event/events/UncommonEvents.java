@@ -75,7 +75,8 @@ public final class UncommonEvents {
 				Vfx.bubble(world, c, 8.0F, 0xB070FF, 110);
 				Kit.sound(world, c, SoundEvents.BLOCK_SLIME_BLOCK_PLACE, 3.0F, 0.6F);
 			}
-			if (t % 6 == 0) {
+			// Last push early enough that everything has landed before the fall-distance reset stops.
+			if (t % 6 == 0 && t <= 80) {
 				for (Entity e : Kit.entities(world, c, r, x -> !Kit.creativeOrSpectator(x) && !(x instanceof FallingBlockEntity))) {
 					if (e instanceof ItemEntity) {
 						Kit.push(e, new Vec3d(world.random.nextGaussian() * 0.3, 0.5, world.random.nextGaussian() * 0.3));
@@ -187,7 +188,8 @@ public final class UncommonEvents {
 			for (LivingEntity e : Kit.living(world, c, 10)) {
 				e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 20, 0, false, false));
 				e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 20, 0, false, false));
-				e.setFrozenTicks(Math.min(e.getFrozenTicks() + 2, 120));
+				// Vanilla thaws 2 per tick outside powder snow, so +4 nets +2.
+				e.setFrozenTicks(Math.min(e.getFrozenTicks() + 4, 120));
 			}
 			return t > 200;
 		}
@@ -256,10 +258,11 @@ public final class UncommonEvents {
 				Kit.sound(world, c, SoundEvents.BLOCK_BEACON_ACTIVATE, 2.0F, 0.8F);
 				BlockPos.Mutable p = new BlockPos.Mutable();
 				BlockPos b = BlockPos.ofFloored(c);
-				for (int i = 0; i < 600 && lifted.size() < 40; i++) {
+				for (int i = 0; i < 600 && lifted.size() < 40 && com.armageddon.destruction.Destruction.enabled(world); i++) {
 					p.set(b.getX() + world.random.nextInt(29) - 14, b.getY() + world.random.nextInt(11) - 5, b.getZ() + world.random.nextInt(29) - 14);
 					BlockState s = world.getBlockState(p);
 					if (com.armageddon.destruction.EnergyFields.isMetal(s) && !s.hasBlockEntity() && !com.armageddon.destruction.Destruction.isProtected(world, p)) {
+						com.armageddon.destruction.Destruction.record(world, p, s);
 						FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, p.toImmutable(), s);
 						fb.setNoGravity(true);
 						lifted.add(fb);

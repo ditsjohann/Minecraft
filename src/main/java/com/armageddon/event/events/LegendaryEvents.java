@@ -81,7 +81,7 @@ public final class LegendaryEvents {
 				Vfx.skyTint(world, c, 256, 0xFFC060, 0.5F);
 				Kit.sound(world, c, ModSounds.ORBITAL_CHARGE, 8.0F, 1.2F);
 			}
-			if (t >= 20 && t < 140 && t % 3 == 0) {
+			if (t >= 20 && t < 140 && (t - 20) % 3 == 0) {
 				int s = t - 20;
 				double r = s < 60 ? 3 + s * 37 / 60.0 : 40 - (s - 60) * 40 / 60.0;
 				for (int i = 0; i < 12; i++) {
@@ -142,10 +142,23 @@ public final class LegendaryEvents {
 					Vfx.streak(world, c, c.add(d.multiply(24)), 1.0F, 0xFFC040, 15);
 				}
 				lifted = Kit.lift(world, c, 10, 120, true, false);
+				// Put back whatever was torn out from under the wielder's feet.
+				Entity o = owner();
+				if (o != null) {
+					lifted.removeIf(fb -> {
+						if (Math.abs(fb.getX() - o.getX()) < 0.8 && Math.abs(fb.getZ() - o.getZ()) < 0.8 && fb.getY() <= o.getY()) {
+							world.setBlockState(fb.getBlockPos(), fb.getBlockState(), Block.NOTIFY_ALL);
+							fb.discard();
+							return true;
+						}
+						return false;
+					});
+				}
 				for (LivingEntity e : Kit.living(world, c, 12)) {
 					if (e != owner()) {
-						Kit.push(e, new Vec3d(0, 1.4, 0));
+						// Damage first: its vanilla knockback would otherwise overwrite the launch.
 						e.damage(ModDamageTypes.source(world, ModDamageTypes.SHRAPNEL, null, owner()), 12.0F);
+						Kit.push(e, new Vec3d(0, 1.4, 0));
 					}
 				}
 			}
@@ -164,7 +177,7 @@ public final class LegendaryEvents {
 				Vfx.layeredBlast(world, c, 5.0F, 0xFFC040);
 				Vfx.shake(world, c, 160, 2.8F);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 8.0F, 1.6F);
-				Detonations.blast(world, c, 22, 36.0F, ModDamageTypes.SHRAPNEL, owner(), 0, 2.4);
+				Detonations.blast(world, c, 22, 36.0F, ModDamageTypes.SHRAPNEL, owner(), 0, 2.4, owner());
 				Kit.ringCrack(world, c, 12, 3, ModBlocks.GOLD_FISSURE.getDefaultState(), 0.8F);
 				return true;
 			}
@@ -319,8 +332,8 @@ public final class LegendaryEvents {
 				}
 				for (LivingEntity e : Kit.living(world, c, r + 4)) {
 					if (e.isOnGround() && e != owner()) {
-						Kit.push(e, new Vec3d(0, 0.9, 0));
 						e.damage(ModDamageTypes.source(world, ModDamageTypes.SHRAPNEL, null, owner()), 6.0F + wave * 3);
+						Kit.push(e, new Vec3d(0, 0.9, 0));
 					}
 				}
 				Detonations.debris(world, c, r, 16);
@@ -362,7 +375,9 @@ public final class LegendaryEvents {
 				}
 			}
 			if (t % 20 == 0 && t > 40 && t < LIFE) {
-				Detonations.ignite(world, g, 14, 0.05F);
+				if (Destruction.enabled(world)) {
+					Detonations.ignite(world, g, 14, 0.05F);
+				}
 				Vfx.light(world, star, 1.0F, 0xFFC040);
 				for (LivingEntity e : Kit.living(world, g, 20)) {
 					if (e != owner()) {

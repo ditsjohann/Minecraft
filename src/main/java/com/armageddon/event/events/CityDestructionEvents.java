@@ -295,6 +295,7 @@ public final class CityDestructionEvents {
 	public static class ChronoBreak extends WorldEvent {
 		private static final int ERASE_AT = 100;
 		private final Map<Entity, Boolean> frozen = new HashMap<>();
+		private final Map<Entity, Boolean> floating = new HashMap<>();
 		private final Map<ServerPlayerEntity, Vec3d> players = new HashMap<>();
 		private int radius;
 		private int restoreAt;
@@ -303,6 +304,7 @@ public final class CityDestructionEvents {
 			for (Entity e : Kit.entities(world, g, r, x -> !(x instanceof EventEntity) && !(x instanceof PlayerEntity) && !Kit.creativeOrSpectator(x))) {
 				if (!frozen.containsKey(e)) {
 					frozen.put(e, e instanceof MobEntity m && !m.isAiDisabled());
+					floating.put(e, e.hasNoGravity());
 					if (e instanceof MobEntity m) {
 						m.setAiDisabled(true);
 					}
@@ -317,13 +319,14 @@ public final class CityDestructionEvents {
 			for (Map.Entry<Entity, Boolean> en : frozen.entrySet()) {
 				Entity e = en.getKey();
 				if (e.isAlive()) {
-					e.setNoGravity(false);
+					e.setNoGravity(floating.getOrDefault(e, false));
 					if (en.getValue() && e instanceof MobEntity m) {
 						m.setAiDisabled(false);
 					}
 				}
 			}
 			frozen.clear();
+			floating.clear();
 		}
 
 		private void eraseShell(Vec3d g, int r) {
@@ -362,7 +365,7 @@ public final class CityDestructionEvents {
 				Vfx.screen(world, g, 100000, 0, 1.0F, restoreAt + radius * 2);
 				frames(world, g, 1, 0);
 				Vfx.fov(world, g, 25.0F, 20);
-				Vfx.grid(world, g.add(0, 0.1, 0), new Vec3d(0, 1, 0), radius, 0x50FFD0, 2, ERASE_AT + radius + 80);
+				Vfx.grid(world, g.add(0, -0.4, 0), new Vec3d(0, 1, 0), radius, 0x50FFD0, 2, ERASE_AT + radius + 80);
 				Vfx.dome(world, g, radius + 4, 0x50FFD0, 60);
 				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.3F);
 			}
@@ -405,11 +408,19 @@ public final class CityDestructionEvents {
 				frames(world, g, 2);
 				Vfx.fov(world, g, 20.0F, 20);
 			}
-			if (t == restoreAt) {
+			if (t >= restoreAt && t <= restoreAt + radius * 2 + 4) {
+				// Hold players at home until the last shell is back, or they fall into the hole and get buried by it.
 				for (Map.Entry<ServerPlayerEntity, Vec3d> en : players.entrySet()) {
+					if (!en.getKey().isAlive()) {
+						continue;
+					}
 					Vec3d home = en.getValue();
 					en.getKey().teleport(world, home.x, home.y, home.z, en.getKey().getYaw(), en.getKey().getPitch());
+					Kit.velocity(en.getKey(), Vec3d.ZERO);
+					en.getKey().fallDistance = 0;
 				}
+			}
+			if (t == restoreAt) {
 				Vfx.glitch(world, g, radius, 0x50FFD0, radius * 2 + 20);
 				frames(world, g, 1, 0, 1);
 				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.4F);

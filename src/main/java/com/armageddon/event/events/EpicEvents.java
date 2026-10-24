@@ -26,7 +26,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Purple tier: experimental, physics-bending, terrain-transforming. */
 public final class EpicEvents {
@@ -48,11 +50,6 @@ public final class EpicEvents {
 				if (Destruction.enabled(world)) {
 					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(c), 7, CraterJob.Mode.NUKE));
 				}
-				for (int i = 0; i < 9; i++) {
-					double a = i * Math.PI * 2 / 9 + world.random.nextDouble() * 0.4;
-					Vec3d base = c.add(Math.cos(a) * 4, 0, Math.sin(a) * 4);
-					Vfx.crystal(world, base, base.add(Math.cos(a) * 3, 3 + world.random.nextDouble() * 4, Math.sin(a) * 3), 0.6F, 0xC070FF, 200);
-				}
 				EnergyFields.emit(world, EnergyFields.Energy.PLASMA, c, 9, 200, owner());
 			}
 			if (t == 0 || t == 6 || t == 12) {
@@ -72,10 +69,18 @@ public final class EpicEvents {
 						}
 					}
 				}
+				// Crystal shards wait for the crater too, so they stand on its floor instead of hovering.
+				for (int i = 0; i < 9; i++) {
+					double a = i * Math.PI * 2 / 9 + world.random.nextDouble() * 0.4;
+					double bx = c.x + Math.cos(a) * 4, bz = c.z + Math.sin(a) * 4;
+					Vec3d base = new Vec3d(bx, Kit.surface(world, MathHelper.floor(bx), MathHelper.floor(bz)).getY() + 1, bz);
+					Vfx.crystal(world, base, base.add(Math.cos(a) * 3, 3 + world.random.nextDouble() * 4, Math.sin(a) * 3), 0.6F, 0xC070FF, 200);
+				}
 				Vfx.light(world, c, 1.0F, 0xFF6020);
 			}
 			if (t > 30 && t % 5 == 0) {
-				world.spawnParticles(ParticleTypes.LAVA, c.x, c.y, c.z, 3, 2.0, 0.2, 2.0, 0.0);
+				double py = Kit.surface(world, MathHelper.floor(c.x), MathHelper.floor(c.z)).getY() + 1;
+				world.spawnParticles(ParticleTypes.LAVA, c.x, py, c.z, 3, 2.0, 0.2, 2.0, 0.0);
 			}
 			return t > 120;
 		}
@@ -84,13 +89,19 @@ public final class EpicEvents {
 	/** 23 Quantum Fracture: terrain splits into hovering, glitching fragments, then vanishes. */
 	public static class QuantumFracture extends WorldEvent {
 		private List<FallingBlockEntity> blocks = new ArrayList<>();
+		/** Where each fragment was torn from; it hovers relative to this, not to where it is now. */
+		private final Map<FallingBlockEntity, Vec3d> home = new HashMap<>();
 
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d c = center();
 			if (t == 0) {
-				blocks = Kit.lift(world, c, 7, 250, false, true);
+				// Surface only: buried blocks could not rise and would just leave hidden holes.
+				blocks = Kit.lift(world, c, 7, 250, true, true);
+				for (FallingBlockEntity fb : blocks) {
+					home.put(fb, fb.getPos());
+				}
 				Vfx.glitch(world, c, 9.0F, 0x50FFE0, 80);
 				Vfx.grid(world, c, new Vec3d(0, 1, 0), 9.0F, 0x50FFE0, 1, 80);
 				Kit.sound(world, c, ModSounds.ANTIMATTER, 4.0F, 1.6F);
@@ -100,9 +111,9 @@ public final class EpicEvents {
 					if (!fb.isAlive()) {
 						continue;
 					}
-					Vec3d off = fb.getPos().subtract(c);
+					Vec3d off = home.getOrDefault(fb, fb.getPos()).subtract(c);
 					double phase = (fb.getId() % 17) * 0.37;
-					Vec3d target = c.add(off.x * 1.003, 1.5 + off.y * 0.98 + Math.sin(t * 0.2 + phase) * 0.15, off.z * 1.003);
+					Vec3d target = c.add(off.x * 1.1, 1.5 + off.y + Math.sin(t * 0.2 + phase) * 0.15, off.z * 1.1);
 					Kit.velocity(fb, target.subtract(fb.getPos()).multiply(0.3).add(0, t < 20 ? 0.06 : 0, 0));
 					if (world.random.nextInt(60) == 0) {
 						// Quantum "jitter": the fragment blinks a block sideways.
@@ -141,6 +152,7 @@ public final class EpicEvents {
 		private static final int SPIRES = 8;
 		private final List<List<BlockPos>> spires = new ArrayList<>();
 		private final List<Vec3d> dirs = new ArrayList<>();
+		private final int[] steps = new int[SPIRES];
 
 		@Override
 		public boolean tick() {
@@ -161,11 +173,18 @@ public final class EpicEvents {
 				for (int i = 0; i < SPIRES; i++) {
 					List<BlockPos> s = spires.get(i);
 					BlockPos base = s.get(0);
-					Vec3d tip = Vec3d.ofCenter(base).add(dirs.get(i).multiply(s.size()));
-					BlockPos next = BlockPos.ofFloored(tip);
+					// Step 0 is the base itself; two steps can floor into the same block, so skip past our own tip.
+					Vec3d tip;
+					BlockPos next;
+					do {
+						tip = Vec3d.ofCenter(base).add(dirs.get(i).multiply(steps[i]++));
+						next = BlockPos.ofFloored(tip);
+					} while (s.size() > 1 && next.equals(s.get(s.size() - 1)));
 					if (world.getBlockState(next).isAir() && Destruction.set(world, next, ModBlocks.ENERGY_CRYSTAL.getDefaultState(), Block.NOTIFY_ALL)) {
 						s.add(next);
 						world.spawnParticles(ParticleTypes.END_ROD, tip.x, tip.y, tip.z, 3, 0.3, 0.3, 0.3, 0.05);
+					} else {
+						steps[i]--;
 					}
 				}
 				Kit.sound(world, c, SoundEvents.BLOCK_AMETHYST_BLOCK_PLACE, 3.0F, 0.6F + t * 0.03F);
@@ -278,7 +297,7 @@ public final class EpicEvents {
 				Kit.sound(world, c, SoundEvents.BLOCK_GLASS_BREAK, 5.0F, 0.5F);
 				BlockPos b = BlockPos.ofFloored(c);
 				BlockPos.Mutable p = new BlockPos.Mutable();
-				for (int dx = -R; dx <= R; dx++) {
+				for (int dx = -R; dx <= R && Destruction.enabled(world); dx++) {
 					for (int dy = -R; dy <= R; dy++) {
 						for (int dz = -R; dz <= R; dz++) {
 							if (dx * dx + dy * dy + dz * dz > R * R || ((dx + dy + dz) & 1) == 0) {
@@ -286,7 +305,7 @@ public final class EpicEvents {
 							}
 							p.set(b.getX() + dx, b.getY() + dy, b.getZ() + dz);
 							BlockState s = world.getBlockState(p);
-							if (!s.isAir() && !s.hasBlockEntity() && s.getHardness(world, p) >= 0) {
+							if (!s.isAir() && !s.hasBlockEntity() && s.getFluidState().isEmpty() && s.getHardness(world, p) >= 0) {
 								TemporaryBlocks.place(world, p.toImmutable(), Blocks.AIR.getDefaultState(), 1200 + world.random.nextInt(400));
 							}
 						}

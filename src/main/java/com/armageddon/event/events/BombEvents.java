@@ -35,7 +35,10 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /** Bomb expansion II: uncommon through mythic warheads, each with its own signature. */
 public final class BombEvents {
@@ -64,7 +67,7 @@ public final class BombEvents {
 			}
 			if (t % 10 == 0) {
 				int beat = t / 10;
-				Vfx.ring(world, c.add(0, 0.2, 0), 9.0F, 0.6F, RAINBOW[beat % 8], false, 14);
+				Vfx.ring(world, c.add(0, -0.3, 0), 9.0F, 0.6F, RAINBOW[beat % 8], false, 14);
 				Kit.sound(world, c, ModSounds.DUBSTEP_WUB, 3.0F, 0.7F + (beat % 4) * 0.15F);
 				BlockPos b = BlockPos.ofFloored(c);
 				for (int dx = -7; dx <= 7; dx++) {
@@ -251,8 +254,8 @@ public final class BombEvents {
 				Vfx.layeredBlast(world, c, 3.0F, 0xFF6A10);
 				Kit.sound(world, c, ModSounds.PLASMA_IMPACT, 5.0F, 0.5F);
 				Kit.damage(world, c, 4, 24.0F, ModDamageTypes.PLASMA, null, owner());
-				Detonations.ignite(world, c, 5, 0.35F);
 				if (Destruction.enabled(world)) {
+					Detonations.ignite(world, c, 5, 0.35F);
 					DetonationManager.add(new LineCarveJob(world, c.add(0, 0.5, 0), c.add(0, -26, 0), 2.3, ModBlocks.MOLTEN_CORE.getDefaultState(), 0.7F, 500));
 				}
 			}
@@ -285,7 +288,7 @@ public final class BombEvents {
 				Kit.damage(world, hit, 3, 9.0F, ModDamageTypes.ELECTROCUTION, null, owner());
 				EnergyFields.chainLightning(world, hit.add(0, 1, 0), 8, owner());
 				Kit.sound(world, hit, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 3.0F, 1.2F);
-				if (world.random.nextInt(5) == 0) {
+				if (Destruction.enabled(world) && world.random.nextInt(5) == 0) {
 					Detonations.ignite(world, hit, 2, 0.2F);
 				}
 			}
@@ -318,7 +321,7 @@ public final class BombEvents {
 						if (dx * dx + dz * dz <= r * r) {
 							Destruction.set(world, new BlockPos(b.getX() + dx, y, b.getZ() + dz), Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);
 							if (layer < 2) {
-								Destruction.set(world, new BlockPos(b.getX() + dx, y + 1 + layer, b.getZ() + dz), Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);
+								Destruction.set(world, new BlockPos(b.getX() + dx, baseY + 1 + layer, b.getZ() + dz), Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);
 							}
 						}
 					}
@@ -457,7 +460,7 @@ public final class BombEvents {
 						fb.setVelocity(Math.cos(a) * sp, 1.1 + world.random.nextDouble() * 0.9, Math.sin(a) * sp);
 						fb.velocityModified = true;
 						fb.setHurtEntities(2.0F, 40);
-						if (world.random.nextBoolean()) {
+						if (!Destruction.enabled(world) || world.random.nextBoolean()) {
 							fb.setDestroyedOnLanding();
 						}
 					}
@@ -570,7 +573,9 @@ public final class BombEvents {
 						Vec3d p = Kit.ground(world, g.x + Math.cos(a) * 14, g.z + Math.sin(a) * 14);
 						Vfx.pillar(world, p, 1.5F, 0xFF3010, false, 16);
 					}
-					Detonations.ignite(world, g, 16, 0.04F);
+					if (Destruction.enabled(world)) {
+						Detonations.ignite(world, g, 16, 0.04F);
+					}
 					Vfx.beam(world, g.add(0, -4, 0), g.add(0, 150, 0), 3.0F, 0xFF3010, 10);
 					Detonations.pull(world, g, 24, 0.3);
 				}
@@ -619,15 +624,21 @@ public final class BombEvents {
 				host.setPosition(nx, Kit.ground(world, nx, nz).y, nz);
 				c = center();
 			}
+			blocks.removeIf(fb -> !fb.isAlive());
 			if (t % 4 == 0 && blocks.size() < 120 && t < LIFE - 40) {
 				blocks.addAll(Kit.lift(world, c, 9, 5, true, true));
 			}
-			for (FallingBlockEntity fb : blocks) {
-				if (!fb.isAlive()) {
-					continue;
-				}
+			for (Iterator<FallingBlockEntity> it = blocks.iterator(); it.hasNext(); ) {
+				FallingBlockEntity fb = it.next();
 				Vec3d off = fb.getPos().subtract(c);
 				double ang = Math.atan2(off.z, off.x) + 0.22;
+				// Spat out of the top so the funnel keeps feeding instead of parking everything at h = 34.
+				if (off.y > 32) {
+					fb.setNoGravity(false);
+					Kit.velocity(fb, new Vec3d(Math.cos(ang), 0.2, Math.sin(ang)).multiply(0.9));
+					it.remove();
+					continue;
+				}
 				double h = Math.min(34, Math.max(0, off.y) + 0.35);
 				double r = MathHelper.clamp(2.5 + h * 0.18, 2.5, 9);
 				Vec3d target = c.add(Math.cos(ang) * r, h, Math.sin(ang) * r);
@@ -669,6 +680,7 @@ public final class BombEvents {
 	/** Doomsday Clock: a clock face of grid light; a sweeping hand carves a trench; each hour a strike; midnight ends it. */
 	public static class DoomsdayClock extends WorldEvent {
 		private static final int R = 24;
+		private final Set<Long> carved = new HashSet<>();
 
 		private Vec3d hour(int i) {
 			double a = i * Math.PI / 6;
@@ -681,7 +693,7 @@ public final class BombEvents {
 			Vec3d c = center();
 			if (t == 0) {
 				MythicEvents.warn(this, world, c, "message.armageddon.doomsday");
-				Vfx.grid(world, c.add(0, 0.2, 0), new Vec3d(0, 1, 0), R + 2, 0xFF3030, 0, 420);
+				Vfx.grid(world, c.add(0, -0.3, 0), new Vec3d(0, 1, 0), R + 2, 0xFF3030, 0, 420);
 				for (int i = 0; i < 12; i++) {
 					Vfx.pillar(world, hour(i), 0.6F, 0xFF3030, false, 400);
 				}
@@ -693,9 +705,14 @@ public final class BombEvents {
 				Vec3d tip = Kit.ground(world, c.x + dir.x * R * 0.95, c.z + dir.z * R * 0.95);
 				Vfx.beam(world, c.add(0, 2, 0), tip.add(0, 1, 0), 1.2F, 0xFF3030, 3);
 				if (Destruction.enabled(world)) {
-					for (int d = 3; d <= R; d += 3) {
+					for (int d = 3; d <= R; d++) {
 						Vec3d p = Kit.ground(world, c.x + dir.x * d, c.z + dir.z * d);
-						Kit.sphere(world, BlockPos.ofFloored(p), 1.4, Blocks.AIR.getDefaultState());
+						BlockPos q = BlockPos.ofFloored(p);
+						// Each column is cut once: re-sampling the ground every tick drilled shafts wherever the hand lingered.
+						if (carved.add(BlockPos.asLong(q.getX(), 0, q.getZ()))) {
+							Destruction.set(world, q.down(), Blocks.AIR.getDefaultState(), Kit.FLAGS);
+							Destruction.set(world, q.down(2), Blocks.AIR.getDefaultState(), Kit.FLAGS);
+						}
 					}
 				}
 				if (t % 5 == 0) {
@@ -716,7 +733,7 @@ public final class BombEvents {
 					Destruction.explode(world, null, pos.x, pos.y, pos.z, 5.0F, true);
 					Kit.damage(world, pos, 8, 30.0F, ModDamageTypes.NUCLEAR_BLAST, null, owner());
 					Kit.sound(world, pos, SoundEvents.BLOCK_BELL_USE, 16.0F, 0.5F);
-					Kit.title(world, c, 64, Text.literal((h == 0 ? 12 : h) + " / 12").formatted(Formatting.DARK_RED, Formatting.BOLD), Text.empty());
+					Kit.title(world, c, 64, Text.literal((h + 1) + " / 12").formatted(Formatting.DARK_RED, Formatting.BOLD), Text.empty());
 				}
 			}
 			if (t == 405) {

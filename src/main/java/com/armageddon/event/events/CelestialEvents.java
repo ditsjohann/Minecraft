@@ -35,8 +35,10 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Celestial tier: world events. Every one is announced server-wide, honours protected regions,
@@ -69,7 +71,8 @@ public final class CelestialEvents {
 			Vec3d star = g.add(0, 32, 0);
 			if (t == 0) {
 				announce(world, g, "block.armageddon.last_light");
-				Vfx.orb(world, star, 0.5F, 9.0F, 0xFFFFFF, 0, LIFE);
+				// Ends as the collapse orb (t == LIFE - 30) begins, or it would hide the shrink.
+				Vfx.orb(world, star, 0.5F, 9.0F, 0xFFFFFF, 0, LIFE - 30);
 				Vfx.skyTint(world, g, 100000, 0xF0F0FF, 0.8F);
 				Kit.sound(world, g, ModSounds.ORBITAL_CHARGE, 24.0F, 0.3F);
 			}
@@ -121,6 +124,8 @@ public final class CelestialEvents {
 	/** 47 ZEROPOINT ABSOLUTE: time stops, everything is drawn into a pinprick, then the void rings out. */
 	public static class Zeropoint extends WorldEvent {
 		private final Map<Entity, Boolean> frozen = new HashMap<>();
+		/** Each frozen entity's own NoGravity flag, restored on release. */
+		private final Map<Entity, Boolean> hadNoGravity = new HashMap<>();
 		private List<FallingBlockEntity> pulled = new ArrayList<>();
 
 		@Override
@@ -140,6 +145,7 @@ public final class CelestialEvents {
 				for (Entity e : Kit.entities(world, g, r, x -> !(x instanceof EventEntity) && !Kit.creativeOrSpectator(x))) {
 					if (!frozen.containsKey(e)) {
 						frozen.put(e, e instanceof MobEntity m && !m.isAiDisabled());
+						hadNoGravity.put(e, e.hasNoGravity());
 						if (e instanceof MobEntity m) {
 							m.setAiDisabled(true);
 						}
@@ -194,13 +200,14 @@ public final class CelestialEvents {
 			for (Map.Entry<Entity, Boolean> en : frozen.entrySet()) {
 				Entity e = en.getKey();
 				if (e.isAlive()) {
-					e.setNoGravity(false);
+					e.setNoGravity(hadNoGravity.getOrDefault(e, false));
 					if (en.getValue() && e instanceof MobEntity m) {
 						m.setAiDisabled(false);
 					}
 				}
 			}
 			frozen.clear();
+			hadNoGravity.clear();
 		}
 
 		@Override
@@ -242,7 +249,12 @@ public final class CelestialEvents {
 			if (t > 100 && t % 4 == 0) {
 				float shell = job != null ? job.currentShell() : (t - 100) * 0.5F;
 				Vfx.ring(world, g, shell * 2 + 2, 1.0F, 0xFFFFFF, false, 6);
-				Detonations.blast(world, g, Math.min(r, shell + 2), 60.0F, ModDamageTypes.ANNIHILATION, owner(), 0, 0.2);
+				// Damage the advancing shell itself, not ground zero (radial falloff left the front at ~1).
+				for (LivingEntity e : Kit.living(world, g, Math.min(r, shell + 2))) {
+					if (e.getPos().distanceTo(g) >= shell - 2) {
+						e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 60.0F);
+					}
+				}
 			}
 			return t > 100 && (job == null ? t > 220 : job.isDone());
 		}
@@ -307,21 +319,36 @@ public final class CelestialEvents {
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 32.0F, 0.4F);
 				Detonations.blast(world, g, r * 1.6, 1000.0F, ModDamageTypes.ANNIHILATION, owner(), r, 5.0);
 				if (Destruction.enabled(world)) {
-					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), r, CraterJob.Mode.NUKE));
+					CraterJob crater = new CraterJob(world, BlockPos.ofFloored(g), r, CraterJob.Mode.NUKE);
+					DetonationManager.add(crater);
 					for (int k = 0; k < 10; k++) {
 						Vec3d d = Kit.dir(k * 36 + world.random.nextFloat() * 20);
 						Kit.fissure(world, g.add(d.multiply(r * 0.9)), d, r, 8, 3, ModBlocks.GOLD_FISSURE.getDefaultState());
 					}
-					// Floating islands of torn-up ground hang above the crater.
-					for (int k = 0; k < 7; k++) {
-						double a = world.random.nextDouble() * Math.PI * 2;
-						double d = r * (0.3 + world.random.nextDouble() * 0.6);
-						island(world, BlockPos.ofFloored(g.x + Math.cos(a) * d, g.y + 18 + world.random.nextInt(20), g.z + Math.sin(a) * d));
-					}
+					// Floating islands of torn-up ground hang above the crater. Placed once the crater is
+					// carved, since they sit inside its volume and would otherwise be erased with it.
+					afterJob(world, crater, 120, () -> {
+						for (int k = 0; k < 7; k++) {
+							double a = world.random.nextDouble() * Math.PI * 2;
+							double d = r * (0.3 + world.random.nextDouble() * 0.6);
+							island(world, BlockPos.ofFloored(g.x + Math.cos(a) * d, g.y + 18 + world.random.nextInt(20), g.z + Math.sin(a) * d));
+						}
+					});
 				}
 				return true;
 			}
 			return false;
+		}
+
+		/** Runs {@code action} once {@code job} is done, polling every 10 ticks for up to {@code tries} polls. */
+		private static void afterJob(ServerWorld world, CraterJob job, int tries, Runnable action) {
+			DetonationManager.schedule(world, 10, () -> {
+				if (job.isDone() || tries <= 0) {
+					action.run();
+				} else {
+					afterJob(world, job, tries - 1, action);
+				}
+			});
 		}
 
 		private static void island(ServerWorld world, BlockPos c) {
@@ -348,7 +375,7 @@ public final class CelestialEvents {
 	/** 50 OMEGA: FINAL EXISTENCE. Gravity reverses, the landscape rises, the sky breaks, and everything ends. */
 	public static class FinalExistence extends WorldEvent {
 		private List<FallingBlockEntity> rising = new ArrayList<>();
-		private final List<Entity> floated = new ArrayList<>();
+		private final Set<Entity> floated = new HashSet<>();
 
 		@Override
 		public boolean tick() {
@@ -358,7 +385,8 @@ public final class CelestialEvents {
 			int r = maxRadius(world, 160);
 			if (t == 0) {
 				announce(world, g, "block.armageddon.final_existence");
-				Vfx.orb(world, sphere, 2.0F, 40.0F, 0x100008, 1, 460);
+				// Ends as the collapse orb (t == 360) begins, or it would hide the collapse and the finale.
+				Vfx.orb(world, sphere, 2.0F, 40.0F, 0x100008, 1, 360);
 				Vfx.skyTint(world, g, 100000, 0x180010, 1.0F);
 				Vfx.screen(world, g, 100000, 0, 0.6F, 400);
 				Kit.sound(world, g, ModSounds.ANTIMATTER, 64.0F, 0.2F);
@@ -377,6 +405,15 @@ public final class CelestialEvents {
 						}
 					}
 				}
+			}
+			if (t == 300) {
+				// Levitation is over: let everything that floated drift back down instead of dying of fall damage.
+				for (Entity e : floated) {
+					if (e.isAlive() && e instanceof LivingEntity l) {
+						l.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 120, 0, false, false));
+					}
+				}
+				floated.clear();
 			}
 			if (t >= 100 && t < 260 && t % 20 == 0) {
 				rising.addAll(Kit.lift(world, g, r * 0.6, 500 - rising.size() > 0 ? Math.min(80, 500 - rising.size()) : 0, true, true));

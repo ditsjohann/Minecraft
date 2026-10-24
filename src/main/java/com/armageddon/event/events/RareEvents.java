@@ -114,11 +114,38 @@ public final class RareEvents {
 				EnergyFields.emit(world, EnergyFields.Energy.ELECTRIC, c, 12, 100, owner());
 			}
 			if (t % 4 == 0) {
-				EnergyFields.chainLightning(world, c.add(0, 1, 0), 12, owner());
+				arcChain(world, c.add(0, 1, 0), 12, owner());
 				Kit.sound(world, c, ModSounds.ARC_ZAP, 2.0F, 0.8F + world.random.nextFloat() * 0.6F);
 				flickerLamps(world, BlockPos.ofFloored(c), 16);
 			}
 			return t > 60;
+		}
+	}
+
+	/** {@link EnergyFields#chainLightning} that spares the thrower. */
+	static void arcChain(net.minecraft.server.world.ServerWorld world, Vec3d center, double radius, Entity cause) {
+		List<Vec3d> nodes = new ArrayList<>();
+		BlockPos c = BlockPos.ofFloored(center);
+		int r = (int) Math.min(10, radius);
+		BlockPos.Mutable p = new BlockPos.Mutable();
+		for (int i = 0; i < 400 && nodes.size() < 12; i++) {
+			p.set(c.getX() + world.random.nextInt(r * 2 + 1) - r, c.getY() + world.random.nextInt(r + 1) - r / 2, c.getZ() + world.random.nextInt(r * 2 + 1) - r);
+			if (EnergyFields.isMetal(world.getBlockState(p))) {
+				nodes.add(Vec3d.ofCenter(p));
+			}
+		}
+		for (LivingEntity e : Kit.living(world, center, radius)) {
+			if (e == cause) {
+				continue;
+			}
+			nodes.add(e.getPos().add(0, e.getHeight() / 2, 0));
+			e.timeUntilRegen = 0;
+			e.damage(ModDamageTypes.source(world, ModDamageTypes.ELECTROCUTION, null, cause), 6.0F);
+		}
+		Vec3d prev = center;
+		for (Vec3d n : nodes) {
+			Vfx.arc(world, prev, n, 0.12F, 0x9FD8FF);
+			prev = n;
 		}
 	}
 
@@ -227,7 +254,7 @@ public final class RareEvents {
 			if (t % 4 == 0) {
 				Vfx.grid(world, target.add(0, 0.05, 0), new Vec3d(0, 1, 0), 3.0F, 0x3A8CFF, 0, 6);
 			}
-			if (t >= 20 && (t - 20) % 16 == 0) {
+			if (t >= 20 && (t - 20) % 16 == 0 && (t - 20) / 16 < 6) {
 				Vec3d sky = target.add(world.random.nextGaussian() * 2, 60, world.random.nextGaussian() * 2);
 				Vfx.streak(world, sky, target, 0.6F, 0x7AC8FF, 5);
 				com.armageddon.detonation.DetonationManager.schedule(world, 5, () -> {
@@ -254,6 +281,10 @@ public final class RareEvents {
 			Vec3d anchor;
 			int targetId = data.getInt("Target");
 			Entity target = targetId != 0 ? world.getEntityById(targetId) : null;
+			if (data.contains("Target") && (target == null || !target.isAlive())) {
+				// The creature died or vanished mid-pull; there is no grapple anchor to fall back to.
+				return true;
+			}
 			Vec3d hand = owner.getEyePos().subtract(0, 0.3, 0);
 			if (target != null && target.isAlive()) {
 				anchor = target.getPos().add(0, target.getHeight() / 2, 0);
@@ -296,11 +327,15 @@ public final class RareEvents {
 							0, 0, 0.01, 0, 1.0);
 				}
 			}
-			if (t % 10 == 0) {
-				for (LivingEntity e : Kit.living(world, c, r)) {
+			boolean pulse = t % 10 == 0;
+			for (LivingEntity e : Kit.living(world, c, r)) {
+				if (pulse) {
 					e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 30, 0, false, false));
-					if (e instanceof HostileEntity mob) {
-						mob.setTarget(null);
+				}
+				if (e instanceof HostileEntity mob) {
+					// Targeting goals re-acquire within a few ticks, so this has to run every tick.
+					mob.setTarget(null);
+					if (pulse) {
 						mob.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 40, 0, false, false));
 					}
 				}
@@ -313,6 +348,8 @@ public final class RareEvents {
 	public static class Stasis extends WorldEvent {
 		private final Map<Entity, Vec3d> frozen = new HashMap<>();
 		private final List<MobEntity> disabled = new ArrayList<>();
+		/** Entities that already had no gravity before being frozen (lifted debris, NoGravity stands...). */
+		private final List<Entity> floating = new ArrayList<>();
 
 		@Override
 		public boolean tick() {
@@ -325,6 +362,9 @@ public final class RareEvents {
 			for (Entity e : Kit.entities(world, c, 6, x -> !Kit.creativeOrSpectator(x) && !(x instanceof com.armageddon.event.EventEntity))) {
 				if (!frozen.containsKey(e)) {
 					frozen.put(e, e.getVelocity());
+					if (e.hasNoGravity()) {
+						floating.add(e);
+					}
 					if (e instanceof MobEntity mob && !mob.isAiDisabled()) {
 						mob.setAiDisabled(true);
 						disabled.add(mob);
@@ -348,7 +388,7 @@ public final class RareEvents {
 			for (Map.Entry<Entity, Vec3d> en : frozen.entrySet()) {
 				Entity e = en.getKey();
 				if (e.isAlive()) {
-					e.setNoGravity(false);
+					e.setNoGravity(floating.contains(e));
 					e.setVelocity(e instanceof ProjectileEntity ? en.getValue() : Vec3d.ZERO);
 					e.velocityModified = true;
 				}
@@ -398,22 +438,22 @@ public final class RareEvents {
 					}
 				}
 			}
-			if (t % 10 == 0) {
-				for (LivingEntity e : Kit.living(world, c, Math.max(16, R * 3))) {
-					if (e instanceof CreeperEntity creeper) {
-						creeper.setFuseSpeed(-1);
-					}
-					if (e instanceof PlayerEntity player && t == 0) {
-						for (int i = 0; i < player.getInventory().size(); i++) {
-							ItemStack s = player.getInventory().getStack(i);
-							if (s.getItem() instanceof GunItem) {
-								player.getItemCooldownManager().set(s.getItem(), 160);
-							}
+			for (LivingEntity e : Kit.living(world, c, Math.max(16, R * 3))) {
+				if (e instanceof CreeperEntity creeper) {
+					// The ignite goal re-arms the fuse every tick while it has a target.
+					creeper.setTarget(null);
+					creeper.setFuseSpeed(-1);
+				}
+				if (e instanceof PlayerEntity player && t == 0) {
+					for (int i = 0; i < player.getInventory().size(); i++) {
+						ItemStack s = player.getInventory().getStack(i);
+						if (s.getItem() instanceof GunItem) {
+							player.getItemCooldownManager().set(s.getItem(), 160);
 						}
 					}
-					if (e instanceof net.minecraft.entity.passive.IronGolemEntity golem) {
-						golem.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 20, 6, false, false));
-					}
+				}
+				if (t % 10 == 0 && e instanceof net.minecraft.entity.passive.IronGolemEntity golem) {
+					golem.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 20, 6, false, false));
 				}
 			}
 			return t > 60;
