@@ -88,30 +88,88 @@ public final class MegaEffects {
 			float env = ArsenalEffects.envelope(a, lifetime, 30, 40);
 			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 			Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
-			int layers = 34;
-			Vec3d[] prev = new Vec3d[10];
+			boolean far = cam.distanceTo(base) > 420;
+			int layers = far ? 18 : 40;
+			int strands = far ? 6 : 12;
+			Vec3d[] prev = new Vec3d[strands];
+			Vec3d[] prevIn = new Vec3d[strands];
 			for (int k = 0; k <= layers; k++) {
 				double h = H * k / layers;
-				double r = 5 + (radius - 5) * Math.pow(h / H, 1.4);
+				float hf = (float) (h / H);
+				double r = 5 + (radius - 5) * Math.pow(hf, 1.4);
 				Vec3d c = center(h, a).subtract(cam);
-				int col = Effects.fade(0x3C4248, 0x9AA4AE, (float) (h / H));
-				FxDraw.ring(shade, m, c, x, z, r * 0.72, r, col, 0.0F, 0.55F * env, 0.0F, 28);
-				for (int s = 0; s < 10; s++) {
-					double ang = s * MathHelper.TAU / 10 + a * (0.32 + h * 0.0016) + h * 0.05;
+				// Dusty brown at the ground, slate in the middle, pale where it meets the storm.
+				int col = hf < 0.25F ? Effects.fade(0x5A4A3A, 0x464C54, hf / 0.25F) : Effects.fade(0x464C54, 0xA8B2BC, (hf - 0.25F) / 0.75F);
+				FxDraw.ring(shade, m, c, x, z, r * 0.55, r, col, 0.0F, 0.6F * env, 0.0F, far ? 18 : 32);
+				FxDraw.ring(shade, m, c, x, z, r * 0.2, r * 0.6, Solids.scale(col, 0.6), 0.0F, 0.35F * env, 0.0F, far ? 12 : 20);
+				for (int s = 0; s < strands; s++) {
+					double spin = a * (0.32 + h * 0.0016) + h * 0.05;
+					double ang = s * MathHelper.TAU / strands + spin;
 					Vec3d p = c.add(Math.cos(ang) * r, 0, Math.sin(ang) * r);
+					Vec3d q = c.add(Math.cos(ang + 0.9) * r * 0.62, 0, Math.sin(ang + 0.9) * r * 0.62);
 					if (prev[s] != null) {
-						FxDraw.ribbon(shade, m, prev[s], p, Vec3d.ZERO, r * 0.14, Effects.fade(0x7A848E, 0xDDE4EA, (float) (h / H)), 0.5F * env, 0.5F * env);
+						int sc = Effects.fade(0x7A848E, 0xE4EAF0, hf);
+						FxDraw.ribbon(shade, m, prev[s], p, Vec3d.ZERO, r * 0.16, sc, 0.5F * env, 0.5F * env);
+						FxDraw.ribbon(shade, m, prevIn[s], q, Vec3d.ZERO, r * 0.1, Solids.scale(sc, 0.7), 0.35F * env, 0.35F * env);
 					}
 					prev[s] = p;
+					prevIn[s] = q;
 				}
-				if (k % 6 == 0) {
-					FxDraw.ring(glow, m, c, x, z, r * 0.95, r * 1.02, 0xB8C8FF, 0.0F, 0.12F * env, 0.0F, 28);
+				if (k % 5 == 0) {
+					FxDraw.ring(glow, m, c, x, z, r * 0.95, r * 1.03, 0xB8C8FF, 0.0F, 0.1F * env, 0.0F, 28);
 				}
 			}
+			// Debris bands: chunks of the world orbiting at three heights.
+			if (!far) {
+				for (int band = 0; band < 3; band++) {
+					double h = H * (0.12 + band * 0.22);
+					double r = (5 + (radius - 5) * Math.pow(h / H, 1.4)) * 1.15;
+					Vec3d c = center(h, a).subtract(cam);
+					for (int i = 0; i < 14; i++) {
+						double ang = i * MathHelper.TAU / 14 + a * (0.4 - band * 0.08) + Solids.hash(i, band) * 0.5;
+						double hh = (Solids.hash(i, band + 7) - 0.5) * 14;
+						Vec3d p = c.add(Math.cos(ang) * r, hh, Math.sin(ang) * r);
+						double sz = 0.8 + Solids.hash(i, band + 3) * 2.2;
+						Vec3d axis = new Vec3d(Math.cos(a * 0.2 + i), Math.sin(a * 0.15 + i * 2), Math.sin(a * 0.25 + i * 3)).normalize().multiply(sz * 0.5);
+						int rock = i % 4 == 0 ? 0x3E6A2E : i % 3 == 0 ? 0x6A5038 : 0x707070;
+						Solids.tube(solid, m, p.subtract(axis), p.add(axis), sz * 0.55, sz * 0.45, 5, rock, 1.0F, true);
+					}
+				}
+			}
+			// Dust skirt rolling out around the base.
 			Vec3d g = base.subtract(cam);
-			FxDraw.disc(shade, m, g.add(0, 1, 0), x, z, radius * 1.5, 0x6A5A48, 0.5F * env, 0.0F, 32);
-			FxDraw.disc(shade, m, center(H, a).subtract(cam), x, z, radius * 2.6, 0x50565C, 0.45F * env, 0.0F, 32);
+			for (int i = 0; i < 40; i++) {
+				double ang = i * MathHelper.TAU / 40 + a * 0.12;
+				double rr = radius * (0.9 + 0.5 * Solids.hash(i, 1)) + Math.sin(a * 0.1 + i) * 2;
+				Vec3d p = g.add(Math.cos(ang) * rr, 2 + Solids.hash(i, 2) * 6, Math.sin(ang) * rr);
+				Solids.dot(shade, m, p, cb, 4 + Solids.hash(i, 3) * 5, 0x7A6A54, 0.45F * env);
+			}
+			FxDraw.disc(shade, m, g.add(0, 1, 0), x, z, radius * 1.8, 0x6A5A48, 0.5F * env, 0.0F, 32);
+			// Wall cloud: a dark rotating shelf with spiral bands feeding the funnel.
+			Vec3d top = center(H, a).subtract(cam);
+			FxDraw.disc(shade, m, top, x, z, radius * 3.2, 0x40464C, 0.55F * env, 0.0F, 40);
+			for (int arm = 0; arm < 4; arm++) {
+				Vec3d p0 = null;
+				for (int s2 = 0; s2 <= 16; s2++) {
+					double t = s2 / 16.0;
+					double ang = arm * MathHelper.TAU / 4 + t * 2.4 + a * 0.05;
+					double rr = radius * (0.4 + 2.6 * t);
+					Vec3d p = top.add(Math.cos(ang) * rr, 2 - t * 4, Math.sin(ang) * rr);
+					if (p0 != null) {
+						FxDraw.ribbon(shade, m, p0, p, new Vec3d(0, 400, 0), radius * 0.5 * (1 - t * 0.5), 0x5A6068, 0.4F * env * (float) (1 - t), 0.4F * env * (float) (1 - t));
+					}
+					p0 = p;
+				}
+			}
+			// Lightning flickering inside the wall cloud.
+			if (((int) (a * 0.7F) * 31 + (int) a) % 9 == 0) {
+				double ang = Solids.hash((int) a, 5) * MathHelper.TAU;
+				Vec3d p = top.add(Math.cos(ang) * radius * 1.5, -2, Math.sin(ang) * radius * 1.5);
+				Solids.dot(glow, m, p, cb, radius * 1.2, 0xC8D8FF, 0.35F * env);
+			}
 		}
 	}
 
@@ -179,38 +237,106 @@ public final class MegaEffects {
 			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
 			Vec3d p = Paths.ufo(from, to, a, lifetime).subtract(cam);
 			double R = radius;
-			int lat = 14;
-			Solids.ellipsoid(solid, m, p, R, R * 0.16, R, lat, 44, (i, j, n) -> {
-				if (Math.abs(i - lat / 2) <= 1 && j % 2 == 0) {
-					return 0x9FE0FF;
-				}
-				double panel = (j % 4 == 0 || i % 5 == 0) ? 0.78 : 1.0;
-				return Solids.scale(0x5E6A80, panel * (0.9 + 0.2 * Solids.hash(i / 2, j / 2)));
-			}, true, 1.0F);
-			Solids.ellipsoid(solid, m, p.add(0, -R * 0.07, 0), R * 0.58, R * 0.13, R * 0.58, 8, 28, (i, j, n) -> Solids.scale(0x343C4C, 0.9 + 0.2 * Solids.hash(i, j)), true, 1.0F);
-			Solids.ellipsoid(shade, m, p.add(0, R * 0.08, 0), R * 0.38, R * 0.3, R * 0.38, 8, 24, (i, j, n) -> 0x7AD8FF, false, 0.4F);
-			Solids.ellipsoid(glow, m, p.add(0, R * 0.12, 0), R * 0.22, R * 0.14, R * 0.22, 6, 16, (i, j, n) -> 0x40FFB0, false, 0.5F);
+			boolean far = p.length() > R * 12;
+			int lat = far ? 10 : 16, lon = far ? 32 : 56;
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
-			for (int k = 0; k < 32; k++) {
-				double ang = k * MathHelper.TAU / 32 + a * 0.05;
-				Vec3d lp = p.add(Math.cos(ang) * R * 0.965, -R * 0.015, Math.sin(ang) * R * 0.965);
-				Solids.dot(glow, m, lp, cb, R * 0.035, (k + (int) (a * 0.2)) % 2 == 0 ? 0x40A0FF : 0xFFFFFF, 0.9F);
+			Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
+			// Hull: banded armour panels with seams, a lit equator band, and darker vents.
+			Solids.ellipsoid(solid, m, p, R, R * 0.16, R, lat, lon, (i, j, n) -> {
+				if (Math.abs(i - lat / 2) <= 1) {
+					return j % 2 == 0 ? 0xB8ECFF : 0x5A90C0;
+				}
+				boolean seam = j % 4 == 0 || i % 3 == 0;
+				double tone = 0.9 + 0.22 * Solids.hash(i / 2, j / 3) + 0.12 * n.y;
+				int base = n.y > 0 ? 0x6E7A92 : 0x4A5466;
+				if (!seam && Solids.hash(i, j * 7) > 0.92) {
+					return 0x2A2E38;
+				}
+				return Solids.scale(base, (seam ? 0.72 : 1.0) * tone);
+			}, true, 1.0F);
+			// Upper deck ring and lower drive housing.
+			Solids.ellipsoid(solid, m, p.add(0, R * 0.09, 0), R * 0.62, R * 0.07, R * 0.62, 6, far ? 20 : 36, (i, j, n) -> Solids.scale(0x7C88A0, 0.9 + 0.2 * Solids.hash(i, j)), true, 1.0F);
+			Solids.ellipsoid(solid, m, p.add(0, -R * 0.07, 0), R * 0.58, R * 0.13, R * 0.58, 8, 28, (i, j, n) -> Solids.scale(0x343C4C, 0.9 + 0.2 * Solids.hash(i, j)), true, 1.0F);
+			// Glass dome with a pilot glow and a moving highlight.
+			Solids.ellipsoid(shade, m, p.add(0, R * 0.1, 0), R * 0.36, R * 0.28, R * 0.36, 8, 24, (i, j, n) -> n.y > 0.6 ? 0xC8F4FF : 0x6AC8F0, false, 0.45F);
+			Solids.ellipsoid(glow, m, p.add(0, R * 0.13, 0), R * 0.2, R * 0.13, R * 0.2, 6, 16, (i, j, n) -> 0x40FFB0, false, 0.5F);
+			double hl = a * 0.02;
+			Solids.dot(glow, m, p.add(Math.cos(hl) * R * 0.2, R * 0.33, Math.sin(hl) * R * 0.2), cb, R * 0.06, 0xFFFFFF, 0.7F);
+			// Rim lights: a chasing wave of white over blue.
+			int lights = far ? 24 : 48;
+			for (int k = 0; k < lights; k++) {
+				double ang = k * MathHelper.TAU / lights;
+				double chase = (a * 0.6 - k) % lights;
+				chase = chase < 0 ? chase + lights : chase;
+				float wave = (float) Math.exp(-chase * 0.35);
+				Vec3d lp = p.add(Math.cos(ang) * R * 0.97, -R * 0.015, Math.sin(ang) * R * 0.97);
+				Solids.dot(glow, m, lp, cb, R * (0.025 + 0.03 * wave), Effects.fade(0x3080FF, 0xFFFFFF, wave), 0.55F + 0.45F * wave);
 			}
-			Vec3d emitter = p.add(0, -R * 0.2, 0);
-			Solids.dot(glow, m, emitter, cb, R * 0.3, 0x40A0FF, 0.5F);
+			// Fresnel glow along the hull edge, and running lights on the upper deck.
+			FxDraw.ring(glow, m, p, x, z, R * 0.96, R * 1.06, 0x60B8FF, 0.0F, 0.35F, 0.0F, 64);
+			for (int k = 0; k < 6; k++) {
+				double ang = k * MathHelper.TAU / 6 + a * 0.01;
+				float on = MathHelper.sin(a * 0.3F + k * 1.2F) > 0.4F ? 1.0F : 0.15F;
+				Solids.dot(glow, m, p.add(Math.cos(ang) * R * 0.6, R * 0.13, Math.sin(ang) * R * 0.6), cb, R * 0.04, k % 2 == 0 ? 0xFF4040 : 0x40FF80, on);
+			}
+			// Drive: counter-rotating rings of light under the hull and a soft lift glow.
+			Vec3d under = p.add(0, -R * 0.2, 0);
+			for (int k = 0; k < 3; k++) {
+				double spin = a * (k % 2 == 0 ? 0.08 : -0.12);
+				int dashes = 10;
+				for (int i = 0; i < dashes; i++) {
+					double a0 = spin + i * MathHelper.TAU / dashes, a1 = a0 + MathHelper.TAU / dashes * 0.6;
+					arc(glow, m, under.add(0, k * 0.4, 0), a0, a1, R * (0.18 + k * 0.12), R * (0.22 + k * 0.12), k == 1 ? 0xFFFFFF : 0x40A0FF, 0.8F);
+				}
+			}
+			Solids.dot(glow, m, under, cb, R * 0.35, 0x40A0FF, 0.45F);
+			FxDraw.disc(glow, m, under.add(0, -1, 0), x, z, R * 0.7, 0x2060C0, 0.25F, 0.0F, 32);
 			if (beamOn(a) && lastBeam != Vec3d.ZERO) {
 				Vec3d target = beamPoint(net.minecraft.client.MinecraftClient.getInstance().world, a).subtract(cam);
 				double ramp = Math.min(1.0, Math.min((a - lifetime * 0.12) / 14.0, (lifetime * 0.88 - a) / 14.0));
-				Solids.tube(glow, m, emitter, target, R * 0.08, R * 0.2, 14, 0x2080FF, (float) (0.22 * ramp), false);
-				Solids.tube(glow, m, emitter, target, R * 0.03, R * 0.08, 10, 0x80C8FF, (float) (0.5 * ramp), false);
-				FxDraw.beam(glow, m, emitter, target, Vec3d.ZERO, R * 0.05, 0xBFE8FF, (float) ramp);
-				Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
+				float rmp = (float) ramp;
+				// Volumetric tractor beam: nested cones from wide and faint to a white-hot core.
+				Solids.tube(glow, m, under, target, R * 0.12, R * 0.34, 18, 0x1A60D0, 0.12F * rmp, false);
+				Solids.tube(glow, m, under, target, R * 0.08, R * 0.2, 14, 0x2080FF, 0.22F * rmp, false);
+				Solids.tube(glow, m, under, target, R * 0.03, R * 0.08, 10, 0x80C8FF, 0.5F * rmp, false);
+				FxDraw.beam(glow, m, under, target, Vec3d.ZERO, R * 0.05, 0xDFF4FF, rmp);
+				// Rings sliding down the beam, and motes rising up it.
+				Vec3d axis = target.subtract(under);
+				Vec3d[] bb = ArsenalEffects.basis(axis);
+				for (int k = 0; k < 6; k++) {
+					double t = ((a * 0.025 + k / 6.0) % 1.0);
+					Vec3d c = under.add(axis.multiply(t));
+					double rr = MathHelper.lerp(t, R * 0.12, R * 0.34);
+					FxDraw.ring(glow, m, c, bb[0], bb[1], rr * 0.8, rr, 0xA0D8FF, 0.0F, 0.5F * rmp * (float) Math.sin(t * Math.PI), 0.0F, 32);
+				}
+				for (int k = 0; k < 14; k++) {
+					double t = 1 - ((a * 0.015 + k / 14.0) % 1.0);
+					double ang = k * 2.4 + a * 0.1;
+					double rr = MathHelper.lerp(t, R * 0.1, R * 0.3) * (0.3 + 0.7 * Solids.hash(k, 3));
+					Vec3d c = under.add(axis.multiply(t)).add(bb[0].multiply(Math.cos(ang) * rr)).add(bb[1].multiply(Math.sin(ang) * rr));
+					Solids.dot(glow, m, c, cb, R * 0.02, 0xFFFFFF, 0.8F * rmp);
+				}
+				Vec3d groundC = target.add(0, 0.7, 0);
 				for (int k = 0; k < 3; k++) {
 					double rr = ((a * 3 + k * 20) % 60) / 60.0 * R * 0.35 + 2;
-					FxDraw.ring(glow, m, target.add(0, 0.7, 0), x, z, rr * 0.85, rr, 0x80C8FF, 0.0F, (float) (0.8 * ramp), 0.0F, 40);
+					FxDraw.ring(glow, m, groundC, x, z, rr * 0.85, rr, 0x80C8FF, 0.0F, 0.8F * rmp, 0.0F, 40);
 				}
-				FxDraw.disc(glow, m, target.add(0, 0.8, 0), x, z, R * 0.3, 0xBFE8FF, (float) (0.8 * ramp), 0.0F, 32);
+				FxDraw.disc(glow, m, target.add(0, 0.8, 0), x, z, R * 0.3, 0xBFE8FF, 0.8F * rmp, 0.0F, 32);
+				FxDraw.disc(glow, m, target.add(0, 0.6, 0), x, z, R * 0.55, 0xFF7A30, 0.3F * rmp, 0.0F, 32);
+				Solids.dot(glow, m, target.add(0, 3, 0), cb, R * 0.25, 0xE0F4FF, 0.6F * rmp);
 			}
+		}
+	}
+
+	/** Flat ring segment in the horizontal plane. */
+	static void arc(VertexConsumer vc, Matrix4f m, Vec3d c, double a0, double a1, double r0, double r1, int rgb, float alpha) {
+		int n = 3;
+		for (int i = 0; i < n; i++) {
+			double t0 = a0 + (a1 - a0) * i / n, t1 = a0 + (a1 - a0) * (i + 1) / n;
+			FxDraw.vertex(vc, m, c.x + Math.cos(t0) * r0, c.y, c.z + Math.sin(t0) * r0, rgb, alpha);
+			FxDraw.vertex(vc, m, c.x + Math.cos(t1) * r0, c.y, c.z + Math.sin(t1) * r0, rgb, alpha);
+			FxDraw.vertex(vc, m, c.x + Math.cos(t1) * r1, c.y, c.z + Math.sin(t1) * r1, rgb, alpha);
+			FxDraw.vertex(vc, m, c.x + Math.cos(t0) * r1, c.y, c.z + Math.sin(t0) * r1, rgb, alpha);
 		}
 	}
 
@@ -291,46 +417,91 @@ public final class MegaEffects {
 			float a = age + td;
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 			Vec3d ax = axis(a);
 			Vec3d tip = tip(a).subtract(cam);
 			Vec3d back = tip.subtract(ax.multiply(length));
 			double headLen = length * 0.17;
 			Vec3d headBase = tip.subtract(ax.multiply(headLen));
-			Solids.tube(solid, m, back, headBase, radius, radius * 1.05, 12, 0x6E5A3A, 1.0F, true);
-			Solids.tube(solid, m, headBase, tip, radius * 1.45, 0.0, 12, 0xD4D8E4, 1.0F, true);
-			Solids.tube(solid, m, headBase.subtract(ax.multiply(radius)), headBase, radius * 1.9, radius * 1.45, 12, 0x2A2A34, 1.0F, true);
-			Solids.tube(glow, m, headBase, tip, radius * 1.5, 0.0, 12, 0xFFB050, 0.3F, false);
 			Vec3d[] bs = ArsenalEffects.basis(ax);
 			double sp = spin(a);
+			// Shaft: dark wood-like core wrapped in alternating metal bands.
+			Solids.tube(solid, m, back, headBase, radius, radius * 1.05, 12, 0x6E5A3A, 1.0F, true);
+			for (int k = 0; k < 9; k++) {
+				Vec3d p0 = back.add(ax.multiply(length * (0.06 + 0.085 * k)));
+				Solids.tube(solid, m, p0, p0.add(ax.multiply(length * 0.025)), radius * 1.12, radius * 1.12, 12, k % 3 == 0 ? 0xC8A050 : 0x3A3A44, 1.0F, true);
+			}
+			// Head: faceted blade with a bright cutting edge, collar and pommel.
+			Solids.tube(solid, m, headBase, tip, radius * 1.45, 0.0, 6, 0xD4D8E4, 1.0F, true);
+			Solids.tube(solid, m, headBase.subtract(ax.multiply(radius)), headBase, radius * 1.9, radius * 1.45, 12, 0x2A2A34, 1.0F, true);
+			Solids.tube(solid, m, back.subtract(ax.multiply(radius * 1.5)), back, radius * 0.4, radius * 1.3, 8, 0x8A6A2A, 1.0F, true);
+			for (int k = 0; k < 6; k++) {
+				double ang = sp + k * MathHelper.TAU / 6;
+				Vec3d edge = bs[0].multiply(Math.cos(ang)).add(bs[1].multiply(Math.sin(ang)));
+				FxDraw.ribbon(glow, m, headBase.add(edge.multiply(radius * 1.45)), tip, Vec3d.ZERO, radius * 0.1, 0xFFFFFF, 0.55F, 0.9F);
+			}
+			Solids.tube(glow, m, headBase, tip, radius * 1.6, 0.0, 12, 0xFFB050, 0.25F, false);
+			Solids.dot(glow, m, tip, cb, radius * 1.6, 0xFFE8C0, 0.6F);
+			// Rune spirals racing along the shaft.
 			for (int k = 0; k < 4; k++) {
 				Vec3d prev = null;
 				for (int s = 0; s <= 28; s++) {
 					double u = s / 28.0;
 					double ang = sp + k * MathHelper.TAU / 4 + u * 14;
-					Vec3d p = back.add(ax.multiply(length * 0.82 * u)).add(bs[0].multiply(Math.cos(ang) * radius * 1.04)).add(bs[1].multiply(Math.sin(ang) * radius * 1.04));
+					Vec3d p = back.add(ax.multiply(length * 0.82 * u)).add(bs[0].multiply(Math.cos(ang) * radius * 1.14)).add(bs[1].multiply(Math.sin(ang) * radius * 1.14));
 					if (prev != null) {
-						FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, radius * 0.16, k % 2 == 0 ? 0xFFB050 : 0xFFFFFF, 0.9F, 0.9F);
+						float pulse = 0.6F + 0.4F * MathHelper.sin((float) (u * 20 - a * 0.4));
+						FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, radius * 0.16, k % 2 == 0 ? 0xFFB050 : 0xFFFFFF, 0.9F * pulse, 0.9F * pulse);
 					}
 					prev = p;
 				}
 			}
 			for (int k = 0; k < 6; k++) {
-				Vec3d p = back.add(ax.multiply(length * (0.12 + 0.14 * k)));
-				FxDraw.ring(glow, m, p, bs[0], bs[1], radius * 1.05, radius * 1.25, 0xFFB050, 0.0F, 0.7F, 0.0F, 24);
+				Vec3d p0 = back.add(ax.multiply(length * (0.12 + 0.14 * k)));
+				FxDraw.ring(glow, m, p0, bs[0], bs[1], radius * 1.15, radius * 1.4, 0xFFB050, 0.0F, 0.7F, 0.0F, 24);
 			}
 			for (int f = 0; f < 3; f++) {
 				double ang = sp * 0.5 + f * MathHelper.TAU / 3;
 				Vec3d out = bs[0].multiply(Math.cos(ang)).add(bs[1].multiply(Math.sin(ang)));
-				Solids.tube(solid, m, back.add(ax.multiply(length * 0.12)), back.add(out.multiply(radius * 3.2)).subtract(ax.multiply(length * 0.04)), radius * 0.5, radius * 0.08, 4, 0xB03A2A, 1.0F, true);
+				Vec3d root = back.add(ax.multiply(length * 0.12));
+				Vec3d end = back.add(out.multiply(radius * 3.2)).subtract(ax.multiply(length * 0.04));
+				Solids.tube(solid, m, root, end, radius * 0.5, radius * 0.08, 4, 0xB03A2A, 1.0F, true);
+				FxDraw.ribbon(glow, m, root, end, Vec3d.ZERO, radius * 0.08, 0xFF6040, 0.6F, 0.0F);
+			}
+			if (a < THROW) {
+				// In flight: a long shock trail and a glowing bow wave at the tip.
+				Vec3d tail = back.subtract(throwDir.multiply(length * 2.5));
+				FxDraw.beam(glow, m, back, tail, Vec3d.ZERO, radius * 1.4, 0xFFC070, 0.5F);
+				FxDraw.ribbon(glow, m, tip, back, Vec3d.ZERO, radius * 4, 0xFFE0B0, 0.3F, 0.0F);
+				for (int k = 1; k <= 3; k++) {
+					Vec3d c = tip.subtract(throwDir.multiply(length * 0.25 * k));
+					FxDraw.ring(glow, m, c, bs[0], bs[1], radius * (2 + k), radius * (2.4 + k), 0xFFFFFF, 0.0F, 0.4F / k, 0.0F, 24);
+				}
 			}
 			if (a >= THROW) {
 				Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
 				Vec3d g = target.subtract(cam).add(0, 0.8, 0);
 				float ramp = (float) Math.min(1.0, (a - THROW) / 20.0);
+				// Molten collar where the spear bores in, sparks thrown off in a spiral, and a dust ring.
 				FxDraw.disc(glow, m, g, x, z, radius * 4.5, 0xFF8A20, 0.5F * ramp, 0.0F, 32);
+				FxDraw.disc(glow, m, g.add(0, 0.1, 0), x, z, radius * 2.2, 0xFFE0A0, 0.7F * ramp, 0.0F, 24);
 				for (int k = 0; k < 3; k++) {
 					double rr = radius * (2.4 + ((a * 0.6 + k * 12) % 30) * 0.3);
 					FxDraw.ring(glow, m, g, x, z, rr * 0.9, rr, 0xFFD090, 0.0F, 0.6F * ramp, 0.0F, 40);
+				}
+				for (int i = 0; i < 18; i++) {
+					double t = ((a * 0.05 + i / 18.0) % 1.0);
+					double ang = sp * 2 + i * 2.4;
+					double rr = radius * (1.6 + t * 6);
+					Vec3d p0 = g.add(Math.cos(ang) * rr, t * radius * 5 - t * t * radius * 4, Math.sin(ang) * rr);
+					Vec3d p1 = g.add(Math.cos(ang - 0.25) * rr * 0.92, (t - 0.04) * radius * 5, Math.sin(ang - 0.25) * rr * 0.92);
+					FxDraw.ribbon(glow, m, p1, p0, Vec3d.ZERO, radius * 0.12, i % 3 == 0 ? 0xFFFFFF : 0xFFA040, 0.0F, 0.9F * (float) (1 - t) * ramp);
+				}
+				for (int i = 0; i < 24; i++) {
+					double ang = i * MathHelper.TAU / 24 + a * 0.03;
+					double rr = radius * (5 + 1.5 * Solids.hash(i, 9)) + Math.sin(a * 0.07 + i) * radius;
+					Solids.dot(shade, m, g.add(Math.cos(ang) * rr, radius * (0.5 + Solids.hash(i, 4)), Math.sin(ang) * rr), cb, radius * (1.5 + Solids.hash(i, 5)), 0x8A7860, 0.35F * ramp);
 				}
 			}
 		}
@@ -383,13 +554,45 @@ public final class MegaEffects {
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			Vec3d p = pos(a).subtract(cam);
+			float t = Math.min(1.0F, a / lifetime);
 			Solids.rocket(solid, glow, m, p, dir, len, len * 0.095, a, 1.4);
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			Vec3d[] bs = ArsenalEffects.basis(dir);
 			Solids.dot(glow, m, p, cb, len * 1.6, 0xA070FF, 0.18F);
-			// Long comet tail.
+			Solids.dot(glow, m, p, cb, len * 0.7, 0xD8B0FF, 0.25F);
+			// Plasma bow shock wrapping the nose; it gets hotter as the rocket speeds up.
+			Vec3d nose = p.add(dir.multiply(len * 0.5));
+			for (int k = 0; k < 3; k++) {
+				Vec3d c = nose.subtract(dir.multiply(len * 0.1 * k));
+				double rr = len * (0.14 + 0.09 * k) * (1 + t);
+				FxDraw.ring(glow, m, c, bs[0], bs[1], rr * 0.7, rr, k == 0 ? 0xFFFFFF : 0xC090FF, 0.0F, (0.6F - k * 0.15F) * (0.5F + t), 0.0F, 32);
+			}
+			Solids.tube(glow, m, nose.add(dir.multiply(len * 0.05)), nose.subtract(dir.multiply(len * 0.6)), 0.0, len * 0.3 * (1 + t), 14, 0xE0C8FF, 0.18F + 0.2F * t, false);
+			// Braided tail: three twisting strands around a long comet core.
 			Vec3d tail = p.subtract(dir.multiply(len * 0.5));
 			FxDraw.beam(glow, m, tail, tail.subtract(dir.multiply(len * 9)), Vec3d.ZERO, len * 0.12, 0x80F0FF, 0.6F);
 			FxDraw.beam(glow, m, tail, tail.subtract(dir.multiply(len * 5)), Vec3d.ZERO, len * 0.22, 0xA070FF, 0.4F);
+			for (int k = 0; k < 3; k++) {
+				Vec3d prev = null;
+				for (int s = 0; s <= 24; s++) {
+					double u = s / 24.0;
+					double ang = k * MathHelper.TAU / 3 + u * 10 - a * 0.3;
+					double rr = len * 0.12 * (0.4 + u);
+					Vec3d q = tail.subtract(dir.multiply(len * 6 * u)).add(bs[0].multiply(Math.cos(ang) * rr)).add(bs[1].multiply(Math.sin(ang) * rr));
+					if (prev != null) {
+						float al = 0.7F * (float) (1 - u);
+						FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, len * 0.04 * (1.2 - u), k == 0 ? 0xFFFFFF : k == 1 ? 0x60FFC0 : 0xC070FF, al, al);
+					}
+					prev = q;
+				}
+			}
+			// Heat-shimmer rings shed behind it.
+			for (int k = 0; k < 4; k++) {
+				double u = ((a * 0.04 + k / 4.0) % 1.0);
+				Vec3d c = tail.subtract(dir.multiply(len * 4 * u));
+				double rr = len * (0.2 + u * 0.8);
+				FxDraw.ring(glow, m, c, bs[0], bs[1], rr * 0.9, rr, 0xB080FF, 0.0F, 0.35F * (float) (1 - u), 0.0F, 32);
+			}
 		}
 	}
 }
