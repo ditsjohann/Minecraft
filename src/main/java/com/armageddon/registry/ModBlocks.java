@@ -113,6 +113,10 @@ public final class ModBlocks {
 	public static final BombBlock GALACTIC_SMASH = tiered(bomb("galactic_smash", BombType.GALACTIC_SMASH, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock BOOMING_TICK = tiered(bomb("booming_tick", BombType.BOOMING_TICK, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock ALIEN_DEATH_RAY = tiered(bomb("alien_death_ray", BombType.ALIEN_DEATH_RAY, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock ETERNAL_SAPLING = tiered(bomb("eternal_sapling", BombType.ETERNAL_SAPLING, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock SIXTEEN_CHUNKS = tiered(bomb("sixteen_chunks", BombType.SIXTEEN_CHUNKS, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock TRUMAN_SHOW = tiered(bomb("truman_show", BombType.TRUMAN_SHOW, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock DISCO_BALL = tiered(bomb("disco_ball", BombType.DISCO_BALL, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks
 	public static final Block ENERGY_CRYSTAL = register("energy_crystal", new TransparentBlock(AbstractBlock.Settings.create()

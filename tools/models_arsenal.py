@@ -738,6 +738,59 @@ def alien_death_ray():
     return m
 
 
+def eternal_sapling():
+    m = [B(0, 0, 0, 16, 2, 16, "obsidian"), B(1, 2, 1, 15, 3, 15, "rock")]
+    m += [B(7, 3, 7, 9, 11, 9, "copper"), B(6.5, 3, 6.5, 9.5, 4.5, 9.5, "copper")]
+    for (x, z) in ((2.5, 8), (13.5, 8), (8, 2.5), (8, 13.5)):
+        m += [B(min(x, 8) - 0.5 if x < 8 else 8, 3, min(z, 8) - 0.5 if z < 8 else 8, max(x, 8) + 0.5 if x > 8 else 8.6, 3.8, max(z, 8) + 0.5 if z > 8 else 8.6, "copper")]
+    m += ball(8, 12.5, 8, 4.2, "olive") + ball(8, 13.2, 8, 3.0, "glow_green")
+    m += [B(5, 10.5, 5, 6, 11.5, 6, "glow_gold"), B(10, 13.5, 10, 11, 14.5, 11, "glow_gold"), B(7.5, 16, 7.5, 8.5, 16.8, 8.5, "glow_white")]
+    for (x, z) in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        m += [B(x, 2.8, z, x + 1, 8, z + 1, "celestial")]
+    return m
+
+
+def sixteen_chunks():
+    m = [B(0, 0, 0, 16, 2, 16, "obsidian")]
+    mats = ["glow_magenta", "glow_cyan", "glow_lime", "glow_orange", "pearl", "glass_gold", "glow_purple", "red",
+            "glass_slime", "glow_blue", "gold", "glow_pink", "glass_ice", "glow_red", "white", "glow_rainbow"]
+    for i in range(4):
+        for j in range(4):
+            h = 3 + ((i * 7 + j * 5) % 5) * 1.6
+            m += [B(0.5 + i * 3.8, 2, 0.5 + j * 3.8, 0.5 + i * 3.8 + 3.4, 2 + h, 0.5 + j * 3.8 + 3.4, mats[i * 4 + j])]
+    m += [B(7.6, 2, 0, 8.4, 13, 16, "glow_white"), B(0, 2, 7.6, 16, 13, 8.4, "glow_white")]
+    return m
+
+
+def truman_show():
+    m = [B(0, 0, 0, 16, 1.5, 16, "black")]
+    m += [B(1, 1.5, 1, 15, 12, 15, "glass_cyan"), B(1.5, 1.5, 1.5, 14.5, 3, 14.5, "olive")]
+    m += [B(3, 3, 3, 5, 6, 5, "white"), B(10, 3, 9, 12, 7, 11, "white"), B(6, 3, 10, 8, 4.5, 12, "red")]
+    m += [B(1, 12, 1, 15, 13, 15, "steel"), B(7, 13, 7, 9, 16, 9, "steel")]
+    m += [B(6.5, 9, 6.5, 9.5, 11.6, 9.5, "glow_white"), B(7.4, 11.6, 7.4, 8.6, 12, 8.6, "steel")]
+    m += [B(12.2, 3, 0.8, 14.2, 7.5, 1, "white"), B(12.6, 3, 0.7, 13.8, 6.8, 0.85, "glow_gold")]
+    m += [B(2, 13.2, 2, 4, 14.2, 4, "glow_red")]
+    return m
+
+
+def disco_ball():
+    m = [B(0, 0, 0, 16, 2, 16, "black"), B(1, 2, 1, 15, 2.6, 15, "glow_rainbow")]
+    m += [B(7.6, 13.5, 7.6, 8.4, 16, 8.4, "chrome")]
+    m += ball(8, 8.5, 8, 5.5, "chrome")
+    for k in range(10):
+        import math
+        a = k * math.pi / 5
+        x, z = 8 + math.cos(a) * 5.6, 8 + math.sin(a) * 5.6
+        m += [B(x - 0.4, 7.5 + (k % 3), z - 0.4, x + 0.4, 8.3 + (k % 3), z + 0.4, ["glow_magenta", "glow_cyan", "glow_gold", "glow_lime", "glow_white"][k % 5])]
+    for (x, z) in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        m += [B(x, 2.6, z, x + 1, 5, z + 1, "glow_white")]
+    return m
+
+
+BOMBS.update({
+    "eternal_sapling": eternal_sapling, "sixteen_chunks": sixteen_chunks, "truman_show": truman_show, "disco_ball": disco_ball,
+})
+
 BOMBS.update({
     "exploding_cows": exploding_cows, "deadly_twister": deadly_twister, "colossal_spear": colossal_spear,
     "zombie_apocalypse": zombie_apocalypse, "ufo_invasion": ufo_invasion, "galactic_smash": galactic_smash,

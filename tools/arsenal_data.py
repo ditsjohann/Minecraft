@@ -99,6 +99,8 @@ NEW_BOMBS.update({
     "exploding_cows": "EXPLODING COWS", "deadly_twister": "DEADLY TWISTER", "colossal_spear": "COLOSSAL SPEAR",
     "zombie_apocalypse": "ZOMBIE APOCALYPSE", "ufo_invasion": "UFO INVASION",
     "galactic_smash": "GALACTIC SMASH", "booming_tick": "BOOMING TICK", "alien_death_ray": "ALIEN DEATH RAY",
+    "eternal_sapling": "ETERNAL SAPLING", "sixteen_chunks": "16 CHUNKS", "truman_show": "THE TRUMAN SHOW",
+    "disco_ball": "DISCO BALL",
 })
 BLOCKS.update(NEW_BOMBS)
 
@@ -111,6 +113,10 @@ BLOCK_DESC = {
     "galactic_smash": "WORLD DESTRUCTION. A cosmic giant appears, looks around, and punches the ground. Camera cutscene. Light twice.",
     "booming_tick": "WORLD DESTRUCTION. It starts as a laughable pop. Sixty seconds later, the Earth. Camera cutscene. Light twice.",
     "alien_death_ray": "WORLD DESTRUCTION. A cutscene to another world, a rocket, an EMP, a tsunami, the biggest boom. Light twice.",
+    "eternal_sapling": "WORLD DESTRUCTION. A sapling becomes a tree, a bigger tree, then a world tree whose roots slam down from every side. Camera cutscene. Light twice.",
+    "sixteen_chunks": "WORLD DESTRUCTION. Sixteen chunks, sixteen dice rolls: floods of random blocks and very weird physics. Camera cutscene. Light twice.",
+    "truman_show": "WORLD DESTRUCTION. Good morning! And in case I don't see ya... the sky was a set all along. Camera cutscene. Light twice.",
+    "disco_ball": "WORLD DESTRUCTION. A giant disco ball spins up until its light burns the world, cools to blue, stops... then the bass. Camera cutscene. Light twice.",
     "disco_bomb": "A dance floor, rainbow rings and a beat that bounces everyone. Harmless.",
     "glitter_bomb": "A storm of sparkle. Everything glows for thirty seconds. Harmless.",
     "pumpkin_patch_bomb": "Dozens of jack-o'-lanterns sprout from the ground, then wither away.",
@@ -247,7 +253,8 @@ def bomb_recipes2(shaped):
          "ufo_invasion": ("minecraft:end_crystal", "minecraft:ender_eye")}
     for name, (core, side) in X.items():
         shaped(name, ["CSC", "SKS", "CSC"], {"C": "celestial_core", "S": side, "K": core}, category=cat)
-    W = {"galactic_smash": "big_bang", "booming_tick": "chrono_break", "alien_death_ray": "moonfall"}
+    W = {"galactic_smash": "big_bang", "booming_tick": "chrono_break", "alien_death_ray": "moonfall",
+         "eternal_sapling": "world_eater", "sixteen_chunks": "ragnarok", "truman_show": "chrono_break", "disco_ball": "disco_bomb"}
     for name, core in W.items():
         shaped(name, ["CXC", "NKN", "CXC"], {"C": "celestial_core", "X": "singularity_core", "N": "minecraft:nether_star", "K": core}, category=cat)
 

@@ -61,6 +61,11 @@ of world is erased, then rewound) and RAGNAROK.
 sky open, looks around, winds up and punches the ground. BOOMING TICK: a laughable pop that doubles every five
 seconds for a minute, then a cutscene over the carpet-bombed site and out to Earth exploding. ALIEN DEATH RAY: a
 cutscene to an alien world where the rocket is loaded and fired, then an EMP, a tsunami and the biggest boom.
+ETERNAL SAPLING: a sapling grows into a tree, a bigger tree, then a world tree whose roots slam down on every
+side. 16 CHUNKS: the sixteen chunks around it each roll a random mutation (floods, flips, swaps, voids, mob
+parties), then all reroll at once. THE TRUMAN SHOW: the sky turns out to be a set; the studio strikes your world
+and leaves a painted-sky wall with an EXIT door. DISCO BALL: a giant disco ball spins until its beams burn the
+land, cools to blue, stops, then drops the bass and turns the world into a dance floor.
 All of these need two lights to confirm, respect protected regions and `armageddonMaxRadius` (default 256), and
 can be disabled with `armageddonAllowCelestial`. Players are protected during camera cutscenes.
 Fifteen more bombs fill Uncommon (6), Rare (3), Legendary (3) and Mythic (3).

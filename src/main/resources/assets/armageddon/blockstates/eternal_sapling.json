@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/eternal_sapling"
+    },
+    "facing=east": {
+      "model": "armageddon:block/eternal_sapling",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/eternal_sapling",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/eternal_sapling",
+      "y": 270
+    }
+  }
+}

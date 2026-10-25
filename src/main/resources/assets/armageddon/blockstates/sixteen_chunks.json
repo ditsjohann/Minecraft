@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/sixteen_chunks"
+    },
+    "facing=east": {
+      "model": "armageddon:block/sixteen_chunks",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/sixteen_chunks",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/sixteen_chunks",
+      "y": 270
+    }
+  }
+}

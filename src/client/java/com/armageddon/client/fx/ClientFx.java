@@ -170,6 +170,11 @@ public final class ClientFx {
 	private static boolean ticking;
 
 	public static void add(FxEffect effect) {
+		if (effect instanceof Cinematics.Cine) {
+			// Never dropped by the effect cap: the cutscene owns the camera and must tick to give it back.
+			(ticking ? EFFECTS_PENDING : EFFECTS).add(effect);
+			return;
+		}
 		if (ticking) {
 			if (EFFECTS.size() + EFFECTS_PENDING.size() < 512) {
 				EFFECTS_PENDING.add(effect);
@@ -386,6 +391,10 @@ public final class ClientFx {
 			case FxType.TWISTER -> add(new MegaEffects.Twister(a, b, s, p.p1(), p.duration()));
 			case FxType.UFO -> add(new MegaEffects.Ufo(a, b, s, p.duration()));
 			case FxType.SPEAR -> add(new MegaEffects.Spear(a, s, p.p1(), p.duration()));
+			case FxType.DISCO_BALL -> add(new DiscoBallFx(p));
+			case FxType.TRUMAN_SET -> add(new TrumanFx(p));
+			case FxType.ETERNAL_TREE -> add(new EternalTreeFx(p));
+			case FxType.CHUNK_GLITCH -> add(new ChunkGlitchFx(p));
 			case FxType.ALIEN_ROCKET -> add(new MegaEffects.AlienRocket(a, b, s, p.duration()));
 			case FxType.STEAM -> ArsenalEffects.steam(world, a, s);
 			case FxType.GLITCH -> add(new ArsenalEffects.Glitch(a, s, p.color(), p.seed(), p.duration()));

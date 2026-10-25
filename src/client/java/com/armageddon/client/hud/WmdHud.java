@@ -40,6 +40,11 @@ public final class WmdHud {
 		}
 		com.armageddon.client.fx.Cinematics.Cine cine = ClientFx.activeCine();
 		if (cine != null) {
+			try {
+				cine.drawHud(ctx, w, h, cine.time(counter.getTickDelta(false)));
+			} catch (RuntimeException ex) {
+				com.armageddon.Armageddon.LOGGER.error("Armageddon cutscene overlay failed", ex);
+			}
 			com.armageddon.client.fx.Cinematics.Caption cap = cine.caption(cine.time(counter.getTickDelta(false)));
 			if (cap != null && cap.alpha() > 0.02F) {
 				int alpha = Math.max(5, (int) (cap.alpha() * 255)) << 24;

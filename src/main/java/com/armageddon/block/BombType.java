@@ -68,7 +68,12 @@ public enum BombType {
 	// true world destruction
 	GALACTIC_SMASH(600, 0xA070FF),
 	BOOMING_TICK(600, 0xFF4040),
-	ALIEN_DEATH_RAY(600, 0x60FFA0);
+	ALIEN_DEATH_RAY(600, 0x60FFA0),
+	// world destruction II
+	ETERNAL_SAPLING(600, 0x40E060),
+	SIXTEEN_CHUNKS(600, 0xFF40FF),
+	TRUMAN_SHOW(600, 0x80C8FF),
+	DISCO_BALL(600, 0xFFE0FF);
 
 	public final int fuse;
 	public final int color;
@@ -102,7 +107,7 @@ public enum BombType {
 	/** The true WORLD DESTRUCTION tier: scripted camera cutscenes. */
 	public boolean isWorldDestruction() {
 		return switch (this) {
-			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY -> true;
+			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW, DISCO_BALL -> true;
 			default -> false;
 		};
 	}

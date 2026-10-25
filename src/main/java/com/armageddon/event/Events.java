@@ -4,6 +4,10 @@ import com.armageddon.event.events.BombEvents;
 import com.armageddon.event.events.CelestialEvents;
 import com.armageddon.event.events.CelestialIIEvents;
 import com.armageddon.event.events.WorldCutsceneEvents;
+import com.armageddon.event.events.EternalSaplingEvent;
+import com.armageddon.event.events.SixteenChunksEvent;
+import com.armageddon.event.events.TrumanShowEvent;
+import com.armageddon.event.events.DiscoBallEvent;
 import com.armageddon.event.events.CityDestructionEvents;
 import com.armageddon.event.events.EpicEvents;
 import com.armageddon.event.events.LegendaryEvents;
@@ -92,6 +96,10 @@ public final class Events {
 		EVENTS.put("galactic_smash", WorldCutsceneEvents.GalacticSmash::new);
 		EVENTS.put("booming_tick", WorldCutsceneEvents.BoomingTick::new);
 		EVENTS.put("alien_death_ray", WorldCutsceneEvents.AlienDeathRay::new);
+		EVENTS.put("eternal_sapling", EternalSaplingEvent::new);
+		EVENTS.put("sixteen_chunks", SixteenChunksEvent::new);
+		EVENTS.put("truman_show", TrumanShowEvent::new);
+		EVENTS.put("disco_ball", DiscoBallEvent::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);
 		EVENTS.put("zeropoint", CelestialEvents.Zeropoint::new);

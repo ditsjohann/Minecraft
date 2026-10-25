@@ -140,4 +140,14 @@ public final class FxType {
 	public static final int SPEAR = 63;
 	/** The alien rocket arriving. a = impact point, b = start, scale = length. */
 	public static final int ALIEN_ROCKET = 64;
+
+	// ---- World destruction II: each built from the raw payload by its own client effect class ----
+	/** The giant disco ball (client: DiscoBallFx). */
+	public static final int DISCO_BALL = 65;
+	/** The Truman Show studio set (client: TrumanFx). */
+	public static final int TRUMAN_SET = 66;
+	/** The eternal tree's aura (client: EternalTreeFx). */
+	public static final int ETERNAL_TREE = 67;
+	/** Sixteen-chunks glitch overlay (client: ChunkGlitchFx). */
+	public static final int CHUNK_GLITCH = 68;
 }

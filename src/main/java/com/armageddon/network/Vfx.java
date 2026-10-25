@@ -193,6 +193,11 @@ public final class Vfx {
 		send(w, to, FAR * 4, p(FxType.ALIEN_ROCKET, to, from, length, 0, 0, 0, 0, ticks));
 	}
 
+	/** Raw effect packet for effects whose client class reads the payload fields itself. */
+	public static void custom(ServerWorld w, int type, Vec3d a, Vec3d b, float scale, int color, int seed, float p1, float p2, int duration, double range) {
+		send(w, a, range, p(type, a, b, scale, color, seed, p1, p2, duration));
+	}
+
 	private Vfx() {
 	}
 }
