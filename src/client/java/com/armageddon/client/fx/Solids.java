@@ -106,6 +106,48 @@ final class Solids {
 		}
 	}
 
+	/** A four-point star flare: a long horizontal streak, a shorter vertical one and a hot core (camera-relative). */
+	static void flare(VertexConsumer glow, Matrix4f m, Vec3d p, Vec3d[] cb, double size, int rgb, float alpha) {
+		if (alpha <= 0.01F) {
+			return;
+		}
+		FxDraw.ribbon(glow, m, p.subtract(cb[0].multiply(size * 3.2)), p, Vec3d.ZERO, size * 0.07, rgb, 0.0F, alpha * 0.7F);
+		FxDraw.ribbon(glow, m, p, p.add(cb[0].multiply(size * 3.2)), Vec3d.ZERO, size * 0.07, rgb, alpha * 0.7F, 0.0F);
+		FxDraw.ribbon(glow, m, p.subtract(cb[1].multiply(size * 1.4)), p, Vec3d.ZERO, size * 0.06, rgb, 0.0F, alpha * 0.55F);
+		FxDraw.ribbon(glow, m, p, p.add(cb[1].multiply(size * 1.4)), Vec3d.ZERO, size * 0.06, rgb, alpha * 0.55F, 0.0F);
+		dot(glow, m, p, cb, size * 0.35, 0xFFFFFF, alpha);
+		dot(glow, m, p, cb, size, rgb, alpha * 0.35F);
+	}
+
+	/** Soft coloured nebula clouds painted on the star shell, for space shots. */
+	static void nebula(VertexConsumer glow, Matrix4f m, Vec3d[] cb, int salt, int tintA, int tintB, float brightness) {
+		for (int i = 0; i < 18; i++) {
+			double a = hash(i, salt) * 1.6 + salt * 0.7;
+			double y = hash(i, salt + 1) * 0.9 - 0.2;
+			double r = Math.sqrt(1 - y * y);
+			Vec3d p = new Vec3d(Math.cos(a) * r, y, Math.sin(a) * r).multiply(290);
+			double size = 40 + hash(i, salt + 2) * 70;
+			int col = hash(i, salt + 3) < 0.5 ? tintA : tintB;
+			FxDraw.disc(glow, m, p, cb[0], cb[1], size, col, 0.10F * brightness, 0.0F, 14);
+			FxDraw.disc(glow, m, p, cb[0], cb[1], size * 0.4, scale(col, 1.3), 0.08F * brightness, 0.0F, 10);
+		}
+	}
+
+	/** A distant sun in direction {@code dir}: corona, rays and a flare (camera-relative). */
+	static void sun(VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d dir, double size, int rgb, float time) {
+		Vec3d p = dir.normalize().multiply(285);
+		dot(glow, m, p, cb, size * 3.0, rgb, 0.18F);
+		dot(glow, m, p, cb, size * 1.4, rgb, 0.5F);
+		dot(glow, m, p, cb, size * 0.6, 0xFFFFFF, 1.0F);
+		for (int k = 0; k < 12; k++) {
+			double ang = k * MathHelper.TAU / 12 + time * 0.002;
+			double len = size * (2.2 + 1.4 * hash(k, 9));
+			Vec3d d = cb[0].multiply(Math.cos(ang)).add(cb[1].multiply(Math.sin(ang)));
+			FxDraw.ribbon(glow, m, p, p.add(d.multiply(len)), Vec3d.ZERO, size * 0.12, rgb, 0.35F, 0.0F);
+		}
+		flare(glow, m, p, cb, size * 2.0, rgb, 0.6F);
+	}
+
 	/** Banded, swirled gas-giant colouring (alien worlds). */
 	static Cell bands(int a, int b, int c, long seed) {
 		return (i, j, n) -> {
@@ -125,6 +167,12 @@ final class Solids {
 			}
 			return land > 0.35 ? scale(0x3E9A44, 0.85 + 0.3 * hash(i, j)) : scale(0x1E55B8, 0.9 + 0.2 * hash(j, i));
 		};
+	}
+
+	/** True where {@link #earth()} paints land (not ocean or ice), for body-frame normal {@code n}. */
+	static boolean isLand(Vec3d n) {
+		double land = Math.sin(n.x * 4.1 + 1.2) * Math.cos(n.y * 3.3 + n.z * 2.2) + Math.sin(n.z * 5.7 - n.x * 2.0) * 0.55;
+		return land > 0.35 && Math.abs(n.y) <= 0.88;
 	}
 
 	/** Alien stacked-hull rocket along {@code dir} (unit), centred on {@code c}. */

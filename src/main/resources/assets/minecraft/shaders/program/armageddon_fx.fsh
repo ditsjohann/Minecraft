@@ -9,7 +9,9 @@
 //  - Radiation-sickness vision: green cast, film grain, vignette, scanline glitches
 //  - Nuclear flash: over-exposure blooming into a white-out
 //  - World-event grading: desaturation, white-out, black-out, signal static, inversion
-//  - Cutscene film look: bloom, contrast, teal/orange split-tone, vignette, grain, fades to black
+//  - Cutscene film look: wide bloom, anamorphic streaks, edge fringe, filmic roll-off, split-tone,
+//    lens dirt near the key light, vignette, film grain, fades to black
+//  - Impact frames: ink on paper with halftone shading and speed lines
 
 uniform sampler2D DiffuseSampler;
 
@@ -50,6 +52,31 @@ out vec4 fragColor;
 
 float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+float vnoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float luma(vec3 c) {
+    return dot(c, vec3(0.299, 0.587, 0.114));
+}
+
+// Soft-knee threshold: only light brighter than lo contributes, fading in over 0.4.
+vec3 bright(vec3 s, float lo) {
+    return s * smoothstep(lo, lo + 0.4, luma(s));
+}
+
+// Filmic tone curve (ACES fit): rolls bright values off instead of clipping them.
+vec3 filmic(vec3 x) {
+    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
 }
 
 vec3 hueShift(vec3 color, float shift) {
@@ -163,27 +190,55 @@ void main() {
 
     // --- Cutscene film look ---
     if (Cine > 0.0) {
-        // Soft bloom: bright pixels bleed into their surroundings so glows and fire really pop.
+        // Wide soft bloom: a golden-angle spiral of taps with gaussian weights.
         vec3 bloom = vec3(0.0);
-        for (int i = 0; i < 12; i++) {
-            float a = float(i) * 0.5236;
-            for (int ring = 1; ring <= 2; ring++) {
-                vec2 o = vec2(cos(a), sin(a)) * oneTexel * (6.0 * float(ring) + 2.0);
-                vec3 s = texture(DiffuseSampler, texCoord + o).rgb;
-                bloom += s * smoothstep(0.6, 1.0, dot(s, vec3(0.299, 0.587, 0.114)));
-            }
+        float wsum = 0.0;
+        for (int i = 0; i < 24; i++) {
+            float fi = float(i) + 0.5;
+            float r = sqrt(fi / 24.0);
+            float a = fi * 2.39996;
+            vec2 o = vec2(cos(a), sin(a)) * r * 26.0 * oneTexel;
+            float wgt = exp(-r * r * 2.5);
+            bloom += bright(texture(DiffuseSampler, texCoord + o).rgb, 0.55) * wgt;
+            wsum += wgt;
         }
-        vec3 g = col + bloom / 24.0 * 0.9;
-        float lum = dot(g, vec3(0.299, 0.587, 0.114));
-        // Punchier saturation and an S-curve contrast.
-        g = mix(vec3(lum), g, 1.22);
-        g = clamp(g, 0.0, 1.5);
-        g = g * g * (3.0 - 2.0 * min(g, vec3(1.0))) * 0.35 + g * 0.65;
-        // Teal shadows, warm highlights.
-        g *= mix(vec3(0.9, 1.0, 1.1), vec3(1.07, 1.0, 0.9), smoothstep(0.1, 0.8, lum));
-        float vig = 1.0 - smoothstep(0.3, 1.1, length(center * vec2(aspect, 1.0)));
-        g *= mix(1.0, vig, 0.55);
-        g += (hash(floor(texCoord * InSize / 1.5) + floor(GTime * 24.0)) - 0.5) * 0.035;
+        bloom /= wsum;
+        // Anamorphic streak: very bright lights smear sideways into a thin blue line.
+        vec3 streak = vec3(0.0);
+        for (int i = 1; i <= 8; i++) {
+            float d = float(i * i) * 1.6 + 2.0;
+            float wgt = exp(-float(i) * 0.38);
+            vec2 o = vec2(d * oneTexel.x, 0.0);
+            streak += (bright(texture(DiffuseSampler, texCoord + o).rgb, 0.78) + bright(texture(DiffuseSampler, texCoord - o).rgb, 0.78)) * wgt;
+        }
+        streak = vec3(luma(streak)) * vec3(0.45, 0.65, 1.0) * 0.16;
+        // Lens fringe that grows towards the frame edges.
+        vec3 g = col;
+        vec2 fr = center * dot(center, center) * 0.014;
+        g.r = mix(g.r, texture(DiffuseSampler, uv + fr).r, 0.8);
+        g.b = mix(g.b, texture(DiffuseSampler, uv - fr).b, 0.8);
+        g += bloom * 0.85 + streak;
+        // Filmic roll-off, a touch more saturation, teal shadows and warm highlights.
+        g = mix(g, filmic(g * 1.1), 0.55);
+        float lum = luma(g);
+        g = mix(vec3(lum), g, 1.18);
+        g *= mix(vec3(0.88, 0.98, 1.12), vec3(1.08, 1.0, 0.88), smoothstep(0.05, 0.75, lum));
+        // Lens dirt catching the key light.
+        if (GodStrength > 0.0) {
+            vec2 dl = texCoord - vec2(GodX, GodY);
+            dl.x *= aspect;
+            float nearK = exp(-length(dl) * 2.2);
+            vec2 dp = texCoord * vec2(aspect, 1.0);
+            float dirt = smoothstep(0.62, 0.9, vnoise(dp * 9.0)) * 0.6 + smoothstep(0.75, 0.95, vnoise(dp * 23.0 + 7.0)) * 0.4;
+            g += dirt * nearK * GodStrength * vec3(GodR, GodG, GodB) * 0.35;
+        }
+        float vig = 1.0 - smoothstep(0.35, 1.15, length(center * vec2(aspect, 1.0)));
+        g *= mix(1.0, vig, 0.5);
+        // Two-octave animated grain, stronger in the shadows like real film.
+        vec2 gp = texCoord * InSize / 1.6;
+        float frame = floor(GTime * 24.0);
+        float grain = (hash(floor(gp) + frame * 1.37) + hash(floor(gp * 0.5) + frame * 2.11)) * 0.5 - 0.5;
+        g += grain * 0.05 * (1.0 - lum * 0.6);
         col = mix(col, max(g, 0.0), Cine);
     }
 
@@ -202,23 +257,41 @@ void main() {
     if (Invert > 0.0) {
         col = mix(col, vec3(1.0) - col, Invert);
     }
-    // --- Anime impact frame: hard threshold + ink outlines ---
+    // --- Anime impact frame: ink on paper, halftone shading, speed lines ---
     if (Impact > 0.5) {
-        float l0 = dot(col, vec3(0.299, 0.587, 0.114));
-        float lx = dot(texture(DiffuseSampler, texCoord + vec2(oneTexel.x * 2.0, 0.0)).rgb, vec3(0.299, 0.587, 0.114));
-        float ly = dot(texture(DiffuseSampler, texCoord + vec2(0.0, oneTexel.y * 2.0)).rgb, vec3(0.299, 0.587, 0.114));
-        float edge = smoothstep(0.08, 0.2, abs(l0 - lx) + abs(l0 - ly));
-        float fill = step(0.38, l0);
+        float l0 = luma(col);
+        float lx1 = luma(texture(DiffuseSampler, texCoord + vec2(oneTexel.x * 2.0, 0.0)).rgb);
+        float lx2 = luma(texture(DiffuseSampler, texCoord - vec2(oneTexel.x * 2.0, 0.0)).rgb);
+        float ly1 = luma(texture(DiffuseSampler, texCoord + vec2(0.0, oneTexel.y * 2.0)).rgb);
+        float ly2 = luma(texture(DiffuseSampler, texCoord - vec2(0.0, oneTexel.y * 2.0)).rgb);
+        float edge = smoothstep(0.1, 0.28, abs(lx1 - lx2) + abs(ly1 - ly2));
+        vec2 pp = texCoord * InSize;
+        float fib = vnoise(pp * vec2(0.02, 0.35)) * 0.5 + vnoise(pp * 0.08) * 0.5;
+        vec3 paper = vec3(0.95, 0.92, 0.85) * (0.9 + 0.1 * fib);
+        vec3 inkc = vec3(0.07, 0.06, 0.09);
+        // Rotated halftone screen: dark areas solid ink, midtones dots, highlights bare paper.
+        vec2 hp = mat2(0.707, -0.707, 0.707, 0.707) * pp / 5.0;
+        float dotd = length(fract(hp) - 0.5);
+        float tone = clamp((l0 - 0.18) / 0.4, 0.0, 1.0);
+        float r = (1.0 - tone) * 0.72;
+        float shade = 1.0 - smoothstep(r - 0.05, r + 0.05, dotd);
+        float inkAmt = max(shade, edge);
         vec3 ink;
         if (ImpactMode < 0.5) {
-            ink = vec3(fill) * (1.0 - edge);
+            ink = mix(paper, inkc, inkAmt);
         } else if (ImpactMode < 1.5) {
-            ink = vec3(1.0 - fill) * (1.0 - edge) + vec3(edge);
+            ink = mix(inkc, paper, inkAmt);
         } else if (ImpactMode < 2.5) {
-            ink = mix(vec3(0.0), vec3(1.0, 0.05, 0.05), fill) * (1.0 - edge) + vec3(edge);
+            vec3 red = vec3(0.82, 0.06, 0.08) * (0.9 + 0.1 * fib);
+            ink = mix(mix(red, inkc, shade), paper, edge);
         } else {
-            ink = mix(vec3(0.82), vec3(0.15), edge);
+            ink = mix(paper * 0.94, inkc, edge * 0.85);
         }
+        // Radial speed lines towards the frame edges.
+        float ang = atan(center.y, center.x * aspect);
+        float lines = step(0.9, hash(vec2(floor(ang * 60.0), floor(GTime * 12.0))))
+                * smoothstep(0.25, 0.7, length(center * vec2(aspect, 1.0)));
+        ink = mix(ink, (ImpactMode > 0.5 && ImpactMode < 1.5) ? paper : inkc, lines * 0.85);
         col = ink;
     }
     if (Whiteout > 0.0) {

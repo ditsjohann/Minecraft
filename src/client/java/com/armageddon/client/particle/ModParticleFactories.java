@@ -12,7 +12,7 @@ public final class ModParticleFactories {
 			.colors(0xFFF6D0, 0xFF7A1E, 0x4A403C, 0.22F).alpha(0.92F).size(3.5F, 0.6F, 1.6F).life(260, 520)
 			.physics(-0.002F, 0.985F, false).emissive(0.18F).fade(0.02F, 0.25F).spin(0.02F).build();
 	public static final WmdParticle.Preset NUKE_SMOKE = WmdParticle.Preset.builder()
-			.colors(0x8A7E74, 0x5C5552, 0x3A3634, 0.5F).alpha(0.85F).size(4.0F, 0.7F, 1.8F).life(300, 600)
+			.colors(0x9E9286, 0x625A55, 0x3C3836, 0.45F).alpha(0.85F).size(4.0F, 0.7F, 1.8F).life(300, 600)
 			.physics(-0.001F, 0.98F, false).fade(0.05F, 0.3F).spin(0.015F).build();
 	public static final WmdParticle.Preset SHOCK_DUST = WmdParticle.Preset.builder()
 			.colors(0xB09A80, 0x8A7A68, 0x6A6058, 0.5F).alpha(0.7F).size(1.6F, 0.5F, 2.0F).life(40, 90)
@@ -36,7 +36,7 @@ public final class ModParticleFactories {
 			.colors(0xFFF2A0, 0xFF5A10, 0x2A2420, 0.55F).alpha(0.9F).size(0.35F, 0.4F, 2.4F).life(14, 22)
 			.physics(-0.02F, 0.9F, true).emissive(0.6F).fade(0.0F, 0.35F).animated().spin(0.2F).build();
 	public static final WmdParticle.Preset EMBER = WmdParticle.Preset.builder()
-			.colors(0xFFF0A0, 0xFF7A1A, 0x8A1A00, 0.5F).alpha(1.0F).size(0.05F, 1.0F, 0.4F).life(20, 45)
+			.colors(0xFFFBD0, 0xFF8A2A, 0xA02000, 0.4F).alpha(1.0F).size(0.05F, 1.0F, 0.4F).life(20, 45)
 			.physics(-0.01F, 0.96F, true).emissive(1.0F).fade(0.0F, 0.4F).flicker().build();
 	public static final WmdParticle.Preset TOXIC_GAS = WmdParticle.Preset.builder()
 			.colors(0xE8FF6A, 0x9ACD32, 0x4A6A1A, 0.5F).alpha(0.45F).size(0.9F, 0.4F, 1.8F).life(40, 80)

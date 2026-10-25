@@ -268,6 +268,7 @@ public final class ClientFx {
 			}
 			case FxType.FIREBALL -> {
 				add(new Effects.Fireball(a, s * 0.9, 3, 14 + (int) (s * 2), 0xFFF0C0, p.color()));
+				add(new Effects.Ring(a, s * 2.4, Effects.fade(p.color(), 0xFFFFFF, 0.35F), 10 + (int) s, Math.max(0.25, s * 0.12), s > 4));
 				burst(world, a, ParticleTypes.FLAME, (int) (10 + s * 6), 0.12 + s * 0.04);
 				burst(world, a, ModParticles.EMBER, (int) (10 + s * 5), 0.25 + s * 0.05);
 				burst(world, a, ParticleTypes.LARGE_SMOKE, (int) (6 + s * 3), 0.05 + s * 0.02);
@@ -287,6 +288,7 @@ public final class ClientFx {
 			case FxType.SHOCKWAVE -> add(new Effects.Ring(a, s, p.color(), (int) (14 + s * 0.8), Math.max(0.8, s * 0.1), s > 6));
 			case FxType.COLLAPSE -> {
 				add(new Effects.Fireball(a, s * 0.8, 3, 20, 0xFFFFFF, 0x8040FF));
+				add(new InsaneEffects.Dome(a, s * 2.5, 22, 0xC080FF));
 				add(new Effects.Ring(a, s * 4, 0xC080FF, 40, 1.5, false));
 				flash(a, s * 20, 0.6F, 0xE0C8FF);
 				shake(a, s * 8, 1.5F);
@@ -294,6 +296,7 @@ public final class ClientFx {
 			}
 			case FxType.PLASMA_BURST -> {
 				add(new Effects.Fireball(a, 0.6 * s, 2, 8, 0xFFFFFF, p.color()));
+				add(new Effects.Ring(a, s * 1.8, p.color(), 9, Math.max(0.15, s * 0.08), false));
 				burst(world, a, ModParticles.PLASMA_SPARK, (int) (14 * s), 0.25);
 			}
 			case FxType.SHAKE -> shake = Math.max(shake, s);
