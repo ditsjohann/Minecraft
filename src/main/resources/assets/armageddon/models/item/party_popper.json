@@ -10,6 +10,7 @@
     "gold": "armageddon:item/mat/gold",
     "white": "armageddon:item/mat/white",
     "rubber": "armageddon:item/mat/rubber",
+    "gunmetal": "armageddon:item/mat/gunmetal",
     "particle": "armageddon:item/mat/pink"
   },
   "elements": [
@@ -843,6 +844,211 @@
           14.0
         ]
       }
+    },
+    {
+      "from": [
+        7.4,
+        4.4,
+        9.8
+      ],
+      "to": [
+        8.6,
+        4.9,
+        12.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.4,
+            11.1,
+            8.6,
+            11.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "south": {
+          "uv": [
+            7.4,
+            11.1,
+            8.6,
+            11.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "east": {
+          "uv": [
+            9.8,
+            11.1,
+            12.4,
+            11.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "west": {
+          "uv": [
+            9.8,
+            11.1,
+            12.4,
+            11.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "up": {
+          "uv": [
+            7.4,
+            9.8,
+            8.6,
+            12.4
+          ],
+          "texture": "#gunmetal"
+        },
+        "down": {
+          "uv": [
+            7.4,
+            9.8,
+            8.6,
+            12.4
+          ],
+          "texture": "#gunmetal"
+        }
+      }
+    },
+    {
+      "from": [
+        7.4,
+        4.4,
+        9.8
+      ],
+      "to": [
+        8.6,
+        6.6,
+        10.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.4,
+            9.4,
+            8.6,
+            11.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "south": {
+          "uv": [
+            7.4,
+            9.4,
+            8.6,
+            11.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "east": {
+          "uv": [
+            9.8,
+            9.4,
+            10.3,
+            11.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "west": {
+          "uv": [
+            9.8,
+            9.4,
+            10.3,
+            11.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "up": {
+          "uv": [
+            7.4,
+            9.8,
+            8.6,
+            10.3
+          ],
+          "texture": "#gunmetal"
+        },
+        "down": {
+          "uv": [
+            7.4,
+            9.8,
+            8.6,
+            10.3
+          ],
+          "texture": "#gunmetal"
+        }
+      }
+    },
+    {
+      "from": [
+        7.75,
+        5.0,
+        11.1
+      ],
+      "to": [
+        8.25,
+        6.4,
+        11.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.75,
+            9.6,
+            8.25,
+            11.0
+          ],
+          "texture": "#glow_gold"
+        },
+        "south": {
+          "uv": [
+            7.75,
+            9.6,
+            8.25,
+            11.0
+          ],
+          "texture": "#glow_gold"
+        },
+        "east": {
+          "uv": [
+            11.1,
+            9.6,
+            11.6,
+            11.0
+          ],
+          "texture": "#glow_gold"
+        },
+        "west": {
+          "uv": [
+            11.1,
+            9.6,
+            11.6,
+            11.0
+          ],
+          "texture": "#glow_gold"
+        },
+        "up": {
+          "uv": [
+            7.75,
+            11.1,
+            8.25,
+            11.6
+          ],
+          "texture": "#glow_gold"
+        },
+        "down": {
+          "uv": [
+            7.75,
+            11.1,
+            8.25,
+            11.6
+          ],
+          "texture": "#glow_gold"
+        }
+      },
+      "shade": false
     }
   ],
   "display": {

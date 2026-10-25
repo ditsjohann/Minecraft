@@ -6,6 +6,7 @@
     "gunmetal": "armageddon:item/mat/gunmetal",
     "chrome": "armageddon:item/mat/chrome",
     "glow_red": "armageddon:item/mat/glow_red",
+    "glow_white": "armageddon:item/mat/glow_white",
     "particle": "armageddon:item/mat/glass_magenta"
   },
   "elements": [
@@ -350,6 +351,551 @@
         }
       },
       "shade": false
+    },
+    {
+      "from": [
+        7.8,
+        -1.2,
+        7.8
+      ],
+      "to": [
+        8.2,
+        0.0,
+        8.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.8,
+            0.0,
+            8.2,
+            1.2
+          ],
+          "texture": "#chrome"
+        },
+        "south": {
+          "uv": [
+            7.8,
+            0.0,
+            8.2,
+            1.2
+          ],
+          "texture": "#chrome"
+        },
+        "east": {
+          "uv": [
+            7.8,
+            0.0,
+            8.2,
+            1.2
+          ],
+          "texture": "#chrome"
+        },
+        "west": {
+          "uv": [
+            7.8,
+            0.0,
+            8.2,
+            1.2
+          ],
+          "texture": "#chrome"
+        },
+        "up": {
+          "uv": [
+            7.8,
+            7.8,
+            8.2,
+            8.2
+          ],
+          "texture": "#chrome"
+        },
+        "down": {
+          "uv": [
+            7.8,
+            7.8,
+            8.2,
+            8.2
+          ],
+          "texture": "#chrome"
+        }
+      }
+    },
+    {
+      "from": [
+        6.8,
+        4.0,
+        6.8
+      ],
+      "to": [
+        9.2,
+        4.4,
+        9.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.8,
+            11.6,
+            9.2,
+            12.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "south": {
+          "uv": [
+            6.8,
+            11.6,
+            9.2,
+            12.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "east": {
+          "uv": [
+            6.8,
+            11.6,
+            9.2,
+            12.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "west": {
+          "uv": [
+            6.8,
+            11.6,
+            9.2,
+            12.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "up": {
+          "uv": [
+            6.8,
+            6.8,
+            9.2,
+            9.2
+          ],
+          "texture": "#gunmetal"
+        },
+        "down": {
+          "uv": [
+            6.8,
+            6.8,
+            9.2,
+            9.2
+          ],
+          "texture": "#gunmetal"
+        }
+      }
+    },
+    {
+      "from": [
+        6.8,
+        7.0,
+        6.8
+      ],
+      "to": [
+        9.2,
+        7.4,
+        9.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.8,
+            8.6,
+            9.2,
+            9.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "south": {
+          "uv": [
+            6.8,
+            8.6,
+            9.2,
+            9.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "east": {
+          "uv": [
+            6.8,
+            8.6,
+            9.2,
+            9.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "west": {
+          "uv": [
+            6.8,
+            8.6,
+            9.2,
+            9.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "up": {
+          "uv": [
+            6.8,
+            6.8,
+            9.2,
+            9.2
+          ],
+          "texture": "#gunmetal"
+        },
+        "down": {
+          "uv": [
+            6.8,
+            6.8,
+            9.2,
+            9.2
+          ],
+          "texture": "#gunmetal"
+        }
+      }
+    },
+    {
+      "from": [
+        6.8,
+        10.0,
+        6.8
+      ],
+      "to": [
+        9.2,
+        10.4,
+        9.2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.8,
+            5.6,
+            9.2,
+            6.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "south": {
+          "uv": [
+            6.8,
+            5.6,
+            9.2,
+            6.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "east": {
+          "uv": [
+            6.8,
+            5.6,
+            9.2,
+            6.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "west": {
+          "uv": [
+            6.8,
+            5.6,
+            9.2,
+            6.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "up": {
+          "uv": [
+            6.8,
+            6.8,
+            9.2,
+            9.2
+          ],
+          "texture": "#gunmetal"
+        },
+        "down": {
+          "uv": [
+            6.8,
+            6.8,
+            9.2,
+            9.2
+          ],
+          "texture": "#gunmetal"
+        }
+      }
+    },
+    {
+      "from": [
+        7.55,
+        3.4,
+        7.55
+      ],
+      "to": [
+        8.45,
+        10.6,
+        8.45
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.55,
+            5.4,
+            8.45,
+            12.6
+          ],
+          "texture": "#glow_white"
+        },
+        "south": {
+          "uv": [
+            7.55,
+            5.4,
+            8.45,
+            12.6
+          ],
+          "texture": "#glow_white"
+        },
+        "east": {
+          "uv": [
+            7.55,
+            5.4,
+            8.45,
+            12.6
+          ],
+          "texture": "#glow_white"
+        },
+        "west": {
+          "uv": [
+            7.55,
+            5.4,
+            8.45,
+            12.6
+          ],
+          "texture": "#glow_white"
+        },
+        "up": {
+          "uv": [
+            7.55,
+            7.55,
+            8.45,
+            8.45
+          ],
+          "texture": "#glow_white"
+        },
+        "down": {
+          "uv": [
+            7.55,
+            7.55,
+            8.45,
+            8.45
+          ],
+          "texture": "#glow_white"
+        }
+      },
+      "shade": false
+    },
+    {
+      "from": [
+        4.8,
+        12.4,
+        7.6
+      ],
+      "to": [
+        6.0,
+        13.1,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.8,
+            2.9,
+            6.0,
+            3.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "south": {
+          "uv": [
+            4.8,
+            2.9,
+            6.0,
+            3.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "east": {
+          "uv": [
+            7.6,
+            2.9,
+            8.4,
+            3.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "west": {
+          "uv": [
+            7.6,
+            2.9,
+            8.4,
+            3.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "up": {
+          "uv": [
+            4.8,
+            7.6,
+            6.0,
+            8.4
+          ],
+          "texture": "#gunmetal"
+        },
+        "down": {
+          "uv": [
+            4.8,
+            7.6,
+            6.0,
+            8.4
+          ],
+          "texture": "#gunmetal"
+        }
+      }
+    },
+    {
+      "from": [
+        10.0,
+        12.4,
+        7.6
+      ],
+      "to": [
+        11.2,
+        13.1,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.0,
+            2.9,
+            11.2,
+            3.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "south": {
+          "uv": [
+            10.0,
+            2.9,
+            11.2,
+            3.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "east": {
+          "uv": [
+            7.6,
+            2.9,
+            8.4,
+            3.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "west": {
+          "uv": [
+            7.6,
+            2.9,
+            8.4,
+            3.6
+          ],
+          "texture": "#gunmetal"
+        },
+        "up": {
+          "uv": [
+            10.0,
+            7.6,
+            11.2,
+            8.4
+          ],
+          "texture": "#gunmetal"
+        },
+        "down": {
+          "uv": [
+            10.0,
+            7.6,
+            11.2,
+            8.4
+          ],
+          "texture": "#gunmetal"
+        }
+      }
+    },
+    {
+      "from": [
+        7.3,
+        15.5,
+        7.3
+      ],
+      "to": [
+        8.7,
+        16.1,
+        8.7
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.3,
+            15.4,
+            8.7,
+            16.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "south": {
+          "uv": [
+            7.3,
+            15.4,
+            8.7,
+            16.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "east": {
+          "uv": [
+            7.3,
+            15.4,
+            8.7,
+            16.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "west": {
+          "uv": [
+            7.3,
+            15.4,
+            8.7,
+            16.0
+          ],
+          "texture": "#gunmetal"
+        },
+        "up": {
+          "uv": [
+            7.3,
+            7.3,
+            8.7,
+            8.7
+          ],
+          "texture": "#gunmetal"
+        },
+        "down": {
+          "uv": [
+            7.3,
+            7.3,
+            8.7,
+            8.7
+          ],
+          "texture": "#gunmetal"
+        }
+      }
     }
   ],
   "display": {
@@ -395,13 +941,13 @@
       ],
       "translation": [
         -0.0,
-        0.197,
+        0.317,
         0
       ],
       "scale": [
-        0.995,
-        0.995,
-        0.995
+        0.895,
+        0.895,
+        0.895
       ]
     },
     "ground": {
@@ -411,14 +957,14 @@
         0
       ],
       "translation": [
-        -0.0,
-        0.129,
+        0.0,
+        0.254,
         0
       ],
       "scale": [
-        0.516,
-        0.516,
-        0.516
+        0.462,
+        0.462,
+        0.462
       ]
     },
     "fixed": {
@@ -428,14 +974,14 @@
         0
       ],
       "translation": [
-        -0.0,
-        0.194,
+        0.0,
+        0.382,
         0
       ],
       "scale": [
-        0.774,
-        0.774,
-        0.774
+        0.694,
+        0.694,
+        0.694
       ]
     }
   }
