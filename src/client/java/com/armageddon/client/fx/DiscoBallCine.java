@@ -127,20 +127,52 @@ public class DiscoBallCine extends Cinematics.Cine {
 	@Override
 	public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
 		float a = age + td;
-		// Anamorphic streaks across the ball on the close-ups.
-		boolean close = (a >= SPIN_SHOT && a < AERIAL) || (a >= COLD && a < BRAKE);
+		VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+		VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
+		Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+		Vec3d b = ball(a).subtract(cam);
 		double light = DiscoBeams.intensity(a);
+
+		// The silence: one hard white spotlight from the rafters onto the stopped ball.
+		if (a >= SILENCE - 10 && a < DROP) {
+			float k = (float) Cinematics.clamp01((a - SILENCE + 10) / 14.0);
+			Solids.tube(glow, m, b.add(0, 120, 0), b, 1.0, DiscoBeams.RADIUS * 1.25, 14, 0xFFFFFF, 0.07F * k, false);
+			Solids.dot(glow, m, b.add(0, DiscoBeams.RADIUS * 0.6, 0), cb, DiscoBeams.RADIUS * 0.8, 0xFFFFFF, 0.25F * k);
+		}
+
+		// THE DROP: rainbow shock rings racing out over the ground, a column of light and a wall of glitter dust.
+		if (a >= DROP && a < DROP + 90) {
+			float k = a - DROP;
+			Vec3d g = anchor.subtract(cam).add(0, 0.5, 0);
+			Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
+			for (int i = 0; i < 6; i++) {
+				double rr = (k - i * 5) * 4.5;
+				if (rr > 1) {
+					int col = DiscoBeams.color(i * 4, a * 3);
+					FxDraw.ring(glow, m, g, x, z, rr, rr + 3 + i, col, 0.0F, 0.75F * (1 - k / 90F), 0.0F, 96);
+				}
+			}
+			FxDraw.beam(glow, m, g, g.add(0, 220, 0), Vec3d.ZERO, 6 * (1 - k / 90F), 0xFF80FF, 0.7F * (1 - k / 90F));
+			Cinematics.dustWall(shade, m, cb, g, 12 + k * 3.8, 10 + k * 0.15, DiscoBeams.color((int) k, a), 0.45F * (1 - k / 90F), 13);
+		}
+
+		// Anamorphic streaks and lens ghosts across the ball on the close-ups.
+		boolean close = (a >= SPIN_SHOT && a < AERIAL) || (a >= COLD && a < BRAKE);
 		if (!close || light < 0.05) {
 			return;
 		}
-		VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-		Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
-		Vec3d b = ball(a).subtract(cam);
 		int col = DiscoBeams.color((int) (a * 0.2), a);
 		float k = (float) light * (0.6F + 0.4F * (float) Math.sin(a * 0.9));
 		FxDraw.ribbon(glow, m, b, b.add(cb[0].multiply(90)), Vec3d.ZERO, 1.6, col, 0.55F * k, 0.0F);
 		FxDraw.ribbon(glow, m, b, b.subtract(cb[0].multiply(90)), Vec3d.ZERO, 1.6, col, 0.55F * k, 0.0F);
 		FxDraw.ribbon(glow, m, b, b.add(cb[0].multiply(40)), Vec3d.ZERO, 0.5, 0xFFFFFF, 0.8F * k, 0.0F);
 		FxDraw.ribbon(glow, m, b, b.subtract(cb[0].multiply(40)), Vec3d.ZERO, 0.5, 0xFFFFFF, 0.8F * k, 0.0F);
+		Vec3d forward = Vec3d.fromPolar(pitch, yaw);
+		Vec3d centre = forward.multiply(b.length());
+		double[] at = {0.45, 0.7, 1.25, 1.6, 1.9};
+		for (int i = 0; i < at.length; i++) {
+			Vec3d gp = b.add(centre.subtract(b).multiply(at[i]));
+			Solids.dot(glow, m, gp, cb, DiscoBeams.RADIUS * (0.25 + 0.2 * (i % 3)), DiscoBeams.color(i * 5, a), 0.18F * k);
+		}
 	}
 }

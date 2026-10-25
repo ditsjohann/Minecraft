@@ -299,7 +299,19 @@ public class TrumanShowEvent extends WorldEvent {
 			return Blocks.WHITE_CONCRETE.getDefaultState();
 		}
 		if (c > 0.45 && ((x + z + h) & 1) == 0) {
-			return Blocks.WHITE_CONCRETE.getDefaultState();
+			// Cloud rims: shaded with a little grey-blue, like brushwork.
+			return (c < 0.5 ? Blocks.LIGHT_GRAY_CONCRETE : Blocks.WHITE_CONCRETE).getDefaultState();
+		}
+		double dither0 = (((x * 5 + z * 11 + h * 3) % 8) + 8) % 8 / 8.0;
+		if (h < 7) {
+			// A warm, hazy painted horizon along the bottom of the wall.
+			double warm = 1 - h / 7.0;
+			if (dither0 < warm * 0.6) {
+				return (h < 3 ? Blocks.ORANGE_TERRACOTTA : Blocks.WHITE_TERRACOTTA).getDefaultState();
+			}
+			if (dither0 < warm) {
+				return Blocks.WHITE_CONCRETE.getDefaultState();
+			}
 		}
 		double k = MathHelper.clamp((h - 18) / 34.0, 0.0, 1.0);
 		double dither = (((x * 7 + z * 13 + h * 5) % 8) + 8) % 8 / 8.0;

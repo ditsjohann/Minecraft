@@ -15,6 +15,8 @@ import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.Direction;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -201,6 +203,15 @@ public class EternalSaplingEvent extends WorldEvent {
 
 		/** A lumpy leaf crown: a full shell with a sparse interior, sprinkled with glowing shroomlights. */
 		void crown(Vec3d c, double r, double squash, int salt, boolean glow) {
+			crown(c, r, squash, salt, glow, 0);
+		}
+
+		/**
+		 * As above with a leaf palette (0 green, 1 blossom, 2 deep), and, for the glowing crowns, glow berries,
+		 * spore blossoms and hanging roots dangling from the underside.
+		 */
+		void crown(Vec3d c, double r, double squash, int salt, boolean glow, int palette) {
+			List<BlockPos> under = new ArrayList<>();
 			int ri = MathHelper.ceil(r * 1.15);
 			int ry = MathHelper.ceil(r * squash * 1.15);
 			BlockPos cb = BlockPos.ofFloored(c);
@@ -221,9 +232,30 @@ public class EternalSaplingEvent extends WorldEvent {
 						if (glow && h < 0.006) {
 							wood(p, Blocks.SHROOMLIGHT.getDefaultState());
 						} else {
-							leaf(p, leafState(h));
+							leaf(p, leafState(h, palette));
+							if (glow && dy < -ry * 0.25 && n > inner) {
+								under.add(p);
+							}
 						}
 					}
+				}
+			}
+			for (BlockPos p : under) {
+				if (map.containsKey(p.down().asLong())) {
+					continue;
+				}
+				double h = h3(p, salt + 77);
+				if (h < 0.07) {
+					// Glow berries: a short vine ending in a lit berry.
+					int len = 1 + (int) (h3(p, salt + 78) * 4);
+					for (int k = 1; k <= len; k++) {
+						BlockState vine = (k == len ? Blocks.CAVE_VINES : Blocks.CAVE_VINES_PLANT).getDefaultState().with(Properties.BERRIES, h3(p, k) < 0.7);
+						leaf(p.down(k), vine);
+					}
+				} else if (h < 0.095) {
+					leaf(p.down(), Blocks.SPORE_BLOSSOM.getDefaultState());
+				} else if (h < 0.13) {
+					leaf(p.down(), Blocks.HANGING_ROOTS.getDefaultState());
 				}
 			}
 		}
@@ -240,8 +272,19 @@ public class EternalSaplingEvent extends WorldEvent {
 	}
 
 	private static BlockState leafState(double h) {
-		BlockState st = h < 0.55 ? Blocks.OAK_LEAVES.getDefaultState() : h < 0.82 ? Blocks.AZALEA_LEAVES.getDefaultState()
-				: Blocks.FLOWERING_AZALEA_LEAVES.getDefaultState();
+		return leafState(h, 0);
+	}
+
+	/** Leaf mix per crown: 0 lush green, 1 blossom (cherry and flowering azalea), 2 deep (dark oak and jungle). */
+	private static BlockState leafState(double h, int palette) {
+		BlockState st = switch (palette) {
+			case 1 -> h < 0.5 ? Blocks.CHERRY_LEAVES.getDefaultState() : h < 0.8 ? Blocks.FLOWERING_AZALEA_LEAVES.getDefaultState()
+					: Blocks.AZALEA_LEAVES.getDefaultState();
+			case 2 -> h < 0.45 ? Blocks.DARK_OAK_LEAVES.getDefaultState() : h < 0.75 ? Blocks.JUNGLE_LEAVES.getDefaultState()
+					: Blocks.AZALEA_LEAVES.getDefaultState();
+			default -> h < 0.5 ? Blocks.OAK_LEAVES.getDefaultState() : h < 0.78 ? Blocks.AZALEA_LEAVES.getDefaultState()
+					: Blocks.FLOWERING_AZALEA_LEAVES.getDefaultState();
+		};
 		return st.with(LeavesBlock.PERSISTENT, true);
 	}
 
@@ -311,8 +354,27 @@ public class EternalSaplingEvent extends WorldEvent {
 						continue;
 					}
 					double spiral = Math.atan2(dz, dx) / (Math.PI * 2) * 3 + y * 0.025;
-					boolean glow = d > r - 1.2 && spiral - Math.floor(spiral) < 0.035;
-					plan.wood(base.add(dx, y, dz), glow ? vein : bark);
+					boolean outer = d > r - 1.2;
+					boolean glow = outer && spiral - Math.floor(spiral) < 0.035;
+					BlockPos p = base.add(dx, y, dz);
+					BlockState st = bark;
+					if (glow) {
+						// Three veins, three colours.
+						int arm = Math.floorMod((int) Math.floor(spiral), 3);
+						st = arm == 0 ? vein : arm == 1 ? Blocks.PEARLESCENT_FROGLIGHT.getDefaultState() : Blocks.OCHRE_FROGLIGHT.getDefaultState();
+					} else if (outer) {
+						// Bark texture: vertical streaks of stripped wood, mangrove burls and moss creeping up from the roots.
+						double streak = EternalTree.hash((int) Math.floor(Math.atan2(dz, dx) * 9), 61);
+						double n = h3(p, 62);
+						if (y < 22 * s && n < 0.45 - y / (60 * s)) {
+							st = Blocks.MOSS_BLOCK.getDefaultState();
+						} else if (streak < 0.18) {
+							st = Blocks.STRIPPED_DARK_OAK_WOOD.getDefaultState();
+						} else if (n < 0.05) {
+							st = Blocks.MANGROVE_WOOD.getDefaultState();
+						}
+					}
+					plan.wood(p, st);
 				}
 			}
 		}
@@ -324,6 +386,19 @@ public class EternalSaplingEvent extends WorldEvent {
 					BlockPos top = Kit.surface(world, base.getX() + dx, base.getZ() + dz);
 					if (Math.abs(top.getY() - base.getY()) < 6 && world.getBlockState(top).isOpaqueFullCube(world, top)) {
 						plan.wood(top, EternalTree.hash(dx, dz) < 0.25 ? Blocks.ROOTED_DIRT.getDefaultState() : Blocks.MOSS_BLOCK.getDefaultState());
+						// Undergrowth: moss carpet, azalea bushes, pink petals, ferns.
+						double u = EternalTree.hash(dx * 19 + 7, dz * 23 + 11);
+						BlockPos up = top.up();
+						if (u < 0.08) {
+							plan.leaf(up, (u < 0.04 ? Blocks.FLOWERING_AZALEA : Blocks.AZALEA).getDefaultState());
+						} else if (u < 0.2) {
+							plan.leaf(up, Blocks.PINK_PETALS.getDefaultState().with(Properties.FLOWER_AMOUNT, 1 + (int) (u * 40) % 4)
+									.with(Properties.HORIZONTAL_FACING, Direction.fromHorizontal((int) (u * 100) % 4)));
+						} else if (u < 0.3) {
+							plan.leaf(up, Blocks.FERN.getDefaultState());
+						} else if (u < 0.55) {
+							plan.leaf(up, Blocks.MOSS_CARPET.getDefaultState());
+						}
 					}
 				}
 			}
@@ -341,10 +416,10 @@ public class EternalSaplingEvent extends WorldEvent {
 				Vec3d p = p0.multiply(v * v).add(p1.multiply(2 * v * u)).add(p2.multiply(u * u));
 				plan.woodBall(p, (3.4 * s + 0.8) * (1 - u) + 1.3 * u, bark);
 			}
-			plan.crown(p2.add(0, 3 * s, 0), (12 + 5 * EternalTree.hash(k, 45)) * s, 0.62, 100 + k, true);
-			plan.crown(p1.add(0, 4 * s, 0), 7 * s + 2, 0.6, 200 + k, true);
+			plan.crown(p2.add(0, 3 * s, 0), (12 + 5 * EternalTree.hash(k, 45)) * s, 0.62, 100 + k, true, k % 3);
+			plan.crown(p1.add(0, 4 * s, 0), 7 * s + 2, 0.6, 200 + k, true, (k + 1) % 3);
 		}
-		plan.crown(baseV.add(0, hgt + 4 * s, 0), 19 * s, 0.6, 300, true);
+		plan.crown(baseV.add(0, hgt + 4 * s, 0), 19 * s, 0.6, 300, true, 1);
 		return plan.sorted();
 	}
 
@@ -394,11 +469,28 @@ public class EternalSaplingEvent extends WorldEvent {
 					for (int dz = -ri; dz <= ri; dz++) {
 						BlockPos p = cb.add(dx, dy, dz);
 						double dd = Vec3d.ofCenter(p).squaredDistanceTo(c);
-						if (dd > r * r || map.containsKey(p.asLong())) {
+						Put ex = map.get(p.asLong());
+						if (dd > r * r || (ex != null && ex.force())) {
 							continue;
 						}
-						boolean hairy = dd > (r - 1) * (r - 1) && h3(p, 9) < 0.14;
-						map.put(p.asLong(), new Put(p, hairy ? Blocks.MANGROVE_ROOTS.getDefaultState() : Blocks.DARK_OAK_WOOD.getDefaultState(), true));
+						boolean shell = dd > (r - 1) * (r - 1);
+						double hh = h3(p, 9);
+						double side = Vec3d.ofCenter(p).y - c.y;
+						BlockState st;
+						if (shell && hh < 0.14) {
+							st = Blocks.MANGROVE_ROOTS.getDefaultState();
+						} else if (shell && side > r * 0.45 && hh < 0.4) {
+							st = Blocks.MOSS_BLOCK.getDefaultState();
+						} else if (shell && hh > 0.93) {
+							st = Blocks.ROOTED_DIRT.getDefaultState();
+						} else {
+							st = Blocks.DARK_OAK_WOOD.getDefaultState();
+						}
+						map.put(p.asLong(), new Put(p, st, true));
+						if (shell && side < -r * 0.5 && hh > 0.86 && u < 0.85) {
+							BlockPos d = p.down();
+							map.putIfAbsent(d.asLong(), new Put(d, Blocks.HANGING_ROOTS.getDefaultState(), false));
+						}
 					}
 				}
 			}

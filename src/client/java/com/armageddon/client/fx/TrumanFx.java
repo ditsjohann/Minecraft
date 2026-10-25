@@ -83,6 +83,14 @@ public class TrumanFx extends FxEffect {
 						prev.add(sway).add(-2.5, -4, 0.6), TrumanShowCine.paint(az, 0.3 + end * 0.6), 1.0F);
 			}
 		}
+		// Rig work lights blinking along the broken ribs.
+		for (int k = 0; k < RIBS; k++) {
+			double az = TrumanSet.bearing(fwd) + (k + 0.5) * MathHelper.TAU / RIBS;
+			double reach = k % 3 == 0 ? 1.0 : 0.3 + 0.5 * Solids.hash(k, 17);
+			Vec3d tip = ribPt(c, az, Math.PI / 2 * reach);
+			float on = ((int) (t * 0.08F + k) & 3) == 0 ? 1.0F : 0.25F;
+			Solids.dot(glow, m, tip, cb, 1.6, 0xFF4030, on);
+		}
 		// Ring girders.
 		for (double phi : new double[]{0.0, 0.55}) {
 			Vec3d prev = null;
@@ -118,6 +126,14 @@ public class TrumanFx extends FxEffect {
 			FxDraw.ribbon(solid, m, lc.add(0, 6, 0), lc.add(0, 20, 0), Vec3d.ZERO, 0.25, 0x2A2A2E, 1.0F, 1.0F);
 			if (off * life > 0.01F) {
 				TrumanShowCine.lampBeam(glow, m, lc.add(dir.normalize().multiply(4.2)), hit.subtract(cam), 2.4, off * life, t);
+				TrumanShowCine.lampMotes(glow, m, cb, lc.add(dir.normalize().multiply(4.2)), hit.subtract(cam), 2.4, off * life, t + i * 40);
+				// Heat shimmer and embers rising off the scorch line.
+				Vec3d h = hit.subtract(cam);
+				for (int e = 0; e < 8; e++) {
+					double u = (Solids.hash(e, i) + t * 0.02) % 1.0;
+					Vec3d ep = h.add((Solids.hash(e + 9, i) - 0.5) * 6, u * 9, (Solids.hash(e + 19, i) - 0.5) * 6);
+					Solids.dot(glow, m, ep, cb, 0.25, e % 2 == 0 ? 0xFF9030 : 0xFFD070, (float) (1 - u) * off * life);
+				}
 			}
 		}
 	}

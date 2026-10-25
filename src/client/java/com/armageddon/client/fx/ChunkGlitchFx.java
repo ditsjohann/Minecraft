@@ -103,9 +103,20 @@ public class ChunkGlitchFx extends FxEffect {
 				FxDraw.beam(glow, m, c, c.add(0, 48, 0), Vec3d.ZERO, 0.35, color, 0.45F * env);
 			}
 		}
-		// A scan plane sweeping up through the grid.
+		// A scan plane sweeping up through the grid: a faint sheet of light with a fine voxel lattice.
 		double sy = groundY - 8 + (a * 0.9) % 56;
 		rect(glow, m, cam, x0, z0, 64, sy, 0.7, 0x80FFFF, 0.7F * env);
+		Vec3d s0 = new Vec3d(x0, sy, z0).subtract(cam);
+		Solids.quad(glow, m, s0, s0.add(0, 0, 64), s0.add(64, 0, 64), s0.add(64, 0, 0), 0x60E0FF, 0.06F * env);
+		for (int i = 1; i < 16; i++) {
+			if (i % 4 == 0) {
+				continue;
+			}
+			float la = 0.16F * env * (0.6F + 0.4F * MathHelper.sin(a * 0.3F + i));
+			FxDraw.ribbon(glow, m, s0.add(i * 4, 0, 0), s0.add(i * 4, 0, 64), Vec3d.ZERO, 0.08, 0xA0FFFF, la, la);
+			FxDraw.ribbon(glow, m, s0.add(0, 0, i * 4), s0.add(64, 0, i * 4), Vec3d.ZERO, 0.08, 0xA0FFFF, la, la);
+		}
+		Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 		// Rolling chunks glitch; settled ones keep a faint tint of their result.
 		for (int cell = 0; cell < 16; cell++) {
 			double cx = x0 + (cell % 4) * 16, cz = z0 + (cell / 4) * 16;
@@ -118,6 +129,7 @@ public class ChunkGlitchFx extends FxEffect {
 				FxDraw.vertex(glow, m, p0.x + 16, p0.y, p0.z + 16, tint, 0.12F * env);
 				FxDraw.vertex(glow, m, p0.x + 16, p0.y, p0.z, tint, 0.12F * env);
 			}
+			reveal(glow, m, cb, cam, cell, cx, cz, a, env);
 			float g = glitch(cell, a);
 			if (g <= 0.01F) {
 				continue;
@@ -146,6 +158,38 @@ public class ChunkGlitchFx extends FxEffect {
 				Vec3d q = alongX ? p.add(16, 0, 0) : p.add(0, 0, 16);
 				int c2 = Solids.hash(i, frame) < 0.5 ? col : (Solids.hash(i, frame + 1) < 0.5 ? 0xFFFFFF : 0x40FFFF);
 				FxDraw.ribbon(glow, m, p.subtract(cam), q.subtract(cam), Vec3d.ZERO, 0.4 + h2 * 1.2, c2, 0.8F * g * env, 0.8F * g * env);
+			}
+		}
+	}
+
+	/**
+	 * The moment a result lands: a curtain of light in its colour rises up the chunk's four sides and data
+	 * pixels float up out of it and dissolve.
+	 */
+	private void reveal(VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d cam, int cell, double cx, double cz, float a, float env) {
+		int slot = slotOf(cell);
+		for (int round = 0; round < 2; round++) {
+			float d = a - (round == 0 ? ChunkRolls.rollTick(slot) : ChunkRolls.rerollTick(slot));
+			if (d < 0 || d > 34) {
+				continue;
+			}
+			int col = ChunkRolls.roll(seed, round, cell).kind().color;
+			float k = (1 - d / 34F) * env;
+			double h = 6 + d * 1.3;
+			double gy = groundY - 1;
+			Vec3d[] c = {new Vec3d(cx, gy, cz), new Vec3d(cx + 16, gy, cz), new Vec3d(cx + 16, gy, cz + 16), new Vec3d(cx, gy, cz + 16)};
+			for (int e = 0; e < 4; e++) {
+				Vec3d p = c[e].subtract(cam), q = c[(e + 1) % 4].subtract(cam);
+				FxDraw.vertex(glow, m, p.x, p.y, p.z, col, 0.45F * k);
+				FxDraw.vertex(glow, m, q.x, q.y, q.z, col, 0.45F * k);
+				FxDraw.vertex(glow, m, q.x, q.y + h, q.z, col, 0.0F);
+				FxDraw.vertex(glow, m, p.x, p.y + h, p.z, col, 0.0F);
+			}
+			for (int i = 0; i < 26; i++) {
+				double px = cx + Solids.hash(i, cell * 7 + round) * 16, pz = cz + Solids.hash(i + 50, cell * 7 + round) * 16;
+				double py = gy + d * (0.4 + 0.8 * Solids.hash(i + 90, cell));
+				Vec3d p = new Vec3d(px, py, pz).subtract(cam);
+				FxDraw.disc(glow, m, p, cb[0], cb[1], 0.35 + 0.25 * Solids.hash(i, 3), i % 3 == 0 ? 0xFFFFFF : col, 0.9F * k, 0.9F * k, 4);
 			}
 		}
 	}

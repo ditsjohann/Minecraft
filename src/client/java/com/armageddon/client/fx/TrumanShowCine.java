@@ -61,11 +61,52 @@ public class TrumanShowCine extends Cinematics.Cine {
 	static int paint(double az, double el) {
 		double k = Math.floor(el / (Math.PI / 2) * 7) / 7.0;
 		int sky = Effects.fade(0xB4DAF6, 0x3E80D6, (float) Math.pow(k, 0.8));
+		// A warm, hazy band of painted morning along the horizon.
+		if (el < 0.32) {
+			sky = Effects.fade(0xFFE2C4, sky, (float) MathHelper.clamp(el / 0.32, 0.0, 1.0));
+		}
 		double n = TrumanSet.cloud(az, el);
 		if (el < 1.25 && n > 0.45) {
-			return Effects.fade(sky, 0xF6F9FF, (float) MathHelper.clamp((n - 0.45) / 0.15, 0.0, 1.0));
+			// Painted clouds: a cool shadow at the rim, bright cream in the middle.
+			float body = (float) MathHelper.clamp((n - 0.45) / 0.15, 0.0, 1.0);
+			int cloud = n < 0.52 ? 0xD6E2F2 : n > 0.62 ? 0xFFFDF6 : 0xF2F6FF;
+			return Effects.fade(sky, cloud, body);
 		}
-		return sky;
+		// Visible brush strokes: a slight per-stroke jitter in value.
+		double stroke = Solids.hash((int) (az * 40), (int) (el * 60));
+		return Solids.scale(sky, 0.97 + 0.06 * stroke);
+	}
+
+	/**
+	 * Painted details on the inside of the sky: a sun with painted rays, a few flat painted birds.
+	 * Drawn just inside the dome surface so they sit on the panels.
+	 */
+	static void paintedDetails(VertexConsumer solid, Matrix4f m, Vec3d c, Vec3d fwd, float a) {
+		double sunAz = TrumanSet.bearing(fwd) + 0.55, sunEl = 0.62;
+		Vec3d n = domePt(Vec3d.ZERO, sunAz, sunEl, 1).normalize();
+		Vec3d sp = domePt(c, sunAz, sunEl, 0.992);
+		Vec3d[] b = ArsenalEffects.basis(n);
+		for (int k = 0; k < 16; k++) {
+			double ang = k * MathHelper.TAU / 16;
+			Vec3d dir = b[0].multiply(Math.cos(ang)).add(b[1].multiply(Math.sin(ang)));
+			Vec3d side = b[0].multiply(-Math.sin(ang)).add(b[1].multiply(Math.cos(ang))).multiply(0.9);
+			Vec3d r0 = sp.add(dir.multiply(11)), r1 = sp.add(dir.multiply(k % 2 == 0 ? 22 : 17));
+			Solids.quad(solid, m, r0.subtract(side), r0.add(side), r1.add(side.multiply(0.3)), r1.subtract(side.multiply(0.3)), 0xFFEFB8, 1.0F);
+		}
+		FxDraw.disc(solid, m, sp.subtract(n.multiply(0.05)), b[0], b[1], 10.5, 0xFFF6D4, 1.0F, 1.0F, 28);
+		FxDraw.disc(solid, m, sp.subtract(n.multiply(0.1)), b[0], b[1], 7.0, 0xFFFBEA, 1.0F, 1.0F, 24);
+		// Birds: little painted "v"s.
+		for (int k = 0; k < 7; k++) {
+			double baz = sunAz - 0.9 + k * 0.23 + Solids.hash(k, 3) * 0.1, bel = 0.45 + Solids.hash(k, 4) * 0.4;
+			Vec3d bn = domePt(Vec3d.ZERO, baz, bel, 1).normalize();
+			Vec3d bp = domePt(c, baz, bel, 0.993);
+			Vec3d[] bb = ArsenalEffects.basis(bn);
+			double w = 1.6 + Solids.hash(k, 5);
+			Vec3d l = bp.add(bb[0].multiply(-w)).add(bb[1].multiply(w * 0.45)), r = bp.add(bb[0].multiply(w)).add(bb[1].multiply(w * 0.45));
+			Vec3d t = bb[1].multiply(0.22);
+			Solids.quad(solid, m, l, bp, bp.add(t), l.add(t), 0x34404E, 1.0F);
+			Solids.quad(solid, m, bp, r, r.add(t), bp.add(t), 0x34404E, 1.0F);
+		}
 	}
 
 	/** When dome panel (i, j) comes loose: never for the bottom rows, the hole for SIRIUS, else during the strike. */
@@ -255,6 +296,23 @@ public class TrumanShowCine extends Cinematics.Cine {
 		FxDraw.ring(glow, m, hit.add(0, 0.35, 0), x, z, 1.5 * s, 3.2 * s, 0xFF7020, 0.0F, 0.8F * alpha * flick, 0.0F, 24);
 	}
 
+	/** Dust hanging in a lamp's beam, drifting slowly through the light. */
+	static void lampMotes(VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d lens, Vec3d hit, double s, float alpha, float time) {
+		if (alpha <= 0.02F || lens.add(hit).multiply(0.5).lengthSquared() > 200 * 200) {
+			return;
+		}
+		Vec3d axis = hit.subtract(lens);
+		Vec3d[] b = ArsenalEffects.basis(axis.normalize());
+		for (int i = 0; i < 40; i++) {
+			double u = (Solids.hash(i, 91) + time * 0.002 * (1 + Solids.hash(i, 92))) % 1.0;
+			double r = (1.1 + 3.6 * u) * s * Math.sqrt(Solids.hash(i, 93));
+			double ang = Solids.hash(i, 94) * MathHelper.TAU + time * 0.01;
+			Vec3d p = lens.add(axis.multiply(u)).add(b[0].multiply(Math.cos(ang) * r)).add(b[1].multiply(Math.sin(ang) * r));
+			float tw = 0.5F + 0.5F * MathHelper.sin(time * 0.2F + i);
+			Solids.dot(glow, m, p, cb, 0.12 * s + 0.05, 0xFFF6E0, 0.8F * alpha * tw);
+		}
+	}
+
 	// ======================================================================== the falling light
 
 	private Vec3d lampPos(float a) {
@@ -398,6 +456,10 @@ public class TrumanShowCine extends Cinematics.Cine {
 		if (age >= STUDIO && age < TrumanSet.CUT) {
 			ClientFx.light(controlRoom(), 0.8F, 0xA8C8F0);
 		}
+		if (age >= FINALE && age < TrumanSet.WALL) {
+			// The farewell is lit by the doorway: warm and golden, the way home.
+			ClientFx.light(doorCentre(base, fwd, -0.4), 0.9F, 0xFFD8A0);
+		}
 		if (age >= TrumanSet.CUT - 6 && age < TrumanSet.CUT) {
 			ClientFx.screen(3, 0.8F, 2);
 		}
@@ -427,12 +489,17 @@ public class TrumanShowCine extends Cinematics.Cine {
 		}
 		Vec3d c = base.subtract(cam);
 		dome(solid, m, c, a, holeJ, true);
+		if (a < TrumanSet.STRIKE + 30) {
+			paintedDetails(solid, m, c, fwd, a);
+		}
 		float open = (float) clamp((a - TrumanSet.DOOR_OPEN) / 8.0);
 		door(solid, glow, m, c, fwd, right, true, open);
-		if (open > 0 && a < STUDIO) {
-			// Daylight from the studio pours in through the open door.
+		if (open > 0 && (a < STUDIO || a >= FINALE)) {
+			// Daylight from the studio pours in through the open door (and again, golden, for the farewell).
 			Vec3d d = doorCentre(c, fwd, -0.4);
 			FxDraw.beam(glow, m, d, d.subtract(fwd.multiply(30)).add(0, -6, 0), Vec3d.ZERO, 3.2, 0xFFF0D8, 0.35F * open);
+			Solids.tube(glow, m, d, d.subtract(fwd.multiply(40)).add(0, -12, 0), 2.2, 9, 14, 0xFFF0D8, 0.07F * open, false);
+			lampMotes(glow, m, cb, d, d.subtract(fwd.multiply(40)).add(0, -12, 0), 1.6, open, a);
 		}
 		// SIRIUS falls.
 		if (a >= TrumanSet.LIGHT_FALL && a < TrumanSet.LIGHT_HIT) {
@@ -461,6 +528,7 @@ public class TrumanShowCine extends Cinematics.Cine {
 				if (on > 0) {
 					float flare = (float) Math.max(0, 1 - (a - TrumanSet.lampOn(i)) / 8.0);
 					lampBeam(glow, m, lc.add(aimDir.normalize().multiply(4.2)), hit.subtract(cam), 2.4, on, a);
+					lampMotes(glow, m, cb, lc.add(aimDir.normalize().multiply(4.2)), hit.subtract(cam), 2.4, on, a + i * 40);
 					if (flare > 0) {
 						Solids.dot(glow, m, lc, cb, 26 * flare, 0xFFF4E0, 0.8F * flare);
 					}
@@ -487,9 +555,22 @@ public class TrumanShowCine extends Cinematics.Cine {
 		// The sound stage: walls and a ceiling of lighting truss.
 		Solids.tube(solid, m, S.add(0, -1, 0), S.add(0, 230, 0), 300, 300, 40, 0x0B0B0E, 1.0F, false);
 		for (int k = -5; k <= 5; k++) {
+			// Box truss: two chords and a zig-zag web.
 			Solids.tube(solid, m, S.add(k * 50, 224, -280), S.add(k * 50, 224, 280), 0.7, 0.7, 4, 0x2A2A30, 1.0F, true);
+			Solids.tube(solid, m, S.add(k * 50, 219, -280), S.add(k * 50, 219, 280), 0.5, 0.5, 4, 0x2A2A30, 1.0F, true);
+			for (int z = -280; z < 280; z += 10) {
+				Solids.tube(solid, m, S.add(k * 50, 224, z), S.add(k * 50, 219, z + 5), 0.18, 0.18, 4, 0x34343A, 1.0F, true);
+				Solids.tube(solid, m, S.add(k * 50, 219, z + 5), S.add(k * 50, 224, z + 10), 0.18, 0.18, 4, 0x34343A, 1.0F, true);
+			}
 			for (int q = -5; q <= 5; q++) {
-				Solids.dot(glow, m, S.add(k * 50, 222, q * 50), cb, 2.2, 0xFFE6B8, 0.85F);
+				Vec3d lp = S.add(k * 50, 217, q * 50);
+				float tw = 0.75F + 0.25F * MathHelper.sin(a * 0.07F + k * 3 + q);
+				Solids.dot(glow, m, lp, cb, 2.2, 0xFFE6B8, 0.85F * tw);
+				if ((k + q) % 2 == 0) {
+					// Soft cones of light down to the stage floor.
+					Solids.tube(glow, m, lp, lp.add(0, -216, 0), 1.0, 26, 10, 0xFFE6B8, 0.025F * tw, false);
+					FxDraw.disc(glow, m, lp.add(0, -216.8, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 26, 0xFFE6B8, 0.12F * tw, 0.0F, 20);
+				}
 			}
 		}
 		// The set: the back of the sky, with the door left open.
@@ -511,6 +592,7 @@ public class TrumanShowCine extends Cinematics.Cine {
 			Vec3d dir = target.subtract(head);
 			studioLamp(solid, glow, m, cb, head.add(0, 5, 0), dir, 4.0, 1.0F, null);
 			Solids.tube(glow, m, head.add(0, 5, 0).add(dir.normalize().multiply(7)), target, 4.5, 20, 16, 0xFFF0D0, 0.06F, false);
+			lampMotes(glow, m, cb, head.add(0, 5, 0).add(dir.normalize().multiply(7)), target, 4.0, 0.8F, a + k * 50);
 		}
 		// The control room high above the stage, the director backlit in its window.
 		Vec3d cr = controlRoom().subtract(cam);
@@ -563,6 +645,20 @@ public class TrumanShowCine extends Cinematics.Cine {
 			glowQuad(glow, m, o.add(v.multiply(0.22)), u, v.multiply(0.2), 0x2E74B0, 0.7F * k);
 			glowQuad(glow, m, o, u, v.multiply(0.22), 0x4C9A3A, 0.7F * k);
 			glowQuad(glow, m, o.add(u.multiply(0.55)).add(v.multiply(0.1)), u.multiply(0.15), v.multiply(0.22), 0xF0F0F0, 0.8F * k);
+			// Moving picture: a drifting cloud, glinting waves and a tiny figure walking to work.
+			double cloud = ((a * 0.004 + seed * 0.13) % 1.2) - 0.2;
+			glowQuad(glow, m, o.add(u.multiply(cloud)).add(v.multiply(0.72)), u.multiply(0.22), v.multiply(0.1), 0xF4F8FF, 0.7F * k);
+			for (int w = 0; w < 3; w++) {
+				double wx = ((a * 0.012 + w * 0.37 + seed * 0.07) % 1.0) * 0.9;
+				glowQuad(glow, m, o.add(u.multiply(wx)).add(v.multiply(0.27 + w * 0.05)), u.multiply(0.08), v.multiply(0.02), 0xC8E8FF, 0.6F * k);
+			}
+			double walk = ((a * 0.006 + seed * 0.21) % 1.0) * 0.94;
+			glowQuad(glow, m, o.add(u.multiply(walk)).add(v.multiply(0.08)), u.multiply(0.03), v.multiply(0.12), 0x202430, 0.9F * k);
+		}
+		// The occasional channel-change roll.
+		if (Solids.hash(seed, (int) (a / 30)) < 0.12) {
+			double roll = (a % 30) / 30.0;
+			glowQuad(glow, m, o.add(v.multiply(roll * 0.85)), u, v.multiply(0.15), 0xE0E0E0, 0.35F);
 		}
 		if (((int) (a * 0.1F) & 1) == 0) {
 			glowQuad(glow, m, o.add(u.multiply(0.06)).add(v.multiply(0.82)), u.multiply(0.05), v.multiply(0.1), 0xFF2020, 0.9F);
@@ -639,6 +735,41 @@ public class TrumanShowCine extends Cinematics.Cine {
 		ctx.drawTextWithShadow(f, tc, left, bottom, (alpha << 24) | 0xC8C8C8);
 		String place = "SEAHAVEN ISLAND";
 		ctx.drawTextWithShadow(f, place, rightX - f.getWidth(place), bottom, (alpha << 24) | 0xC8C8C8);
+		// Network bug: a little "TS" globe in the corner.
+		int bx = rightX - 30, by = top + 14;
+		ctx.fill(bx, by, bx + 26, by + 14, (alpha * 3 / 5 << 24) | 0x0E2A4A);
+		ctx.fill(bx, by + 13, bx + 26, by + 14, (alpha << 24) | 0x5AA8FF);
+		ctx.drawTextWithShadow(f, "TS", bx + 7, by + 3, white);
+		// Audio meters bouncing to the ambience.
+		for (int ch = 0; ch < 2; ch++) {
+			float lvl = 0.35F + 0.3F * MathHelper.sin(a * 0.9F + ch * 1.7F) + 0.2F * MathHelper.sin(a * 2.3F + ch);
+			int mh = 38, mx = left + ch * 6, my = bottom - 26;
+			ctx.fill(mx, my - mh, mx + 4, my, (alpha / 3 << 24));
+			int filled = (int) (mh * MathHelper.clamp(lvl, 0.05F, 1.0F));
+			for (int y = 0; y < filled; y += 3) {
+				int col = y > mh * 0.8 ? 0xFF4040 : y > mh * 0.6 ? 0xFFD040 : 0x50E070;
+				ctx.fill(mx, my - y - 2, mx + 4, my - y, (alpha << 24) | col);
+			}
+		}
+		// Lower third sliding in: who we're watching.
+		float slide = MathHelper.clamp((a - start - 20) / 12.0F, 0.0F, 1.0F) * MathHelper.clamp((start + (start == 0 ? 100 : 90) - a) / 10.0F, 0.0F, 1.0F);
+		if (slide > 0) {
+			int lw = 190, lx = left + 16 - (int) ((1 - slide) * (lw + 40)), ly = bottom - 44;
+			int la = (int) (alpha * slide);
+			ctx.fillGradient(lx, ly, lx + lw, ly + 22, (la * 4 / 5 << 24) | 0x1A4C8C, (la * 4 / 5 << 24) | 0x0C2448);
+			ctx.fill(lx, ly, lx + 3, ly + 22, (la << 24) | 0xFFD040);
+			ctx.drawTextWithShadow(f, start == 0 ? "TRUMAN BURBANK" : "THANK YOU FOR WATCHING", lx + 8, ly + 3, (la << 24) | 0xFFFFFF);
+			ctx.drawTextWithShadow(f, start == 0 ? "insurance salesman · seahaven" : "1.7 billion viewers · 30 years live", lx + 8, ly + 12, (la << 24) | 0xA8C8F0);
+		}
+		// News-style ticker along the bottom.
+		String tick = "  SEAHAVEN WEATHER: SUNNY, AS ALWAYS  ·  TRAFFIC: CLEAR  ·  SIRIUS SPOTTED ABOVE TOWN?  ·  STAY TUNED  ·";
+		int tw = f.getWidth(tick);
+		int ty = bottom + 16;
+		ctx.fill(pw, ty - 2, w - pw, ty + 10, (alpha * 2 / 3 << 24) | 0x0A0A12);
+		int off = (int) (a * 1.4F) % tw;
+		ctx.enableScissor(pw, ty - 2, w - pw, ty + 10);
+		ctx.drawTextWithShadow(f, tick + tick, pw - off, ty, (alpha << 24) | 0xE8E8E8);
+		ctx.disableScissor();
 	}
 
 	private static void colourBars(DrawContext ctx, TextRenderer f, int w, int h, float a) {
@@ -668,12 +799,30 @@ public class TrumanShowCine extends Cinematics.Cine {
 		ctx.fill(0, 0, w, h, 0xFF000000);
 		float k = MathHelper.clamp((a - TrumanSet.WALL - 6) / 14.0F, 0.0F, 1.0F);
 		int alpha = Math.max(5, (int) (k * 255)) << 24;
+		// Old film: flickering exposure, vertical scratches and dust specks.
+		int flick = (int) (18 * k * (0.6F + 0.4F * MathHelper.sin(a * 2.7F)));
+		ctx.fill(0, 0, w, h, (flick << 24) | 0x302820);
+		for (int i = 0; i < 3; i++) {
+			if (Solids.hash(i, (int) a) < 0.5) {
+				int x = (int) (Solids.hash(i + 7, (int) a) * w);
+				ctx.fill(x, 0, x + 1, h, ((int) (60 * k) << 24) | 0xD0C8B8);
+			}
+		}
+		for (int i = 0; i < 8; i++) {
+			int x = (int) (Solids.hash(i, (int) a * 3) * w), y = (int) (Solids.hash(i + 40, (int) a * 3) * h);
+			ctx.fill(x, y, x + 2, y + 2, ((int) (90 * k) << 24) | 0xE0D8C8);
+		}
 		ctx.getMatrices().push();
-		ctx.getMatrices().translate(w / 2.0F, h / 2.0F - 20, 0);
+		ctx.getMatrices().translate(w / 2.0F, h / 2.0F - 24, 0);
 		ctx.getMatrices().scale(5.0F, 5.0F, 1.0F);
-		ctx.drawCenteredTextWithShadow(f, "THE END", 0, 0, alpha | 0xFFFFFF);
+		ctx.drawCenteredTextWithShadow(f, "THE END", 0, 0, alpha | 0xF4ECDC);
 		ctx.getMatrices().pop();
-		float k2 = MathHelper.clamp((a - TrumanSet.WALL - 22) / 14.0F, 0.0F, 1.0F);
-		ctx.drawCenteredTextWithShadow(f, "a Christof production", w / 2, h / 2 + 26, (Math.max(5, (int) (k2 * 255)) << 24) | 0xA0A0A0);
+		float k2 = MathHelper.clamp((a - TrumanSet.WALL - 20) / 14.0F, 0.0F, 1.0F);
+		int a2 = Math.max(5, (int) (k2 * 255)) << 24;
+		int rule = (int) (120 * k2);
+		ctx.fill(w / 2 - rule, h / 2 + 14, w / 2 + rule, h / 2 + 15, a2 | 0x8A8070);
+		ctx.drawCenteredTextWithShadow(f, "a Christof production", w / 2, h / 2 + 22, a2 | 0xA8A090);
+		float k3 = MathHelper.clamp((a - TrumanSet.WALL - 34) / 14.0F, 0.0F, 1.0F);
+		ctx.drawCenteredTextWithShadow(f, "starring YOU", w / 2, h / 2 + 36, (Math.max(5, (int) (k3 * 255)) << 24) | 0xFFE0A0);
 	}
 }

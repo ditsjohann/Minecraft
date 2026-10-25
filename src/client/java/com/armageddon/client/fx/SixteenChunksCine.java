@@ -126,76 +126,169 @@ public class SixteenChunksCine extends Cinematics.Cine {
 		return super.tick(world);
 	}
 
-	// --- broadcast overlay: mini-map and slot reel ----------------------------------------
+	// --- broadcast overlay: mini-map and slot machine ---------------------------------------
+
+	private static final ChunkRolls.Kind[] KINDS = ChunkRolls.Kind.values();
+
+	private static int argb(int alpha, int rgb) {
+		return (Math.max(0, Math.min(255, alpha)) << 24) | (rgb & 0xFFFFFF);
+	}
+
+	private static int scale(int rgb, float k) {
+		int r = (int) Math.min(255, ((rgb >> 16) & 0xFF) * k), g = (int) Math.min(255, ((rgb >> 8) & 0xFF) * k), b = (int) Math.min(255, (rgb & 0xFF) * k);
+		return (r << 16) | (g << 8) | b;
+	}
+
+	/** A 1px frame plus a soft outer glow in {@code rgb}. */
+	private static void frame(DrawContext ctx, int x1, int y1, int x2, int y2, int rgb, int alpha, int glow) {
+		for (int g = glow; g >= 1; g--) {
+			int a = alpha * (glow - g + 1) / (glow * 4);
+			ctx.fill(x1 - g, y1 - g, x2 + g, y1 - g + 1, argb(a, rgb));
+			ctx.fill(x1 - g, y2 + g - 1, x2 + g, y2 + g, argb(a, rgb));
+			ctx.fill(x1 - g, y1 - g, x1 - g + 1, y2 + g, argb(a, rgb));
+			ctx.fill(x2 + g - 1, y1 - g, x2 + g, y2 + g, argb(a, rgb));
+		}
+		ctx.fill(x1, y1, x2, y1 + 1, argb(alpha, rgb));
+		ctx.fill(x1, y2 - 1, x2, y2, argb(alpha, rgb));
+		ctx.fill(x1, y1, x1 + 1, y2, argb(alpha, rgb));
+		ctx.fill(x2 - 1, y1, x2, y2, argb(alpha, rgb));
+	}
 
 	@Override
 	public void drawHud(DrawContext ctx, int w, int h, float a) {
 		if (a < 70 || a > lifetime - 12) {
 			return;
 		}
+		float in = (float) Cinematics.clamp01((a - 70) / 10.0) * (float) Cinematics.clamp01((lifetime - 12 - a) / 10.0);
 		TextRenderer f = MinecraftClient.getInstance().textRenderer;
-		int cs = Math.max(10, h / 28);
-		int mx = 14, my = h / 2 - cs * 2;
-		ctx.fill(mx - 4, my - 16, mx + cs * 4 + 4, my + cs * 4 + 4, 0x90000000);
-		ctx.drawTextWithShadow(f, Text.literal("16 CHUNKS"), mx, my - 12, 0xFFFF60FF);
-		int frame = (int) (a * 1.5F);
-		for (int cell = 0; cell < 16; cell++) {
-			int slot = slotOf(cell);
-			int x = mx + (cell % 4) * cs, y = my + (cell / 4) * cs;
-			int col = 0x303040;
-			if (a >= ChunkRolls.rerollTick(slot)) {
-				col = ChunkRolls.roll(seed, 1, cell).kind().color;
-			} else if (a >= ChunkRolls.rerollTick(slot) - 14 || (a >= ChunkRolls.rollTick(slot) - 14 && a < ChunkRolls.rollTick(slot))) {
-				col = ChunkRolls.Kind.values()[Math.floorMod(frame + cell, ChunkRolls.Kind.values().length)].color;
-			} else if (a >= ChunkRolls.rollTick(slot)) {
-				col = ChunkRolls.roll(seed, 0, cell).kind().color;
-			}
-			ctx.fill(x + 1, y + 1, x + cs - 1, y + cs - 1, 0xE0000000 | col);
-		}
+		miniMap(ctx, f, h, a, in);
 		int s = activeSlot(a);
 		if (s >= 0) {
 			int cell = order[s];
 			int at = ChunkRolls.rollTick(s);
-			int x = mx + (cell % 4) * cs, y = my + (cell / 4) * cs;
-			int blink = ((int) (a * 0.5F) & 1) == 0 ? 0xFFFFFFFF : 0xFFFF60FF;
-			ctx.fill(x, y, x + cs, y + 1, blink);
-			ctx.fill(x, y + cs - 1, x + cs, y + cs, blink);
-			ctx.fill(x, y, x + 1, y + cs, blink);
-			ctx.fill(x + cs - 1, y, x + cs, y + cs, blink);
 			ChunkRolls.Roll roll = ChunkRolls.roll(seed, 0, cell);
-			String label;
-			int color;
-			float scale;
-			if (a < at) {
-				// The reel: names flicker past, slowing as it lands.
-				int idx = (int) (a * (a > at - 5 ? 0.6F : 1.6F)) + cell;
-				ChunkRolls.Kind k = ChunkRolls.Kind.values()[Math.floorMod(idx, ChunkRolls.Kind.values().length)];
-				label = k.label;
-				color = 0xFFFFFF;
-				scale = 2.4F;
-			} else {
-				label = roll.label();
-				color = roll.kind().color;
-				scale = 3.0F + 0.8F * (float) Math.max(0, 1 - (a - at) / 4.0);
-			}
-			reel(ctx, f, w, h, "CHUNK #" + (cell + 1) + "  •  ROLL " + (s + 1) + " / 16", label, color, scale);
+			machine(ctx, f, w, h, a, at, roll.kind(), roll.label(), "CHUNK #" + (cell + 1), "ROLL " + (s + 1) + " / 16", cell, in);
 		} else if (a >= PRE_REROLL && a < ChunkRolls.rerollTick(15) + 20) {
-			int idx = (int) (a * 1.6F);
-			String label = a < ChunkRolls.REROLL ? ChunkRolls.Kind.values()[Math.floorMod(idx, ChunkRolls.Kind.values().length)].label : "x16";
-			reel(ctx, f, w, h, "ALL CHUNKS", label, a < ChunkRolls.REROLL ? 0xFFFFFF : 0xFF4060, a < ChunkRolls.REROLL ? 2.4F : 4.0F);
+			int at = ChunkRolls.REROLL;
+			machine(ctx, f, w, h, a, at, ChunkRolls.Kind.RANDOMIZE, "x16", "ALL CHUNKS", "REROLL", 7, in);
 		}
 	}
 
-	private void reel(DrawContext ctx, TextRenderer f, int w, int h, String head, String label, int color, float scale) {
-		int y = (int) (h * 0.2F);
-		int boxW = Math.max(f.getWidth(label) * (int) Math.ceil(scale) + 24, 160);
-		ctx.fill(w / 2 - boxW / 2, y - 18, w / 2 + boxW / 2, y + (int) (scale * 10) + 6, 0xA0000000);
-		ctx.drawCenteredTextWithShadow(f, Text.literal(head), w / 2, y - 14, 0xFFC8C8C8);
-		ctx.getMatrices().push();
-		ctx.getMatrices().translate(w / 2.0F, y, 0);
-		ctx.getMatrices().scale(scale, scale, 1);
-		ctx.drawCenteredTextWithShadow(f, Text.literal(label), 0, 0, 0xFF000000 | color);
-		ctx.getMatrices().pop();
+	/** The 4x4 grid in the corner: dark slots that light up in each result's colour, the rolling one strobing. */
+	private void miniMap(DrawContext ctx, TextRenderer f, int h, float a, float in) {
+		int cs = Math.max(11, h / 26);
+		int mx = 16, my = h / 2 - cs * 2;
+		int alpha = (int) (230 * in);
+		ctx.fillGradient(mx - 6, my - 20, mx + cs * 4 + 6, my + cs * 4 + 18, argb((int) (200 * in), 0x140A1E), argb((int) (200 * in), 0x05030A));
+		frame(ctx, mx - 6, my - 20, mx + cs * 4 + 6, my + cs * 4 + 18, 0xFF60FF, (int) (160 * in), 3);
+		ctx.drawTextWithShadow(f, Text.literal("16 CHUNKS"), mx, my - 14, argb(alpha, 0xFF80FF));
+		int done = 0;
+		int frameIdx = (int) (a * 1.5F);
+		for (int cell = 0; cell < 16; cell++) {
+			int slot = slotOf(cell);
+			int x = mx + (cell % 4) * cs, y = my + (cell / 4) * cs;
+			int col = 0x24202E;
+			boolean landed = false, spinning = false;
+			if (a >= ChunkRolls.rerollTick(slot)) {
+				col = ChunkRolls.roll(seed, 1, cell).kind().color;
+				landed = true;
+			} else if (a >= ChunkRolls.rerollTick(slot) - 14 || (a >= ChunkRolls.rollTick(slot) - 14 && a < ChunkRolls.rollTick(slot))) {
+				col = KINDS[Math.floorMod(frameIdx + cell, KINDS.length)].color;
+				spinning = true;
+			} else if (a >= ChunkRolls.rollTick(slot)) {
+				col = ChunkRolls.roll(seed, 0, cell).kind().color;
+				landed = true;
+			}
+			if (landed) {
+				done++;
+				float pulse = 0.75F + 0.25F * MathHelper.sin(a * 0.15F + cell);
+				ctx.fillGradient(x + 1, y + 1, x + cs - 1, y + cs - 1, argb(alpha, scale(col, 1.15F * pulse)), argb(alpha, scale(col, 0.55F * pulse)));
+				ctx.fill(x + 2, y + 2, x + cs - 2, y + 3, argb(alpha / 2, 0xFFFFFF));
+			} else {
+				ctx.fill(x + 1, y + 1, x + cs - 1, y + cs - 1, argb(spinning ? alpha : alpha * 3 / 4, spinning ? col : 0x24202E));
+			}
+		}
+		// Progress bar.
+		int bw = cs * 4;
+		ctx.fill(mx, my + cs * 4 + 6, mx + bw, my + cs * 4 + 9, argb(alpha / 2, 0x301838));
+		ctx.fill(mx, my + cs * 4 + 6, mx + bw * Math.min(16, done) / 16, my + cs * 4 + 9, argb(alpha, 0xFF60FF));
+	}
+
+	/**
+	 * The slot machine: a chrome cabinet with a vertical reel that whips past and decelerates onto the
+	 * result, a payline, then a flash in the result's colour and the full roll name.
+	 */
+	private void machine(DrawContext ctx, TextRenderer f, int w, int h, float a, int at, ChunkRolls.Kind result, String full,
+			String head, String sub, int salt, float in) {
+		int cx = w / 2, cy = (int) (h * 0.2F) + 6;
+		int rowH = 22, boxW = 230, half = boxW / 2;
+		int top = cy - rowH - 6, bottom = cy + rowH + 6;
+		int alpha = (int) (235 * in);
+		boolean landed = a >= at;
+		float since = a - at;
+		int glowCol = landed ? result.color : 0xFF60FF;
+		// Cabinet.
+		ctx.fillGradient(cx - half - 10, top - 22, cx + half + 10, bottom + 14, argb((int) (210 * in), 0x241432), argb((int) (210 * in), 0x08040E));
+		frame(ctx, cx - half - 10, top - 22, cx + half + 10, bottom + 14, glowCol, alpha, landed ? 6 : 3);
+		ctx.drawCenteredTextWithShadow(f, Text.literal(head + "   " + sub), cx, top - 16, argb(alpha, 0xE0D0F0));
+		// Bulbs chasing round the top edge.
+		for (int i = 0; i < 18; i++) {
+			int bx = cx - half - 4 + i * (boxW + 8) / 17;
+			boolean on = ((int) (a * 0.6F) + i) % 3 == 0 || (landed && since < 20 && ((int) (a) & 1) == 0);
+			ctx.fill(bx - 1, top - 5, bx + 2, top - 2, argb(alpha, on ? 0xFFE060 : 0x503820));
+		}
+		// Reel window.
+		ctx.fillGradient(cx - half, top, cx + half, bottom, argb(alpha, 0xF4F0FF), argb(alpha, 0xC8C0D8));
+		ctx.enableScissor(cx - half, top, cx + half, bottom);
+		double u = Cinematics.clamp01((a - (at - 14)) / 14.0);
+		double target = result.ordinal() + KINDS.length * 3;
+		double pos = landed ? target : target - 26 * Math.pow(1 - u, 3);
+		int base = (int) Math.floor(pos);
+		for (int i = base - 2; i <= base + 2; i++) {
+			double off = (i - pos) * rowH;
+			int ty = (int) (cy + off) - 4;
+			ChunkRolls.Kind k = KINDS[Math.floorMod(i + salt, KINDS.length)];
+			if (i == (int) Math.round(target) && landed) {
+				k = result;
+			}
+			float dim = (float) Math.max(0.25, 1 - Math.abs(off) / (rowH * 1.4));
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(cx, ty, 0);
+			ctx.getMatrices().scale(1.6F, 1.6F, 1);
+			ctx.drawCenteredTextWithShadow(f, Text.literal(k.label), 0, -2, argb((int) (255 * dim * in), scale(k.color, 0.7F)));
+			ctx.getMatrices().pop();
+		}
+		ctx.disableScissor();
+		// Motion blur shading at the edges of the window, and the payline.
+		ctx.fillGradient(cx - half, top, cx + half, top + 12, argb((int) (170 * in), 0x18101E), argb(0, 0x18101E));
+		ctx.fillGradient(cx - half, bottom - 12, cx + half, bottom, argb(0, 0x18101E), argb((int) (170 * in), 0x18101E));
+		ctx.fill(cx - half - 6, cy - 1, cx - half + 4, cy + 1, argb(alpha, 0xFF3060));
+		ctx.fill(cx + half - 4, cy - 1, cx + half + 6, cy + 1, argb(alpha, 0xFF3060));
+		// The landing: a flash in the result colour, an expanding frame and the full name underneath.
+		if (landed) {
+			if (since < 8) {
+				float k = 1 - since / 8F;
+				ctx.fill(cx - half, top, cx + half, bottom, argb((int) (150 * k * in), result.color));
+				int grow = (int) (since * 5);
+				frame(ctx, cx - half - 10 - grow, top - 22 - grow, cx + half + 10 + grow, bottom + 14 + grow, result.color, (int) (200 * k * in), 2);
+			}
+			float pop = 1.0F + 0.5F * (float) Math.max(0, 1 - since / 5.0);
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(cx, bottom + 26, 0);
+			ctx.getMatrices().scale(2.2F * pop, 2.2F * pop, 1);
+			ctx.drawCenteredTextWithShadow(f, Text.literal(full), 0, 0, argb(alpha, result.color));
+			ctx.getMatrices().pop();
+			// Sparkles flying off the cabinet.
+			if (since < 24) {
+				for (int i = 0; i < 14; i++) {
+					double ang = Solids.hash(i, salt + at) * Math.PI * 2;
+					double d = 20 + since * (6 + 4 * Solids.hash(i, salt + 1));
+					int sx = (int) (cx + Math.cos(ang) * (half + d)), sy = (int) (cy + Math.sin(ang) * (rowH + d * 0.6));
+					int sa = (int) (255 * (1 - since / 24F) * in);
+					ctx.fill(sx - 1, sy - 1, sx + 2, sy + 2, argb(sa, i % 2 == 0 ? 0xFFFFFF : result.color));
+				}
+			}
+		}
 	}
 
 	private int slotOf(int cell) {
