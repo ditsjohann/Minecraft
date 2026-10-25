@@ -22,9 +22,16 @@ public abstract class GameRendererMixin {
 	@Inject(method = "getFov", at = @At("RETURN"), cancellable = true)
 	private void armageddon$fov(Camera camera, float tickDelta, boolean changingFov, CallbackInfoReturnable<Double> cir) {
 		com.armageddon.client.fx.Cinematics.Cine cine = com.armageddon.client.fx.ClientFx.activeCine();
-		if (cine != null && cine.frame(tickDelta).fov > 0) {
-			cir.setReturnValue((double) cine.frame(tickDelta).fov + com.armageddon.client.fx.ClientFx.fovPunch);
-			return;
+		if (cine != null) {
+			try {
+				float fov = cine.frame(tickDelta).fov;
+				if (fov > 0) {
+					cir.setReturnValue((double) fov + com.armageddon.client.fx.ClientFx.fovPunch);
+					return;
+				}
+			} catch (RuntimeException ex) {
+				cine.done = true;
+			}
 		}
 		if (com.armageddon.client.fx.ClientFx.fovPunch > 0) {
 			cir.setReturnValue(cir.getReturnValue() + com.armageddon.client.fx.ClientFx.fovPunch);

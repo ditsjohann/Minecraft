@@ -41,7 +41,14 @@ public abstract class BackgroundRendererMixin {
 		if (cine == null) {
 			return;
 		}
-		if (cine.frame(tickDelta).space) {
+		boolean space;
+		try {
+			space = cine.frame(tickDelta).space;
+		} catch (RuntimeException ex) {
+			cine.done = true;
+			return;
+		}
+		if (space) {
 			RenderSystem.setShaderFogStart(1.0E6F);
 			RenderSystem.setShaderFogEnd(2.0E6F);
 		} else if (fogType == BackgroundRenderer.FogType.FOG_TERRAIN) {

@@ -32,6 +32,10 @@ public final class FxWorldRenderer {
 					broken = new java.util.ArrayList<>();
 				}
 				broken.add(effect);
+				if (effect instanceof Cinematics.Cine c) {
+					// A cutscene that can't draw must still give the camera back.
+					c.done = true;
+				}
 			}
 		}
 		if (broken != null) {
