@@ -70,6 +70,15 @@ public final class Cinematics {
 			return null;
 		}
 
+		public Vec3d anchor() {
+			return anchor;
+		}
+
+		/** Dip-to-black amount at this moment: fades in from black, out at the end, plus any scene cuts. */
+		public float fade(float a) {
+			return (float) Math.max(clamp01(1 - a / 12.0), clamp01((a - (lifetime - 10)) / 10.0));
+		}
+
 		public float time(float tickDelta) {
 			return age + tickDelta;
 		}
@@ -107,6 +116,77 @@ public final class Cinematics {
 		}
 		float alpha = Math.min(1.0F, Math.min((a - start) / 8.0F, (end - a) / 8.0F));
 		return new Caption(title, sub, color, alpha);
+	}
+
+	/** 1 at {@code at}, falling to 0 {@code half} ticks either side: a quick dip to black across a cut. */
+	static float dip(float a, float at, float half) {
+		return (float) clamp01(1 - Math.abs(a - at) / half);
+	}
+
+	/** A tumbling chunk of rock (a short square prism). */
+	static void rock(VertexConsumer solid, Matrix4f m, Vec3d c, double size, double spin, int salt, int rgb) {
+		Vec3d ax = new Vec3d(Math.cos(spin + salt), Math.sin(spin * 0.7 + salt * 2), Math.sin(spin * 1.3 + salt * 3)).normalize().multiply(size * 0.5);
+		Solids.tube(solid, m, c.subtract(ax), c.add(ax), size * 0.62, size * 0.5, 5, rgb, 1.0F, true);
+	}
+
+	/**
+	 * Ballistic debris thrown up from {@code g} (camera-relative), {@code t} ticks after launch: rocks with glowing
+	 * ember trails that arc out and fall back. Deterministic, so every frame agrees.
+	 */
+	static void debris(VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d g, float t, int count, double speed,
+			double size, double gravity, int salt, int rockRgb, int ember) {
+		if (t <= 0) {
+			return;
+		}
+		for (int i = 0; i < count; i++) {
+			Vec3d d = sphereDir(i, salt);
+			double v = speed * (0.35 + 0.65 * Solids.hash(i, salt + 3));
+			double vx = d.x * v, vz = d.z * v, vy = (Math.abs(d.y) * 0.8 + 0.35) * v * 1.4;
+			double y = vy * t - 0.5 * gravity * t * t;
+			if (y < -4 && t > 4) {
+				continue;
+			}
+			Vec3d p = g.add(vx * t, y, vz * t);
+			double sz = size * (0.4 + 0.9 * Solids.hash(i, salt + 5));
+			rock(solid, m, p, sz, t * 0.12 * (1 + Solids.hash(i, salt + 6)), i, i % 4 == 0 ? Solids.scale(rockRgb, 0.7) : rockRgb);
+			Vec3d vel = new Vec3d(vx, vy - gravity * t, vz);
+			float hot = (float) Math.max(0.15, 1 - t / 90.0);
+			FxDraw.beam(glow, m, p, p.subtract(vel.multiply(5)), Vec3d.ZERO, sz * 0.45, ember, 0.55F * hot);
+		}
+	}
+
+	/** A rolling wall of dust: a ring of soft shade puffs at {@code radius} around {@code g} (camera-relative). */
+	static void dustWall(VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d g, double radius, double height, int rgb, float alpha, int salt) {
+		if (alpha <= 0.01) {
+			return;
+		}
+		int n = 64;
+		for (int k = 0; k < n; k++) {
+			double ang = k * MathHelper.TAU / n + Solids.hash(k, salt) * 0.08;
+			for (int j = 0; j < 3; j++) {
+				double rr = radius * (0.94 + 0.1 * Solids.hash(k, salt + j));
+				double h = height * (0.15 + 0.35 * j + 0.2 * Solids.hash(k, salt + 7 + j));
+				Vec3d p = g.add(Math.cos(ang) * rr, h, Math.sin(ang) * rr);
+				Solids.dot(shade, m, p, cb, height * (0.45 - j * 0.1), Solids.scale(rgb, 0.85 + 0.15 * j), alpha * (1 - j * 0.25F));
+			}
+		}
+	}
+
+	/** Branching crack lines of light radiating over the ground from {@code g} (camera-relative). */
+	static void groundCracks(VertexConsumer glow, Matrix4f m, Vec3d g, double reach, int count, int salt, int rgb, float alpha) {
+		for (int k = 0; k < count; k++) {
+			double ang = k * MathHelper.TAU / count + Solids.hash(k, salt) * 0.3;
+			Vec3d prev = g;
+			int segs = 10;
+			for (int i = 1; i <= segs; i++) {
+				ang += (Solids.hash(k * 31 + i, salt + 1) - 0.5) * 0.5;
+				double r = reach * i / segs;
+				Vec3d p = g.add(Math.cos(ang) * r, 0.4, Math.sin(ang) * r);
+				float f = alpha * (1 - (float) i / (segs + 2));
+				FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, Math.max(0.8, reach * 0.02 * (1 - i / (double) segs)), rgb, f, f);
+				prev = p;
+			}
+		}
 	}
 
 	static double ease(double t) {
@@ -295,22 +375,28 @@ public final class Cinematics {
 				Vec3d p = anchor.add(fwd.multiply(-(25 + a * 0.1))).add(0, 2.5, 0);
 				aim(s, p, lerp(rift, head, ease((a - 50) / 80.0)), 78, false);
 			} else if (a < 270) {
-				Vec3d p = anchor.add(right.multiply(430)).add(fwd.multiply(40 + (a - 130) * 0.6)).add(0, 160, 0);
-				aim(s, p, head.add(0, -80, 0), 52, false);
+				// Worm's-eye from the streets: the giant towers over the skyline while its eyes sweep the city.
+				// (Ground shots stay near the anchor: terrain only exists, and is only drawn, around the player.)
+				double u = (a - 130) / 140.0;
+				Vec3d p = anchor.add(right.multiply(lerp(120, 85, u))).add(fwd.multiply(lerp(-50, -20, u))).add(0, lerp(4, 18, u), 0);
+				aim(s, p, head.add(0, -60, 0), (float) lerp(74, 64, u), false);
 			} else if (a < 330) {
 				double d = lerp(140, 88, ease((a - 270) / 60.0));
 				aim(s, head.add(headDir(a).multiply(d)).add(right.multiply(26)).add(0, 4, 0), head, 42, false);
 			} else if (a < PUNCH_START) {
-				Vec3d h = hand(a);
-				double ang = (a - 330) * 0.011;
-				Vec3d p = h.add(right.multiply(Math.cos(ang) * 155)).add(fwd.multiply(-Math.sin(ang) * 165 - 40)).add(0, -75, 0);
-				aim(s, p, h, 70, false);
+				// From behind the city: the fist rises over the giant's shoulder and the camera slowly pushes in.
+				double u = (a - 330) / (double) (PUNCH_START - 330);
+				Vec3d p = anchor.add(fwd.multiply(lerp(-75, -42, ease(u)))).add(right.multiply(lerp(-62, -36, u))).add(0, lerp(10, 24, u), 0);
+				aim(s, p, lerp(head, hand(a), 0.55 + 0.45 * ease(u)), (float) lerp(70, 56, ease(u)), false);
 			} else if (a < IMPACT) {
-				Vec3d h = hand(a);
-				aim(s, h.add(right.multiply(80)).add(fwd.multiply(-55)).add(0, 30, 0), h, (float) lerp(85, 110, (a - PUNCH_START) / 20.0), false);
+				// Low and close to ground zero, staring up as the fist comes down at the lens.
+				Vec3d p = anchor.add(right.multiply(48)).add(fwd.multiply(-38)).add(0, 6, 0);
+				aim(s, p, hand(a), (float) lerp(78, 106, ease((a - PUNCH_START) / 20.0)), false);
 			} else if (a < SPACE) {
-				double u = (a - IMPACT) / (double) (SPACE - IMPACT);
-				aim(s, anchor.add(fwd.multiply(-200 + u * 30)).add(right.multiply(55)).add(0, 14 + u * 10, 0), anchor.add(0, 25, 0), 75, false);
+				// Crane up and back out of the blast while the shockwave rolls outward.
+				double u = ease((a - IMPACT) / (double) (SPACE - IMPACT));
+				Vec3d p = anchor.add(fwd.multiply(lerp(-55, -115, u))).add(right.multiply(lerp(48, 72, u))).add(0, lerp(7, 75, u), 0);
+				aim(s, p, anchor.add(0, lerp(35, 8, u), 0), (float) lerp(92, 72, u), false);
 			} else if (a < AERIAL) {
 				double u = (a - SPACE) / (double) (AERIAL - SPACE);
 				double ang = 0.6 + u * 0.35;
@@ -318,7 +404,7 @@ public final class Cinematics {
 				aim(s, p, spaceC, 60, true);
 			} else {
 				double u = ease((a - AERIAL) / (lifetime - AERIAL));
-				aim(s, anchor.add(fwd.multiply(-140)).add(right.multiply(40)).add(0, 150 + 70 * u, 0), lerp(anchor, head(a), 0.35 * u), 72, false);
+				aim(s, anchor.add(fwd.multiply(-95)).add(right.multiply(40)).add(0, 130 + 70 * u, 0), lerp(anchor, head(a), 0.35 * u), 72, false);
 			}
 		}
 
@@ -343,6 +429,11 @@ public final class Cinematics {
 		}
 
 		@Override
+		public float fade(float a) {
+			return Math.max(super.fade(a), Math.max(dip(a, SPACE, 7), dip(a, AERIAL, 7)));
+		}
+
+		@Override
 		public Caption caption(float a) {
 			Caption c;
 			if ((c = cap(a, 12, 115, "THE SKY IS TEARING OPEN", "something is coming through", 0xC8B8FF)) != null) {
@@ -363,6 +454,18 @@ public final class Cinematics {
 		@Override
 		public boolean tick(ClientWorld world) {
 			ClientFx.tintSky(0x0C0A24, Math.min(0.9F, age / 60.0F));
+			// God rays: the rift, then the giant's chest core, then the charging fist, then the impact.
+			if (age < 40) {
+				ClientFx.light(rift, 0.7F, 0xC070FF);
+			} else if (age < 330) {
+				ClientFx.light(shoulderMid(age).add(0, -80, 0).add(fwd.multiply(-72)), 0.55F, 0x9A70FF);
+			} else if (age < IMPACT) {
+				ClientFx.light(hand(age), 0.5F + 0.9F * (float) clamp01((age - 330) / 130.0), 0xFFD090);
+			} else if (age == IMPACT) {
+				ClientFx.light(anchor.add(0, 40, 0), 1.5F, 0xFFE0B0);
+			} else if (age >= SPACE && age < AERIAL) {
+				ClientFx.light(spaceC.add(impN.multiply(91)), 1.0F, 0xFFB070);
+			}
 			if (age >= 330 && age < IMPACT) {
 				// Cosmic energy streams into the fist.
 				Vec3d h = hand(age);
@@ -417,6 +520,14 @@ public final class Cinematics {
 				}
 				FxDraw.beam(glow, m, g, g.add(0, 400, 0), Vec3d.ZERO, 14 * (1 - Math.min(1, t / 90)), 0xFFE0B0, 0.6F);
 				FxDraw.disc(shade, m, g, x, z, 60 + t * 3, 0x6A5A50, 0.5F * (1 - Math.min(1, t / 140)), 0.0F, 40);
+				if (t < 320) {
+					// The city is thrown into the sky, the ground splits with light, and a wall of dust rolls out.
+					debris(solid, glow, m, g, t, 110, 3.4, 8, 0.05, 11, 0x5A4C40, 0xFF9040);
+					debris(solid, glow, m, g, t, 60, 5.0, 3, 0.05, 23, 0x6E5E50, 0xFFD080);
+					float fadeK = 1 - Math.min(1, t / 160);
+					dustWall(shade, m, cb, g, 30 + t * 5.5, 26 + t * 0.3, 0x8A7866, 0.75F * fadeK, 5);
+					groundCracks(glow, m, g, Math.min(240, 20 + t * 6), 18, 3, 0xFF7020, 0.9F * (1 - Math.min(1, t / 260)));
+				}
 			}
 		}
 
@@ -444,6 +555,24 @@ public final class Cinematics {
 				prevL = L;
 				prevR = R;
 				prevC = centre;
+			}
+			// Lightning crawling off the rift's edges, re-rolled a few times a second.
+			int roll = (int) (a * 0.35F);
+			for (int k = 0; k < 7; k++) {
+				if (Solids.hash(k, roll * 13) < 0.35) {
+					continue;
+				}
+				int i = 2 + (int) (Solids.hash(k, roll * 7 + 1) * (n - 4));
+				Vec3d lp = riftLine.get(i);
+				double side = Solids.hash(k, roll + 3) < 0.5 ? -1 : 1;
+				double w = 70 * Math.sin(Math.PI * i / (n - 1)) * open;
+				Vec3d p = c.add(right.multiply(lp.x + side * w)).add(0, lp.y * open, 0);
+				for (int j = 0; j < 6; j++) {
+					Vec3d q = p.add(right.multiply(side * (14 + Solids.hash(k * 9 + j, roll) * 22))).add(0, (Solids.hash(k * 5 + j, roll + 9) - 0.5) * 40, 0)
+							.add(fwd.multiply((Solids.hash(j, k + roll) - 0.5) * 20));
+					FxDraw.ribbon(glow, m, p, q, Vec3d.ZERO, 3.0 - j * 0.35, j % 2 == 0 ? 0xFFFFFF : 0xD0A0FF, (float) open, (float) open * 0.8F);
+					p = q;
+				}
 			}
 		}
 
@@ -632,9 +761,9 @@ public final class Cinematics {
 			if (a < SPACE_AT) {
 				double t = ease(a / SPACE_AT);
 				double ang = Math.atan2(-fwd.z, -fwd.x) + a * 0.009;
-				double dist = lerp(50, 210, t);
-				Vec3d p = anchor.add(Math.cos(ang) * dist, lerp(8, 330, t), Math.sin(ang) * dist);
-				aim(s, p, anchor, (float) lerp(78, 92, t), false);
+				double dist = lerp(50, 120, t);
+				Vec3d p = anchor.add(Math.cos(ang) * dist, lerp(8, 230, t), Math.sin(ang) * dist);
+				aim(s, p, anchor, (float) lerp(78, 88, t), false);
 			} else {
 				double u = a - SPACE_AT;
 				double ang = 0.5 + u * 0.004;
@@ -650,6 +779,11 @@ public final class Cinematics {
 			}
 			float u = a - SPACE_AT;
 			return u < 100 ? 0.15F : u < 140 ? 0.15F + (u - 100) * 0.03F : 3.0F;
+		}
+
+		@Override
+		public float fade(float a) {
+			return Math.max(super.fade(a), dip(a, SPACE_AT, 7));
 		}
 
 		@Override
@@ -671,6 +805,16 @@ public final class Cinematics {
 		public boolean tick(ClientWorld world) {
 			if (age >= SPACE_AT) {
 				ClientFx.tintSky(0x000006, 1.0F);
+				int u = age - SPACE_AT;
+				if (u >= 60 && u < 140) {
+					// The planet's cracks glow brighter and brighter: god rays leak out of the core.
+					ClientFx.light(sa, 0.3F + (u - 60) / 80.0F, 0xFF7020);
+				} else if (u == 140) {
+					ClientFx.light(sa, 1.5F, 0xFFE0B0);
+				}
+			} else if (age % 12 == 0) {
+				// Fires still raging across the bombed site below.
+				ClientFx.light(anchor.add(world.random.nextGaussian() * 30, 4, world.random.nextGaussian() * 30), 0.6F, 0xFF7A30);
 			}
 			return super.tick(world);
 		}
@@ -717,6 +861,33 @@ public final class Cinematics {
 					int col = i % 3 == 0 ? 0xFF8A20 : i % 3 == 1 ? 0x3E9A44 : 0x1E55B8;
 					Solids.tube(solid, m, pc.subtract(ax), pc.add(ax), sz * 0.5, sz * 0.2, 5, col, 1.0F, true);
 					FxDraw.beam(glow, m, pc, pc.subtract(shardDir[i].multiply(shardSpeed[i] * 6)), Vec3d.ZERO, 1.4, 0xFFC070, 0.6F);
+				}
+				// A flat rubble disc spreading through the orbital plane, plus shock rings at odd angles.
+				Vec3d dn = new Vec3d(0.15, 1, 0.25).normalize();
+				Vec3d[] db = ArsenalEffects.basis(dn);
+				float dfade = (float) Math.max(0, 1 - e / 120);
+				FxDraw.ring(shade, m, c, db[0], db[1], R * 0.8 + e * 3.5, R * 1.2 + e * 6, 0xB07040, 0.0F, 0.55F * dfade, 0.0F, 96);
+				for (int i = 0; i < 140; i++) {
+					double ang = Solids.hash(i, 71) * MathHelper.TAU + e * 0.004;
+					double rr = R * 0.9 + e * (2.5 + Solids.hash(i, 72) * 4.5);
+					Vec3d p = c.add(db[0].multiply(Math.cos(ang) * rr)).add(db[1].multiply(Math.sin(ang) * rr)).add(dn.multiply((Solids.hash(i, 73) - 0.5) * 10));
+					Solids.dot(glow, m, p, cb, 1.2 + Solids.hash(i, 74) * 2.2, i % 2 == 0 ? 0xFFB060 : 0xFF6A20, 0.9F * dfade);
+				}
+				for (int k = 0; k < 3; k++) {
+					Vec3d[] kb = ArsenalEffects.basis(sphereDir(k, 55));
+					double rr = e * (10 + k * 3);
+					FxDraw.ring(glow, m, c, kb[0], kb[1], rr, rr + 6, k == 0 ? 0xFFFFFF : 0xFF9040, 0.0F, 0.6F * (float) Math.max(0, 1 - e / (45 + k * 10)), 0.0F, 96);
+				}
+				// The shards catch the moon: it breaks apart and tumbles away.
+				if (e >= 20) {
+					float me = e - 20;
+					Vec3d away = mc.subtract(c).normalize();
+					for (int i = 0; i < 18; i++) {
+						Vec3d d = sphereDir(i, 81).add(away.multiply(1.2)).normalize();
+						Vec3d p = mc.add(d.multiply(6 + me * (0.25 + Solids.hash(i, 82) * 0.5)));
+						rock(solid, m, p, 4 + Solids.hash(i, 83) * 7, me * 0.05, i, 0xA8A8B0);
+					}
+					Solids.dot(glow, m, mc, cb, 30 * Math.max(0, 1 - me / 30), 0xFFE0C0, 0.8F);
 				}
 				double fr = 20 + e * 9;
 				FxDraw.sphere(glow, m, c, fr, Vec3d.ZERO, 0xFFFFFF, 0.6F * (float) Math.max(0, 1 - e / 50), 0.9F * (float) Math.max(0, 1 - e / 60), 16, 32);
@@ -825,6 +996,10 @@ public final class Cinematics {
 		@Override
 		public boolean tick(ClientWorld world) {
 			ClientFx.tintSky(0x000006, 1.0F);
+			if (age >= 240) {
+				// The engine is the light source of every shot from ignition on.
+				ClientFx.light(rocketCentre(age).subtract(rocketDir(age).multiply(LEN / 2)), 0.6F + 0.6F * (float) clamp01((age - 240) / 50.0), 0xC0FFE0);
+			}
 			return super.tick(world);
 		}
 
@@ -897,10 +1072,50 @@ public final class Cinematics {
 			} else {
 				Solids.dot(glow, m, bs.add(0, 2, 0), cb, 90 * Math.max(0.0, 1 - (a - 280) / 80.0), 0xC0FFE0, 0.7F);
 			}
+			if (flame > 0) {
+				// Shock diamonds in the exhaust.
+				Vec3d nozzle = rcw.subtract(cam).subtract(rdir.multiply(LEN / 2));
+				for (int k = 1; k <= 6; k++) {
+					Vec3d np = nozzle.subtract(rdir.multiply(k * RR * 1.7));
+					float pulse = 0.8F + 0.2F * MathHelper.sin(a * 1.7F + k);
+					Solids.dot(glow, m, np, cb, RR * (1.05 - k * 0.12), k % 2 == 0 ? 0xFFFFFF : 0x80FFD0, flame * pulse * (0.85F - k * 0.11F));
+				}
+			}
+			if (a >= 240 && a < 360) {
+				// Exhaust billowing across the pad, and the launch shock rings.
+				float l = a - 240;
+				dustWall(shade, m, cb, bs, 8 + l * 1.5, 10 + l * 0.3, 0xD0C8DC, 0.8F * (1 - l / 120.0F), 7);
+				for (int k = 0; k < 3; k++) {
+					double rr = (a - 280 - k * 9) * 3.2;
+					if (rr > 1) {
+						FxDraw.ring(glow, m, bs.add(0, 1, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), rr, rr + 4, 0xC0FFE0, 0.0F, 0.7F * (float) Math.max(0, 1 - rr / 220), 0.0F, 64);
+					}
+				}
+			}
 			if (a > 300) {
 				Vec3d ec = earth.subtract(cam);
 				double grow = 1.0 + clamp01((a - 360) / 120.0) * 0.35;
-				Cinematics.earth(solid, glow, shade, m, ec, 70 * grow, a * 0.004);
+				double er = 70 * grow;
+				Cinematics.earth(solid, glow, shade, m, ec, er, a * 0.004);
+				if (a > 308) {
+					// Target lock: a reticle closes in on Earth and starts spinning.
+					double lock = 1.0 + (1 - ease((a - 308) / 22.0)) * 1.2;
+					float blinkR = a < 330 && ((int) (a * 0.4) & 1) == 1 ? 0.3F : 0.85F;
+					for (int k = 0; k < 2; k++) {
+						double ang = a * (k == 0 ? 0.03 : -0.05);
+						Vec3d u = cb[0].multiply(Math.cos(ang)).add(cb[1].multiply(Math.sin(ang)));
+						Vec3d v = cb[1].multiply(Math.cos(ang)).subtract(cb[0].multiply(Math.sin(ang)));
+						double rr = er * (k == 0 ? 1.3 : 1.15) * lock;
+						FxDraw.ring(glow, m, ec, u, v, rr, rr + er * 0.03, 0xFF3050, 0.0F, blinkR, 0.0F, 72);
+						if (k == 0) {
+							for (int q = 0; q < 4; q++) {
+								double qa = q * Math.PI / 2;
+								Vec3d dir = u.multiply(Math.cos(qa)).add(v.multiply(Math.sin(qa)));
+								FxDraw.ribbon(glow, m, ec.add(dir.multiply(rr * 1.05)), ec.add(dir.multiply(rr * 1.3)), Vec3d.ZERO, er * 0.03, 0xFF3050, blinkR, blinkR);
+							}
+						}
+					}
+				}
 			}
 		}
 	}

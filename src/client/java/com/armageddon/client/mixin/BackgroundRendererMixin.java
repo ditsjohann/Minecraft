@@ -38,9 +38,18 @@ public abstract class BackgroundRendererMixin {
 	@Inject(method = "applyFog", at = @At("TAIL"))
 	private static void armageddon$spaceFog(Camera camera, BackgroundRenderer.FogType fogType, float viewDistance, boolean thickFog, float tickDelta, CallbackInfo ci) {
 		com.armageddon.client.fx.Cinematics.Cine cine = com.armageddon.client.fx.ClientFx.activeCine();
-		if (cine != null && cine.frame(tickDelta).space) {
+		if (cine == null) {
+			return;
+		}
+		if (cine.frame(tickDelta).space) {
 			RenderSystem.setShaderFogStart(1.0E6F);
 			RenderSystem.setShaderFogEnd(2.0E6F);
+		} else if (fogType == BackgroundRenderer.FogType.FOG_TERRAIN) {
+			// High / wide shots look down from far further than the render distance: push the fog back past
+			// the scene so the city stays visible instead of dissolving into haze.
+			float d = (float) camera.getPos().distanceTo(cine.anchor());
+			RenderSystem.setShaderFogStart(Math.max(RenderSystem.getShaderFogStart(), d * 0.9F));
+			RenderSystem.setShaderFogEnd(Math.max(RenderSystem.getShaderFogEnd(), d + viewDistance));
 		}
 	}
 }

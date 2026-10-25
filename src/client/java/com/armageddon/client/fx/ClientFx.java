@@ -78,6 +78,7 @@ public final class ClientFx {
 		DELAYED.clear();
 		flash = 0;
 		shake = 0;
+		cineGrade = cineExit = 0;
 		distortion = 0;
 		hue = 0;
 		ripple = 1.0F;
@@ -128,6 +129,16 @@ public final class ClientFx {
 	public static int impactTicks, impactStyle;
 	/** FOV punch in degrees, decaying. */
 	public static float fovPunch, fovPunchDecay = 0.85F;
+
+	/** Film grade strength (eased toward 1 during cinematics and letterboxed moments) and the post-cutscene fade. */
+	public static float cineGrade, cineExit;
+
+	/** Black dip for the current frame: the cinematic's own fades, then a short fade back into gameplay. */
+	public static float cineFade(float tickDelta) {
+		Cinematics.Cine c = activeCine();
+		float f = c != null ? c.fade(c.time(tickDelta)) : 0.0F;
+		return MathHelper.clamp(Math.max(f, cineExit), 0.0F, 1.0F);
+	}
 
 	/** The running scripted cinematic, if any. It owns the camera until it finishes. */
 	public static Cinematics.Cine cine;
@@ -568,7 +579,14 @@ public final class ClientFx {
 				}
 			}
 		}
+		float gradeTarget = activeCine() != null ? 1.0F : letterbox > 0.01F ? 0.6F : 0.0F;
+		cineGrade += (gradeTarget - cineGrade) * 0.08F;
+		if (cineGrade < 0.003F && gradeTarget == 0) {
+			cineGrade = 0;
+		}
+		cineExit = cineExit < 0.02F ? 0 : cineExit * 0.8F;
 		if (cine != null && cine.done) {
+			cineExit = 1.0F;
 			cine = null;
 			MinecraftClient.getInstance().options.hudHidden = hudWasHidden;
 		}

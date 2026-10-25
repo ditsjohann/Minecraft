@@ -9,6 +9,7 @@
 //  - Radiation-sickness vision: green cast, film grain, vignette, scanline glitches
 //  - Nuclear flash: over-exposure blooming into a white-out
 //  - World-event grading: desaturation, white-out, black-out, signal static, inversion
+//  - Cutscene film look: bloom, contrast, teal/orange split-tone, vignette, grain, fades to black
 
 uniform sampler2D DiffuseSampler;
 
@@ -39,6 +40,8 @@ uniform float Static;
 uniform float Invert;
 uniform float Impact;
 uniform float ImpactMode;
+uniform float Cine;
+uniform float CineFade;
 
 in vec2 texCoord;
 in vec2 oneTexel;
@@ -158,6 +161,32 @@ void main() {
         col = mix(col, fc, clamp(Flash * 0.7 + lum * Flash * 0.15, 0.0, 0.5));
     }
 
+    // --- Cutscene film look ---
+    if (Cine > 0.0) {
+        // Soft bloom: bright pixels bleed into their surroundings so glows and fire really pop.
+        vec3 bloom = vec3(0.0);
+        for (int i = 0; i < 12; i++) {
+            float a = float(i) * 0.5236;
+            for (int ring = 1; ring <= 2; ring++) {
+                vec2 o = vec2(cos(a), sin(a)) * oneTexel * (6.0 * float(ring) + 2.0);
+                vec3 s = texture(DiffuseSampler, texCoord + o).rgb;
+                bloom += s * smoothstep(0.6, 1.0, dot(s, vec3(0.299, 0.587, 0.114)));
+            }
+        }
+        vec3 g = col + bloom / 24.0 * 0.9;
+        float lum = dot(g, vec3(0.299, 0.587, 0.114));
+        // Punchier saturation and an S-curve contrast.
+        g = mix(vec3(lum), g, 1.22);
+        g = clamp(g, 0.0, 1.5);
+        g = g * g * (3.0 - 2.0 * min(g, vec3(1.0))) * 0.35 + g * 0.65;
+        // Teal shadows, warm highlights.
+        g *= mix(vec3(0.9, 1.0, 1.1), vec3(1.07, 1.0, 0.9), smoothstep(0.1, 0.8, lum));
+        float vig = 1.0 - smoothstep(0.3, 1.1, length(center * vec2(aspect, 1.0)));
+        g *= mix(1.0, vig, 0.55);
+        g += (hash(floor(texCoord * InSize / 1.5) + floor(GTime * 24.0)) - 0.5) * 0.035;
+        col = mix(col, max(g, 0.0), Cine);
+    }
+
     // --- World-event colour grading ---
     if (Desaturate > 0.0) {
         float lum = dot(col, vec3(0.299, 0.587, 0.114));
@@ -200,5 +229,6 @@ void main() {
         col = mix(col, vec3(0.0), clamp(Blackout * (0.75 + 0.25 * vig), 0.0, 1.0));
     }
 
+    col *= 1.0 - clamp(CineFade, 0.0, 1.0);
     fragColor = vec4(col, 1.0);
 }

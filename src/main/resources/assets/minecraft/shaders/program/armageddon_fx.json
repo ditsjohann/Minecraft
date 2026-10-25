@@ -263,6 +263,22 @@
       "values": [
         0.0
       ]
+    },
+    {
+      "name": "Cine",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "CineFade",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
     }
   ]
 }
