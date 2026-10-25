@@ -1,30 +1,29 @@
 package com.armageddon.event.events;
 
 import com.armageddon.destruction.Destruction;
-import com.armageddon.destruction.EnergyFields;
-import com.armageddon.detonation.CraterJob;
-import com.armageddon.detonation.DetonationManager;
-import com.armageddon.detonation.Detonations;
-import com.armageddon.detonation.ShellJob;
-import com.armageddon.entity.BlackHoleEntity;
+import com.armageddon.destruction.celestial.BlockQueue;
 import com.armageddon.event.EventEntity;
 import com.armageddon.event.Kit;
 import com.armageddon.event.WorldEvent;
+import com.armageddon.network.FxType;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModBlocks;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModGameRules;
 import com.armageddon.registry.ModSounds;
-import net.minecraft.block.Block;
+import com.armageddon.util.CelestialTimeline;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.PillarBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.FallingBlockEntity;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -32,10 +31,12 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.Heightmap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +44,10 @@ import java.util.Set;
 /**
  * Celestial tier: world events. Every one is announced server-wide, honours protected regions,
  * the max-radius gamerule and the debris cap, and is cancellable with /armageddon purge.
+ * Each leaves a landscape nothing else does: a bleached, monochrome field of solid light (Last Light),
+ * a frozen hollow with the moment of impact hanging inside it (Zeropoint), the land's own wireframe
+ * (Unmaker), a field of golden spears around a stepped temple (Godfall), and a bottomless pit under
+ * upside-down islands (Final Existence).
  */
 public final class CelestialEvents {
 	private CelestialEvents() {
@@ -60,140 +65,380 @@ public final class CelestialEvents {
 		return Math.min(wanted, world.getGameRules().getInt(ModGameRules.MAX_RADIUS));
 	}
 
-	/** 46 THE LAST LIGHT: a white star pulses the world pale, cracks the land with light, then shines outward. */
+	/** Top block that is ground or a tree trunk (leaves ignored). */
+	static int groundY(ServerWorld world, int x, int z) {
+		return world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
+	}
+
+	static double hash3(int x, int y, int z) {
+		long h = x * 374761393L + y * 668265263L + z * 2147483647L;
+		h = (h ^ (h >>> 13)) * 1274126177L;
+		return ((h ^ (h >>> 16)) & 0xFFFF) / 65535.0;
+	}
+
+	static boolean loaded(ServerWorld world, int x, int z) {
+		return world.isChunkLoaded(x >> 4, z >> 4);
+	}
+
+	// ====================================================================== THE LAST LIGHT
+
+	/**
+	 * 46 THE LAST LIGHT: a dying white star beats like a heart. Every beat bleaches a wider ring of the world
+	 * to bone, quartz and calcite and freezes its light into solid glass needles aimed at the star. It flatlines,
+	 * swells, and exhales once: the colour drains out of the world and the star goes dark.
+	 */
 	public static class LastLight extends WorldEvent {
-		private static final int LIFE = 300;
+		private BlockQueue queue;
+		private int r;
+		private Vec3d star;
 
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d g = center();
-			Vec3d star = g.add(0, 32, 0);
 			if (t == 0) {
+				r = maxRadius(world, 64);
+				star = g.add(0, 38, 0);
 				announce(world, g, "block.armageddon.last_light");
-				// Ends as the collapse orb (t == LIFE - 30) begins, or it would hide the shrink.
-				Vfx.orb(world, star, 0.5F, 9.0F, 0xFFFFFF, 0, LIFE - 30);
-				Vfx.skyTint(world, g, 100000, 0xF0F0FF, 0.8F);
-				Kit.sound(world, g, ModSounds.ORBITAL_CHARGE, 24.0F, 0.3F);
+				queue = BlockQueue.start(world);
+				Vfx.custom(world, FxType.CELESTIAL_FX, star, g, r, 0xFFF4E0, CelestialTimeline.FX_LAST_LIGHT, 0, 0, CelestialTimeline.LL_END, Vfx.FAR);
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_AMBIENT, 32.0F, 0.5F);
 			}
-			if (t > 0 && t < LIFE && t % 40 == 0) {
-				int pulse = t / 40;
-				Vfx.screen(world, g, 1024, pulse % 2 == 0 ? 1 : 0, 0.35F + pulse * 0.06F, 20);
-				Vfx.ring(world, star, 60.0F + pulse * 10, 2.0F, 0xFFFFFF, false, 30);
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 24.0F, 0.5F + pulse * 0.08F);
-				for (int i = 0; i < 3; i++) {
+			int[] beats = CelestialTimeline.LL_BEATS;
+			for (int k = 0; k < beats.length; k++) {
+				if (t == beats[k]) {
+					beat(g, k);
+				}
+				if (t == beats[k] + 6) {
+					Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 40.0F, 0.55F + k * 0.04F);
+				}
+			}
+			if (t == CelestialTimeline.LL_FLATLINE) {
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 48.0F, 0.5F);
+				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 48.0F, 1.6F);
+			}
+			if (t == CelestialTimeline.LL_EXHALE) {
+				exhale(g);
+			}
+			if (t > CelestialTimeline.LL_EXHALE && t < CelestialTimeline.LL_END && t % 3 == 0) {
+				for (int i = 0; i < 8; i++) {
 					double a = world.random.nextDouble() * Math.PI * 2;
-					Vec3d d = new Vec3d(Math.cos(a), 0, Math.sin(a));
-					Kit.fissure(world, g.add(d.multiply(6 + pulse * 3)), d, 20 + pulse * 3, 4, 2, ModBlocks.LUMINOUS_GLASS.getDefaultState());
-				}
-				for (LivingEntity e : Kit.living(world, g, 96)) {
-					e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 60, 0, false, false));
+					double d = Math.sqrt(world.random.nextDouble()) * r;
+					world.spawnParticles(ParticleTypes.WHITE_ASH, g.x + Math.cos(a) * d, g.y + world.random.nextDouble() * 24, g.z + Math.sin(a) * d,
+							1, 0.2, 0.2, 0.2, 0.01);
 				}
 			}
-			if (t == LIFE - 30) {
-				Vfx.orb(world, star, 9.0F, 0.3F, 0xFFFFFF, 2, 30);
-				Vfx.screen(world, g, 1024, 2, 0.6F, 30);
+			return t > CelestialTimeline.LL_END;
+		}
+
+		private void beat(Vec3d g, int k) {
+			double r0 = k == 0 ? 0 : CelestialTimeline.llRadius(k - 1, r);
+			double r1 = CelestialTimeline.llRadius(k, r);
+			Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 56.0F, 0.5F + k * 0.04F);
+			Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 24.0F, 0.6F + k * 0.1F);
+			Vfx.shake(world, g, r * 3, 0.3F + k * 0.04F);
+			for (LivingEntity e : Kit.living(world, g, r1 + 2)) {
+				double d = Math.hypot(e.getX() - g.x, e.getZ() - g.z);
+				if (d < r0 - 2) {
+					continue;
+				}
+				e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100, 0, false, false));
+				e.timeUntilRegen = 0;
+				e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 3.0F + k);
 			}
-			if (t == LIFE) {
-				int r = maxRadius(world, 64);
-				Vfx.layeredBlast(world, g, 24.0F, 0xFFFFFF);
-				Vfx.dome(world, g, r, 0xFFFFFF, 80);
-				Vfx.ring(world, g, r * 2.5F, 5.0F, 0xFFFFFF, true, 80);
-				Vfx.screen(world, g, 100000, 1, 1.0F, 40);
-				Vfx.shake(world, g, 1024, 4.0F);
-				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 32.0F, 1.6F);
-				Detonations.blast(world, g, r * 1.3, 1000.0F, ModDamageTypes.ANNIHILATION, owner(), r, 4.0);
-				if (Destruction.enabled(world)) {
-					DetonationManager.add(new ShellJob(world, BlockPos.ofFloored(g), r, false, ShellJob.Pattern.NONE,
-							ModBlocks.LUMINOUS_GLASS.getDefaultState(), 0.5F));
+			if (queue == null) {
+				return;
+			}
+			bleachRing(g, r0, r1);
+			for (int i = 0; i < 3 + k; i++) {
+				needle(g, r1);
+			}
+			for (int i = 0; i < 2; i++) {
+				Vec3d d = Kit.dir(world.random.nextFloat() * 360.0F);
+				Kit.fissure(world, g.add(d.multiply(r0 + 2)), d, (int) (r1 - r0) + 4, 3, 1, ModBlocks.LUMINOUS_GLASS.getDefaultState());
+			}
+		}
+
+		private void exhale(Vec3d g) {
+			Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.5F);
+			Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 64.0F, 0.4F);
+			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.3F);
+			// The signature: the world is drained of colour while the last light goes out.
+			Vfx.screen(world, g, 100000, 0, 0.8F, 300);
+			Vfx.shake(world, g, r * 4, 1.0F);
+			Kit.damage(world, g, r, 24.0F, ModDamageTypes.ANNIHILATION, null, owner());
+			for (LivingEntity e : Kit.living(world, g, r)) {
+				e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 100, 1, false, false));
+				e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 200, 0, false, false));
+			}
+			if (queue != null) {
+				for (int i = 0; i < 18; i++) {
+					needle(g, r);
 				}
 			}
-			// Aftermath: a field of motes drifts upward for half a minute.
-			if (t > LIFE && t % 2 == 0) {
-				for (int i = 0; i < 20; i++) {
-					double a = world.random.nextDouble() * Math.PI * 2;
-					double d = Math.sqrt(world.random.nextDouble()) * 50;
-					world.spawnParticles(ParticleTypes.END_ROD, g.x + Math.cos(a) * d, g.y - 20 + world.random.nextDouble() * 50, g.z + Math.sin(a) * d,
-							0, 0, 1, 0, 0.08);
+		}
+
+		/** Bleaches every column in the ring r0..r1 from the treetops down to three blocks of ground. */
+		private void bleachRing(Vec3d g, double r0, double r1) {
+			int cx = MathHelper.floor(g.x), cz = MathHelper.floor(g.z);
+			int ri = MathHelper.ceil(r1);
+			BlockPos.Mutable p = new BlockPos.Mutable();
+			for (int dx = -ri; dx <= ri; dx++) {
+				for (int dz = -ri; dz <= ri; dz++) {
+					double d = Math.sqrt(dx * dx + dz * dz);
+					if (d < r0 || d >= r1) {
+						continue;
+					}
+					int x = cx + dx, z = cz + dz;
+					if (!loaded(world, x, z)) {
+						continue;
+					}
+					int top = world.getTopY(Heightmap.Type.WORLD_SURFACE, x, z) - 1;
+					int ground = 0;
+					for (int y = top; y > top - 48 && ground < 3 && y > world.getBottomY(); y--) {
+						p.set(x, y, z);
+						BlockState s = world.getBlockState(p);
+						if (s.isAir()) {
+							continue;
+						}
+						BlockState to = bleach(s, p);
+						if (to != null) {
+							queue.add(p.toImmutable(), to);
+						}
+						if (!s.getFluidState().isEmpty()) {
+							ground = 3;
+						} else if (!s.isIn(BlockTags.LOGS) && !s.isIn(BlockTags.LEAVES) && s.isOpaqueFullCube(world, p)) {
+							ground++;
+						}
+					}
 				}
 			}
-			return t > LIFE + 600;
+		}
+
+		private BlockState bleach(BlockState s, BlockPos p) {
+			if (s.hasBlockEntity()) {
+				return null;
+			}
+			double h = hash3(p.getX(), p.getY(), p.getZ());
+			if (!s.getFluidState().isEmpty()) {
+				if (s.isOf(Blocks.WATER)) {
+					return Blocks.ICE.getDefaultState();
+				}
+				return s.isOf(Blocks.LAVA) ? Blocks.QUARTZ_BLOCK.getDefaultState() : null;
+			}
+			if (s.isIn(BlockTags.LOGS)) {
+				BlockState b = Blocks.BONE_BLOCK.getDefaultState();
+				return s.contains(PillarBlock.AXIS) ? b.with(PillarBlock.AXIS, s.get(PillarBlock.AXIS)) : b;
+			}
+			if (s.isIn(BlockTags.LEAVES)) {
+				return h < 0.1 ? ModBlocks.LUMINOUS_GLASS.getDefaultState() : Blocks.WHITE_STAINED_GLASS.getDefaultState();
+			}
+			if (s.isReplaceable() || s.isIn(BlockTags.FLOWERS) || s.isIn(BlockTags.SAPLINGS)) {
+				return s.isIn(BlockTags.SNOW) ? null : Blocks.AIR.getDefaultState();
+			}
+			if (!s.isOpaqueFullCube(world, p) || s.isIn(BlockTags.SNOW) || s.isOf(Blocks.SNOW_BLOCK)) {
+				return null;
+			}
+			if (s.isIn(BlockTags.SAND)) {
+				return Blocks.WHITE_CONCRETE_POWDER.getDefaultState();
+			}
+			if (s.isIn(BlockTags.DIRT) || s.isOf(Blocks.GRAVEL) || s.isOf(Blocks.CLAY)) {
+				return Blocks.CALCITE.getDefaultState();
+			}
+			if (s.isIn(BlockTags.BASE_STONE_OVERWORLD)) {
+				return h < 0.7 ? Blocks.SMOOTH_QUARTZ.getDefaultState() : Blocks.CALCITE.getDefaultState();
+			}
+			return Blocks.WHITE_CONCRETE.getDefaultState();
+		}
+
+		/** A shaft of light frozen solid: a glass needle rising from the ground, aimed straight at the star. */
+		private void needle(Vec3d g, double maxR) {
+			double a = world.random.nextDouble() * Math.PI * 2;
+			double d = Math.sqrt(world.random.nextDouble()) * maxR;
+			int x = MathHelper.floor(g.x + Math.cos(a) * d), z = MathHelper.floor(g.z + Math.sin(a) * d);
+			if (!loaded(world, x, z)) {
+				return;
+			}
+			Vec3d base = new Vec3d(x + 0.5, world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z), z + 0.5);
+			Vec3d v = star.subtract(base).normalize();
+			int len = 6 + world.random.nextInt(14);
+			BlockPos last = null;
+			for (int i = -2; i < len * 2; i++) {
+				BlockPos q = BlockPos.ofFloored(base.add(v.multiply(i * 0.5)));
+				if (q.equals(last)) {
+					continue;
+				}
+				last = q;
+				queue.add(q, ModBlocks.LUMINOUS_GLASS.getDefaultState(), i < 2 ? BlockQueue.ANY : BlockQueue.AIR);
+			}
+		}
+
+		@Override
+		public void finish() {
+			if (queue != null) {
+				queue.close();
+			}
 		}
 	}
 
-	/** 47 ZEROPOINT ABSOLUTE: time stops, everything is drawn into a pinprick, then the void rings out. */
+	// ====================================================================== ZEROPOINT
+
+	/**
+	 * 47 ZEROPOINT ABSOLUTE: time stops inside a sphere. The ticking slows and dies, twitches backwards, then the
+	 * moment snaps shut: the sphere is cut out of the world as a hollow lined with blue ice and crying obsidian,
+	 * and torn-off pieces of the land hang frozen inside it, mid-flight toward the point where it all ended.
+	 */
 	public static class Zeropoint extends WorldEvent {
+		private static final int[] CLOCK = {0, 6, 12, 20, 30, 44, 62, 86};
 		private final Map<Entity, Boolean> frozen = new HashMap<>();
 		/** Each frozen entity's own NoGravity flag, restored on release. */
 		private final Map<Entity, Boolean> hadNoGravity = new HashMap<>();
-		private List<FallingBlockEntity> pulled = new ArrayList<>();
+		private final List<Long> carve = new ArrayList<>();
+		private final List<BlockPos> fragPos = new ArrayList<>();
+		private final List<BlockState> fragState = new ArrayList<>();
+		private BlockQueue queue;
+		private int r;
+		private int slice;
+		private BlockPos c;
 
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d g = center();
-			Vec3d core = g.add(0, 6, 0);
-			int r = maxRadius(world, 36);
 			if (t == 0) {
+				r = maxRadius(world, 30);
+				c = BlockPos.ofFloored(Kit.ground(world, g.x, g.z));
+				slice = -r;
 				announce(world, g, "block.armageddon.zeropoint");
-				Vfx.screen(world, g, 512, 0, 0.9F, 120);
-				Vfx.bubble(world, g, r, 0x60F0FF, 120);
-				Vfx.grid(world, g, new Vec3d(0, 1, 0), r, 0x60F0FF, 1, 120);
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 24.0F, 0.3F);
+				queue = BlockQueue.start(world);
+				Vfx.custom(world, FxType.CELESTIAL_FX, Vec3d.ofCenter(c), g, r, 0x9FEFFF, CelestialTimeline.FX_ZEROPOINT, 0, 0, CelestialTimeline.ZP_END, Vfx.FAR);
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 32.0F, 0.3F);
+				Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 32.0F, 0.4F);
 			}
-			if (t < 120) {
-				for (Entity e : Kit.entities(world, g, r, x -> !(x instanceof EventEntity) && !Kit.creativeOrSpectator(x))) {
-					if (!frozen.containsKey(e)) {
-						frozen.put(e, e instanceof MobEntity m && !m.isAiDisabled());
-						hadNoGravity.put(e, e.hasNoGravity());
-						if (e instanceof MobEntity m) {
-							m.setAiDisabled(true);
-						}
-					}
-					e.setVelocity(Vec3d.ZERO);
-					e.velocityModified = true;
-					e.setNoGravity(true);
-				}
-			}
-			if (t == 120) {
-				release();
-				pulled = Kit.lift(world, g, r * 0.8, 300, true, true);
-				Vfx.orb(world, core, 4.0F, 0.2F, 0x000000, 1, 80);
-				Vfx.charge(world, host.getId(), core, r, 0x60F0FF, 80);
-				Kit.sound(world, g, ModSounds.BLACK_HOLE, 24.0F, 0.3F);
-				if (Destruction.enabled(world)) {
-					DetonationManager.add(new ShellJob(world, BlockPos.ofFloored(g), r, true, ShellJob.Pattern.NONE,
-							ModBlocks.VOID_REMNANT.getDefaultState(), 0.6F));
-				}
-			}
-			if (t > 120 && t < 200) {
-				for (FallingBlockEntity fb : pulled) {
-					if (fb.isAlive()) {
-						Vec3d to = core.subtract(fb.getPos());
-						if (to.lengthSquared() < 2.0) {
-							fb.discard();
-						} else {
-							Kit.velocity(fb, to.normalize().multiply(Math.min(2.0, 0.3 + (t - 120) * 0.03)));
-						}
+			Vec3d cc = Vec3d.ofCenter(c);
+			if (t < CelestialTimeline.ZP_SNAP) {
+				freeze(cc);
+				for (int k : CLOCK) {
+					if (t == k) {
+						Kit.sound(world, cc, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 24.0F, 1.3F - k * 0.006F);
 					}
 				}
-				for (Entity e : Kit.entities(world, g, r, x -> !(x instanceof FallingBlockEntity) && !(x instanceof EventEntity) && !Kit.creativeOrSpectator(x))) {
-					Kit.push(e, core.subtract(e.getPos()).normalize().multiply(0.15));
+				if (t >= CelestialTimeline.ZP_REWIND && t % 3 == 0) {
+					Kit.sound(world, cc, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 24.0F, 1.9F);
+				}
+				if (queue != null) {
+					for (int i = 0; i < 2 && slice <= r; i++) {
+						scanSlice(slice++);
+					}
 				}
 			}
-			if (t == 200) {
-				Kit.vanish(pulled);
-				Vfx.layeredBlast(world, core, 10.0F, 0x60F0FF);
-				Vfx.ring(world, core, r * 3.0F, 4.0F, 0x60F0FF, false, 50);
-				Vfx.flash(world, g, 1.0F, 100000, 0xC0FFFF);
-				Vfx.screen(world, g, 1024, 4, 0.8F, 10);
-				Vfx.shake(world, g, 1024, 3.5F);
-				Kit.sound(world, g, ModSounds.ANTIMATTER, 32.0F, 1.2F);
-				Detonations.blast(world, g, r * 1.4, 1000.0F, ModDamageTypes.ANNIHILATION, owner(), 0, 5.0);
-				EnergyFields.emit(world, EnergyFields.Energy.CRYO, g, r, 600, owner());
-				return true;
+			if (t == CelestialTimeline.ZP_SNAP) {
+				snap(cc);
 			}
-			return false;
+			if (t > CelestialTimeline.ZP_SNAP && t < CelestialTimeline.ZP_SNAP + 120 && t % 8 == 0) {
+				world.spawnParticles(ParticleTypes.SNOWFLAKE, cc.x, cc.y, cc.z, 40, r * 0.5, r * 0.5, r * 0.5, 0.01);
+			}
+			return t > CelestialTimeline.ZP_SNAP + 130;
+		}
+
+		private void freeze(Vec3d cc) {
+			for (Entity e : Kit.entities(world, cc, r, x -> !(x instanceof EventEntity) && !Kit.creativeOrSpectator(x))) {
+				if (!frozen.containsKey(e)) {
+					frozen.put(e, e instanceof MobEntity m && !m.isAiDisabled());
+					hadNoGravity.put(e, e.hasNoGravity());
+					if (e instanceof MobEntity m) {
+						m.setAiDisabled(true);
+					}
+				}
+				e.setVelocity(Vec3d.ZERO);
+				e.velocityModified = true;
+				e.setNoGravity(true);
+			}
+		}
+
+		/** Records one z-slice of the sphere: what will be cut out, and a few pieces to leave hanging. */
+		private void scanSlice(int dz) {
+			BlockPos.Mutable p = new BlockPos.Mutable();
+			for (int dx = -r; dx <= r; dx++) {
+				if (!loaded(world, c.getX() + dx, c.getZ() + dz)) {
+					continue;
+				}
+				for (int dy = -r; dy <= r; dy++) {
+					if (dx * dx + dy * dy + dz * dz > r * r) {
+						continue;
+					}
+					p.set(c.getX() + dx, c.getY() + dy, c.getZ() + dz);
+					BlockState s = world.getBlockState(p);
+					if (s.isAir() || s.hasBlockEntity() || s.getHardness(world, p) < 0) {
+						continue;
+					}
+					carve.add(p.asLong());
+					if (s.isOpaqueFullCube(world, p) && world.random.nextFloat() < 0.015F) {
+						fragPos.add(p.toImmutable());
+						fragState.add(s);
+					}
+				}
+			}
+		}
+
+		private void snap(Vec3d cc) {
+			release();
+			for (Entity e : Kit.entities(world, cc, r, x -> !(x instanceof EventEntity) && !Kit.creativeOrSpectator(x))) {
+				Kit.velocity(e, cc.subtract(e.getPos()).normalize().multiply(0.8));
+				if (e instanceof LivingEntity l) {
+					l.timeUntilRegen = 0;
+					l.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 20.0F);
+					l.setFrozenTicks(300);
+					l.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 140, 0, false, false));
+				}
+			}
+			Kit.sound(world, cc, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.5F);
+			Kit.sound(world, cc, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 64.0F, 0.6F);
+			Kit.sound(world, cc, ModSounds.ANTIMATTER, 40.0F, 1.4F);
+			Vfx.shake(world, cc, r * 4, 1.4F);
+			if (queue == null) {
+				return;
+			}
+			BlockState air = Blocks.AIR.getDefaultState();
+			for (long l : carve) {
+				queue.add(BlockPos.fromLong(l), air);
+			}
+			carve.clear();
+			// A polished shell: blue ice against the cut, packed ice behind it, veins of crying obsidian below ground.
+			int ro = r + 2;
+			BlockPos.Mutable p = new BlockPos.Mutable();
+			for (int dx = -ro; dx <= ro; dx++) {
+				for (int dz = -ro; dz <= ro; dz++) {
+					for (int dy = -ro; dy <= ro; dy++) {
+						double d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+						if (d <= r || d > r + 1.7) {
+							continue;
+						}
+						p.set(c.getX() + dx, c.getY() + dy, c.getZ() + dz);
+						BlockState s = dy < 0 && hash3(p.getX(), p.getY(), p.getZ()) < 0.1 ? Blocks.CRYING_OBSIDIAN.getDefaultState()
+								: d < r + 0.85 ? Blocks.BLUE_ICE.getDefaultState() : Blocks.PACKED_ICE.getDefaultState();
+						queue.add(p.toImmutable(), s, BlockQueue.SOLID);
+					}
+				}
+			}
+			// The frozen instant: pieces of the land caught halfway to the point, hanging in the hollow.
+			int n = Math.min(36, fragPos.size());
+			for (int i = 0; i < n; i++) {
+				int k = world.random.nextInt(fragPos.size());
+				BlockPos o = fragPos.get(k);
+				BlockState s = fragState.get(k);
+				double f = 0.3 + world.random.nextDouble() * 0.4;
+				BlockPos q = BlockPos.ofFloored(cc.add(Vec3d.ofCenter(o).subtract(cc).multiply(f)));
+				queue.add(q, s, BlockQueue.AIR);
+				for (int j = 0; j < 3; j++) {
+					if (world.random.nextBoolean()) {
+						queue.add(q.add(world.random.nextInt(3) - 1, world.random.nextInt(3) - 1, world.random.nextInt(3) - 1), s, BlockQueue.AIR);
+					}
+				}
+			}
+			fragPos.clear();
+			fragState.clear();
+			queue.add(c, Blocks.CRYING_OBSIDIAN.getDefaultState());
 		}
 
 		private void release() {
@@ -213,55 +458,165 @@ public final class CelestialEvents {
 		@Override
 		public void finish() {
 			release();
-			Kit.vanish(pulled);
+			if (queue != null) {
+				queue.close();
+			}
 		}
 	}
 
-	/** 48 THE UNMAKER: the area is shown as a wireframe, then unmade shell by shell in geometric patterns. */
+	// ====================================================================== THE UNMAKER
+
+	/**
+	 * 48 THE UNMAKER: a render pass sweeps across the land in a straight line. Behind it only the world's
+	 * wireframe is left: a lattice of every fourth row of every block, water and lava turned to stained glass,
+	 * the border flickering in the magenta and black of a missing texture.
+	 */
 	public static class Unmaker extends WorldEvent {
-		private ShellJob job;
+		private BlockQueue queue;
+		private int r, cx, cz, gy, y0, y1, ptr;
+		private Vec3d dir;
+		private int[] colX, colZ;
+		private double[] colU;
 
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d g = center();
-			int r = maxRadius(world, 56);
 			if (t == 0) {
-				announce(world, g, "block.armageddon.unmaker");
-				Vfx.wirebox(world, g.add(-r, -r, -r), g.add(r, r, r), 0xFFFFFF, 100);
-				Vfx.grid(world, g, new Vec3d(0, 1, 0), r, 0xFFFFFF, 2, 100);
-				Vfx.screen(world, g, 512, 0, 1.0F, 100);
-				Kit.sound(world, g, SoundEvents.BLOCK_END_PORTAL_SPAWN, 24.0F, 0.5F);
+				start(g);
 			}
-			if (t > 0 && t < 100 && t % 10 == 0) {
-				Vfx.glitch(world, g, r, 0xFFFFFF, 6);
-				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 16.0F, 0.5F + t * 0.01F);
-			}
-			if (t == 100) {
-				Vfx.flash(world, g, 0.8F, 1024, 0xFFFFFF);
-				Vfx.screen(world, g, 1024, 4, 1.0F, 8);
-				Kit.sound(world, g, ModSounds.ANTIMATTER, 32.0F, 0.5F);
-				if (Destruction.enabled(world)) {
-					job = new ShellJob(world, BlockPos.ofFloored(g), r, false, ShellJob.Pattern.MIXED, ModBlocks.LUMINOUS_GLASS.getDefaultState(), 0.12F);
-					DetonationManager.add(job);
+			int end = CelestialTimeline.UM_START + CelestialTimeline.UM_SCAN;
+			if (t >= CelestialTimeline.UM_START && t <= end + 1) {
+				double s = CelestialTimeline.umPlane(t, r);
+				while (ptr < colU.length && colU[ptr] <= s) {
+					if (queue != null) {
+						unmakeColumn(cx + colX[ptr], cz + colZ[ptr], Math.sqrt(colX[ptr] * colX[ptr] + colZ[ptr] * colZ[ptr]));
+					}
+					ptr++;
+				}
+				Vec3d plane = new Vec3d(cx + 0.5 + dir.x * s, gy + 1, cz + 0.5 + dir.z * s);
+				if (t % 4 == 0) {
+					hitPlane(s);
+				}
+				if (t % 5 == 0) {
+					float[] scale = {0.5F, 0.6F, 0.75F, 0.9F, 1.0F, 1.2F, 0.9F, 0.6F};
+					Kit.sound(world, plane, SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), 24.0F, scale[(t / 5) % scale.length]);
+				}
+				if (t % 20 == 0) {
+					Kit.sound(world, plane, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 24.0F, 0.5F);
 				}
 			}
-			if (t > 100 && t % 4 == 0) {
-				float shell = job != null ? job.currentShell() : (t - 100) * 0.5F;
-				Vfx.ring(world, g, shell * 2 + 2, 1.0F, 0xFFFFFF, false, 6);
-				// Damage the advancing shell itself, not ground zero (radial falloff left the front at ~1).
-				for (LivingEntity e : Kit.living(world, g, Math.min(r, shell + 2))) {
-					if (e.getPos().distanceTo(g) >= shell - 2) {
-						e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 60.0F);
+			if (t == end + 2) {
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 40.0F, 0.4F);
+				Vfx.glitch(world, g, r, 0xFF40FF, 16);
+			}
+			return t > CelestialTimeline.UM_END;
+		}
+
+		private void start(Vec3d g) {
+			r = maxRadius(world, 48);
+			cx = MathHelper.floor(g.x);
+			cz = MathHelper.floor(g.z);
+			gy = groundY(world, cx, cz);
+			y0 = Math.max(world.getBottomY() + 1, gy - CelestialTimeline.UM_BELOW);
+			y1 = Math.min(world.getTopY() - 1, gy + CelestialTimeline.UM_ABOVE);
+			dir = Kit.dir(data.getFloat("Yaw"));
+			announce(world, g, "block.armageddon.unmaker");
+			queue = BlockQueue.start(world);
+			Vfx.custom(world, FxType.CELESTIAL_FX, new Vec3d(cx + 0.5, gy + 1, cz + 0.5), dir, r, 0xFF40FF, CelestialTimeline.FX_UNMAKER,
+					y0, y1, CelestialTimeline.UM_END, Vfx.FAR);
+			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 40.0F, 0.5F);
+			Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), 40.0F, 0.5F);
+			// Columns sorted by their position along the sweep, so the pass reaches them in order.
+			List<double[]> cols = new ArrayList<>();
+			for (int dx = -r; dx <= r; dx++) {
+				for (int dz = -r; dz <= r; dz++) {
+					if (dx * dx + dz * dz <= r * r) {
+						cols.add(new double[]{dx * dir.x + dz * dir.z, dx, dz});
 					}
 				}
 			}
-			return t > 100 && (job == null ? t > 220 : job.isDone());
+			cols.sort((a, b) -> Double.compare(a[0], b[0]));
+			colU = new double[cols.size()];
+			colX = new int[cols.size()];
+			colZ = new int[cols.size()];
+			for (int i = 0; i < cols.size(); i++) {
+				colU[i] = cols.get(i)[0];
+				colX[i] = (int) cols.get(i)[1];
+				colZ[i] = (int) cols.get(i)[2];
+			}
+		}
+
+		private void unmakeColumn(int x, int z, double d) {
+			if (!loaded(world, x, z)) {
+				return;
+			}
+			boolean edge = d > r - 2.5;
+			BlockState air = Blocks.AIR.getDefaultState();
+			BlockPos.Mutable p = new BlockPos.Mutable();
+			for (int y = y0; y <= y1; y++) {
+				p.set(x, y, z);
+				BlockState s = world.getBlockState(p);
+				if (s.isAir() || s.hasBlockEntity()) {
+					continue;
+				}
+				if (!CelestialTimeline.umLattice(x - cx, y - gy, z - cz)) {
+					queue.add(p.toImmutable(), air);
+				} else if (!s.getFluidState().isEmpty() && !s.isFullCube(world, p)) {
+					BlockState glass = s.getFluidState().isOf(net.minecraft.fluid.Fluids.LAVA) || s.getFluidState().isOf(net.minecraft.fluid.Fluids.FLOWING_LAVA)
+							? Blocks.ORANGE_STAINED_GLASS.getDefaultState() : Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState();
+					queue.add(p.toImmutable(), glass);
+				} else if (!s.isFullCube(world, p)) {
+					queue.add(p.toImmutable(), air);
+				} else if (edge) {
+					queue.add(p.toImmutable(), ((x + y + z) & 1) == 0 ? Blocks.MAGENTA_CONCRETE.getDefaultState() : Blocks.BLACK_CONCRETE.getDefaultState());
+				}
+			}
+		}
+
+		/** Anything the pass crosses is unmade with it; dropped items simply stop existing. */
+		private void hitPlane(double s) {
+			Vec3d c = new Vec3d(cx + 0.5, gy, cz + 0.5);
+			for (Entity e : Kit.entities(world, c, r + 2, x -> !(x instanceof EventEntity) && !Kit.creativeOrSpectator(x))) {
+				double u = (e.getX() - c.x) * dir.x + (e.getZ() - c.z) * dir.z;
+				if (Math.abs(u - s) > 2.0 || e.getY() < y0 || e.getY() > y1 + 4) {
+					continue;
+				}
+				if (e instanceof ItemEntity) {
+					e.discard();
+				} else if (e instanceof LivingEntity l) {
+					l.timeUntilRegen = 0;
+					l.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 12.0F);
+					l.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 60, 0, false, false));
+				}
+			}
+		}
+
+		@Override
+		public void finish() {
+			if (queue != null) {
+				queue.close();
+			}
 		}
 	}
 
-	/** 49 GODFALL PROTOCOL: sky panels open, then meteors, gravity wells, celestial beams and a final convergence. */
+	// ====================================================================== GODFALL
+
+	/**
+	 * 49 GODFALL PROTOCOL: six gates open in the sky and the gods throw golden spears, volley after faster
+	 * volley, each one left standing where it struck. The last and largest spear presses a stepped temple into
+	 * the ground: sandstone terraces ringed with gold, an altar, and the spear standing in it.
+	 */
 	public static class Godfall extends WorldEvent {
+		private record Spear(int land, Vec3d start, Vec3d target, int len, boolean big) {
+		}
+
+		private final List<Spear> spears = new ArrayList<>();
+		private BlockQueue queue;
+		private int r, cx, cz, gy, nextVolley;
+		/** Temple ring being pressed (one block of radius per tick); -1 before, -2 when finished. */
+		private int ring = -1;
+
 		private Vec3d panel(int i) {
 			double a = i * Math.PI * 2 / 6;
 			return center().add(Math.cos(a) * 40, 90, Math.sin(a) * 40);
@@ -272,110 +627,206 @@ public final class CelestialEvents {
 			int t = age();
 			Vec3d g = center();
 			if (t == 0) {
+				r = maxRadius(world, 40);
+				cx = MathHelper.floor(g.x);
+				cz = MathHelper.floor(g.z);
+				gy = groundY(world, cx, cz);
+				nextVolley = CelestialTimeline.GF_VOLLEY_START;
 				announce(world, g, "block.armageddon.godfall");
+				queue = BlockQueue.start(world);
 				for (int i = 0; i < 6; i++) {
-					Vfx.grid(world, panel(i), new Vec3d(0, -1, 0), 12.0F, 0xFFE8A0, 0, 340);
+					Vfx.grid(world, panel(i), new Vec3d(0, -1, 0), 12.0F, 0xFFE8A0, 0, CelestialTimeline.GF_TEMPLE + 40);
 				}
-				Vfx.skyTint(world, g, 100000, 0xFFE0A0, 0.6F);
-				Vfx.skyCrack(world, g, 0.6F, 0xFFE8A0, 1, 340);
-				Kit.sound(world, g, SoundEvents.BLOCK_END_PORTAL_SPAWN, 24.0F, 0.6F);
+				Vfx.skyTint(world, g, 100000, 0xFFE0A0, 0.4F);
+				Kit.sound(world, g, SoundEvents.BLOCK_END_PORTAL_SPAWN, 32.0F, 0.6F);
+				Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 32.0F, 0.5F);
 			}
-			int i = t % 6;
-			if (t >= 40 && t < 120 && t % 4 == 0) {
-				Kit.meteor(world, Kit.ground(world, g.x + world.random.nextGaussian() * 30, g.z + world.random.nextGaussian() * 30), owner());
-			}
-			if (t == 120 || t == 140 || t == 160) {
-				int k = (t - 120) / 20;
-				double a = k * Math.PI * 2 / 3;
-				Vec3d well = Kit.ground(world, g.x + Math.cos(a) * 25, g.z + Math.sin(a) * 25).add(0, 4, 0);
-				Vfx.beam(world, panel(k * 2), well, 2.0F, 0xFFE8A0, 20);
-				BlackHoleEntity.spawn(world, well, 3.0F, 120, true, owner(), 400);
-			}
-			if (t >= 200 && t < 270 && t % 5 == 0) {
-				Vec3d hit = Kit.ground(world, g.x + world.random.nextGaussian() * 30, g.z + world.random.nextGaussian() * 30);
-				Vfx.beam(world, panel(i), hit, 2.5F, 0xFFF0C0, 12);
-				Vfx.pillar(world, hit, 2.0F, 0xFFE8A0, false, 15);
-				Detonations.blast(world, hit, 8, 40.0F, ModDamageTypes.PLASMA, owner(), 4, 1.5);
-				if (Destruction.enabled(world)) {
-					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(hit), 4, CraterJob.Mode.SHAFT));
+			if (t >= nextVolley && t < CelestialTimeline.GF_FINAL - CelestialTimeline.GF_SPEAR_FALL) {
+				int n = 1 + (t - CelestialTimeline.GF_VOLLEY_START) / 60;
+				for (int i = 0; i < n; i++) {
+					launch(t, g);
 				}
-				Kit.sound(world, hit, ModSounds.ORBITAL_STRIKE, 12.0F, 1.0F);
+				nextVolley = t + Math.max(5, 24 - (t - CelestialTimeline.GF_VOLLEY_START) / 9);
+				Kit.sound(world, g, SoundEvents.BLOCK_BELL_USE, 32.0F, 0.5F + world.random.nextFloat() * 0.3F);
 			}
-			if (t == 280) {
-				for (int k = 0; k < 6; k++) {
-					Vfx.beam(world, panel(k), g, 5.0F, 0xFFFFFF, 60);
+			if (t == CelestialTimeline.GF_FINAL) {
+				Vec3d target = new Vec3d(cx + 0.5, gy + 1, cz + 0.5);
+				Vec3d start = target.add(world.random.nextGaussian() * 12, 190, world.random.nextGaussian() * 12);
+				spears.add(new Spear(t + CelestialTimeline.GF_FINAL_FALL, start, target, 36, true));
+				Vfx.custom(world, FxType.CELESTIAL_FX, start, target, 36, 0xFFE080, CelestialTimeline.FX_SPEAR, 1, 0, CelestialTimeline.GF_FINAL_FALL, Vfx.FAR);
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.4F);
+				Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.3F);
+			}
+			Iterator<Spear> it = spears.iterator();
+			while (it.hasNext()) {
+				Spear sp = it.next();
+				if (sp.land() <= t) {
+					land(sp);
+					it.remove();
 				}
-				Vfx.charge(world, host.getId(), g.add(0, 10, 0), 60.0F, 0xFFE8A0, 60);
-				Kit.sound(world, g, ModSounds.DEATH_RAY, 32.0F, 0.3F);
 			}
-			if (t == 340) {
-				int r = maxRadius(world, 40);
-				Vfx.layeredBlast(world, g, 26.0F, 0xFFE8A0);
-				Vfx.dome(world, g, r * 1.4F, 0xFFE8A0, 80);
-				Vfx.ring(world, g, r * 3.5F, 5.0F, 0xFFFFFF, true, 80);
-				Vfx.flash(world, g, 1.0F, 100000, 0xFFFFFF);
-				Vfx.screen(world, g, 1024, 1, 1.0F, 30);
-				Vfx.shake(world, g, 2048, 4.5F);
-				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 32.0F, 0.4F);
-				Detonations.blast(world, g, r * 1.6, 1000.0F, ModDamageTypes.ANNIHILATION, owner(), r, 5.0);
-				if (Destruction.enabled(world)) {
-					CraterJob crater = new CraterJob(world, BlockPos.ofFloored(g), r, CraterJob.Mode.NUKE);
-					DetonationManager.add(crater);
-					for (int k = 0; k < 10; k++) {
-						Vec3d d = Kit.dir(k * 36 + world.random.nextFloat() * 20);
-						Kit.fissure(world, g.add(d.multiply(r * 0.9)), d, r, 8, 3, ModBlocks.GOLD_FISSURE.getDefaultState());
+			if (t == CelestialTimeline.GF_TEMPLE) {
+				pressTemple(g);
+			}
+			if (ring >= 0) {
+				if (queue != null) {
+					templeRing(ring);
+				}
+				ring++;
+				if (ring > r + 1) {
+					if (queue != null) {
+						altarSpear();
 					}
-					// Floating islands of torn-up ground hang above the crater. Placed once the crater is
-					// carved, since they sit inside its volume and would otherwise be erased with it.
-					afterJob(world, crater, 120, () -> {
-						for (int k = 0; k < 7; k++) {
-							double a = world.random.nextDouble() * Math.PI * 2;
-							double d = r * (0.3 + world.random.nextDouble() * 0.6);
-							island(world, BlockPos.ofFloored(g.x + Math.cos(a) * d, g.y + 18 + world.random.nextInt(20), g.z + Math.sin(a) * d));
-						}
-					});
+					ring = -2;
 				}
-				return true;
 			}
-			return false;
+			return ring == -2 && t > CelestialTimeline.GF_TEMPLE + 20;
 		}
 
-		/** Runs {@code action} once {@code job} is done, polling every 10 ticks for up to {@code tries} polls. */
-		private static void afterJob(ServerWorld world, CraterJob job, int tries, Runnable action) {
-			DetonationManager.schedule(world, 10, () -> {
-				if (job.isDone() || tries <= 0) {
-					action.run();
-				} else {
-					afterJob(world, job, tries - 1, action);
-				}
-			});
+		private void launch(int t, Vec3d g) {
+			double a = world.random.nextDouble() * Math.PI * 2;
+			double d = r * (0.5 + world.random.nextDouble() * 0.85);
+			Vec3d target = Kit.ground(world, g.x + Math.cos(a) * d, g.z + Math.sin(a) * d);
+			Vec3d start = panel(world.random.nextInt(6)).add(world.random.nextGaussian() * 6, world.random.nextDouble() * 20, world.random.nextGaussian() * 6);
+			int len = 11 + world.random.nextInt(9);
+			spears.add(new Spear(t + CelestialTimeline.GF_SPEAR_FALL, start, target, len, false));
+			Vfx.custom(world, FxType.CELESTIAL_FX, start, target, len, 0xFFD060, CelestialTimeline.FX_SPEAR, 0, 0, CelestialTimeline.GF_SPEAR_FALL, Vfx.FAR);
 		}
 
-		private static void island(ServerWorld world, BlockPos c) {
-			int rr = 2 + world.random.nextInt(3);
-			for (int dx = -rr; dx <= rr; dx++) {
-				for (int dz = -rr; dz <= rr; dz++) {
-					int depth = rr - (int) Math.sqrt(dx * dx + dz * dz);
-					for (int dy = 0; dy <= depth; dy++) {
-						BlockPos p = c.add(dx, -dy, dz);
-						if (!world.getBlockState(p).isAir()) {
-							continue;
-						}
-						BlockState s = dy == 0 ? Blocks.GRASS_BLOCK.getDefaultState() : dy < 2 ? Blocks.DIRT.getDefaultState() : Blocks.STONE.getDefaultState();
-						if (depth > 0 && dy == depth && world.random.nextBoolean()) {
-							s = ModBlocks.GOLD_FISSURE.getDefaultState();
-						}
-						Destruction.set(world, p, s, Block.NOTIFY_ALL);
+		private void land(Spear sp) {
+			Vec3d at = sp.target();
+			Kit.sound(world, at, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, sp.big() ? 64.0F : 12.0F, sp.big() ? 0.5F : 1.5F);
+			Kit.sound(world, at, SoundEvents.BLOCK_ANVIL_LAND, sp.big() ? 48.0F : 12.0F, 0.6F);
+			if (sp.big()) {
+				// The great spear's blocks go up once the temple has been pressed around it.
+				return;
+			}
+			Destruction.explode(world, null, at.x, at.y, at.z, 2.5F, false);
+			Kit.damage(world, at, 5, 30.0F, ModDamageTypes.PLASMA, null, owner());
+			Vfx.shake(world, at, 64, 0.4F);
+			if (queue == null) {
+				return;
+			}
+			Vec3d dir = sp.target().subtract(sp.start()).normalize();
+			BlockPos last = null;
+			for (double i = -3; i <= sp.len(); i += 0.5) {
+				BlockPos q = BlockPos.ofFloored(at.subtract(dir.multiply(i)));
+				if (q.equals(last)) {
+					continue;
+				}
+				last = q;
+				BlockState s = i < 1 ? ModBlocks.GOLD_FISSURE.getDefaultState()
+						: i > sp.len() - 2 ? Blocks.SHROOMLIGHT.getDefaultState() : Blocks.HONEYCOMB_BLOCK.getDefaultState();
+				queue.add(q, s);
+			}
+		}
+
+		private void pressTemple(Vec3d g) {
+			ring = 0;
+			Vec3d c = new Vec3d(cx + 0.5, gy + 1, cz + 0.5);
+			Vfx.custom(world, FxType.CELESTIAL_FX, c, g, r, 0xFFD060, CelestialTimeline.FX_TEMPLE, gy, 0,
+					CelestialTimeline.GF_END - CelestialTimeline.GF_TEMPLE, Vfx.FAR);
+			Kit.damage(world, c, r, 26.0F, ModDamageTypes.ANNIHILATION, null, owner());
+			for (LivingEntity e : Kit.living(world, c, r)) {
+				Vec3d out = new Vec3d(e.getX() - c.x, 0, e.getZ() - c.z);
+				Kit.push(e, (out.lengthSquared() > 1.0E-4 ? out.normalize().multiply(0.6) : Vec3d.ZERO).add(0, 0.6, 0));
+			}
+			Vfx.shake(world, c, r * 5, 1.8F);
+			Kit.sound(world, c, SoundEvents.BLOCK_ANVIL_LAND, 64.0F, 0.4F);
+			Kit.sound(world, c, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.6F);
+			Kit.sound(world, c, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.6F);
+		}
+
+		/** Presses one ring of the temple: everything above each terrace cut away, the floor laid in sandstone and gold. */
+		private void templeRing(int k) {
+			BlockState air = Blocks.AIR.getDefaultState();
+			int ri = k + 1;
+			for (int dx = -ri; dx <= ri; dx++) {
+				for (int dz = -ri; dz <= ri; dz++) {
+					double d = Math.sqrt(dx * dx + dz * dz);
+					if (d < k || d >= k + 1) {
+						continue;
+					}
+					int tier = CelestialTimeline.gfTier(d, r);
+					int x = cx + dx, z = cz + dz;
+					if (tier < 0 || !loaded(world, x, z)) {
+						continue;
+					}
+					int floor = gy - tier * 2;
+					int top = world.getTopY(Heightmap.Type.WORLD_SURFACE, x, z) - 1;
+					for (int y = floor + 1; y <= top; y++) {
+						queue.add(new BlockPos(x, y, z), air);
+					}
+					boolean rimTop = CelestialTimeline.gfTier(Math.max(0, d - 1.0), r) > tier;
+					double h = hash3(x, floor, z);
+					BlockState f;
+					if (tier == CelestialTimeline.GF_STEPS && d < 2.5) {
+						f = ModBlocks.GOLD_FISSURE.getDefaultState();
+					} else if (rimTop) {
+						f = h < 0.2 ? ModBlocks.GOLD_FISSURE.getDefaultState() : Blocks.CHISELED_SANDSTONE.getDefaultState();
+					} else {
+						f = tier % 2 == 0 ? Blocks.SMOOTH_SANDSTONE.getDefaultState() : Blocks.CUT_SANDSTONE.getDefaultState();
+					}
+					queue.add(new BlockPos(x, floor, z), f);
+					for (int y = floor - 1; y >= floor - 3; y--) {
+						queue.add(new BlockPos(x, y, z), Blocks.SANDSTONE.getDefaultState());
 					}
 				}
+			}
+		}
+
+		/** The great spear, standing upright in the altar. */
+		private void altarSpear() {
+			int base = gy - CelestialTimeline.GF_STEPS * 2 + 1;
+			for (int i = 0; i <= 36; i++) {
+				BlockPos q = new BlockPos(cx, base + i, cz);
+				BlockState s = i < 2 ? ModBlocks.GOLD_FISSURE.getDefaultState() : i > 33 ? Blocks.SHROOMLIGHT.getDefaultState() : Blocks.HONEYCOMB_BLOCK.getDefaultState();
+				queue.add(q, s);
+				if (i < 30) {
+					BlockState side = i < 2 ? ModBlocks.GOLD_FISSURE.getDefaultState() : Blocks.HONEYCOMB_BLOCK.getDefaultState();
+					queue.add(q.east(), side);
+					queue.add(q.west(), side);
+					queue.add(q.north(), side);
+					queue.add(q.south(), side);
+				}
+			}
+		}
+
+		@Override
+		public void finish() {
+			if (queue != null) {
+				queue.close();
 			}
 		}
 	}
 
-	/** 50 OMEGA: FINAL EXISTENCE. Gravity reverses, the landscape rises, the sky breaks, and everything ends. */
+	// ====================================================================== FINAL EXISTENCE
+
+	/**
+	 * 50 OMEGA: FINAL EXISTENCE. Gravity reverses and the landscape rises toward a dark sphere. The sky cracks,
+	 * then shatters like glass onto an empty cosmos, and the floor of the world falls away: a bottomless pit
+	 * walled in blackstone and crying obsidian, with pieces of the old land floating upside-down above it.
+	 */
 	public static class FinalExistence extends WorldEvent {
+		private static final class Island {
+			final int x, z, y;
+			final List<int[]> offs = new ArrayList<>();
+			final List<BlockState> states = new ArrayList<>();
+
+			Island(int x, int z, int y) {
+				this.x = x;
+				this.z = z;
+				this.y = y;
+			}
+		}
+
 		private List<FallingBlockEntity> rising = new ArrayList<>();
 		private final Set<Entity> floated = new HashSet<>();
+		private final List<Island> islands = new ArrayList<>();
+		private BlockQueue queue;
+		private int pit, cx, cz, gy, bottom;
+		/** Next layer of the pit to cut (top-down); MIN_VALUE until the floor falls, MAX_VALUE once done. */
+		private int layer = Integer.MIN_VALUE;
 
 		@Override
 		public boolean tick() {
@@ -384,17 +835,21 @@ public final class CelestialEvents {
 			Vec3d sphere = g.add(0, 90, 0);
 			int r = maxRadius(world, 160);
 			if (t == 0) {
+				pit = maxRadius(world, 34);
+				cx = MathHelper.floor(g.x);
+				cz = MathHelper.floor(g.z);
+				gy = groundY(world, cx, cz);
+				bottom = world.getBottomY() + 5;
+				queue = BlockQueue.start(world);
 				announce(world, g, "block.armageddon.final_existence");
-				// Ends as the collapse orb (t == 360) begins, or it would hide the collapse and the finale.
-				Vfx.orb(world, sphere, 2.0F, 40.0F, 0x100008, 1, 360);
+				// Ends as the collapse orb (t == FE_BREAK) begins, or it would hide the collapse.
+				Vfx.orb(world, sphere, 2.0F, 40.0F, 0x100008, 1, CelestialTimeline.FE_BREAK);
 				Vfx.skyTint(world, g, 100000, 0x180010, 1.0F);
-				Vfx.screen(world, g, 100000, 0, 0.6F, 400);
 				Kit.sound(world, g, ModSounds.ANTIMATTER, 64.0F, 0.2F);
 			}
 			if (t >= 60 && t < 300) {
 				if (t == 60) {
 					Vfx.gravityFlip(world, g, r, 240);
-					Kit.title(world, g, 100000, Text.translatable("message.armageddon.gravity").formatted(Formatting.DARK_PURPLE, Formatting.BOLD), Text.empty());
 				}
 				if (t % 10 == 0) {
 					for (LivingEntity e : Kit.living(world, g, r)) {
@@ -415,12 +870,15 @@ public final class CelestialEvents {
 				}
 				floated.clear();
 			}
+			if (t == 150 && queue != null) {
+				snapshotIslands();
+			}
 			if (t >= 100 && t < 260 && t % 20 == 0) {
 				rising.addAll(Kit.lift(world, g, r * 0.6, 500 - rising.size() > 0 ? Math.min(80, 500 - rising.size()) : 0, true, true));
-				Vfx.shake(world, g, 2048, 1.5F + (t - 100) * 0.01F);
+				Vfx.shake(world, g, 2048, 0.8F + (t - 100) * 0.005F);
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 32.0F, 0.4F);
 			}
-			if (t >= 100 && t < 360) {
+			if (t >= 100 && t < CelestialTimeline.FE_BREAK) {
 				for (FallingBlockEntity fb : rising) {
 					if (fb.isAlive()) {
 						Vec3d to = sphere.subtract(fb.getPos());
@@ -428,41 +886,132 @@ public final class CelestialEvents {
 					}
 				}
 			}
-			if (t == 200) {
-				Vfx.skyCrack(world, g, 1.0F, 0xFF40FF, 2, 260);
+			if (t == CelestialTimeline.FE_CRACK) {
+				Vfx.custom(world, FxType.CELESTIAL_FX, new Vec3d(cx + 0.5, gy + 1, cz + 0.5), g, 230, 0xFF60FF, CelestialTimeline.FX_SHATTER,
+						CelestialTimeline.FE_BREAK - CelestialTimeline.FE_CRACK, 0, CelestialTimeline.FE_END - CelestialTimeline.FE_CRACK, Vfx.FAR);
 				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.2F);
 			}
-			if (t == 360) {
+			if (t == CelestialTimeline.FE_BREAK) {
 				Kit.vanish(rising);
 				Vfx.orb(world, sphere, 40.0F, 0.1F, 0x100008, 2, 60);
-				Vfx.charge(world, host.getId(), sphere, 160.0F, 0xFF40FF, 60);
 				Kit.sound(world, g, ModSounds.BLACK_HOLE_COLLAPSE, 64.0F, 0.3F);
+				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
+				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 64.0F, 0.3F);
 			}
-			if (t == 420) {
-				Vfx.screen(world, g, 100000, 2, 1.0F, 30);
-				Vfx.layeredBlast(world, g, 40.0F, 0xFF40FF);
-				Vfx.dome(world, g, r, 0xC040FF, 120);
-				Vfx.ring(world, g, r * 3.0F, 8.0F, 0xFFFFFF, true, 120);
-				Vfx.shake(world, g, 100000, 5.0F);
-				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.3F);
-				Detonations.blast(world, g, r * 1.2, 10000.0F, ModDamageTypes.ANNIHILATION, owner(), r * 0.5, 6.0);
-				if (Destruction.enabled(world)) {
-					DetonationManager.add(new ShellJob(world, BlockPos.ofFloored(g), r, false, ShellJob.Pattern.NONE,
-							ModBlocks.VOID_REMNANT.getDefaultState(), 0.25F));
+			if (t == CelestialTimeline.FE_FALL) {
+				floorFalls(g);
+			}
+			if (layer != Integer.MIN_VALUE && layer != Integer.MAX_VALUE) {
+				for (int i = 0; i < 5 && layer >= bottom; i++) {
+					carveLayer(layer--);
 				}
-				EnergyFields.emit(world, EnergyFields.Energy.VOID, g, r, 1200, owner());
+				if (layer < bottom) {
+					finishPit();
+					layer = Integer.MAX_VALUE;
+				}
 			}
-			if (t == 460) {
-				Vfx.screen(world, g, 100000, 3, 0.5F, 200);
-				Vfx.glitch(world, g, r, 0xFF40FF, 200);
-				return true;
+			return t > CelestialTimeline.FE_FALL + 40 && (queue == null || layer == Integer.MAX_VALUE);
+		}
+
+		private void floorFalls(Vec3d g) {
+			Vec3d c = new Vec3d(cx + 0.5, gy, cz + 0.5);
+			Kit.damage(world, c, pit * 1.3, 26.0F, ModDamageTypes.ANNIHILATION, null, owner());
+			for (LivingEntity e : Kit.living(world, c, pit * 1.3)) {
+				e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 500, 0, false, false));
 			}
-			return false;
+			Vfx.shake(world, c, pit * 6, 1.6F);
+			Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F);
+			Kit.sound(world, g, SoundEvents.BLOCK_END_PORTAL_SPAWN, 64.0F, 0.3F);
+			if (queue != null) {
+				layer = gy + 45;
+			}
+		}
+
+		/** Copies cone-shaped plugs of the surface now, to hang them upside-down over the pit later. */
+		private void snapshotIslands() {
+			for (int i = 0; i < 7; i++) {
+				double a = world.random.nextDouble() * Math.PI * 2;
+				double d = Math.sqrt(world.random.nextDouble()) * pit * 0.7;
+				int ix = MathHelper.floor(cx + Math.cos(a) * d), iz = MathHelper.floor(cz + Math.sin(a) * d);
+				int ir = 3 + world.random.nextInt(4);
+				Island is = new Island(ix, iz, gy + 34 + world.random.nextInt(30));
+				for (int dx = -ir; dx <= ir; dx++) {
+					for (int dz = -ir; dz <= ir; dz++) {
+						double dist = Math.sqrt(dx * dx + dz * dz);
+						int x = ix + dx, z = iz + dz;
+						if (dist > ir || !loaded(world, x, z)) {
+							continue;
+						}
+						int depth = (int) ((ir - dist) * 1.4) + 1;
+						int ys = groundY(world, x, z);
+						for (int k = 0; k <= depth; k++) {
+							BlockState s = world.getBlockState(new BlockPos(x, ys - k, z));
+							if (s.isAir() || s.hasBlockEntity() || !s.getFluidState().isEmpty() || !s.isOpaqueFullCube(world, new BlockPos(x, ys - k, z))) {
+								s = k > 2 ? Blocks.STONE.getDefaultState() : Blocks.DIRT.getDefaultState();
+							}
+							is.offs.add(new int[]{dx, dz, k});
+							is.states.add(s);
+						}
+					}
+				}
+				islands.add(is);
+			}
+		}
+
+		private void carveLayer(int y) {
+			BlockState air = Blocks.AIR.getDefaultState();
+			int ro = pit + 2;
+			BlockPos.Mutable p = new BlockPos.Mutable();
+			for (int dx = -ro; dx <= ro; dx++) {
+				for (int dz = -ro; dz <= ro; dz++) {
+					double d = Math.sqrt(dx * dx + dz * dz);
+					int x = cx + dx, z = cz + dz;
+					if (d > pit + 1.5 || !loaded(world, x, z)) {
+						continue;
+					}
+					p.set(x, y, z);
+					BlockState s = world.getBlockState(p);
+					if (s.isAir()) {
+						continue;
+					}
+					if (d <= pit) {
+						queue.add(p.toImmutable(), air);
+					} else {
+						double h = hash3(x, y, z);
+						BlockState wall = h < 0.1 ? Blocks.CRYING_OBSIDIAN.getDefaultState() : y > gy - 3 ? Blocks.OBSIDIAN.getDefaultState() : Blocks.BLACKSTONE.getDefaultState();
+						queue.add(p.toImmutable(), wall, BlockQueue.SOLID);
+					}
+				}
+			}
+		}
+
+		private void finishPit() {
+			for (int dx = -pit; dx <= pit; dx++) {
+				for (int dz = -pit; dz <= pit; dz++) {
+					if (dx * dx + dz * dz <= pit * pit) {
+						queue.add(new BlockPos(cx + dx, bottom, cz + dz), ModBlocks.VOID_REMNANT.getDefaultState());
+					}
+				}
+			}
+			for (Island is : islands) {
+				for (int i = 0; i < is.offs.size(); i++) {
+					int[] o = is.offs.get(i);
+					// Upside-down: the old surface faces the pit, the deepest stone points at the sky.
+					queue.add(new BlockPos(is.x + o[0], is.y + o[2], is.z + o[1]), is.states.get(i), BlockQueue.AIR);
+					if (o[2] == 0 && hash3(is.x + o[0], is.y, is.z + o[1]) < 0.45) {
+						queue.add(new BlockPos(is.x + o[0], is.y - 1, is.z + o[1]), Blocks.HANGING_ROOTS.getDefaultState(), BlockQueue.AIR);
+					}
+				}
+			}
+			islands.clear();
 		}
 
 		@Override
 		public void finish() {
 			Kit.vanish(rising);
+			if (queue != null) {
+				queue.close();
+			}
 		}
 	}
 }
