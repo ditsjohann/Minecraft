@@ -222,4 +222,9 @@ public class SixteenChunksCine extends Cinematics.Cine {
 	private static void aim(Cinematics.State s, Vec3d pos, Vec3d target, float fov, boolean space) {
 		Cinematics.aim(s, pos, target, fov, space);
 	}
+
+	/** No scenery of its own: it films the real chunks, and ChunkGlitchFx draws the grid. */
+	@Override
+	public void render(org.joml.Matrix4f m, net.minecraft.client.render.VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float yaw, float pitch) {
+	}
 }
