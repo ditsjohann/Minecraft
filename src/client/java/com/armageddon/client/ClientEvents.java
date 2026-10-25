@@ -76,15 +76,8 @@ public final class ClientEvents {
 			}
 		}
 
-		float target = 0;
-		if (rad != null) {
-			target = 0.3F + rad.getAmplifier() * 0.2F;
-		}
-		target = Math.max(target, Math.min(0.5F, WmdHud.dose * 0.12F));
-		PostFx.radiation = MathHelper.lerp(0.05F, PostFx.radiation, target);
-		if (PostFx.radiation < 0.003F) {
-			PostFx.radiation = 0;
-		}
+		// No screen-warping "radiation vision": the Geiger counter and HUD meter carry the danger instead.
+		PostFx.radiation = 0;
 	}
 
 	private ClientEvents() {

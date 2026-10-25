@@ -776,7 +776,18 @@ def particle_puff(seed, size=16, softness=1.0):
     lightdir = np.clip(1 - ((xx - c) * 0.55 + (yy - c) * 0.75) / size, 0.3, 1.3)
     v = np.clip(0.62 + 0.22 * (lightdir - 0.8) + 0.18 * n + 0.12 * (1 - d), 0.45, 1)
     alpha = np.clip(body * 1.5 * (0.65 + 0.5 * n), 0, 1)
+    # Fade fully out before the tile edge, or the puff shows a clipped square outline in game.
+    alpha = alpha * _edge_fade(size)
     return K.to_img(np.dstack([v, v, v]), alpha)
+
+
+def _edge_fade(size):
+    """Round mask: 1 in the middle, smoothly 0 a pixel inside the tile border."""
+    yy, xx = np.mgrid[0:size, 0:size]
+    c = (size - 1) / 2
+    d = np.hypot(xx - c, yy - c) / (size / 2 - 1)
+    t = np.clip((1.0 - d) / 0.35, 0, 1)
+    return t * t * (3 - 2 * t)
 
 
 def particle_flame(i):
@@ -792,6 +803,7 @@ def particle_flame(i):
     shape = np.where(t > 0.92, shape * (1 - (t - 0.92) * 6), shape)
     core = np.clip(1 - d * 1.8, 0, 1) * np.clip(t * 1.3 - 0.2, 0, 1)
     a = np.clip(shape ** 0.8 * 1.25, 0, 1)
+    a = a * np.clip((15 - yy) / 2.5, 0, 1) * np.clip(np.minimum(xx, 15 - xx) / 1.5, 0, 1)
     v = np.clip(0.72 + 0.28 * core, 0, 1)
     return K.to_img(np.dstack([v, v, v]), a)
 

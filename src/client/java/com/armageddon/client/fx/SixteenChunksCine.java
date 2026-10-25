@@ -101,18 +101,6 @@ public class SixteenChunksCine extends Cinematics.Cine {
 	}
 
 	@Override
-	public Cinematics.Caption caption(float a) {
-		Cinematics.Caption c;
-		if ((c = Cinematics.cap(a, 8, 72, "16 CHUNKS", "every chunk rolls the dice", 0xFF60FF)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, PRE_REROLL + 4, ChunkRolls.REROLL - 2, "REROLL", "everything. at once.", 0xFF4060)) != null) {
-			return c;
-		}
-		return Cinematics.cap(a, ChunkRolls.REROLL + 70, lifetime - 6, "GOOD LUCK.", "", 0xFFFFFF);
-	}
-
-	@Override
 	public boolean tick(ClientWorld world) {
 		for (int slot = 0; slot < 16; slot++) {
 			if (age == ChunkRolls.rollTick(slot) || age == ChunkRolls.rerollTick(slot)) {

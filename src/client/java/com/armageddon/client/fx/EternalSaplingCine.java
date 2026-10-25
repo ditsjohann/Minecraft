@@ -121,33 +121,6 @@ public class EternalSaplingCine extends Cinematics.Cine {
 	}
 
 	@Override
-	public Cinematics.Caption caption(float a) {
-		Cinematics.Caption c;
-		if ((c = cap(a, 8, 55, "IT STARTS SMALL", "a seed of something eternal", 0xA0FFA0)) != null) {
-			return c;
-		}
-		if ((c = cap(a, 72, 125, "IT GROWS", "", 0xC8FFC8)) != null) {
-			return c;
-		}
-		if ((c = cap(a, 150, 250, "AND GROWS", "", 0xC8FFC8)) != null) {
-			return c;
-		}
-		if ((c = cap(a, 285, 390, "IT DOES NOT STOP GROWING", "", 0xC8FF90)) != null) {
-			return c;
-		}
-		if ((c = cap(a, 430, 515, "ETERNAL", "older than the world", 0xFFE8A0)) != null) {
-			return c;
-		}
-		if ((c = cap(a, 535, 595, "THE ROOTS WAKE", "", 0xD8B880)) != null) {
-			return c;
-		}
-		if ((c = cap(a, 660, 696, "EVERYTHING BELONGS TO THE TREE", "", 0xC8FF90)) != null) {
-			return c;
-		}
-		return cap(a, 706, lifetime - 6, "ETERNAL SAPLING", "it will outlive us all", 0x80FF90);
-	}
-
-	@Override
 	public boolean tick(ClientWorld world) {
 		if (age < CUT_WORLD) {
 			ClientFx.light(base.add(0, Math.max(1, tree != null ? tree.height(age) : 1), 0), 0.5F, 0xA0FF90);

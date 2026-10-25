@@ -87,36 +87,6 @@ public class DiscoBallCine extends Cinematics.Cine {
 	}
 
 	@Override
-	public Cinematics.Caption caption(float a) {
-		Cinematics.Caption c;
-		if ((c = Cinematics.cap(a, 14, 92, "DISCO BALL", "the party is starting", 0xFF80FF)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, 120, 170, "SPIN", "", 0x80FFFF)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, 176, 216, "FASTER", "", 0xFFFF60)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, 236, 318, "IT'S GETTING HOT", "the light is burning everything it touches", 0xFF8040)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, 360, 448, "...cooling down", "", 0x80C8FF)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, 476, 516, "it stops.", "", 0xFFFFFF)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, 528, 556, "wait for it", "", 0x808080)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, DROP, DROP + 40, "DROP", "", 0xFF40FF)) != null) {
-			return c;
-		}
-		return Cinematics.cap(a, FLOOR + 6, lifetime - 6, "THE WORLD IS A DISCO", "", 0x60FFFF);
-	}
-
-	@Override
 	public boolean tick(ClientWorld world) {
 		if (age < DROP) {
 			ClientFx.tintSky(age < COLD ? 0x140828 : 0x061430, 0.8F);

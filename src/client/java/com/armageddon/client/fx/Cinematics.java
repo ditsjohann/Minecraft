@@ -486,24 +486,6 @@ public final class Cinematics {
 		}
 
 		@Override
-		public Caption caption(float a) {
-			Caption c;
-			if ((c = cap(a, 12, 115, "THE SKY IS TEARING OPEN", "something is coming through", 0xC8B8FF)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 145, 255, "IT IS LOOKING FOR US", "", 0xFFFFFF)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 285, 328, "IT FOUND US", "", 0xFF4060)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 345, 432, "GALACTIC SMASH", "brace for impact", 0xFFD080)) != null) {
-				return c;
-			}
-			return cap(a, SPACE + 8, AERIAL - 6, "THE WHOLE EARTH TREMBLES", "", 0xFFFFFF);
-		}
-
-		@Override
 		public boolean tick(ClientWorld world) {
 			ClientFx.tintSky(0x0C0A24, Math.min(0.9F, age / 60.0F));
 			// God rays: the rift, then the giant's chest core, then the charging fist, then the impact.
@@ -906,21 +888,6 @@ public final class Cinematics {
 		}
 
 		@Override
-		public Caption caption(float a) {
-			Caption c;
-			if ((c = cap(a, 10, 110, "EVERYTHING YOU BUILT", "", 0xFFFFFF)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 115, 195, "IS GONE", "", 0xFF9050)) != null) {
-				return c;
-			}
-			if ((c = cap(a, SPACE_AT + 20, SPACE_AT + 110, "AND THEN...", "", 0xFFFFFF)) != null) {
-				return c;
-			}
-			return cap(a, SPACE_AT + 118, SPACE_AT + 175, "THE EARTH", "", 0xFF4030);
-		}
-
-		@Override
 		public boolean tick(ClientWorld world) {
 			if (age >= SPACE_AT) {
 				ClientFx.tintSky(0x000006, 1.0F);
@@ -1086,33 +1053,6 @@ public final class Cinematics {
 				return 1.2F;
 			}
 			return 0.15F;
-		}
-
-		@Override
-		public Caption caption(float a) {
-			Caption c;
-			if ((c = cap(a, 6, 104, "ZORAX PRIME", "meanwhile, 4.2 light-years away", 0xC090FF)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 160, 182, "3", "", 0x60FFA0)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 185, 207, "2", "", 0x60FFA0)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 210, 232, "1", "", 0x60FFA0)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 118, 158, "LOADING PLANET-KILLER", "fuel: dark matter", 0x60FFA0)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 240, 292, "IGNITION", "", 0xFFFFFF)) != null) {
-				return c;
-			}
-			if ((c = cap(a, 308, 392, "TARGET ACQUIRED", "EARTH", 0xFF4060)) != null) {
-				return c;
-			}
-			return cap(a, 402, lifetime - 4, "IMPACT IN 17 SECONDS", "", 0xFF4060);
 		}
 
 		@Override

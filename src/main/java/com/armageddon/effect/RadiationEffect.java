@@ -36,7 +36,6 @@ public class RadiationEffect extends StatusEffect {
 			entity.addStatusEffect(new StatusEffectInstance(StatusEffects.HUNGER, 60, amplifier - 1, true, false));
 		}
 		if (amplifier >= 2) {
-			entity.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 120, 0, true, false));
 			entity.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 60, 1, true, false));
 		}
 		return true;

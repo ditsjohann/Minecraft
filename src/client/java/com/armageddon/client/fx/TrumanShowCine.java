@@ -405,32 +405,9 @@ public class TrumanShowCine extends Cinematics.Cine {
 
 	@Override
 	public Cinematics.Caption caption(float a) {
-		Cinematics.Caption c;
-		if ((c = Cinematics.cap(a, 14, 98, "THE TRUMAN SHOW", "live and unedited · day 10,909", 0xFFFFFF)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, 124, 172, "SIRIUS", "(9 CANIS MAJOR)", 0xFFE8B0)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, CRANE + 4, GLIDE - 4, "IS THE SKY... PAINTED?", "", 0xFFFFFF)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, GLIDE + 6, TrumanSet.DOOR_OPEN - 2, "THERE'S A DOOR", "in the sky", 0xFFFFFF)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, STUDIO + 8, WIDE - 4, "WE ACCEPT THE REALITY", "of the world with which we're presented.", 0xE8E8FF)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, WIDE + 14, TrumanSet.CUT - 4, "CUT THE TRANSMISSION.", "", 0xFF4040)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, TrumanSet.STRIKE + 4, TrumanSet.STRIKE + 56, "STRIKE THE SET", "", 0xFFD060)) != null) {
-			return c;
-		}
-		if ((c = Cinematics.cap(a, FINALE + 6, 648, "GOOD MORNING!", "and in case I don't see ya...", 0xFFFFFF)) != null) {
-			return c;
-		}
-		return Cinematics.cap(a, 652, 698, "GOOD AFTERNOON,", "good evening, and good night.", 0xFFFFFF);
+		// The only words in the whole show are the farewell; everything else is left for the player to read.
+		Cinematics.Caption c = Cinematics.cap(a, FINALE + 6, 648, "GOOD MORNING!", "and in case I don't see ya...", 0xFFFFFF);
+		return c != null ? c : Cinematics.cap(a, 652, 698, "GOOD AFTERNOON,", "good evening, and good night.", 0xFFFFFF);
 	}
 
 	// ======================================================================== tick

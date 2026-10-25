@@ -113,6 +113,17 @@ public final class Effects {
 		}
 	}
 
+	/** A queued smoke billow; translucent puffs must be drawn back to front or far ones paint over near ones. */
+	record Puff(Vec3d c, double r, int top, int bottom, float alpha) {
+	}
+
+	static void drawPuffs(java.util.List<Puff> puffs, VertexConsumer vc, Matrix4f m, Vec3d[] cb, int segs) {
+		puffs.sort((p, q) -> Double.compare(q.c().lengthSquared(), p.c().lengthSquared()));
+		for (Puff p : puffs) {
+			puff(vc, m, p.c(), cb, p.r(), p.top(), p.bottom(), p.alpha(), segs);
+		}
+	}
+
 	/** Horizontal anamorphic lens streak through a bright point. */
 	static void streak(VertexConsumer vc, Matrix4f m, Vec3d c, Vec3d[] cb, double length, double width, int rgb, float alpha) {
 		if (alpha <= 0.004F) {
@@ -549,6 +560,7 @@ public final class Effects {
 			int segs = lod(capC, capR + tube, 6, 12);
 			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
 
+			java.util.List<Puff> puffs = new java.util.ArrayList<>(160);
 			int litTop = fade(0xFFC890, 0xC9BFB4, cool);
 			int litBottom = fade(0xFF6A22, 0x3E3633, cool);
 			// The cap: billows on a torus that roll outward over the top.
@@ -565,7 +577,7 @@ public final class Effects {
 					float up = (float) (Math.sin(v) * 0.5 + 0.5);
 					int top = fade(litBottom, litTop, 0.55F + up * 0.45F);
 					int bottom = fade(litBottom, litTop, up * 0.35F);
-					puff(shade, m, p, cb, pr, top, bottom, 0.62F * body, segs);
+					puffs.add(new Puff(p, pr, top, bottom, 0.62F * body));
 				}
 			}
 			// A crown of billows over the middle so the cap reads as one dome.
@@ -573,7 +585,7 @@ public final class Effects {
 				double ang = MathHelper.TAU * k / 7 + a * 0.002;
 				double rr = k == 0 ? 0 : capR * 0.55;
 				Vec3d p = capC.add(Math.cos(ang) * rr, tube * 0.55, Math.sin(ang) * rr);
-				puff(shade, m, p, cb, tube * 1.05, litTop, fade(litBottom, litTop, 0.4F), 0.55F * body, segs);
+				puffs.add(new Puff(p, tube * 1.05, litTop, fade(litBottom, litTop, 0.4F), 0.55F * body));
 			}
 			// The stem: a twisting column, dusty at the base, lighter as it climbs.
 			double stemTop = Math.max(0, capY - ground.y - tube * 0.5);
@@ -587,7 +599,7 @@ public final class Effects {
 					Vec3d p = g.add(Math.cos(ang) * sr * 0.45, y, Math.sin(ang) * sr * 0.45);
 					int top = fade(fade(0xFF9A50, 0xA89C90, cool), 0xB8AEA4, (float) f * 0.4F);
 					int bottom = fade(fade(0xC0501A, 0x4A403C, cool), 0x6A5E54, (float) f * 0.3F);
-					puff(shade, m, p, cb, sr * 0.9, top, bottom, 0.5F * body, segs);
+					puffs.add(new Puff(p, sr * 0.9, top, bottom, 0.5F * body));
 				}
 			}
 			// Ground surge: a ring of dust billowing outward.
@@ -596,9 +608,12 @@ public final class Effects {
 			for (int k = 0; k < 22; k++) {
 				double ang = MathHelper.TAU * k / 22 + hash(k, 9) * 0.25;
 				double rr = surge * (0.9 + 0.15 * hash(k, 10));
-				Vec3d p = g.add(Math.cos(ang) * rr, scale * 0.25, Math.sin(ang) * rr);
-				puff(shade, m, p, cb, scale * (0.45 + 0.25 * hash(k, 11)), 0xB09A84, 0x5A4E44, surgeA, segs);
+				double pr = scale * (0.45 + 0.25 * hash(k, 11));
+				// Lifted so the billow sits on the ground instead of being sliced by it.
+				Vec3d p = g.add(Math.cos(ang) * rr, pr * 0.6, Math.sin(ang) * rr);
+				puffs.add(new Puff(p, pr, 0xB09A84, 0x5A4E44, surgeA));
 			}
+			drawPuffs(puffs, shade, m, cb, segs);
 			// Condensation (Wilson) collar: a thin white skirt that flashes into being and evaporates.
 			if (a > 14 && a < 70) {
 				float w = smooth((a - 14) / 8.0F) * (1 - smooth((a - 38) / 32.0F));

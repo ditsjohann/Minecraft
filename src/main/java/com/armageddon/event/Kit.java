@@ -244,9 +244,14 @@ public final class Kit {
 	public static void title(ServerWorld w, Vec3d c, double range, Text title, Text subtitle) {
 		for (ServerPlayerEntity p : w.getPlayers()) {
 			if (p.squaredDistanceTo(c) <= range * range) {
-				p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 60, 20));
-				p.networkHandler.sendPacket(new SubtitleS2CPacket(subtitle));
-				p.networkHandler.sendPacket(new TitleS2CPacket(title));
+				// The big title line is drawn at 4x and long bomb names ran off screen: use the half-size
+				// subtitle line for the headline, and the action bar for the small print.
+				p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
+				p.networkHandler.sendPacket(new SubtitleS2CPacket(title));
+				p.networkHandler.sendPacket(new TitleS2CPacket(Text.empty()));
+				if (!subtitle.getString().isEmpty()) {
+					p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket(subtitle));
+				}
 			}
 		}
 	}

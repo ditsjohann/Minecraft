@@ -488,14 +488,16 @@ public final class InsaneEffects {
 			float dustA = Effects.smooth(a / 4.0F) * (1 - Effects.smooth((t - 0.4F) / 0.6F));
 			double top = 140 * (1 - Math.exp(-a / 12.0));
 			int segs = Effects.lod(b, radius * 3, 6, 10);
+			java.util.List<Effects.Puff> puffs = new java.util.ArrayList<>(16);
 			for (int i = 0; i < 16; i++) {
 				double f = (i + 0.5) / 16.0;
 				double h = top * f;
 				double rr = radius * (0.5 + f * 1.4) * (0.8 + 0.4 * Effects.hash(i, 3));
 				double ang = Effects.hash(i, 4) * MathHelper.TAU;
 				Vec3d p = b.add(Math.cos(ang) * rr * 0.3, h, Math.sin(ang) * rr * 0.3);
-				Effects.puff(shade, m, p, cb, rr, 0xC8B49C, 0x6A5C50, 0.55F * dustA, segs);
+				puffs.add(new Effects.Puff(p, rr, 0xC8B49C, 0x6A5C50, 0.55F * dustA));
 			}
+			Effects.drawPuffs(puffs, shade, m, cb, segs);
 			if (t > 0.3F) {
 				return;
 			}
