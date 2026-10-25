@@ -150,4 +150,14 @@ public final class FxType {
 	public static final int ETERNAL_TREE = 67;
 	/** Sixteen-chunks glitch overlay (client: ChunkGlitchFx). */
 	public static final int CHUNK_GLITCH = 68;
+
+	// ---- Signature effects per tier group; seed picks the effect, the rest is free-form payload ----
+	/** Celestial I (client: CelestialFx.create). */
+	public static final int CELESTIAL_FX = 70;
+	/** Celestial II (client: CelestialIIFx.create). */
+	public static final int CELESTIAL2_FX = 71;
+	/** City destruction (client: CityFx.create). */
+	public static final int CITY_FX = 72;
+	/** Galactic Smash, Booming Tick, Alien Death Ray (client: WorldFx.create). */
+	public static final int WORLD_FX = 73;
 }
