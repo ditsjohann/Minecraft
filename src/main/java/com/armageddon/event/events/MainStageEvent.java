@@ -154,7 +154,7 @@ public class MainStageEvent extends WorldEvent {
 		Kit.sound(world, p, SoundEvents.BLOCK_GLASS_BREAK, 24.0F, 0.5F);
 		Kit.sound(world, p, SoundEvents.BLOCK_ANVIL_LAND, 24.0F, 0.6F);
 		Kit.sound(world, p, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 16.0F, 1.1F);
-		Kit.damage(world, p, 7, 14.0F, ModDamageTypes.SHRAPNEL, null, owner());
+		Kit.damage(world, p, 9, 30.0F, ModDamageTypes.SHRAPNEL, null, owner());
 		world.spawnParticles(ParticleTypes.LARGE_SMOKE, p.x, p.y + 1, p.z, 40, 2, 1, 2, 0.05);
 		world.spawnParticles(ParticleTypes.ELECTRIC_SPARK, p.x, p.y + 1, p.z, 60, 2, 1, 2, 0.4);
 		if (!Destruction.enabled(world)) {
@@ -297,7 +297,7 @@ public class MainStageEvent extends WorldEvent {
 				for (LivingEntity e : Kit.living(world, hit, 3.0)) {
 					e.setOnFireFor(5.0F);
 					e.timeUntilRegen = 0;
-					e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA, null, owner()), 4.0F);
+					e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA, null, owner()), 8.0F);
 				}
 			}
 		}

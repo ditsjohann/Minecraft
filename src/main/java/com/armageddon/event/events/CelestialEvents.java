@@ -179,7 +179,7 @@ public final class CelestialEvents {
 			// The signature: the world is drained of colour while the last light goes out.
 			Vfx.screen(world, g, 100000, 0, 0.8F, 300);
 			Vfx.shake(world, g, r * 4, 1.0F);
-			Kit.damage(world, g, r, 24.0F, ModDamageTypes.ANNIHILATION, null, owner());
+			Kit.damage(world, g, r, 60.0F, ModDamageTypes.ANNIHILATION, null, owner());
 			for (LivingEntity e : Kit.living(world, g, r)) {
 				e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 100, 1, false, false));
 				e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 200, 0, false, false));
@@ -406,7 +406,7 @@ public final class CelestialEvents {
 				Kit.velocity(e, cc.subtract(e.getPos()).normalize().multiply(0.8));
 				if (e instanceof LivingEntity l) {
 					l.timeUntilRegen = 0;
-					l.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 20.0F);
+					l.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 40.0F);
 					l.setFrozenTicks(300);
 					l.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 140, 0, false, false));
 				}

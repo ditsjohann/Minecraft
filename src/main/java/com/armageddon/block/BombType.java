@@ -87,35 +87,46 @@ public enum BombType {
 		return this.ordinal() >= NEUTRON.ordinal();
 	}
 
+	/**
+	 * The FUN tier: toys. Harmless, or only temporary (the Disco Ball's dance floor reverts), so they are never
+	 * gated by the celestial game rule and sit with the ordinary bombs.
+	 */
+	public boolean isFun() {
+		return switch (this) {
+			case DISCO, GLITTER, PUMPKIN_PATCH, COBWEB, BALLOON, SPRINKLER, DISCO_BALL -> true;
+			default -> false;
+		};
+	}
+
 	/** Celestial warheads are world events. */
 	public boolean isCelestial() {
 		return switch (this) {
-			case LAST_LIGHT, ZEROPOINT, UNMAKER, GODFALL, FINAL_EXISTENCE,
+			case LAST_LIGHT, ZEROPOINT, UNMAKER, GODFALL, FINAL_EXISTENCE, BIG_BANG, CHRONO_BREAK,
 					EXPLODING_COWS, DEADLY_TWISTER, COLOSSAL_SPEAR, ZOMBIE_APOCALYPSE, UFO_INVASION -> true;
 			default -> isCityDestruction() || isWorldDestruction();
 		};
 	}
 
-	/** The CITY DESTRUCTION tier: impact frames, letterbox bars, the end of the map. */
+	/** The CITY DESTRUCTION tier: the end of the map (a city-sized area or more is remade). */
 	public boolean isCityDestruction() {
 		return switch (this) {
-			case MOONFALL, BIG_BANG, WORLD_EATER, CHRONO_BREAK, RAGNAROK -> true;
+			case MOONFALL, WORLD_EATER, RAGNAROK, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW -> true;
 			default -> false;
 		};
 	}
 
-	/** The true WORLD DESTRUCTION tier (most with scripted camera cutscenes). */
+	/** The true WORLD DESTRUCTION tier: the world enders, with scripted camera cutscenes. */
 	public boolean isWorldDestruction() {
 		return switch (this) {
-			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW, DISCO_BALL -> true;
+			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY -> true;
 			default -> false;
 		};
 	}
 
-	/** Must be lit twice (and are immune to redstone and chain detonation). */
+	/** Must be lit twice (and are immune to redstone and chain detonation). The Disco Ball because it takes the camera. */
 	public boolean needsConfirmation() {
 		return switch (this) {
-			case BLOODSTAR, HELLMOUTH, CYCLONE, DOOMSDAY_CLOCK -> true;
+			case BLOODSTAR, HELLMOUTH, CYCLONE, DOOMSDAY_CLOCK, DISCO_BALL -> true;
 			default -> isCelestial();
 		};
 	}

@@ -402,7 +402,7 @@ public final class LegendaryEvents {
 				Vfx.screen(world, g, 160, 1, 0.8F, 20);
 				Vfx.shake(world, g, 320, 3.0F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 16.0F, 0.9F);
-				Detonations.blast(world, g, 48, 200.0F, ModDamageTypes.PLASMA, owner(), 24, 3.0);
+				Detonations.blast(world, g, 44, 140.0F, ModDamageTypes.PLASMA, owner(), 22, 3.0);
 				if (Destruction.enabled(world)) {
 					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), 24, CraterJob.Mode.GLASSED)
 							.withLining(ModBlocks.GOLD_FISSURE.getDefaultState()));

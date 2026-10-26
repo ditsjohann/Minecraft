@@ -54,30 +54,33 @@ safety), COLOSSAL SPEAR (a winged, building-sized spear falls for five seconds o
 the core), ZOMBIE APOCALYPSE (a growing undead tide and wandering giants that explode green) and UFO INVASION (a
 city-wide mothership with a blue beam of death, flanked by scout saucers leaving trails of explosions).
 
-**CITY DESTRUCTION tier** — scripted bombs with letterbox bars, anime impact frames, FOV punches and very
-heavy destruction: MOONFALL (a cratered moon breaks the sound barrier and falls out of the sky), BIG BANG (a new
-solar system, alone in a void), WORLD EATER (a gigantic cosmic worm tunnels through the land), CHRONO BREAK (a
-sphere of world is erased, then rewound) and RAGNAROK (lightning, meteors, quakes and volcanoes, then Surtr's
-burning sword splits the world into fire and frost).
+**CITY DESTRUCTION tier** — a city-sized area or more is remade: MOONFALL (a cratered moon breaks the sound
+barrier and lands), WORLD EATER (a gigantic cosmic worm tunnels through the land), RAGNAROK (lightning, meteors,
+quakes and volcanoes, then Surtr's burning sword splits the world into fire and frost), ETERNAL SAPLING (a sapling
+climbs eight ever-bigger trees to a world tree whose roots slam down and turn the land to forest), 32 CHUNKS (the
+thirty-two chunks around it each roll a random mutation: floods, flips, swaps, voids, mob parties) and MAIN STAGE
+(studio rigging comes down, the land is struck into a studio floor with a real stage, and a painted-sky wall with an
+EXIT door goes up around you). Celestial also gains BIG BANG (a new solar system, alone in a void) and CHRONO BREAK
+(a sphere of world is erased, then rewound).
 
-**WORLD DESTRUCTION tier (the real one)** — mostly actual camera cutscenes. GALACTIC SMASH: a faceless void titan
-tears the sky open, hunts the city with burning eyes, winds up and punches the ground, and the ejecta rains back
-down for fifteen seconds. BOOMING TICK: a clock in the sky drops one burning numeral every five seconds, each boom
-bigger than the last, then a cutscene over the carpet-bombed site and out to Earth exploding. ALIEN DEATH RAY: a
-cutscene to an alien world where a colossal ray cannon rises, charges and fires at Earth, then an EMP, a tsunami
-and the ray itself coming down. ETERNAL SAPLING: a sapling climbs eight ever-bigger trees to a world tree whose
-roots slam down on every side and turn the land around them into forest. 32 CHUNKS: the thirty-two chunks around
-it each roll a random mutation (floods, flips, swaps, voids, mob parties). MAIN STAGE: no cutscene; studio rigging
-comes down, the land is struck into a studio floor with a real stage, and a painted-sky wall with an EXIT door goes
-up around you. DISCO BALL: a giant disco ball spins until its beams burn the land, cools to blue, stops, then drops
-the bass, starts Pigstep and turns the world into a dance floor.
+**WORLD DESTRUCTION tier (the real one)** — the world enders, with camera cutscenes. GALACTIC SMASH: a faceless void
+titan tears the sky open, hunts the city with burning eyes, winds up and punches the ground, and the ejecta rains
+back down for fifteen seconds. BOOMING TICK: a clock in the sky drops one burning numeral every five seconds, each
+boom bigger than the last, then a cutscene over the carpet-bombed site and out to Earth exploding. ALIEN DEATH RAY:
+a cutscene to an alien world where a colossal ray cannon rises, charges and fires at Earth, then an EMP, a tsunami
+and the ray itself coming down.
+
+**FUN tier** — toys, harmless or temporary: DISCO BALL (a giant disco ball dazzles everyone, stops, then drops the
+bass, starts Pigstep and turns the land into a dance floor for five minutes), plus the Disco, Glitter, Pumpkin
+Patch, Cobweb, Balloon and Sprinkler bombs.
 All of these need two lights to confirm, respect protected regions and `armageddonMaxRadius` (default 256), and
 can be disabled with `armageddonAllowCelestial`. Players are protected during camera cutscenes.
 
 **Signature aftermaths** — every Celestial, Celestial II, City Destruction and world cutscene bomb leaves its own
 mark instead of a generic crater: a cow-print countryside, a fist imprint lined with crying obsidian, a moon that
 lands and stays, a time-stopped hollow, a terracotta bullseye with one terrace per boom, and so on.
-Fifteen more bombs fill Uncommon (6), Rare (3), Legendary (3) and Mythic (3).
+Every bomb carries a tier that matches how much it destroys: FUN (harmless), Uncommon, Rare, Epic, Legendary,
+Mythic, Celestial, City Destruction and World Destruction.
 
 **Testing events** — `/armageddon event <id>` starts any scripted event (every bomb, Celestial and
 cutscene) at your feet, facing where you look, without crafting or lighting anything.

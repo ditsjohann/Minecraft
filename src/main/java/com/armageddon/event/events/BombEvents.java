@@ -561,7 +561,7 @@ public final class BombEvents {
 				Vfx.shake(world, g, 384, 3.0F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 12.0F, 0.6F);
 				if (Destruction.enabled(world)) {
-					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 16.0F), CraterJob.Mode.NUKE));
+					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 24.0F), CraterJob.Mode.NUKE));
 					DetonationManager.add(new LineCarveJob(world, g.add(0, 2, 0), g.add(0, -40, 0), 6.0, ModBlocks.MOLTEN_CORE.getDefaultState(), 0.6F, 0));
 					DetonationManager.schedule(world, 160, () -> Kit.sphere(world, BlockPos.ofFloored(g).down(30), 7, Blocks.LAVA.getDefaultState()));
 				}
@@ -595,7 +595,7 @@ public final class BombEvents {
 				Vfx.flash(world, g, 1.0F, 512, 0xFFC0A0);
 				Vfx.shake(world, g, 512, 3.5F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 16.0F, 0.5F);
-				Detonations.blast(world, g, 40, 150.0F, ModDamageTypes.PLASMA, owner(), 20, 3.0);
+				Detonations.blast(world, g, 52, 260.0F, ModDamageTypes.PLASMA, owner(), 26, 3.5);
 				Detonations.debris(world, g, 16, 80);
 			}
 			return t > 290;

@@ -1,17 +1,16 @@
 package com.armageddon.event.events;
 
 import com.armageddon.destruction.Destruction;
+import com.armageddon.destruction.TemporaryBlocks;
 import com.armageddon.event.Kit;
 import com.armageddon.event.WorldEvent;
 import com.armageddon.network.FxType;
 import com.armageddon.network.Vfx;
-import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.DiscoBeams;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -31,11 +30,13 @@ import java.util.List;
 
 /**
  * DISCO BALL. A giant mirror ball is lowered over the city and spins up until its light beams burn
- * everything they sweep across; it cools to blue, slows, stops... silence... then the bass drops, Pigstep
- * starts playing, and the whole landscape turns into a lit dance floor. Beam maths lives in {@link DiscoBeams}.
+ * everyone they sweep across (harmless: this is a FUN bomb); it cools to blue, slows, stops... silence... then
+ * the bass drops, Pigstep starts playing, and the landscape turns into a lit dance floor for five minutes before
+ * it all reverts. Beam maths lives in {@link DiscoBeams}.
  */
 public class DiscoBallEvent extends WorldEvent {
-	private static final int FLOOR_RADIUS = 128, BUDGET = 2500;
+	/** The dance floor (and the rainbow trees) only last a while: everything reverts after five minutes. */
+	private static final int FLOOR_RADIUS = 128, BUDGET = 2500, FLOOR_LIFE = 6000;
 	private static final Block[] CONCRETE = {Blocks.WHITE_CONCRETE, Blocks.ORANGE_CONCRETE, Blocks.MAGENTA_CONCRETE, Blocks.LIGHT_BLUE_CONCRETE,
 			Blocks.YELLOW_CONCRETE, Blocks.LIME_CONCRETE, Blocks.PINK_CONCRETE, Blocks.CYAN_CONCRETE, Blocks.PURPLE_CONCRETE, Blocks.BLUE_CONCRETE,
 			Blocks.RED_CONCRETE, Blocks.GREEN_CONCRETE};
@@ -106,10 +107,10 @@ public class DiscoBallEvent extends WorldEvent {
 
 	// ---------------------------------------------------------------- heat
 
+	/** The beams dazzle rather than burn: whatever they sweep over sparkles and glows, and nobody gets hurt. */
 	private void burn(Vec3d g, int t) {
 		Vec3d ball = DiscoBeams.ball(g, t);
-		boolean blocks = Destruction.enabled(world);
-		List<LivingEntity> near = t % 2 == 0 ? Kit.living(world, g, 230) : List.of();
+		List<LivingEntity> near = t % 4 == 0 ? Kit.living(world, g, 230) : List.of();
 		for (int i = 0; i < DiscoBeams.BEAMS; i++) {
 			Vec3d h = DiscoBeams.hit(g, i, t);
 			int x = MathHelper.floor(h.x), z = MathHelper.floor(h.z);
@@ -118,35 +119,15 @@ public class DiscoBallEvent extends WorldEvent {
 			}
 			Vec3d hit = Kit.ground(world, h.x, h.z);
 			if (t % 3 == i % 3) {
-				world.spawnParticles(ParticleTypes.LARGE_SMOKE, hit.x, hit.y + 0.5, hit.z, 3, 0.6, 0.3, 0.6, 0.02);
-				world.spawnParticles(ParticleTypes.FLAME, hit.x, hit.y + 0.3, hit.z, 4, 0.8, 0.2, 0.8, 0.03);
+				world.spawnParticles(ParticleTypes.END_ROD, hit.x, hit.y + 0.5, hit.z, 3, 0.6, 0.3, 0.6, 0.04);
+				world.spawnParticles(ParticleTypes.NOTE, hit.x, hit.y + 1.0, hit.z, 1, 0.8, 0.2, 0.8, 1.0);
 			}
-			if (blocks) {
-				BlockPos top = BlockPos.ofFloored(hit).down();
-				int roll = world.random.nextInt(20);
-				if (roll < 3) {
-					// Vaporised: a little crater.
-					Kit.sphere(world, top, 1.6, Blocks.AIR.getDefaultState());
-				} else if (roll < 9) {
-					BlockState s = world.getBlockState(top);
-					if (!s.isAir() && s.getFluidState().isEmpty()) {
-						Destruction.set(world, top, Blocks.MAGMA_BLOCK.getDefaultState(), Kit.FLAGS);
-					}
-				} else if (roll < 14 && world.getBlockState(top.up()).isAir() && world.getBlockState(top).isSolidBlock(world, top)) {
-					Destruction.set(world, top.up(), Blocks.FIRE.getDefaultState(), Block.NOTIFY_ALL);
-				}
-			}
-			// Anything standing in the light, or crossing the beam, cooks.
 			for (LivingEntity e : near) {
 				if (Kit.creativeOrSpectator(e) || segmentDistance(e.getPos().add(0, e.getHeight() / 2, 0), ball, hit) > 2.6) {
 					continue;
 				}
-				e.setOnFireFor(6.0F);
-				e.timeUntilRegen = 0;
-				e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA, null, owner()), 7.0F);
-			}
-			for (ItemEntity it : world.getEntitiesByClass(ItemEntity.class, new net.minecraft.util.math.Box(hit, hit).expand(2.5), e -> true)) {
-				it.discard();
+				e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100, 0, false, false));
+				e.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 100, 1, false, false));
 			}
 		}
 	}
@@ -252,10 +233,10 @@ public class DiscoBallEvent extends WorldEvent {
 				p.set(x, y, z);
 				BlockState s = world.getBlockState(p);
 				if (s.isIn(BlockTags.LEAVES)) {
-					Destruction.set(world, p.toImmutable(), WOOL[Math.floorMod(y + (h & 3), WOOL.length)].getDefaultState(), Kit.FLAGS);
+					TemporaryBlocks.place(world, p.toImmutable(), WOOL[Math.floorMod(y + (h & 3), WOOL.length)].getDefaultState(), FLOOR_LIFE);
 					budget--;
 				} else if (s.isIn(BlockTags.LOGS)) {
-					Destruction.set(world, p.toImmutable(), CONCRETE[Math.floorMod(y, CONCRETE.length)].getDefaultState(), Kit.FLAGS);
+					TemporaryBlocks.place(world, p.toImmutable(), CONCRETE[Math.floorMod(y, CONCRETE.length)].getDefaultState(), FLOOR_LIFE);
 					budget--;
 				}
 			}
@@ -267,12 +248,12 @@ public class DiscoBallEvent extends WorldEvent {
 			int colour = h % CONCRETE.length;
 			if (((tx + tz) & 1) == 0) {
 				// Glowing tile: stained glass over a light.
-				Destruction.set(world, p.toImmutable(), GLASS[colour].getDefaultState(), Kit.FLAGS);
+				TemporaryBlocks.place(world, p.toImmutable(), GLASS[colour].getDefaultState(), FLOOR_LIFE);
 				p.set(x, floorY - 1, z);
-				Destruction.set(world, p.toImmutable(), LIGHTS[(h >>> 5) % LIGHTS.length].getDefaultState(), Kit.FLAGS);
+				TemporaryBlocks.place(world, p.toImmutable(), LIGHTS[(h >>> 5) % LIGHTS.length].getDefaultState(), FLOOR_LIFE);
 				budget -= 2;
 			} else {
-				Destruction.set(world, p.toImmutable(), CONCRETE[colour].getDefaultState(), Kit.FLAGS);
+				TemporaryBlocks.place(world, p.toImmutable(), CONCRETE[colour].getDefaultState(), FLOOR_LIFE);
 				budget--;
 			}
 		}

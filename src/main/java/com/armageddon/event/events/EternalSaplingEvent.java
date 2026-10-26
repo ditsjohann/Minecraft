@@ -546,7 +546,7 @@ public class EternalSaplingEvent extends WorldEvent {
 			double fa = a + k * 0.5;
 			Kit.fissure(world, e, new Vec3d(Math.cos(fa), 0, Math.sin(fa)), (int) (14 + 10 * s), 3, 2, null);
 		}
-		Kit.damage(world, e, 14 + 10 * s, 40.0F, ModDamageTypes.SHRAPNEL, null, owner());
+		Kit.damage(world, e, 14 + 10 * s, 80.0F, ModDamageTypes.SHRAPNEL, null, owner());
 		for (LivingEntity le : Kit.living(world, e, 30)) {
 			if (!Kit.creativeOrSpectator(le)) {
 				Vec3d away = le.getPos().subtract(e);

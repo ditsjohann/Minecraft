@@ -59,19 +59,19 @@ public final class ModBlocks {
 			AbstractBlock.Settings.create().mapColor(MapColor.YELLOW).strength(5.0F, 6.0F).requiresTool().sounds(BlockSoundGroup.METAL)), Rarity.COMMON);
 
 	// --- Warheads ---
-	public static final BombBlock DEMOLITION_CHARGE = bomb("demolition_charge", BombType.DEMOLITION_CHARGE, Rarity.COMMON);
-	public static final BombBlock THERMOBARIC_BOMB = bomb("thermobaric_bomb", BombType.THERMOBARIC, Rarity.UNCOMMON);
-	public static final BombBlock CRYO_BOMB = bomb("cryo_bomb", BombType.CRYO, Rarity.UNCOMMON);
-	public static final BombBlock SINGULARITY_BOMB = bomb("singularity_bomb", BombType.SINGULARITY, Rarity.EPIC);
-	public static final BombBlock NEUTRON_BOMB = bomb("neutron_bomb", BombType.NEUTRON, Rarity.RARE);
-	public static final BombBlock ATOMIC_BOMB = bomb("atomic_bomb", BombType.ATOMIC, Rarity.RARE);
-	public static final BombBlock ANTIMATTER_BOMB = bomb("antimatter_bomb", BombType.ANTIMATTER, Rarity.EPIC);
-	public static final BombBlock HYDROGEN_BOMB = bomb("hydrogen_bomb", BombType.HYDROGEN, Rarity.EPIC);
-	public static final BombBlock TECTONIC_BOMB = bomb("tectonic_bomb", BombType.TECTONIC, Rarity.RARE);
-	public static final BombBlock BASS_DROP_BOMB = bomb("bass_drop_bomb", BombType.BASS_DROP, Rarity.EPIC);
-	public static final BombBlock CLUSTER_NUKE = bomb("cluster_nuke", BombType.CLUSTER, Rarity.EPIC);
-	public static final BombBlock NOVA_BOMB = bomb("nova_bomb", BombType.NOVA, Rarity.EPIC);
-	public static final BombBlock OMEGA_BOMB = bomb("omega_bomb", BombType.OMEGA, Rarity.EPIC);
+	public static final BombBlock DEMOLITION_CHARGE = tiered(bomb("demolition_charge", BombType.DEMOLITION_CHARGE, Rarity.COMMON), Tier.UNCOMMON);
+	public static final BombBlock THERMOBARIC_BOMB = tiered(bomb("thermobaric_bomb", BombType.THERMOBARIC, Rarity.UNCOMMON), Tier.RARE);
+	public static final BombBlock CRYO_BOMB = tiered(bomb("cryo_bomb", BombType.CRYO, Rarity.UNCOMMON), Tier.RARE);
+	public static final BombBlock SINGULARITY_BOMB = tiered(bomb("singularity_bomb", BombType.SINGULARITY, Rarity.EPIC), Tier.EPIC);
+	public static final BombBlock NEUTRON_BOMB = tiered(bomb("neutron_bomb", BombType.NEUTRON, Rarity.RARE), Tier.EPIC);
+	public static final BombBlock ATOMIC_BOMB = tiered(bomb("atomic_bomb", BombType.ATOMIC, Rarity.RARE), Tier.EPIC);
+	public static final BombBlock ANTIMATTER_BOMB = tiered(bomb("antimatter_bomb", BombType.ANTIMATTER, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock HYDROGEN_BOMB = tiered(bomb("hydrogen_bomb", BombType.HYDROGEN, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock TECTONIC_BOMB = tiered(bomb("tectonic_bomb", BombType.TECTONIC, Rarity.RARE), Tier.EPIC);
+	public static final BombBlock BASS_DROP_BOMB = tiered(bomb("bass_drop_bomb", BombType.BASS_DROP, Rarity.EPIC), Tier.EPIC);
+	public static final BombBlock CLUSTER_NUKE = tiered(bomb("cluster_nuke", BombType.CLUSTER, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock NOVA_BOMB = tiered(bomb("nova_bomb", BombType.NOVA, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock OMEGA_BOMB = tiered(bomb("omega_bomb", BombType.OMEGA, Rarity.EPIC), Tier.MYTHIC);
 
 	// ---------------------------------------------------------------- arsenal expansion: warheads
 	public static final BombBlock HELIOS_CROWN_BOMB = tiered(bomb("helios_crown_bomb", BombType.HELIOS_CROWN, Rarity.EPIC), Tier.LEGENDARY);
@@ -85,12 +85,12 @@ public final class ModBlocks {
 	public static final BombBlock FINAL_EXISTENCE = tiered(bomb("final_existence", BombType.FINAL_EXISTENCE, Rarity.EPIC), Tier.CELESTIAL);
 
 	// ---------------------------------------------------------------- bomb expansion II
-	public static final BombBlock DISCO_BOMB = tiered(bomb("disco_bomb", BombType.DISCO, Rarity.UNCOMMON), Tier.UNCOMMON);
-	public static final BombBlock GLITTER_BOMB = tiered(bomb("glitter_bomb", BombType.GLITTER, Rarity.UNCOMMON), Tier.UNCOMMON);
-	public static final BombBlock PUMPKIN_PATCH_BOMB = tiered(bomb("pumpkin_patch_bomb", BombType.PUMPKIN_PATCH, Rarity.UNCOMMON), Tier.UNCOMMON);
-	public static final BombBlock COBWEB_BOMB = tiered(bomb("cobweb_bomb", BombType.COBWEB, Rarity.UNCOMMON), Tier.UNCOMMON);
-	public static final BombBlock BALLOON_BOMB = tiered(bomb("balloon_bomb", BombType.BALLOON, Rarity.UNCOMMON), Tier.UNCOMMON);
-	public static final BombBlock SPRINKLER_BOMB = tiered(bomb("sprinkler_bomb", BombType.SPRINKLER, Rarity.UNCOMMON), Tier.UNCOMMON);
+	public static final BombBlock DISCO_BOMB = tiered(bomb("disco_bomb", BombType.DISCO, Rarity.UNCOMMON), Tier.FUN);
+	public static final BombBlock GLITTER_BOMB = tiered(bomb("glitter_bomb", BombType.GLITTER, Rarity.UNCOMMON), Tier.FUN);
+	public static final BombBlock PUMPKIN_PATCH_BOMB = tiered(bomb("pumpkin_patch_bomb", BombType.PUMPKIN_PATCH, Rarity.UNCOMMON), Tier.FUN);
+	public static final BombBlock COBWEB_BOMB = tiered(bomb("cobweb_bomb", BombType.COBWEB, Rarity.UNCOMMON), Tier.FUN);
+	public static final BombBlock BALLOON_BOMB = tiered(bomb("balloon_bomb", BombType.BALLOON, Rarity.UNCOMMON), Tier.FUN);
+	public static final BombBlock SPRINKLER_BOMB = tiered(bomb("sprinkler_bomb", BombType.SPRINKLER, Rarity.UNCOMMON), Tier.FUN);
 	public static final BombBlock THERMITE_BOMB = tiered(bomb("thermite_bomb", BombType.THERMITE, Rarity.RARE), Tier.RARE);
 	public static final BombBlock TESLA_BOMB = tiered(bomb("tesla_bomb", BombType.TESLA, Rarity.RARE), Tier.RARE);
 	public static final BombBlock SINKHOLE_BOMB = tiered(bomb("sinkhole_bomb", BombType.SINKHOLE, Rarity.RARE), Tier.RARE);
@@ -101,9 +101,9 @@ public final class ModBlocks {
 	public static final BombBlock CYCLONE_BOMB = tiered(bomb("cyclone_bomb", BombType.CYCLONE, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock DOOMSDAY_CLOCK = tiered(bomb("doomsday_clock", BombType.DOOMSDAY_CLOCK, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock MOONFALL = tiered(bomb("moonfall", BombType.MOONFALL, Rarity.EPIC), Tier.CITY_DESTRUCTION);
-	public static final BombBlock BIG_BANG = tiered(bomb("big_bang", BombType.BIG_BANG, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock BIG_BANG = tiered(bomb("big_bang", BombType.BIG_BANG, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock WORLD_EATER = tiered(bomb("world_eater", BombType.WORLD_EATER, Rarity.EPIC), Tier.CITY_DESTRUCTION);
-	public static final BombBlock CHRONO_BREAK = tiered(bomb("chrono_break", BombType.CHRONO_BREAK, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock CHRONO_BREAK = tiered(bomb("chrono_break", BombType.CHRONO_BREAK, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock RAGNAROK = tiered(bomb("ragnarok", BombType.RAGNAROK, Rarity.EPIC), Tier.CITY_DESTRUCTION);
 	public static final BombBlock EXPLODING_COWS = tiered(bomb("exploding_cows", BombType.EXPLODING_COWS, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock DEADLY_TWISTER = tiered(bomb("deadly_twister", BombType.DEADLY_TWISTER, Rarity.EPIC), Tier.CELESTIAL);
@@ -113,10 +113,10 @@ public final class ModBlocks {
 	public static final BombBlock GALACTIC_SMASH = tiered(bomb("galactic_smash", BombType.GALACTIC_SMASH, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock BOOMING_TICK = tiered(bomb("booming_tick", BombType.BOOMING_TICK, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock ALIEN_DEATH_RAY = tiered(bomb("alien_death_ray", BombType.ALIEN_DEATH_RAY, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock ETERNAL_SAPLING = tiered(bomb("eternal_sapling", BombType.ETERNAL_SAPLING, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock SIXTEEN_CHUNKS = tiered(bomb("sixteen_chunks", BombType.SIXTEEN_CHUNKS, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock TRUMAN_SHOW = tiered(bomb("truman_show", BombType.TRUMAN_SHOW, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock DISCO_BALL = tiered(bomb("disco_ball", BombType.DISCO_BALL, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock ETERNAL_SAPLING = tiered(bomb("eternal_sapling", BombType.ETERNAL_SAPLING, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock SIXTEEN_CHUNKS = tiered(bomb("sixteen_chunks", BombType.SIXTEEN_CHUNKS, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock TRUMAN_SHOW = tiered(bomb("truman_show", BombType.TRUMAN_SHOW, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock DISCO_BALL = tiered(bomb("disco_ball", BombType.DISCO_BALL, Rarity.EPIC), Tier.FUN);
 
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks
 	public static final Block ENERGY_CRYSTAL = register("energy_crystal", new TransparentBlock(AbstractBlock.Settings.create()

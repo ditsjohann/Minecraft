@@ -11,6 +11,8 @@ import net.minecraft.util.math.MathHelper;
  * Celestial are new. Celestial names shimmer and occasionally scramble like secret text.
  */
 public enum Tier {
+	/** Toys: harmless or temporary, made for laughs rather than damage. Candy-coloured and bouncing. */
+	FUN(0xFF80E0, "fun"),
 	UNCOMMON(0xFFFF55, "uncommon"),
 	RARE(0x55FFFF, "rare"),
 	EPIC(0xFF55FF, "epic"),
@@ -33,6 +35,7 @@ public enum Tier {
 	/** Recolours an item name for this tier. */
 	public Text decorate(Text name) {
 		return switch (this) {
+			case FUN -> candy(name.getString());
 			case CELESTIAL -> shimmer(name.getString());
 			case CITY_DESTRUCTION -> strobe(name.getString());
 			case WORLD_DESTRUCTION -> prism(name.getString());
@@ -45,6 +48,9 @@ public enum Tier {
 	/** Tooltip badge, e.g. "◆ LEGENDARY". */
 	public Text badge() {
 		MutableText t = Text.translatable("tier.armageddon." + key);
+		if (this == FUN) {
+			return candy("♫ " + t.getString() + " ♫");
+		}
 		if (this == CELESTIAL) {
 			return shimmer("✦ " + t.getString() + " ✦");
 		}
@@ -89,6 +95,18 @@ public enum Tier {
 			boolean glitch = s.charAt(i) != ' ' && ((beat * 13 + i * 29) % 17 == 0);
 			Style style = Style.EMPTY.withColor(TextColor.fromRgb(rgb)).withBold(true).withObfuscated(glitch);
 			out.append(Text.literal(String.valueOf(s.charAt(i))).setStyle(style));
+		}
+		return out;
+	}
+
+	/** Pastel pink, yellow, mint and sky letters that hop between colours like a party. */
+	private static Text candy(String s) {
+		int[] cols = {0xFF80E0, 0xFFE070, 0x80FFC0, 0x80D0FF, 0xC0A0FF};
+		MutableText out = Text.empty();
+		long beat = System.currentTimeMillis() / 250L;
+		for (int i = 0; i < s.length(); i++) {
+			int rgb = cols[(int) ((beat + i) % cols.length)];
+			out.append(Text.literal(String.valueOf(s.charAt(i))).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(rgb)).withBold(true)));
 		}
 		return out;
 	}
