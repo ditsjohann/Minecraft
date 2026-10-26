@@ -400,9 +400,9 @@ public final class NewFx {
 				} else if (t >= Termite.FLIGHT && h1 > 0.3) {
 					// The nuptial flight: up off the hill in a spiralling column, then out with the swarm front.
 					double k = MathHelper.clamp((t - Termite.FLIGHT - h3 * 60) / 70.0, 0.0, 1.0);
-					double front = Termite.flightFront(t) * (0.75 + 0.25 * h2) * Math.min(1.0, (t - Termite.FLIGHT) / 120.0);
+					double fly = Termite.flightFront(t) * (0.75 + 0.25 * h2) * Math.min(1.0, (t - Termite.FLIGHT) / 120.0);
 					double aa = a + t * (0.03 + h3 * 0.02);
-					double r = MathHelper.lerp(k, 3 + h2 * 6, Math.max(8, front));
+					double r = MathHelper.lerp(k, 3 + h2 * 6, Math.max(8, fly));
 					double alt = MathHelper.lerp(k, Termite.HILL_H * Termite.built(t) + 4 + h3 * 30, 6 + h3 * 22) + Math.sin(t * 0.2 + i) * 1.5;
 					x = g.x + Math.cos(aa) * r;
 					z = g.z + Math.sin(aa) * r;
