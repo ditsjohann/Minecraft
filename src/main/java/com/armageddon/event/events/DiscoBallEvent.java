@@ -31,8 +31,8 @@ import java.util.List;
 
 /**
  * DISCO BALL. A giant mirror ball is lowered over the city and spins up until its light beams burn
- * everything they sweep across; it cools to blue, slows, stops... silence... then the bass drops and
- * the whole landscape turns into a lit dance floor. Beam maths lives in {@link DiscoBeams}.
+ * everything they sweep across; it cools to blue, slows, stops... silence... then the bass drops, Pigstep
+ * starts playing, and the whole landscape turns into a lit dance floor. Beam maths lives in {@link DiscoBeams}.
  */
 public class DiscoBallEvent extends WorldEvent {
 	private static final int FLOOR_RADIUS = 128, BUDGET = 2500;
@@ -165,6 +165,9 @@ public class DiscoBallEvent extends WorldEvent {
 		Kit.sound(world, g, ModSounds.DUBSTEP_DROP, 64.0F, 0.5F);
 		Kit.sound(world, g, ModSounds.DUBSTEP_WUB, 64.0F, 0.45F);
 		Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.6F);
+		// And the music starts: Pigstep, on the records channel, loud enough to cover the whole dance floor.
+		world.playSound(null, g.x, g.y + 2, g.z, SoundEvents.MUSIC_DISC_PIGSTEP.value(), net.minecraft.sound.SoundCategory.RECORDS, 12.0F, 1.0F);
+		Kit.broadcast(world, g, 400, Text.literal("\u266B Now playing: Lena Raine - Pigstep").formatted(Formatting.LIGHT_PURPLE));
 		Vfx.skyTint(world, g, 100000, 0x501070, 0.9F);
 		Vfx.shake(world, g, 100000, 3.0F);
 		Vfx.fov(world, g, 20.0F, 24);
