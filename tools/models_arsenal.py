@@ -1124,3 +1124,194 @@ BOMBS.update({
     "big_bang": big_bang_v2, "chrono_break": chrono_break_v2, "zeropoint": zeropoint_v2, "last_light": last_light_v2,
     "dawnstar_payload": dawnstar_v2,
 })
+
+
+# ---------------------------------------------------------------- the strong five and the oddities
+
+def lidar_bomb():
+    m = [B(0, 0, 0, 16, 1.5, 16, "gunmetal"), B(1, 1.5, 1, 15, 2, 15, "black")]
+    for (x, z) in ((2, 2), (12.5, 2), (2, 12.5), (12.5, 12.5)):
+        m += [B(x, 2, z, x + 1.5, 3, z + 1.5, "hazard")]
+    m += cyl_y(8, 8, 2, 4, 4.5, "steel") + [B(7.2, 4, 7.2, 8.8, 10, 8.8, "gunmetal")]
+    # The scanner head: a drum with a glowing lens band and a rotating mirror on top.
+    m += cyl_y(8, 8, 10, 13.5, 3.2, "titanium") + cyl_y(8, 8, 11.2, 12.4, 3.4, "glow_cyan")
+    m += [B(6.5, 13.5, 6.5, 9.5, 14.2, 9.5, "black"), B(7.5, 14.2, 5, 8.5, 15.6, 11, "chrome", ("y", 45, [8, 14.9, 8]))]
+    # The laser fan, frozen mid-sweep.
+    for a in (-45, 0, 45):
+        m += [B(7.9, 11.6, 11.4, 8.1, 11.9, 16, "glow_cyan", ("y", a, [8, 11.75, 8]))]
+    return m
+
+
+def shadow_void():
+    m = [B(0, 0, 0, 16, 2, 16, "obsidian"), B(1, 2, 1, 15, 2.4, 15, "glow_void"), B(2, 2.4, 2, 14, 3, 14, "obsidian")]
+    for (x, z) in ((1.5, 1.5), (13, 1.5), (1.5, 13), (13, 13)):
+        m += [B(x, 3, z, x + 1.5, 7 + (x + z) % 3, z + 1.5, "obsidian"), B(x + 0.3, 7 + (x + z) % 3, z + 0.3, x + 1.2, 7.6 + (x + z) % 3, z + 1.2, "glow_purple")]
+    m += vsphere(8, 9.5, 8, 4.4, 0.95, "black", pick=lambda i, j, k: "glow_void" if (i * 5 + j * 3 + k) % 13 == 0 else "black")
+    m += ring_y(8, 9.5, 8, 6.2, "glow_purple", 0.45)
+    return m
+
+
+def spectral_ice():
+    m = [B(0, 0, 0, 16, 1.2, 16, "white"), B(0.5, 1.2, 0.5, 15.5, 1.6, 15.5, "ice")]
+    # Spikes along the square footprint, leaning inward into one point.
+    for (x, z, ax, a) in ((2, 2, "x", 22.5), (2, 12, "x", -22.5), (12, 2, "x", 22.5), (12, 12, "x", -22.5),
+                          (2, 7, "z", 22.5), (12, 7, "z", -22.5), (7, 2, "x", 22.5), (7, 12, "x", -22.5)):
+        m += [B(x, 1.6, z, x + 2, 11, z + 2, "ice", (ax, a, [x + 1, 1.6, z + 1]))]
+    m += [B(6.6, 1.6, 6.6, 9.4, 13, 9.4, "ice"), B(7.2, 13, 7.2, 8.8, 15.4, 8.8, "glow_ice"), B(7.6, 15.4, 7.6, 8.4, 16, 8.4, "glow_white")]
+    return m
+
+
+def termite_domain():
+    m = [B(0, 0, 0, 16, 1, 16, "mud")]
+    # The mound: stacked, narrowing tiers with buttresses, plus two side spires.
+    for i, (r, y0, y1) in enumerate(((6.5, 1, 4), (5.4, 4, 7), (4.2, 7, 10), (3, 10, 13), (1.8, 13, 15.5))):
+        m += [B(8 - r, y0, 8 - r * 0.7, 8 + r, y1, 8 + r * 0.7, "mud" if i % 2 == 0 else "rock"),
+              B(8 - r * 0.7, y0, 8 - r, 8 + r * 0.7, y1, 8 + r, "mud")]
+    m += [B(7.4, 15.5, 7.4, 8.6, 16, 8.6, "mud")]
+    for (x, z, h) in ((1.5, 2, 9), (12.5, 11.5, 7)):
+        m += [B(x, 1, z, x + 2.2, h * 0.6, z + 2.2, "mud"), B(x + 0.5, h * 0.6, z + 0.5, x + 1.7, h, z + 1.7, "rock")]
+    m += [B(7, 1, 1.4, 9, 2.8, 2, "black"), B(1.4, 1, 7, 2, 2.8, 9, "black")]
+    m += [B(4 + i * 2.2, 1, 3 + (i * 5) % 9, 4.6 + i * 2.2, 1.3, 3.4 + (i * 5) % 9, "black") for i in range(5)]
+    return m
+
+
+def sun_disappears():
+    m = [B(0, 0, 0, 16, 2, 16, "obsidian"), B(1, 2, 1, 15, 2.5, 15, "gold")]
+    for (x, z) in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        m += [B(x, 2.5, z, x + 2, 5, z + 2, "obsidian"), B(x + 0.5, 5, z + 0.5, x + 1.5, 5.6, z + 1.5, "glow_gold")]
+    # An eclipsed sun: the black disc over a blazing corona.
+    m += vsphere(8, 9.5, 8, 4.8, 0.95, "glow_gold", pick=lambda i, j, k: "glow_orange" if (i + j * 2 + k) % 5 == 0 else "glow_gold")
+    m += [B(3.6, 5.2, 3.0, 12.4, 13.8, 3.5, "black"), B(4.6, 4.2, 2.9, 11.4, 14.8, 3.4, "black"), B(2.6, 6.2, 2.9, 13.4, 12.8, 3.4, "black")]
+    for a in (0, 45, -45):
+        m += [B(7.6, 9.1, 0, 8.4, 9.9, 16, "glow_white", ("y", a, [8, 9.5, 8]))]
+    m += [B(7.6, 3, 7.6, 8.4, 16, 8.4, "glow_white")]
+    return m
+
+
+def sonar_bomb():
+    m = [B(0, 0, 0, 16, 1.5, 16, "olive"), B(1, 1.5, 1, 15, 2, 15, "black")]
+    m += cyl_y(8, 8, 2, 5, 5.5, "steel") + cyl_y(8, 8, 5, 5.6, 5.8, "glow_lime")
+    # A dish pointing up, with the transducer in the middle.
+    m += cyl_y(8, 8, 5.6, 7, 6.5, "steel") + cyl_y(8, 8, 7, 7.6, 7.5, "gunmetal")
+    m += [B(7.3, 7.6, 7.3, 8.7, 12, 8.7, "gunmetal"), B(6.6, 12, 6.6, 9.4, 13.2, 9.4, "glow_lime")]
+    for r in (3.6, 5.6):
+        m += ring_y(8, 7.7, 8, r, "glow_lime", 0.3)
+    return m
+
+
+def pixel_bomb():
+    m = [B(0, 0, 0, 16, 1, 16, "black")]
+    pal = ["glow_magenta", "glow_cyan", "glow_gold", "glow_lime", "glow_red", "glow_blue"]
+    # A blocky 8-bit bomb: stepped round body, fuse and spark.
+    for y, half in ((1, 4), (3, 6), (5, 6.5), (8, 6.5), (11, 6), (13, 4)):
+        m += [B(8 - half, y, 8 - half, 8 + half, y + 2 if y != 5 else y + 3, 8 + half, "black")]
+    m += [B(4.5, 9, 1.4, 6.5, 11, 1.6, "white"), B(4.5, 11, 1.4, 5.5, 12, 1.6, "white")]
+    m += [B(7, 15, 7, 9, 16, 9, "gunmetal"), B(8.5, 15.5, 8.5, 10.5, 16.5, 10.5, "glow_gold")]
+    for i in range(6):
+        x, z = 1 + (i * 5) % 14, 1 + (i * 3) % 14
+        m += [B(x, 1, z, x + 1, 2, z + 1, pal[i])]
+    return m
+
+
+def magnetar():
+    m = [B(0, 0, 0, 16, 1.5, 16, "steel")]
+    # Two magnet horns, red and grey, cradling the star.
+    m += [B(1, 1.5, 6, 4, 12, 10, "red"), B(12, 1.5, 6, 15, 12, 10, "steel"), B(1, 1.5, 6, 15, 4, 10, "gunmetal"),
+          B(1, 10, 6, 4, 12, 10, "white"), B(12, 10, 6, 15, 12, 10, "white")]
+    m += vsphere(8, 9, 8, 2.4, 1.0, "glow_white")
+    for a in (-22.5, 22.5):
+        m += [B(7.6, 2, 7.6, 8.4, 16, 8.4, "glow_cyan", ("z", a, [8, 9, 8]))]
+    m += ring_y(8, 9, 8, 4.2, "glow_blue", 0.35)
+    return m
+
+
+def ink_bomb():
+    m = [B(0, 0, 0, 16, 1.2, 16, "white")]
+    # A cartoon bomb: round black body, white highlight, fuse cap, and an ink splash at its foot.
+    m += vsphere(8, 7.5, 8, 5.6, 1.0, "black")
+    m += [B(4.6, 9.5, 2.6, 6.4, 11.3, 3.0, "white"), B(6.6, 12.6, 6.6, 9.4, 14.4, 9.4, "gunmetal"),
+          B(7.6, 14.4, 7.6, 8.4, 16, 8.4, "olive"), B(7.2, 15.6, 7.2, 8.8, 16.6, 8.8, "glow_gold")]
+    for (x, z, w) in ((1, 3, 3), (12, 1.5, 2.5), (11, 12, 3.5), (2, 12, 2)):
+        m += [B(x, 1.2, z, x + w, 1.5, z + w * 0.8, "black")]
+    m += [B(0.5, 1.2, 0.5, 4, 1.6, 1.5, "yellow"), B(12, 1.2, 14.5, 15.5, 1.6, 15.5, "red")]
+    return m
+
+
+def aurora_bomb():
+    m = [B(0, 0, 0, 16, 1.5, 16, "white"), B(1, 1.5, 1, 15, 2, 15, "glass_cyan")]
+    m += cyl_y(8, 8, 2, 4, 3, "steel") + [B(7.4, 4, 7.4, 8.6, 8, 8.6, "steel")]
+    # Rippling curtains of light.
+    cols = ["glow_lime", "glow_cyan", "glow_purple", "glow_green"]
+    for i in range(6):
+        x = 1.5 + i * 2.3
+        h = 9 + (i % 3) * 1.5
+        m += [B(x, 8, 3 + (i % 2) * 1.5, x + 2.1, h + 4, 3.4 + (i % 2) * 1.5, cols[i % 4]),
+              B(x, h + 4, 3 + (i % 2) * 1.5, x + 2.1, h + 6, 3.4 + (i % 2) * 1.5, "glow_purple")]
+    m += vsphere(8, 9, 8, 1.6, 1.0, "glow_white")
+    return m
+
+
+def seasons_bomb():
+    m = [B(0, 0, 0, 16, 1.5, 16, "copper")]
+    # A four-quarter clock base (spring, summer, autumn, winter) and an hourglass of seasons.
+    for (x0, z0, c) in ((1, 1, "pink"), (8, 1, "olive"), (1, 8, "copper"), (8, 8, "white")):
+        m += [B(x0, 1.5, z0, x0 + 7, 2.2, z0 + 7, c)]
+    m += [B(4, 2.2, 4, 12, 3.2, 12, "gold"), B(4, 14, 4, 12, 15, 12, "gold")]
+    for (x, z) in ((4, 4), (11, 4), (4, 11), (11, 11)):
+        m += [B(x, 3.2, z, x + 1, 14, z + 1, "gold")]
+    m += [B(5.5, 3.2, 5.5, 10.5, 5.5, 10.5, "glass_gold"), B(6.8, 5.5, 6.8, 9.2, 8, 9.2, "glass_gold"),
+          B(7.4, 8, 7.4, 8.6, 9.2, 8.6, "glow_gold"), B(6.8, 9.2, 6.8, 9.2, 11.5, 9.2, "glass_gold"), B(5.5, 11.5, 5.5, 10.5, 14, 10.5, "glass_gold")]
+    m += [B(6, 3.2, 6, 10, 4.2, 10, "glow_gold")]
+    return m
+
+
+def prism_bomb():
+    m = [B(0, 0, 0, 16, 1.5, 16, "white"), B(1, 1.5, 1, 15, 2, 15, "black")]
+    cols = ["glow_red", "glow_orange", "glow_gold", "glow_lime", "glow_cyan", "glow_blue", "glow_purple"]
+    for i, c in enumerate(cols):
+        m += [B(1 + i * 2, 2, 1, 2.6 + i * 2, 2.4, 15, c)]
+    m += [B(7.4, 2, 7.4, 8.6, 5, 8.6, "steel")]
+    # A triangular glass prism (three rotated slabs) with a white beam in.
+    for a in (0, 45, -45):
+        m += [B(4, 5, 7, 12, 13, 9, "glass_cyan", ("y", a, [8, 9, 8]))]
+    m += [B(7.6, 13, 7.6, 8.4, 16, 8.4, "glow_white")]
+    return m
+
+
+def geode_bomb():
+    m = [B(0, 0, 0, 16, 1.5, 16, "rock")]
+    # A cracked-open geode: basalt crust, white calcite, amethyst crystals inside.
+    m += vsphere(8, 7, 8, 6.2, 1.0, "black", pick=lambda i, j, k: "rock" if (i + j + k) % 3 else "black")
+    m += [B(3.5, 8, 3.5, 12.5, 13.6, 12.5, "pearl"), B(4.3, 8.6, 4.3, 11.7, 14, 11.7, "amethyst")]
+    for (x, z, h) in ((5, 5, 4), (9, 6, 5), (6, 9.5, 3.5), (10, 10, 4.5), (7.5, 7.5, 6)):
+        m += [B(x, 12, z, x + 1.4, 12 + h, z + 1.4, "amethyst"), B(x + 0.3, 12 + h, z + 0.3, x + 1.1, 12.6 + h, z + 1.1, "glow_purple")]
+    return m
+
+
+def fossil_bomb():
+    m = [B(0, 0, 0, 16, 2, 16, "rock"), B(1, 2, 1, 15, 2.6, 15, "mud")]
+    # A skull in the dirt: brow, eye sockets glowing, jaw full of teeth.
+    m += [B(3, 2.6, 4, 13, 9, 12, "bone"), B(2.5, 7, 3.5, 13.5, 10, 12.5, "bone"), B(4, 10, 5, 12, 11, 11, "bone")]
+    m += [B(4, 6.5, 3.4, 6.5, 8.5, 3.6, "glow_red"), B(9.5, 6.5, 3.4, 12, 8.5, 3.6, "glow_red")]
+    m += [B(5, 3, 3.4, 11, 5.6, 3.6, "black")]
+    for x in range(5, 11):
+        m += [B(x + 0.15, 4.4, 3.2, x + 0.75, 5.6, 3.5, "bone"), B(x + 0.15, 3, 3.2, x + 0.75, 4, 3.5, "bone")]
+    m += [B(1, 2.6, 13, 6, 3.6, 14, "bone"), B(10, 2.6, 13.5, 15, 3.4, 14.3, "bone")]
+    return m
+
+
+def lava_lamp():
+    m = [B(3, 0, 3, 13, 3, 13, "copper"), B(4, 3, 4, 12, 4, 12, "copper")]
+    m += [B(4.5, 4, 4.5, 11.5, 13, 11.5, "glass_gold")]
+    for (x, y, z, r) in ((6, 5, 6, 1.6), (8.5, 8, 7.5, 1.8), (6.5, 11, 8.5, 1.3), (9, 5.5, 9, 1.1)):
+        m += [B(x - r, y - r, z - r, x + r, y + r, z + r, "glow_orange" if r > 1.4 else "glow_pink")]
+    m += [B(4, 13, 4, 12, 14.5, 12, "copper"), B(5.5, 14.5, 5.5, 10.5, 16, 10.5, "copper")]
+    return m
+
+
+BOMBS.update({
+    "lidar_bomb": lidar_bomb, "shadow_void": shadow_void, "spectral_ice": spectral_ice, "termite_domain": termite_domain,
+    "sun_disappears": sun_disappears, "sonar_bomb": sonar_bomb, "pixel_bomb": pixel_bomb, "magnetar": magnetar,
+    "ink_bomb": ink_bomb, "aurora_bomb": aurora_bomb, "seasons_bomb": seasons_bomb, "prism_bomb": prism_bomb,
+    "geode_bomb": geode_bomb, "fossil_bomb": fossil_bomb, "lava_lamp": lava_lamp,
+})

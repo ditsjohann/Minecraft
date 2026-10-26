@@ -73,7 +73,24 @@ public enum BombType {
 	ETERNAL_SAPLING(600, 0x40E060),
 	SIXTEEN_CHUNKS(600, 0xFF40FF),
 	TRUMAN_SHOW(600, 0x80C8FF),
-	DISCO_BALL(600, 0xFFE0FF);
+	DISCO_BALL(600, 0xFFE0FF),
+	// the strong five
+	LIDAR_BOMB(300, 0x60FFFF),
+	SHADOW_VOID(300, 0x6020C0),
+	SPECTRAL_ICE(300, 0x80D0FF),
+	TERMITE_DOMAIN(400, 0x8A5A30),
+	SUN_DISAPPEARS(600, 0xFFD060),
+	// the oddities
+	SONAR_BOMB(120, 0x40FF80),
+	PIXEL_BOMB(120, 0xFF40FF),
+	MAGNETAR(200, 0x80C0FF),
+	INK_BOMB(120, 0xFFE020),
+	AURORA_BOMB(120, 0x40FF90),
+	SEASONS_BOMB(200, 0xE0A040),
+	PRISM_BOMB(200, 0xFFFFFF),
+	GEODE_BOMB(120, 0xC080FF),
+	FOSSIL_BOMB(200, 0xE8E0C8),
+	LAVA_LAMP(120, 0xFF6020);
 
 	public final int fuse;
 	public final int color;
@@ -101,7 +118,7 @@ public enum BombType {
 	/** Celestial warheads are world events. */
 	public boolean isCelestial() {
 		return switch (this) {
-			case LAST_LIGHT, ZEROPOINT, UNMAKER, GODFALL, FINAL_EXISTENCE, BIG_BANG, CHRONO_BREAK,
+			case LAST_LIGHT, ZEROPOINT, UNMAKER, GODFALL, FINAL_EXISTENCE, BIG_BANG, CHRONO_BREAK, LIDAR_BOMB, SHADOW_VOID, SPECTRAL_ICE,
 					EXPLODING_COWS, DEADLY_TWISTER, COLOSSAL_SPEAR, ZOMBIE_APOCALYPSE, UFO_INVASION -> true;
 			default -> isCityDestruction() || isWorldDestruction();
 		};
@@ -110,7 +127,7 @@ public enum BombType {
 	/** The CITY DESTRUCTION tier: the end of the map (a city-sized area or more is remade). */
 	public boolean isCityDestruction() {
 		return switch (this) {
-			case MOONFALL, WORLD_EATER, RAGNAROK, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW -> true;
+			case MOONFALL, WORLD_EATER, RAGNAROK, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW, TERMITE_DOMAIN -> true;
 			default -> false;
 		};
 	}
@@ -118,7 +135,7 @@ public enum BombType {
 	/** The true WORLD DESTRUCTION tier: the world enders, with scripted camera cutscenes. */
 	public boolean isWorldDestruction() {
 		return switch (this) {
-			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY -> true;
+			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY, SUN_DISAPPEARS -> true;
 			default -> false;
 		};
 	}
@@ -126,7 +143,7 @@ public enum BombType {
 	/** Must be lit twice (and are immune to redstone and chain detonation). The Disco Ball because it takes the camera. */
 	public boolean needsConfirmation() {
 		return switch (this) {
-			case BLOODSTAR, HELLMOUTH, CYCLONE, DOOMSDAY_CLOCK, DISCO_BALL -> true;
+			case BLOODSTAR, HELLMOUTH, CYCLONE, DOOMSDAY_CLOCK, DISCO_BALL, MAGNETAR, SEASONS_BOMB, PRISM_BOMB, FOSSIL_BOMB -> true;
 			default -> isCelestial();
 		};
 	}

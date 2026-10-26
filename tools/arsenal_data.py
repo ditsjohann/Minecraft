@@ -101,10 +101,30 @@ NEW_BOMBS.update({
     "galactic_smash": "GALACTIC SMASH", "booming_tick": "BOOMING TICK", "alien_death_ray": "ALIEN DEATH RAY",
     "eternal_sapling": "ETERNAL SAPLING", "sixteen_chunks": "32 CHUNKS", "truman_show": "MAIN STAGE",
     "disco_ball": "DISCO BALL",
+    "lidar_bomb": "LIDAR STRIKE", "shadow_void": "SHADOW VOID", "spectral_ice": "SPECTRAL ICE",
+    "termite_domain": "TERMITE DOMAIN", "sun_disappears": "THE SUN DISAPPEARS",
+    "sonar_bomb": "Sonar Bomb", "pixel_bomb": "8-Bit Bomb", "magnetar": "Magnetar", "ink_bomb": "KA-BOOM!",
+    "aurora_bomb": "Aurora Bomb", "seasons_bomb": "Century Bomb", "prism_bomb": "Prism Bomb", "geode_bomb": "Geode Bomb",
+    "fossil_bomb": "Fossil Bomb", "lava_lamp": "Lava Lamp Bomb",
 })
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
+    "lidar_bomb": "CELESTIAL. The world becomes a lidar point cloud. Four scan pulses tag every living thing, then TARGETS LOCKED: strikes walk the map and the mast overloads. Light twice.",
+    "shadow_void": "CELESTIAL. A black orb drinks the light: a growing void of darkness swallows the ground shell by shell, inhales... and exhales a shockwave of shadow. Light twice.",
+    "spectral_ice": "CELESTIAL. Ice spikes erupt into a pyramid with one point. The apex lights blue, the spikes glow, and the white apex sprays a storm of ice shards. Light twice.",
+    "termite_domain": "CITY DESTRUCTION. Thousands of ants pour out and eat everything alive, then raise a seventy-block termite hill. Light twice.",
+    "sun_disappears": "WORLD DESTRUCTION. The strongest yet. The sun goes out: endless night, killing cold, frozen water, dead plants. Stay by a fire. Then the dead sun falls. Light twice.",
+    "sonar_bomb": "The world goes green and black as echoes roll out, shoving everything and shattering glass. Then a sonic boom.",
+    "pixel_bomb": "GAME START: the world drops to low-res, on screen and in the blocks themselves. GAME OVER: an 8-bit explosion.",
+    "magnetar": "A neutron star rips every iron block (ore too) into orbit and sweeps the land with pulsar jets. Light twice.",
+    "ink_bomb": "The world turns to comic ink. Giant KABOOM letters rise, comic blasts go POW, then the letters blow up.",
+    "aurora_bomb": "An aurora unrolls overhead, then its rays strike down, glazing the earth in coloured glass.",
+    "seasons_bomb": "A year in forty seconds as the sun races by, then a century passes in an instant. Light twice.",
+    "prism_bomb": "A floating prism splits a beam from the sky into seven rainbow beams that burn coloured trenches. Light twice.",
+    "geode_bomb": "A giant amethyst geode heaves out of the ground, rings louder and louder, and sprays crystal shards.",
+    "fossil_bomb": "A colossal skeleton rises from a fissure. Its eyes catch fire, and its roar is a weapon. Light twice.",
+    "lava_lamp": "A three-storey lava lamp heats up until the glass cracks and it throws molten goo everywhere.",
     "exploding_cows": "Cows fall from the sky as bombs, wave after wave, bigger each time. Then one enormous cow. Light twice.",
     "deadly_twister": "A mile-high twister crosses the land and drags players from safety. Light twice.",
     "colossal_spear": "A building-sized spear lands, then spins down through the world, drilling a hole to the core. Light twice.",
@@ -254,7 +274,15 @@ def bomb_recipes2(shaped):
     for name, (core, side) in X.items():
         shaped(name, ["CSC", "SKS", "CSC"], {"C": "celestial_core", "S": side, "K": core}, category=cat)
     W = {"galactic_smash": "big_bang", "booming_tick": "chrono_break", "alien_death_ray": "moonfall",
-         "eternal_sapling": "world_eater", "sixteen_chunks": "ragnarok", "truman_show": "chrono_break", "disco_ball": "disco_bomb"}
+         "eternal_sapling": "world_eater", "sixteen_chunks": "ragnarok", "truman_show": "chrono_break", "disco_ball": "disco_bomb",
+         "lidar_bomb": "orbital_designator", "shadow_void": "singularity_bomb", "spectral_ice": "ice_age_bomb",
+         "termite_domain": "world_eater", "sun_disappears": "galactic_smash"}
+    O = {"sonar_bomb": "minecraft:sculk_shrieker", "pixel_bomb": "minecraft:note_block", "magnetar": "minecraft:lodestone",
+         "ink_bomb": "minecraft:ink_sac", "aurora_bomb": "minecraft:prismarine_crystals", "seasons_bomb": "minecraft:clock",
+         "prism_bomb": "minecraft:glass", "geode_bomb": "minecraft:amethyst_block", "fossil_bomb": "minecraft:bone_block",
+         "lava_lamp": "minecraft:lava_bucket"}
+    for name, core in O.items():
+        shaped(name, ["RAR", "NCN", "RAR"], {"R": "rift_shard", "A": "antimatter_cell", "N": "minecraft:nether_star", "C": core}, category=cat)
     for name, core in W.items():
         shaped(name, ["CXC", "NKN", "CXC"], {"C": "celestial_core", "X": "singularity_core", "N": "minecraft:nether_star", "K": core}, category=cat)
 

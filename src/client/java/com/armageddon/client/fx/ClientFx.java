@@ -408,6 +408,8 @@ public final class ClientFx {
 			case FxType.STAGE_SET -> add(new MainStageFx(p));
 			case FxType.ETERNAL_TREE -> add(new EternalTreeFx(p));
 			case FxType.CHUNK_GLITCH -> add(new ChunkGlitchFx(p));
+			case FxType.VISION -> add(new VisionFx(p));
+			case FxType.NEW_FX -> addNullable(NewFx.create(p));
 			case FxType.ALIEN_ROCKET -> add(new MegaEffects.AlienRocket(a, b, s, p.duration()));
 			case FxType.STEAM -> ArsenalEffects.steam(world, a, s);
 			case FxType.GLITCH -> add(new ArsenalEffects.Glitch(a, s, p.color(), p.seed(), p.duration()));

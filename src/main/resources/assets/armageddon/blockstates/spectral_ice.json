@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/spectral_ice"
+    },
+    "facing=east": {
+      "model": "armageddon:block/spectral_ice",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/spectral_ice",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/spectral_ice",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CXC",
+    "NKN",
+    "CXC"
+  ],
+  "key": {
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "X": {
+      "item": "armageddon:singularity_core"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "K": {
+      "item": "armageddon:ice_age_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:spectral_ice",
+    "count": 1
+  }
+}

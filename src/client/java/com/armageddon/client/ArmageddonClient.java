@@ -61,6 +61,7 @@ public class ArmageddonClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(ClientEvents::tick);
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(FxWorldRenderer::render);
+		WorldRenderEvents.LAST.register(com.armageddon.client.fx.Vision::render);
 		WorldRenderEvents.LAST.register(PostFx::updateLens);
 		HudRenderCallback.EVENT.register(WmdHud::render);
 
@@ -73,6 +74,7 @@ public class ArmageddonClient implements ClientModInitializer {
 			@Override
 			public void reload(ResourceManager manager) {
 				PostFx.invalidate();
+				com.armageddon.client.fx.Vision.invalidate();
 			}
 		});
 	}

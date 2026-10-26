@@ -70,6 +70,24 @@ boom bigger than the last, then a cutscene over the carpet-bombed site and out t
 a cutscene to an alien world where a colossal ray cannon rises, charges and fires at Earth, then an EMP, a tsunami
 and the ray itself coming down.
 
+**The strong five** — seen through a new depth-aware vision pass that rebuilds the world from the depth buffer.
+LIDAR STRIKE (Celestial): the world turns into a lidar point cloud, four scan pulses tag everything alive, then the
+strikes walk the scanned map and the mast overloads. SHADOW VOID (Celestial): a volumetric sphere of darkness with
+an event core swallows the ground shell by shell, inhales, and exhales a shockwave of shadow. SPECTRAL ICE
+(Celestial): ice spikes erupt into a pyramid with one point, the apex lights blue, the spikes glow harder and harder,
+and the white apex sprays a storm of ice shards that each leave a small crater and a fresh spike. TERMITE DOMAIN
+(City Destruction): thousands of ants eat every living thing out to 90 blocks, then raise a seventy-block termite
+hill with spires, vents and tunnel mouths. THE SUN DISAPPEARS (World Destruction, the strongest yet): the sun goes
+out for the whole world: endless night, a starless sky, fog, frost on the lens, frozen water, dying plants, and
+freezing for anyone not standing by a fire; then the sun's corpse falls, and the light comes back in the blast.
+
+**Oddities (Legendary and Mythic)** — Sonar (green echo vision, shoving rings that shatter glass, a sonic boom),
+8-Bit (the world goes low-res on screen and in the blocks, then GAME OVER), Magnetar (iron, ore included, ripped into
+orbit, pulsar jets), KA-BOOM! (comic ink vision, giant block letters, POW), Aurora (curtains overhead, then strikes
+that glaze the ground in coloured glass), Century (a year in forty seconds, then a hundred years of decay), Prism
+(seven rainbow beams burning coloured trenches), Geode (a giant amethyst geode that sprays crystal shards), Fossil (a
+colossal skeleton rises and roars) and Lava Lamp (heats, cracks and bursts into molten splats).
+
 **FUN tier** — toys, harmless or temporary: DISCO BALL (a giant disco ball dazzles everyone, stops, then drops the
 bass, starts Pigstep and turns the land into a dance floor for five minutes), plus the Disco, Glitter, Pumpkin
 Patch, Cobweb, Balloon and Sprinkler bombs.

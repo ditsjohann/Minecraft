@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/lava_lamp"
+    },
+    "facing=east": {
+      "model": "armageddon:block/lava_lamp",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/lava_lamp",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/lava_lamp",
+      "y": 270
+    }
+  }
+}

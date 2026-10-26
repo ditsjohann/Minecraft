@@ -160,4 +160,11 @@ public final class FxType {
 	public static final int CITY_FX = 72;
 	/** Galactic Smash, Booming Tick, Alien Death Ray (client: WorldFx.create). */
 	public static final int WORLD_FX = 73;
+
+	// ---- The vision pass and the new bombs ----
+	/** A depth-aware screen mode (client: VisionFx). seed = mode, scale = max radius, p1 = speed, p2 = mode parameter,
+	 * b = (pulse period, start radius, 0). */
+	public static final int VISION = 74;
+	/** The new bombs' world effects (client: NewFx.create). seed picks the effect. */
+	public static final int NEW_FX = 75;
 }

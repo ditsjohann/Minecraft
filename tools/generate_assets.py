@@ -564,6 +564,21 @@ def gen_shaders():
     src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "armageddon_fx.fsh")
     os.makedirs(prog, exist_ok=True)
     shutil.copy(src, os.path.join(prog, "armageddon_fx.fsh"))
+    # The depth-aware vision pass (drawn by the client's Vision class, not by a post chain).
+    vu = [{"name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]},
+          {"name": "InvViewProj", "type": "matrix4x4", "count": 16, "values": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]},
+          {"name": "Targets", "type": "matrix4x4", "count": 16, "values": [0] * 16},
+          {"name": "InSize", "type": "float", "count": 2, "values": [1.0, 1.0]},
+          {"name": "OutSize", "type": "float", "count": 2, "values": [1.0, 1.0]}]
+    for n in ("Origin", "CamFrac", "Color"):
+        vu.append({"name": n, "type": "float", "count": 3, "values": [0.0, 0.0, 0.0]})
+    for n in ("Mode", "Strength", "Time", "Radius", "Reveal", "Param", "P11"):
+        vu.append({"name": n, "type": "float", "count": 1, "values": [0.0]})
+    write_json(os.path.join(prog, "armageddon_vision.json"), {
+        "blend": {"func": "add", "srcrgb": "one", "dstrgb": "zero"},
+        "vertex": "sobel", "fragment": "armageddon_vision", "attributes": ["Position"],
+        "samplers": [{"name": "DiffuseSampler"}, {"name": "DepthSampler"}], "uniforms": vu})
+    shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), "armageddon_vision.fsh"), os.path.join(prog, "armageddon_vision.fsh"))
 
 
 def gen_lang():

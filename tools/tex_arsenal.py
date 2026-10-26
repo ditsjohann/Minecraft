@@ -139,6 +139,15 @@ def crystal_tile(c, alpha, seed):
     return K.crystal(c, seed, alpha)
 
 
+def earth_tile(rgb, seed, grain=0.5):
+    """Packed earth / bone: soft fbm lighting with pitting, no metal sheen."""
+    n = K.fbm(seed)
+    f = K.lit(n * 3.0, 1.4)
+    pits = np.clip(1 - np.abs(K.tnoise(seed + 1, 6) - 0.5) * 9, 0, 1) * grain
+    col = np.array([(rgb >> 16 & 255) / 255.0, (rgb >> 8 & 255) / 255.0, (rgb & 255) / 255.0])
+    return K.to_img(K.tint(col, (0.8 + 0.4 * n) * f * (1 - 0.35 * pits)))
+
+
 def tiles():
     t = {}
     t["pink"] = T.mat_metal(0xE85AA8, 101, panel=True, finish="anodised", wear=0.25)
@@ -147,6 +156,9 @@ def tiles():
     t["obsidian"] = T.mat_metal(0x1E1428, 104, rivets=True, finish="polished", wear=0.2)
     t["crimson"] = T.mat_metal(0x7A1420, 105, rivets=True, finish="anodised", wear=0.35)
     t["amethyst"] = crystal_tile(0x9A5CE0, 240, 106)
+    t["ice"] = crystal_tile(0xA8D8FF, 235, 107)
+    t["mud"] = earth_tile(0x6A4A30, 108)
+    t["bone"] = earth_tile(0xE6DCC0, 109, 0.3)
     # Every emissive material breathes: animated strips override the static base tiles.
     for name, c in T.GLOWS + [("gold", 0xFFC830), ("crimson", 0xFF2030), ("void", 0x7A30FF), ("pink", 0xFF70C0),
                               ("lime", 0x9AFF3A), ("ice", 0xBFEFFF)]:

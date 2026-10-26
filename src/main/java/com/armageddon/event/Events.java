@@ -8,6 +8,8 @@ import com.armageddon.event.events.EternalSaplingEvent;
 import com.armageddon.event.events.SixteenChunksEvent;
 import com.armageddon.event.events.MainStageEvent;
 import com.armageddon.event.events.DiscoBallEvent;
+import com.armageddon.event.events.OddBombEvents;
+import com.armageddon.event.events.StrongBombEvents;
 import com.armageddon.event.events.CityDestructionEvents;
 import com.armageddon.event.events.EpicEvents;
 import com.armageddon.event.events.LegendaryEvents;
@@ -100,6 +102,22 @@ public final class Events {
 		EVENTS.put("sixteen_chunks", SixteenChunksEvent::new);
 		EVENTS.put("truman_show", MainStageEvent::new);
 		EVENTS.put("disco_ball", DiscoBallEvent::new);
+		// The strong five and the oddities
+		EVENTS.put("lidar_bomb", StrongBombEvents.LidarStrike::new);
+		EVENTS.put("shadow_void", StrongBombEvents.ShadowVoid::new);
+		EVENTS.put("spectral_ice", StrongBombEvents.SpectralIce::new);
+		EVENTS.put("termite_domain", StrongBombEvents.TermiteDomain::new);
+		EVENTS.put("sun_disappears", StrongBombEvents.SunDisappears::new);
+		EVENTS.put("sonar_bomb", OddBombEvents.Sonar::new);
+		EVENTS.put("pixel_bomb", OddBombEvents.EightBit::new);
+		EVENTS.put("magnetar", OddBombEvents.Magnetar::new);
+		EVENTS.put("ink_bomb", OddBombEvents.KaBoom::new);
+		EVENTS.put("aurora_bomb", OddBombEvents.Aurora::new);
+		EVENTS.put("seasons_bomb", OddBombEvents.Century::new);
+		EVENTS.put("prism_bomb", OddBombEvents.PrismBomb::new);
+		EVENTS.put("geode_bomb", OddBombEvents.GeodeBomb::new);
+		EVENTS.put("fossil_bomb", OddBombEvents.Fossil::new);
+		EVENTS.put("lava_lamp", OddBombEvents.LavaLamp::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);
 		EVENTS.put("zeropoint", CelestialEvents.Zeropoint::new);

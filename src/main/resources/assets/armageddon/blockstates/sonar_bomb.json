@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/sonar_bomb"
+    },
+    "facing=east": {
+      "model": "armageddon:block/sonar_bomb",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/sonar_bomb",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/sonar_bomb",
+      "y": 270
+    }
+  }
+}

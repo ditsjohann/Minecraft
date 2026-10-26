@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/shadow_void"
+    },
+    "facing=east": {
+      "model": "armageddon:block/shadow_void",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/shadow_void",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/shadow_void",
+      "y": 270
+    }
+  }
+}

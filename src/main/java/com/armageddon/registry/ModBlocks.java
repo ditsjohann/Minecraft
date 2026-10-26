@@ -118,6 +118,23 @@ public final class ModBlocks {
 	public static final BombBlock TRUMAN_SHOW = tiered(bomb("truman_show", BombType.TRUMAN_SHOW, Rarity.EPIC), Tier.CITY_DESTRUCTION);
 	public static final BombBlock DISCO_BALL = tiered(bomb("disco_ball", BombType.DISCO_BALL, Rarity.EPIC), Tier.FUN);
 
+	// ---------------------------------------------------------------- the strong five and the oddities
+	public static final BombBlock LIDAR_BOMB = tiered(bomb("lidar_bomb", BombType.LIDAR_BOMB, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock SHADOW_VOID = tiered(bomb("shadow_void", BombType.SHADOW_VOID, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock SPECTRAL_ICE = tiered(bomb("spectral_ice", BombType.SPECTRAL_ICE, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock TERMITE_DOMAIN = tiered(bomb("termite_domain", BombType.TERMITE_DOMAIN, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock SUN_DISAPPEARS = tiered(bomb("sun_disappears", BombType.SUN_DISAPPEARS, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock SONAR_BOMB = tiered(bomb("sonar_bomb", BombType.SONAR_BOMB, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock PIXEL_BOMB = tiered(bomb("pixel_bomb", BombType.PIXEL_BOMB, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock MAGNETAR = tiered(bomb("magnetar", BombType.MAGNETAR, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock INK_BOMB = tiered(bomb("ink_bomb", BombType.INK_BOMB, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock AURORA_BOMB = tiered(bomb("aurora_bomb", BombType.AURORA_BOMB, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock SEASONS_BOMB = tiered(bomb("seasons_bomb", BombType.SEASONS_BOMB, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock PRISM_BOMB = tiered(bomb("prism_bomb", BombType.PRISM_BOMB, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock GEODE_BOMB = tiered(bomb("geode_bomb", BombType.GEODE_BOMB, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock FOSSIL_BOMB = tiered(bomb("fossil_bomb", BombType.FOSSIL_BOMB, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock LAVA_LAMP = tiered(bomb("lava_lamp", BombType.LAVA_LAMP, Rarity.EPIC), Tier.LEGENDARY);
+
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks
 	public static final Block ENERGY_CRYSTAL = register("energy_crystal", new TransparentBlock(AbstractBlock.Settings.create()
 			.mapColor(MapColor.PURPLE).strength(1.5F).luminance(s -> 12).nonOpaque().sounds(BlockSoundGroup.AMETHYST_BLOCK)

@@ -198,6 +198,20 @@ public final class Vfx {
 		send(w, a, range, p(type, a, b, scale, color, seed, p1, p2, duration));
 	}
 
+	/**
+	 * A depth-aware vision mode for everyone within {@code range} (see the client's Vision): {@code mode} 1 lidar,
+	 * 2 void, 3 eclipse, 4 sonar, 5 pixel, 6 comic, 7 compound eye. The region grows from {@code start} at
+	 * {@code speed} blocks a tick up to {@code maxR} (or pulses every {@code period} ticks).
+	 */
+	public static void vision(ServerWorld w, Vec3d c, int mode, float maxR, float speed, float param, int period, float start, int color, int ticks, double range) {
+		send(w, c, range, p(FxType.VISION, c, new Vec3d(period, start, 0), maxR, color, mode, speed, param, ticks));
+	}
+
+	/** One of the new bombs' client effects: {@code kind} picks it, the rest is its own payload. */
+	public static void newFx(ServerWorld w, int kind, Vec3d a, Vec3d b, float scale, int color, float p1, float p2, int ticks) {
+		send(w, a, FAR, p(FxType.NEW_FX, a, b, scale, color, kind, p1, p2, ticks));
+	}
+
 	private Vfx() {
 	}
 }
