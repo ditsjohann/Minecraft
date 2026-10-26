@@ -48,24 +48,29 @@ supernova) and the OMEGA Planet Cracker (78-block crater, blood-red sky).
 skyscrapers, roads, street lights and parks (with villagers) to destroy. `/armageddon purge` clears fallout,
 black holes, stars, pending strikes and crater jobs.
 
-**Celestial II** — EXPLODING COWS (cows fall as bombs, wave after wave, bigger each time, then one enormous cow),
-DEADLY TWISTER (a mile-high twister that wanders and drags players from safety), COLOSSAL SPEAR (a
-building-sized spear spins down through the world, drilling a hole to the core), ZOMBIE APOCALYPSE (a growing
-undead tide and stomping giants that explode green) and UFO INVASION (a city-wide saucer with a blue beam of death).
+**Celestial II** — EXPLODING COWS (cows fall as bombs, wave after wave, bigger each time, then one enormous cow
+that goes off and leaves a milky crater), DEADLY TWISTER (a mile-high twister that wanders and drags players from
+safety), COLOSSAL SPEAR (a winged, building-sized spear falls for five seconds out of a heavenly sky and drills to
+the core), ZOMBIE APOCALYPSE (a growing undead tide and wandering giants that explode green) and UFO INVASION (a
+city-wide mothership with a blue beam of death, flanked by scout saucers leaving trails of explosions).
 
 **CITY DESTRUCTION tier** — scripted bombs with letterbox bars, anime impact frames, FOV punches and very
-heavy destruction: MOONFALL (a cratered moon falls out of the sky), BIG BANG, WORLD EATER, CHRONO BREAK (a sphere
-of world is erased, then rewound) and RAGNAROK.
+heavy destruction: MOONFALL (a cratered moon breaks the sound barrier and falls out of the sky), BIG BANG (a new
+solar system, alone in a void), WORLD EATER (a gigantic cosmic worm tunnels through the land), CHRONO BREAK (a
+sphere of world is erased, then rewound) and RAGNAROK (lightning, meteors, quakes and volcanoes, then Surtr's
+burning sword splits the world into fire and frost).
 
-**WORLD DESTRUCTION tier (the real one)** — actual camera cutscenes. GALACTIC SMASH: a cosmic giant tears the
-sky open, looks around, winds up and punches the ground. BOOMING TICK: a laughable pop that doubles every five
-seconds for a minute, then a cutscene over the carpet-bombed site and out to Earth exploding. ALIEN DEATH RAY: a
-cutscene to an alien world where the rocket is loaded and fired, then an EMP, a tsunami and the biggest boom.
-ETERNAL SAPLING: a sapling grows into a tree, a bigger tree, then a world tree whose roots slam down on every
-side. 16 CHUNKS: the sixteen chunks around it each roll a random mutation (floods, flips, swaps, voids, mob
-parties), then all reroll at once. THE TRUMAN SHOW: the sky turns out to be a set; the studio strikes your world
-and leaves a painted-sky wall with an EXIT door. DISCO BALL: a giant disco ball spins until its beams burn the
-land, cools to blue, stops, then drops the bass and turns the world into a dance floor.
+**WORLD DESTRUCTION tier (the real one)** — mostly actual camera cutscenes. GALACTIC SMASH: a faceless void titan
+tears the sky open, hunts the city with burning eyes, winds up and punches the ground, and the ejecta rains back
+down for fifteen seconds. BOOMING TICK: a clock in the sky drops one burning numeral every five seconds, each boom
+bigger than the last, then a cutscene over the carpet-bombed site and out to Earth exploding. ALIEN DEATH RAY: a
+cutscene to an alien world where a colossal ray cannon rises, charges and fires at Earth, then an EMP, a tsunami
+and the ray itself coming down. ETERNAL SAPLING: a sapling climbs eight ever-bigger trees to a world tree whose
+roots slam down on every side and turn the land around them into forest. 32 CHUNKS: the thirty-two chunks around
+it each roll a random mutation (floods, flips, swaps, voids, mob parties). MAIN STAGE: no cutscene; studio rigging
+comes down, the land is struck into a studio floor with a real stage, and a painted-sky wall with an EXIT door goes
+up around you. DISCO BALL: a giant disco ball spins until its beams burn the land, cools to blue, stops, then drops
+the bass, starts Pigstep and turns the world into a dance floor.
 All of these need two lights to confirm, respect protected regions and `armageddonMaxRadius` (default 256), and
 can be disabled with `armageddonAllowCelestial`. Players are protected during camera cutscenes.
 
