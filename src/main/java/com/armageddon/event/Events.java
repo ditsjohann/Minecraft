@@ -6,7 +6,7 @@ import com.armageddon.event.events.CelestialIIEvents;
 import com.armageddon.event.events.WorldCutsceneEvents;
 import com.armageddon.event.events.EternalSaplingEvent;
 import com.armageddon.event.events.SixteenChunksEvent;
-import com.armageddon.event.events.TrumanShowEvent;
+import com.armageddon.event.events.MainStageEvent;
 import com.armageddon.event.events.DiscoBallEvent;
 import com.armageddon.event.events.CityDestructionEvents;
 import com.armageddon.event.events.EpicEvents;
@@ -98,7 +98,7 @@ public final class Events {
 		EVENTS.put("alien_death_ray", WorldCutsceneEvents.AlienDeathRay::new);
 		EVENTS.put("eternal_sapling", EternalSaplingEvent::new);
 		EVENTS.put("sixteen_chunks", SixteenChunksEvent::new);
-		EVENTS.put("truman_show", TrumanShowEvent::new);
+		EVENTS.put("truman_show", MainStageEvent::new);
 		EVENTS.put("disco_ball", DiscoBallEvent::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);

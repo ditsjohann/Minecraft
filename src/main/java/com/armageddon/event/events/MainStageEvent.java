@@ -7,7 +7,7 @@ import com.armageddon.event.WorldEvent;
 import com.armageddon.network.FxType;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
-import com.armageddon.util.TrumanSet;
+import com.armageddon.util.MainStageSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.StairsBlock;
@@ -29,15 +29,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * THE TRUMAN SHOW. The client plays the cutscene: a live broadcast, a studio light falling out of a
- * painted sky, the door in the sky, the studio outside, and the order to cut the transmission. On the
- * same timeline the server strikes the set for real: a crater where the light lands, the ground
- * peeled away into a taped studio floor, spotlights that scorch it, and a wall of painted sky with a
- * staircase up to an EXIT door.
+ * MAIN STAGE. No cutscene: it all happens around you. Studio rigging lowers into the sky and a loose
+ * light crashes down; the big lamps switch on one by one; the land is struck ring by ring into a taped
+ * studio floor; a real stage rises in front of you (planks, red curtains, footlights, a proscenium arch
+ * and a MAIN STAGE marquee); a painted-sky wall goes up all the way round with a staircase to an EXIT
+ * door; and the lamps sweep the floor, burning it, until the curtain call.
  */
-public class TrumanShowEvent extends WorldEvent {
-	private static final int CINE = TrumanSet.CINE;
-	/** Block edits per tick, shared by the strike and the wall. */
+public class MainStageEvent extends WorldEvent {
+	/** Block edits per tick, shared by the strike, the stage and the wall. */
 	private static final int BUDGET = 2500;
 
 	private record Op(long pos, BlockState state) {
@@ -47,7 +46,7 @@ public class TrumanShowEvent extends WorldEvent {
 	private final Map<FallingBlockEntity, Integer> flying = new HashMap<>();
 	private Vec3d fwd, right;
 	private int floorY, strikeR, wallR;
-	private boolean wallQueued;
+	private boolean wallQueued, stageQueued;
 
 	@Override
 	public boolean tick() {
@@ -57,58 +56,72 @@ public class TrumanShowEvent extends WorldEvent {
 			fwd = Kit.dir(data.getFloat("Yaw"));
 			right = new Vec3d(-fwd.z, 0, fwd.x);
 			floorY = MathHelper.floor(g.y) - 1;
-			strikeR = (int) Destruction.radius(world, (float) TrumanSet.STRIKE_R);
-			wallR = (int) Destruction.radius(world, (float) TrumanSet.WALL_R);
-			WorldCutsceneEvents.begin(this, world, g, "block.armageddon.truman_show", 6, fwd, CINE);
+			strikeR = (int) Destruction.radius(world, (float) MainStageSet.STRIKE_R);
+			wallR = (int) Destruction.radius(world, (float) MainStageSet.WALL_R);
+			CelestialEvents.announce(world, g, "block.armageddon.truman_show");
+			// The rig, lamps and beams, from the moment it is lit.
+			Vfx.custom(world, FxType.STAGE_SET, g, fwd, (float) MainStageSet.DOME_R, 0xFFF0D0, 0, 0, 0, MainStageSet.SCORCH_END + 60, 1024);
 			world.spawnParticles(ParticleTypes.NOTE, g.x, g.y + 2, g.z, 6, 1.5, 0.5, 1.5, 0.5);
+			Kit.sound(world, g, SoundEvents.BLOCK_PISTON_EXTEND, 32.0F, 0.4F);
 		}
-		// The cheerful three-note "good morning" chime of the opening broadcast.
-		if (t == 20 || t == 26 || t == 32) {
-			Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), 4.0F, t == 20 ? 1.0F : t == 26 ? 1.26F : 1.5F);
+		// Places, everyone: three notes of a fanfare as the rig comes down.
+		if (t == 10 || t == 16 || t == 22) {
+			Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), 12.0F, t == 10 ? 1.0F : t == 16 ? 1.26F : 1.5F);
 		}
-		if (t == TrumanSet.LIGHT_FALL) {
+		if (t > 0 && t < MainStageSet.RIG_DOWN && t % 10 == 0) {
+			Kit.sound(world, g, SoundEvents.BLOCK_CHAIN_PLACE, 32.0F, 0.5F);
+		}
+		if (t == MainStageSet.LIGHT_FALL) {
+			Vec3d hit = Kit.ground(world, MainStageSet.crash(g, fwd).x, MainStageSet.crash(g, fwd).z);
+			Vfx.streak(world, hit.add(0, 70, 0), hit, 2.0F, 0xFFF0C0, MainStageSet.LIGHT_HIT - MainStageSet.LIGHT_FALL);
+			Kit.sound(world, g, SoundEvents.BLOCK_CHAIN_BREAK, 32.0F, 0.5F);
 			Kit.sound(world, g, SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 32.0F, 0.4F);
 		}
-		if (t == TrumanSet.LIGHT_HIT) {
-			lightCrash(TrumanSet.crash(g, fwd));
-		}
-		if (t == TrumanSet.DOOR_OPEN) {
-			Kit.sound(world, g, SoundEvents.BLOCK_IRON_DOOR_OPEN, 16.0F, 0.6F);
-		}
-		if (t == TrumanSet.CUT - 10) {
-			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.5F);
-		}
-		// Colour bars and the test tone.
-		if (t >= TrumanSet.CUT && t < TrumanSet.BARS_END && t % 4 == 0) {
-			Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), 3.0F, 1.4F);
+		if (t == MainStageSet.LIGHT_HIT) {
+			lightCrash(MainStageSet.crash(g, fwd));
 		}
 		// "CHUNK": the big studio lights switch on one by one.
-		for (int i = 0; i < TrumanSet.LAMPS; i++) {
-			if (t == TrumanSet.lampOn(i)) {
-				Vec3d l = TrumanSet.lamp(g, fwd, i);
+		for (int i = 0; i < MainStageSet.LAMPS; i++) {
+			if (t == MainStageSet.lampOn(i)) {
+				Vec3d l = MainStageSet.lamp(g, fwd, i);
 				Kit.sound(world, l, SoundEvents.BLOCK_ANVIL_LAND, 64.0F, 0.45F);
 				Kit.sound(world, l, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.6F);
 				Vfx.shake(world, g, 300, 0.6F);
 			}
 		}
-		if (t >= TrumanSet.STRIKE && t < TrumanSet.STRIKE_END) {
+		if (t >= MainStageSet.STRIKE && t < MainStageSet.STRIKE_END) {
 			strike(g, t);
 			if (t % 10 == 0) {
 				Kit.sound(world, g, SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, 32.0F, 0.4F);
 				Vfx.shake(world, g, 300, 0.5F);
 			}
 		}
-		if (t >= TrumanSet.SCORCH && t < TrumanSet.SCORCH_END) {
+		if (t >= MainStageSet.SCORCH && t < MainStageSet.SCORCH_END) {
 			scorch(g, t);
 		}
-		if (t == CINE - 4) {
-			// The broken rig, hanging lamps and their beams stay visible in the world afterwards.
-			Vfx.custom(world, FxType.TRUMAN_SET, g, fwd, (float) TrumanSet.DOME_R, 0xFFF0D0, 0, 0, 0,
-					TrumanSet.SCORCH_END - (CINE - 4) + 60, 1024);
+		if (t == MainStageSet.STAGE && !stageQueued) {
+			stageQueued = true;
+			queueStage(g);
+			Kit.sound(world, g, SoundEvents.BLOCK_PISTON_EXTEND, 64.0F, 0.3F);
+			Kit.sound(world, g, SoundEvents.BLOCK_WOOD_PLACE, 64.0F, 0.5F);
 		}
-		if (t == TrumanSet.WALL && !wallQueued) {
+		if (t == MainStageSet.WALL && !wallQueued) {
 			wallQueued = true;
 			queueWall(g);
+		}
+		if (t == MainStageSet.CURTAIN_CALL) {
+			// Showtime: a drum roll, a fanfare, fireworks over the stage.
+			Vec3d st = g.add(fwd.multiply(MainStageSet.STAGE_AT)).add(0, MainStageSet.ARCH_H, 0);
+			Kit.title(world, g, 400, net.minecraft.text.Text.literal("MAIN STAGE").formatted(net.minecraft.util.Formatting.GOLD, net.minecraft.util.Formatting.BOLD),
+					net.minecraft.text.Text.literal("you're on.").formatted(net.minecraft.util.Formatting.GRAY));
+			Kit.sound(world, g, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 64.0F, 1.0F);
+			Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_LEVELUP, 64.0F, 0.8F);
+			for (int i = 0; i < 8; i++) {
+				Vfx.firework(world, st.add(right.multiply((i - 3.5) * 5)).add(0, 6 + (i % 3) * 4, 0), 3.0F, i % 5, 0xFFC040 + i * 0x101010);
+			}
+		}
+		if (t > MainStageSet.CURTAIN_CALL && t < MainStageSet.CURTAIN_CALL + 40 && t % 3 == 0) {
+			Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_SNARE.value(), 32.0F, 1.0F + world.random.nextFloat() * 0.2F);
 		}
 		flying.entrySet().removeIf(en -> {
 			if (!en.getKey().isAlive() || t - en.getValue() > 55) {
@@ -118,8 +131,8 @@ public class TrumanShowEvent extends WorldEvent {
 			return false;
 		});
 		drain();
-		boolean done = t > TrumanSet.SCORCH_END && queue.isEmpty();
-		return done || t > TrumanSet.SCORCH_END + 1200;
+		boolean done = t > MainStageSet.SCORCH_END && queue.isEmpty();
+		return done || t > MainStageSet.SCORCH_END + 1200;
 	}
 
 	@Override
@@ -197,9 +210,9 @@ public class TrumanShowEvent extends WorldEvent {
 		if (!Destruction.enabled(world) || strikeR < 4) {
 			return;
 		}
-		double span = TrumanSet.STRIKE_END - TrumanSet.STRIKE;
-		double rOut = strikeR * (1 - (t - TrumanSet.STRIKE) / span);
-		double rIn = strikeR * (1 - (t + 1 - TrumanSet.STRIKE) / span);
+		double span = MainStageSet.STRIKE_END - MainStageSet.STRIKE;
+		double rOut = strikeR * (1 - (t - MainStageSet.STRIKE) / span);
+		double rIn = strikeR * (1 - (t + 1 - MainStageSet.STRIKE) / span);
 		int gx = MathHelper.floor(g.x), gz = MathHelper.floor(g.z);
 		int ri = MathHelper.ceil(rOut);
 		int liftBudget = Math.min(14, Kit.debrisBudget(world, g));
@@ -251,8 +264,8 @@ public class TrumanShowEvent extends WorldEvent {
 	// ------------------------------------------------------------------ spotlights
 
 	private void scorch(Vec3d g, int t) {
-		for (int i = 0; i < TrumanSet.LAMPS; i++) {
-			Vec3d s = TrumanSet.spot(g, fwd, i, t);
+		for (int i = 0; i < MainStageSet.LAMPS; i++) {
+			Vec3d s = MainStageSet.spot(g, fwd, i, t);
 			int x = MathHelper.floor(s.x), z = MathHelper.floor(s.z);
 			if (!world.isChunkLoaded(x >> 4, z >> 4)) {
 				continue;
@@ -290,11 +303,106 @@ public class TrumanShowEvent extends WorldEvent {
 		}
 	}
 
+	// ------------------------------------------------------------------ the main stage
+
+	/**
+	 * The stage itself, in front of the bomb facing it: a raised plank floor with a dark apron and footlights, a black
+	 * proscenium arch trimmed in gold, red curtains gathered at both sides, a backdrop, and a marquee over the arch
+	 * spelling MAIN STAGE in lit blocks.
+	 */
+	private void queueStage(Vec3d g) {
+		if (!Destruction.enabled(world)) {
+			return;
+		}
+		Vec3d front = g.add(fwd.multiply(MainStageSet.STAGE_AT - MainStageSet.STAGE_D / 2));
+		int halfW = (int) (MainStageSet.STAGE_W / 2), depth = (int) MainStageSet.STAGE_D, h = (int) MainStageSet.STAGE_H, arch = (int) MainStageSet.ARCH_H;
+		int top = floorY + h;
+		for (int w = -halfW; w <= halfW; w++) {
+			for (int d = 0; d <= depth; d++) {
+				Vec3d at = front.add(right.multiply(w)).add(fwd.multiply(d));
+				int x = MathHelper.floor(at.x), z = MathHelper.floor(at.z);
+				for (int y = floorY + 1; y < top; y++) {
+					queue.add(new Op(BlockPos.asLong(x, y, z), (d == 0 ? Blocks.DARK_OAK_PLANKS : Blocks.BLACK_CONCRETE).getDefaultState()));
+				}
+				BlockState floor = d == 0 && Math.floorMod(w, 3) == 0 ? Blocks.SEA_LANTERN.getDefaultState()
+						: Math.floorMod(w + d, 2) == 0 ? Blocks.SPRUCE_PLANKS.getDefaultState() : Blocks.OAK_PLANKS.getDefaultState();
+				queue.add(new Op(BlockPos.asLong(x, top, z), floor));
+				// Clear the air above the stage so nothing left over from the strike sits on it.
+				for (int y = top + 1; y <= top + arch; y++) {
+					queue.add(new Op(BlockPos.asLong(x, y, z), Blocks.AIR.getDefaultState()));
+				}
+			}
+		}
+		// Steps up to the stage at the front.
+		for (int k = 0; k < h; k++) {
+			for (int w = -3; w <= 3; w++) {
+				Vec3d at = front.add(right.multiply(w)).subtract(fwd.multiply(k + 1));
+				queue.add(new Op(BlockPos.asLong(MathHelper.floor(at.x), floorY + h - k - 1, MathHelper.floor(at.z)),
+						Blocks.DARK_OAK_STAIRS.getDefaultState().with(StairsBlock.FACING, Direction.getFacing(fwd.x, 0, fwd.z))));
+			}
+		}
+		// The proscenium: two pillars and a header, black with a gold edge.
+		for (int sgn = -1; sgn <= 1; sgn += 2) {
+			for (int y = top + 1; y <= top + arch; y++) {
+				for (int k = 0; k < 2; k++) {
+					Vec3d at = front.add(right.multiply(sgn * (halfW - k))).add(fwd.multiply(1));
+					queue.add(new Op(BlockPos.asLong(MathHelper.floor(at.x), y, MathHelper.floor(at.z)), (k == 1 ? Blocks.GOLD_BLOCK : Blocks.BLACK_CONCRETE).getDefaultState()));
+				}
+			}
+		}
+		for (int w = -halfW; w <= halfW; w++) {
+			for (int y = top + arch - 2; y <= top + arch; y++) {
+				Vec3d at = front.add(right.multiply(w)).add(fwd.multiply(1));
+				queue.add(new Op(BlockPos.asLong(MathHelper.floor(at.x), y, MathHelper.floor(at.z)), (y == top + arch - 2 ? Blocks.GOLD_BLOCK : Blocks.BLACK_CONCRETE).getDefaultState()));
+			}
+		}
+		// Red curtains gathered at the sides, a pelmet along the top, and a deep red backdrop.
+		for (int y = top + 1; y < top + arch - 2; y++) {
+			for (int k = 2; k < 7; k++) {
+				for (int sgn = -1; sgn <= 1; sgn += 2) {
+					double drape = k - 2 + (y - top) * 0.06;
+					if (k - 2 > 4 - (y - top) / (double) arch * 2.5) {
+						continue;
+					}
+					Vec3d at = front.add(right.multiply(sgn * (halfW - k))).add(fwd.multiply(2 + (int) (drape * 0.2)));
+					queue.add(new Op(BlockPos.asLong(MathHelper.floor(at.x), y, MathHelper.floor(at.z)), Blocks.RED_WOOL.getDefaultState()));
+				}
+			}
+		}
+		for (int w = -halfW + 2; w <= halfW - 2; w++) {
+			for (int y = top + arch - 4; y < top + arch - 2; y++) {
+				Vec3d at = front.add(right.multiply(w)).add(fwd.multiply(2));
+				queue.add(new Op(BlockPos.asLong(MathHelper.floor(at.x), y, MathHelper.floor(at.z)), Blocks.RED_WOOL.getDefaultState()));
+			}
+			for (int y = top + 1; y <= top + arch - 2; y++) {
+				Vec3d at = front.add(right.multiply(w)).add(fwd.multiply(depth));
+				queue.add(new Op(BlockPos.asLong(MathHelper.floor(at.x), y, MathHelper.floor(at.z)),
+						(Math.floorMod(w, 4) == 0 ? Blocks.RED_TERRACOTTA : Blocks.RED_CONCRETE).getDefaultState()));
+			}
+		}
+		// The marquee: MAIN STAGE in yellow blocks on black, ringed with bulbs, standing on the arch.
+		String sign = "MAIN STAGE";
+		int signW = MainStageSet.width(sign);
+		int signY = top + arch + 2;
+		for (int px = -2; px < signW + 2; px++) {
+			for (int row = -2; row < 7; row++) {
+				Vec3d at = front.add(right.multiply(signW / 2.0 - px)).add(fwd.multiply(1));
+				int y = signY + 6 - row;
+				boolean edge = px == -2 || px == signW + 1 || row == -2 || row == 6;
+				boolean lit = row >= 0 && row < 5 && px >= 0 && px < signW && px % 4 != 3 && sign.charAt(px / 4) != ' '
+						&& MainStageSet.pixel(sign.charAt(px / 4), px % 4, row);
+				BlockState st = edge ? (Math.floorMod(px + row, 2) == 0 ? Blocks.GLOWSTONE : Blocks.GOLD_BLOCK).getDefaultState()
+						: lit ? Blocks.YELLOW_CONCRETE.getDefaultState() : Blocks.BLACK_CONCRETE.getDefaultState();
+				queue.add(new Op(BlockPos.asLong(MathHelper.floor(at.x), y, MathHelper.floor(at.z)), st));
+			}
+		}
+	}
+
 	// ------------------------------------------------------------------ the painted sky
 
 	private BlockState skyPaint(double az, int h, int x, int z) {
-		double el = h / TrumanSet.WALL_H * 0.9;
-		double c = TrumanSet.cloud(az, el);
+		double el = h / MainStageSet.WALL_H * 0.9;
+		double c = MainStageSet.cloud(az, el);
 		if (c > 0.55) {
 			return Blocks.WHITE_CONCRETE.getDefaultState();
 		}
@@ -324,11 +432,11 @@ public class TrumanShowEvent extends WorldEvent {
 			return;
 		}
 		int gx = MathHelper.floor(g.x), gz = MathHelper.floor(g.z);
-		int top = floorY + (int) TrumanSet.WALL_H;
-		int doorY = floorY + (int) TrumanSet.DOOR_H;
-		double doorAz = TrumanSet.bearing(fwd);
+		int top = floorY + (int) MainStageSet.WALL_H;
+		int doorY = floorY + (int) MainStageSet.DOOR_H;
+		double doorAz = MainStageSet.bearing(fwd);
 		String sign = "EXIT";
-		int signW = TrumanSet.width(sign);
+		int signW = MainStageSet.width(sign);
 		List<long[]> columns = new ArrayList<>();
 		int ri = wallR + 2;
 		for (int dx = -ri; dx <= ri; dx++) {
@@ -360,7 +468,7 @@ public class TrumanShowEvent extends WorldEvent {
 				int px = (int) Math.floor(arc + signW / 2.0 + 0.5);
 				int row = doorY + 9 - y;
 				if (px >= 0 && px < signW && row >= 0 && row < 5 && px % 4 != 3
-						&& TrumanSet.pixel(sign.charAt(px / 4), px % 4, row)) {
+						&& MainStageSet.pixel(sign.charAt(px / 4), px % 4, row)) {
 					s = Blocks.RED_CONCRETE.getDefaultState();
 				}
 				queue.add(new Op(BlockPos.asLong(x, y, z), s));
@@ -369,7 +477,7 @@ public class TrumanShowEvent extends WorldEvent {
 		// White stairs climbing the inside of the wall to the door, from its left.
 		Vec3d out = new Vec3d(Math.cos(doorAz), 0, Math.sin(doorAz));
 		Vec3d tangent = new Vec3d(-out.z, 0, out.x);
-		int steps = (int) TrumanSet.DOOR_H;
+		int steps = (int) MainStageSet.DOOR_H;
 		for (int k = 0; k <= steps + 2; k++) {
 			double s = k <= 2 ? k - 1.0 : -1.5 - (k - 2);
 			int stepTop = k <= 2 ? doorY - 1 : doorY - 1 - (k - 2);

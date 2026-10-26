@@ -144,8 +144,8 @@ public final class FxType {
 	// ---- World destruction II: each built from the raw payload by its own client effect class ----
 	/** The giant disco ball (client: DiscoBallFx). */
 	public static final int DISCO_BALL = 65;
-	/** The Truman Show studio set (client: TrumanFx). */
-	public static final int TRUMAN_SET = 66;
+	/** The MAIN STAGE studio rig, lamps and beams (client: MainStageFx). */
+	public static final int STAGE_SET = 66;
 	/** The eternal tree's aura (client: EternalTreeFx). */
 	public static final int ETERNAL_TREE = 67;
 	/** Sixteen-chunks glitch overlay (client: ChunkGlitchFx). */

@@ -3,29 +3,27 @@ package com.armageddon.util;
 import net.minecraft.util.math.Vec3d;
 
 /**
- * Shared layout and timeline of THE TRUMAN SHOW set, so the server's real destruction and the
- * client's cutscene scenery (dome, studio lights, scorching beams) agree to the block and the tick.
+ * Shared layout and timeline of the MAIN STAGE set, so the server's real block work and the client's rig,
+ * lamps and scorching beams agree to the block and the tick. There is no cutscene: it all happens around you.
  */
-public final class TrumanSet {
+public final class MainStageSet {
 	// ---- timeline (event ticks) ----
-	/** The zenith panel drops out and SIRIUS starts to fall. */
-	public static final int LIGHT_FALL = 106;
-	/** SIRIUS hits the ground. */
-	public static final int LIGHT_HIT = 176;
-	/** The door in the sky opens. */
-	public static final int DOOR_OPEN = 322;
-	/** "Cut the transmission": colour bars until {@link #BARS_END}. */
-	public static final int CUT = 440, BARS_END = 470;
-	/** The studio lights switch on one by one from here. */
-	public static final int LAMPS_ON = 472;
+	/** The rigging lowers into the sky over the first few seconds. */
+	public static final int RIG_DOWN = 80;
+	/** A loose studio light breaks out of the rig and falls. */
+	public static final int LIGHT_FALL = 40;
+	/** It hits the ground. */
+	public static final int LIGHT_HIT = 70;
+	/** The big studio lights switch on one by one from here. */
+	public static final int LAMPS_ON = 90;
 	/** The set is struck, ring by ring from the edge inward. */
-	public static final int STRIKE = 480, STRIKE_END = 600;
+	public static final int STRIKE = 100, STRIKE_END = 220;
 	/** The lamp beams start burning the ground. */
-	public static final int SCORCH = 520, SCORCH_END = 1100;
-	/** The painted-sky wall is raised (behind the "THE END" card). */
-	public static final int WALL = 700;
-	/** Cutscene length. */
-	public static final int CINE = 760;
+	public static final int SCORCH = 140, SCORCH_END = 760;
+	/** The main stage rises out of the studio floor, then the painted-sky wall goes up around everything. */
+	public static final int STAGE = 225, WALL = 250;
+	/** Showtime: the curtain call, once the set is built. */
+	public static final int CURTAIN_CALL = 420;
 
 	// ---- layout (blocks) ----
 	public static final double DOME_R = 96, DOME_H = 80;
@@ -33,8 +31,10 @@ public final class TrumanSet {
 	public static final double STRIKE_R = 72;
 	public static final int LAMPS = 4;
 	private static final double[] LAMP_BEARING = {50, 140, -140, -50};
+	/** The main stage: how far in front of the bomb it stands, its width, depth and height, and its arch. */
+	public static final double STAGE_AT = 26, STAGE_W = 30, STAGE_D = 14, STAGE_H = 3, ARCH_H = 20;
 
-	private TrumanSet() {
+	private MainStageSet() {
 	}
 
 	public static double bearing(Vec3d fwd) {
@@ -61,7 +61,7 @@ public final class TrumanSet {
 		return new Vec3d(g.x + Math.cos(ang) * rad, g.y, g.z + Math.sin(ang) * rad);
 	}
 
-	/** Where SIRIUS lands, in front of and beside the player. */
+	/** Where the loose light lands, in front of and beside the player. */
 	public static Vec3d crash(Vec3d g, Vec3d fwd) {
 		return g.add(fwd.multiply(14)).add(-fwd.z * 6, 0, fwd.x * 6);
 	}
@@ -72,7 +72,7 @@ public final class TrumanSet {
 				+ Math.sin(az * 2.3 + el * 3.1) * 0.4;
 	}
 
-	// ---- 3x5 pixel font (signs built from blocks and drawn in the cutscene) ----
+	// ---- 3x5 pixel font (signs built from blocks and drawn by the client) ----
 	private static final String GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	private static final String[] FONT = {
 			".#.#.#####.##.#", "##.#.###.#.###.", ".###..#..#...##", "##.#.##.##.###.", "####..##.#..###",

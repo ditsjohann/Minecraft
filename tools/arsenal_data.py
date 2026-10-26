@@ -99,7 +99,7 @@ NEW_BOMBS.update({
     "exploding_cows": "EXPLODING COWS", "deadly_twister": "DEADLY TWISTER", "colossal_spear": "COLOSSAL SPEAR",
     "zombie_apocalypse": "ZOMBIE APOCALYPSE", "ufo_invasion": "UFO INVASION",
     "galactic_smash": "GALACTIC SMASH", "booming_tick": "BOOMING TICK", "alien_death_ray": "ALIEN DEATH RAY",
-    "eternal_sapling": "ETERNAL SAPLING", "sixteen_chunks": "32 CHUNKS", "truman_show": "THE TRUMAN SHOW",
+    "eternal_sapling": "ETERNAL SAPLING", "sixteen_chunks": "32 CHUNKS", "truman_show": "MAIN STAGE",
     "disco_ball": "DISCO BALL",
 })
 BLOCKS.update(NEW_BOMBS)
@@ -115,7 +115,7 @@ BLOCK_DESC = {
     "alien_death_ray": "WORLD DESTRUCTION. A cutscene to another world, a rocket, an EMP, a tsunami, the biggest boom. Light twice.",
     "eternal_sapling": "WORLD DESTRUCTION. A sapling becomes a tree, a bigger tree, then a world tree whose roots slam down from every side. Camera cutscene. Light twice.",
     "sixteen_chunks": "WORLD DESTRUCTION. Thirty-two chunks, thirty-two dice rolls: floods of random blocks and very weird physics. Camera cutscene. Light twice.",
-    "truman_show": "WORLD DESTRUCTION. Good morning! And in case I don't see ya... the sky was a set all along. Camera cutscene. Light twice.",
+    "truman_show": "WORLD DESTRUCTION. Lights, rigging, action: the world around you is struck into a studio set, with a main stage and a painted-sky wall. Light twice.",
     "disco_ball": "WORLD DESTRUCTION. A giant disco ball spins up until its light burns the world, cools to blue, stops... then the bass. Camera cutscene. Light twice.",
     "disco_bomb": "A dance floor, rainbow rings and a beat that bounces everyone. Harmless.",
     "glitter_bomb": "A storm of sparkle. Everything glows for thirty seconds. Harmless.",

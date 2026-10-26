@@ -104,7 +104,7 @@ public enum BombType {
 		};
 	}
 
-	/** The true WORLD DESTRUCTION tier: scripted camera cutscenes. */
+	/** The true WORLD DESTRUCTION tier (most with scripted camera cutscenes). */
 	public boolean isWorldDestruction() {
 		return switch (this) {
 			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW, DISCO_BALL -> true;

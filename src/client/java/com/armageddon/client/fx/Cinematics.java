@@ -35,7 +35,7 @@ public final class Cinematics {
 	}
 
 	public static final int GALACTIC_SMASH = 1, BOOM_SURVEY = 2, ALIEN_LAUNCH = 3,
-			ETERNAL_SAPLING = 4, SIXTEEN_CHUNKS = 5, TRUMAN_SHOW = 6, DISCO_BALL = 7;
+			ETERNAL_SAPLING = 4, SIXTEEN_CHUNKS = 5, DISCO_BALL = 7;
 
 	public static Cine create(int scene, Vec3d anchor, Vec3d heading, int life) {
 		return switch (scene) {
@@ -43,7 +43,6 @@ public final class Cinematics {
 			case BOOM_SURVEY -> new BoomSurvey(anchor, heading, life);
 			case ETERNAL_SAPLING -> new EternalSaplingCine(anchor, heading, life);
 			case SIXTEEN_CHUNKS -> new SixteenChunksCine(anchor, heading, life);
-			case TRUMAN_SHOW -> new TrumanShowCine(anchor, heading, life);
 			case DISCO_BALL -> new DiscoBallCine(anchor, heading, life);
 			default -> new AlienLaunch(anchor, heading, life);
 		};

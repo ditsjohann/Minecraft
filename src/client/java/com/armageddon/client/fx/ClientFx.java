@@ -405,7 +405,7 @@ public final class ClientFx {
 			case FxType.CITY_FX -> addNullable(CityFx.create(p));
 			case FxType.WORLD_FX -> addNullable(WorldFx.create(p));
 			case FxType.DISCO_BALL -> add(new DiscoBallFx(p));
-			case FxType.TRUMAN_SET -> add(new TrumanFx(p));
+			case FxType.STAGE_SET -> add(new MainStageFx(p));
 			case FxType.ETERNAL_TREE -> add(new EternalTreeFx(p));
 			case FxType.CHUNK_GLITCH -> add(new ChunkGlitchFx(p));
 			case FxType.ALIEN_ROCKET -> add(new MegaEffects.AlienRocket(a, b, s, p.duration()));
