@@ -68,6 +68,48 @@ public final class WorldCutsceneEvents {
 		}
 	}
 
+	/**
+	 * The visible edge of a cataclysm's blast: chunks of the surface torn up off the passing front and thrown
+	 * outward, and anything standing in it hammered and thrown.
+	 */
+	static void shockFront(ServerWorld w, Vec3d g, double front, int blocks, float damage, @org.jetbrains.annotations.Nullable net.minecraft.entity.Entity owner) {
+		if (Destruction.enabled(w)) {
+			for (int i = 0; i < blocks; i++) {
+				double a = w.random.nextDouble() * Math.PI * 2;
+				double d = front - w.random.nextDouble() * 8;
+				int x = MathHelper.floor(g.x + Math.cos(a) * d), z = MathHelper.floor(g.z + Math.sin(a) * d);
+				if (!w.isChunkLoaded(x >> 4, z >> 4)) {
+					continue;
+				}
+				net.minecraft.util.math.BlockPos p = Kit.surface(w, x, z);
+				net.minecraft.block.BlockState st = w.getBlockState(p);
+				if (!Kit.liftable(w, p, st, com.armageddon.destruction.ProtectedRegions.get(w))) {
+					continue;
+				}
+				Destruction.record(w, p, st);
+				net.minecraft.entity.FallingBlockEntity fb = net.minecraft.entity.FallingBlockEntity.spawnFromBlock(w, p, st);
+				fb.setDestroyedOnLanding();
+				Kit.velocity(fb, new Vec3d(Math.cos(a) * (0.6 + w.random.nextDouble()), 0.9 + w.random.nextDouble() * 1.2, Math.sin(a) * (0.6 + w.random.nextDouble())));
+			}
+		}
+		for (LivingEntity e : Kit.living(w, g, front + 12)) {
+			double d = Math.hypot(e.getX() - g.x, e.getZ() - g.z);
+			if (Math.abs(d - front) < 12 && !Kit.creativeOrSpectator(e)) {
+				Vec3d out = new Vec3d(e.getX() - g.x, 0, e.getZ() - g.z).normalize();
+				e.damage(ModDamageTypes.source(w, ModDamageTypes.ANNIHILATION, null, owner), damage);
+				Kit.push(e, out.multiply(2.2).add(0, 1.0, 0));
+			}
+		}
+	}
+
+	/** Steps a devastation sweep: the front moves at {@code speed} blocks a tick from {@code start}. */
+	static void sweep(TerrainJob job, int k, double speed, int budget) {
+		if (job != null) {
+			job.limit = k * speed;
+			job.step(budget);
+		}
+	}
+
 	static boolean allDone(List<TerrainJob> jobs) {
 		for (TerrainJob j : jobs) {
 			if (!j.isDone()) {
@@ -94,7 +136,8 @@ public final class WorldCutsceneEvents {
 		private Vec3d fwd;
 		private double R;
 		private final List<TerrainJob> jobs = new ArrayList<>();
-		private TerrainJob fist, cracks, ripples;
+		private TerrainJob fist, cracks, ripples, devastation;
+		private double blast;
 
 		@Override
 		public boolean tick() {
@@ -139,6 +182,11 @@ public final class WorldCutsceneEvents {
 				cracks.limit = R * 0.2 + 5.0 * k;
 				ripples.limit = R * 1.05 + 3.0 * k;
 				stepJobs(jobs, BUDGET);
+				// The real blast: everything standing for three hundred blocks is torn down as the front passes.
+				sweep(devastation, k, 4.5, 3500);
+				if (devastation != null && k * 4.5 < blast) {
+					shockFront(world, g, k * 4.5, 10, 30.0F, owner());
+				}
 				double front = R * 0.8 + 3.0 * k;
 				if (k < 300 && k % 20 == 0) {
 					// Each bell stroke throws things standing on the passing wave.
@@ -172,7 +220,7 @@ public final class WorldCutsceneEvents {
 			if (t == SMASH + 60) {
 				Vfx.skyTint(world, g, 100000, 0x2A1010, 0.8F);
 			}
-			return t > SMASH + 300 && (jobs.isEmpty() || allDone(jobs)) || t > SMASH + 1500;
+			return t > SMASH + 300 && (jobs.isEmpty() || allDone(jobs)) && (devastation == null || devastation.isDone()) || t > SMASH + 1500;
 		}
 
 		private void smash(Vec3d g) {
@@ -205,6 +253,8 @@ public final class WorldCutsceneEvents {
 				jobs.add(fist);
 				jobs.add(cracks);
 				jobs.add(ripples);
+				blast = Destruction.radius(world, 320.0F);
+				devastation = com.armageddon.destruction.world.Devastation.of(world, g, 0, blast, base, com.armageddon.destruction.world.Devastation.VOID);
 			}
 			Detonations.debris(world, g, 90, 260);
 			if (Destruction.enabled(world)) {
@@ -235,7 +285,8 @@ public final class WorldCutsceneEvents {
 		private double R;
 		private int base;
 		private final List<TerrainJob> jobs = new ArrayList<>();
-		private TerrainJob front;
+		private TerrainJob front, devastation;
+		private int devastStart;
 		private boolean handsPending;
 		private int frontStart;
 		private double frontFrom;
@@ -307,13 +358,16 @@ public final class WorldCutsceneEvents {
 				protect(world, CINE + 80);
 			}
 			if (t >= T0 && t < T0 + 330) {
-				// The cutscene's carpet-bombing, seen from above: flashes and noise, the target left intact for the finale.
+				// The cutscene's carpet-bombing: real bombs, walking outward from the terraces over the whole countryside.
 				int k = t - T0;
 				for (int i = 0; i < 1 + k / 60; i++) {
 					double a = world.random.nextDouble() * Math.PI * 2;
-					double d = Math.sqrt(world.random.nextDouble()) * R * 0.85;
+					double d = R * 0.9 + world.random.nextDouble() * (40 + k * 0.6);
 					Vec3d p = Kit.ground(world, g.x + Math.cos(a) * d, g.z + Math.sin(a) * d);
-					Vfx.layeredBlast(world, p, 4.0F + world.random.nextInt(6), WorldShapes.bandColor(WorldShapes.bandOf(d, R)));
+					Vfx.layeredBlast(world, p, 4.0F + world.random.nextInt(6), WorldShapes.bandColor(world.random.nextInt(BOOMS)));
+					if (k % 2 == 0) {
+						Kit.boom(world, p.add(0, 0.5, 0), 3.5F + world.random.nextFloat() * 3.5F, 0xFF6020, owner(), true);
+					}
 				}
 				if (k % 6 == 0) {
 					Kit.sound(world, g, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 40.0F, 0.5F);
@@ -330,6 +384,13 @@ public final class WorldCutsceneEvents {
 				Detonations.blast(world, g, 500, 20000.0F, ModDamageTypes.ANNIHILATION, owner(), 250, 14.0);
 				addBand(g, BOOMS, t);
 				handsPending = Destruction.enabled(world);
+				if (Destruction.enabled(world)) {
+					// Midnight's shock front: everything left standing beyond the terraces is torn down.
+					devastation = com.armageddon.destruction.world.Devastation.of(world, g, 0, Destruction.radius(world, 330.0F), base,
+							com.armageddon.destruction.world.Devastation.FIRE);
+					devastation.limit = 0;
+					devastStart = t;
+				}
 				Detonations.debris(world, g, 80, 150);
 				Vfx.custom(world, FxType.WORLD_FX, g, fwd, (float) R, 0xFFB060, 2, base, 0, 1400, Vfx.FAR);
 			}
@@ -350,7 +411,16 @@ public final class WorldCutsceneEvents {
 				Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 64.0F, 0.5F);
 			}
 			stepJobs(jobs, BUDGET);
-			return t > FINAL + 220 && !handsPending && allDone(jobs) || t > FINAL + 1400;
+			if (devastation != null) {
+				int k = t - devastStart;
+				// Only beyond the terraces (they are levelled already): start the front at their rim.
+				devastation.limit = R + k * 4.0;
+				devastation.step(3500);
+				if (devastation.limit < 330 && k % 2 == 0) {
+					shockFront(world, g, devastation.limit, 8, 30.0F, owner());
+				}
+			}
+			return t > FINAL + 220 && !handsPending && allDone(jobs) && (devastation == null || devastation.isDone()) || t > FINAL + 1400;
 		}
 	}
 
@@ -369,7 +439,7 @@ public final class WorldCutsceneEvents {
 		private double reach;
 		private int base;
 		private final List<TerrainJob> jobs = new ArrayList<>();
-		private TerrainJob terraform;
+		private TerrainJob terraform, devastation;
 		private VoxelQueue spires;
 		private int finalAt = -1;
 
@@ -472,6 +542,14 @@ public final class WorldCutsceneEvents {
 			}
 			if (finalAt >= 0) {
 				int f = t - finalAt;
+				if (devastation != null) {
+					// The ray's blast wave: the whole countryside is levelled ahead of the alien land.
+					devastation.limit = 6.0 * f;
+					devastation.step(3500);
+					if (devastation.limit < 330 && f % 2 == 0) {
+						shockFront(world, g, devastation.limit, 10, 40.0F, owner());
+					}
+				}
 				if (terraform != null) {
 					// The alien land spreads out of the shaft like a stain.
 					terraform.limit = 30 + 2.2 * f;
@@ -493,7 +571,7 @@ public final class WorldCutsceneEvents {
 			}
 			stepJobs(jobs, budget);
 			boolean built = allDone(jobs) && (terraform == null || spires != null && spires.isDone());
-			return finalAt >= 0 && (t > finalAt + 260 && built || t > finalAt + 1500);
+			return finalAt >= 0 && (t > finalAt + 260 && built && (devastation == null || devastation.isDone()) || t > finalAt + 1500);
 		}
 
 		/** The cinematic's sound track, on the same ticks as Cinematics.AlienLaunch. */
@@ -594,6 +672,9 @@ public final class WorldCutsceneEvents {
 				terraform = WorldScars.terraform(world, g, reach);
 				terraform.limit = 30;
 				jobs.add(terraform);
+				devastation = com.armageddon.destruction.world.Devastation.of(world, g, 0, Destruction.radius(world, 330.0F), base,
+						com.armageddon.destruction.world.Devastation.ALIEN);
+				devastation.limit = 0;
 			}
 			Detonations.debris(world, g, 90, 260);
 			Vfx.skyTint(world, g, 100000, 0x183020, 0.8F);

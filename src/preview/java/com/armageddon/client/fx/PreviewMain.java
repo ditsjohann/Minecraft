@@ -38,10 +38,38 @@ public final class PreviewMain {
 	static int[] atlas;
 	static int atlasW, atlasH, frames;
 
+	static final StringBuilder ERRORS = new StringBuilder();
+
 	public static void main(String[] args) throws Exception {
+		File dir = new File("build/fx-previews");
+		dir.mkdirs();
+		try {
+			run(args);
+		} catch (Throwable t) {
+			error("fatal", t);
+		}
+		Files.writeString(new File(dir, "errors.txt").toPath(), ERRORS.length() == 0 ? "ok\n" : ERRORS.toString());
+		System.exit(0);
+	}
+
+	static void error(String what, Throwable t) {
+		java.io.StringWriter sw = new java.io.StringWriter();
+		t.printStackTrace(new java.io.PrintWriter(sw));
+		String[] lines = sw.toString().split("\n");
+		ERRORS.append("== ").append(what).append('\n');
+		for (int i = 0; i < Math.min(lines.length, 25); i++) {
+			ERRORS.append(lines[i]).append('\n');
+		}
+	}
+
+	static void run(String[] args) throws Exception {
 		// Render layers reach into the block and sound registries: bootstrap them like data generation does.
-		net.minecraft.SharedConstants.createGameVersion();
-		net.minecraft.Bootstrap.initialize();
+		try {
+			net.minecraft.SharedConstants.createGameVersion();
+			net.minecraft.Bootstrap.initialize();
+		} catch (Throwable t) {
+			error("bootstrap", t);
+		}
 		BufferedImage at = ImageIO.read(new File(args[1]));
 		atlasW = at.getWidth();
 		atlasH = at.getHeight();
@@ -54,8 +82,7 @@ public final class PreviewMain {
 			try {
 				render(line);
 			} catch (Throwable t) {
-				System.out.println("PREVIEW-ERR " + line + " :: " + t);
-				t.printStackTrace(System.out);
+				error(line, t);
 			}
 		}
 	}
