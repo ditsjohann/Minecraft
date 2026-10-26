@@ -61,7 +61,7 @@ public class MainStageEvent extends WorldEvent {
 			wallR = (int) Destruction.radius(world, (float) MainStageSet.WALL_R);
 			CelestialEvents.announce(world, g, "block.armageddon.truman_show");
 			// The rig, lamps and beams, from the moment it is lit.
-			Vfx.custom(world, FxType.STAGE_SET, g, fwd, (float) MainStageSet.DOME_R, 0xFFF0D0, 0, 0, 0, MainStageSet.FINALE + 60, 1024);
+			Vfx.custom(world, FxType.STAGE_SET, g, fwd, (float) MainStageSet.DOME_R, 0xFFF0D0, 0, 0, 0, MainStageSet.FINALE + 300, 1024);
 			world.spawnParticles(ParticleTypes.NOTE, g.x, g.y + 2, g.z, 6, 1.5, 0.5, 1.5, 0.5);
 			Kit.sound(world, g, SoundEvents.BLOCK_PISTON_EXTEND, 32.0F, 0.4F);
 		}

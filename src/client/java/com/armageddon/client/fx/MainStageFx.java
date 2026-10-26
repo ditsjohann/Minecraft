@@ -74,6 +74,9 @@ public class MainStageFx extends FxEffect {
 		Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 		Vec3d c = base.subtract(cam);
 		double drop = drop(t);
+		if (t >= MainStageSet.WRAP) {
+			renderWrap(consumers, m, cb, c, t);
+		}
 		// Steel ribs arching over the set, lowering into place. A few are short, with cables swaying off their ends.
 		for (int k = 0; k < RIBS; k++) {
 			double az = MainStageSet.bearing(fwd) + (k + 0.5) * MathHelper.TAU / RIBS;
@@ -223,6 +226,85 @@ public class MainStageFx extends FxEffect {
 		FxDraw.disc(glow, m, hit.add(0, 0.3, 0), x, z, 5.5 * s, 0xFFF0C8, 0.6F * alpha, 0.0F, 24);
 		float flick = 0.7F + 0.3F * MathHelper.sin(time * 1.3F);
 		FxDraw.ring(glow, m, hit.add(0, 0.35, 0), x, z, 1.5 * s, 3.2 * s, 0xFF7020, 0.0F, 0.8F * alpha * flick, 0.0F, 24);
+	}
+
+	private static final int[] SHELLS = {0xFF3040, 0xFFD040, 0x40C0FF, 0x60FF70, 0xFF60E0, 0xFFFFFF};
+
+	/**
+	 * The show is over and the set comes down: the wreck of the rig burns around the wall, the last of the pyrotechnics
+	 * go up in a barrage over the stage, and then the FINAL ACT, a fireball that swallows the set, throws it into the
+	 * sky and rolls a firestorm outward over everything around it.
+	 */
+	private void renderWrap(VertexConsumerProvider consumers, Matrix4f m, Vec3d[] cb, Vec3d c, float t) {
+		VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+		VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+		java.util.List<Effects.Puff> smoke = FxKit.puffs();
+		float w = t - MainStageSet.WRAP;
+		double wr = MainStageSet.WALL_R;
+		if (w > MainStageSet.LAMP_FALL && t < MainStageSet.FINALE + 20) {
+			float k = Math.min(1.0F, (w - MainStageSet.LAMP_FALL) / 40.0F);
+			for (int i = 0; i < 14; i++) {
+				double az = i * MathHelper.TAU / 14 + Solids.hash(i, 61) * 0.3;
+				double rr = wr * (0.55 + 0.45 * Solids.hash(i, 62));
+				Vec3d p = c.add(Math.cos(az) * rr, 3, Math.sin(az) * rr);
+				FxKit.fire(consumers, m, cb, p, 5 + Solids.hash(i, 63) * 4, 0xFFB050, (float) ((t * 0.02 + Solids.hash(i, 64)) % 1.0), k, t, 300 + i);
+				if (i % 2 == 0) {
+					FxKit.column(p, 22 + Math.min(w, 120) * 0.25, 4, t, 0x6A5E56, 0x1C1816, 0.5F * k, 320 + i, smoke);
+				}
+			}
+		}
+		if (t >= MainStageSet.WALL_FALL && t < MainStageSet.FINALE) {
+			// The barrage: a shell every few ticks, each climbing on a spark trail and breaking into a coloured star.
+			int first = MainStageSet.WALL_FALL;
+			for (int i = 0; i < (MainStageSet.FINALE - first) / 4; i++) {
+				float st = first + i * 4 + (float) Solids.hash(i, 71) * 3;
+				float e = t - st;
+				if (e < 0 || e > 50) {
+					continue;
+				}
+				double az = Solids.hash(i, 72) * MathHelper.TAU;
+				double rr = wr * 0.8 * Math.sqrt(Solids.hash(i, 73));
+				Vec3d from = c.add(Math.cos(az) * rr, 1, Math.sin(az) * rr);
+				Vec3d apex = from.add((Solids.hash(i, 74) - 0.5) * 20, 60 + Solids.hash(i, 75) * 50, (Solids.hash(i, 76) - 0.5) * 20);
+				int col = SHELLS[i % SHELLS.length];
+				if (e < 18) {
+					double k = e / 18.0;
+					Vec3d p = from.add(apex.subtract(from).multiply(1 - (1 - k) * (1 - k)));
+					FxDraw.ribbon(glow, m, from.add(p.subtract(from).multiply(0.75)), p, Vec3d.ZERO, 0.5, 0xFFD8A0, 0.0F, 0.9F);
+				} else {
+					float k = (e - 18) / 32.0F;
+					FxKit.sparks(consumers, m, apex, 26 + Solids.hash(i, 77) * 20, 70, col, k, 1 - k * k, 330 + i);
+					if (k < 0.2F) {
+						FxKit.flare(consumers, m, cb, apex, 30, col, 1 - k * 5, 0);
+					}
+				}
+			}
+		}
+		if (t >= MainStageSet.FINALE) {
+			float e = t - MainStageSet.FINALE;
+			float k = Math.min(1.0F, e / 240.0F);
+			if (e < 50) {
+				float f = 1 - e / 50.0F;
+				FxKit.flare(consumers, m, cb, c.add(0, 30, 0), 500 * f + 60, 0xFFF0D0, f, e * 0.005);
+				FxDraw.sphere(glow, m, c, 20 + e * 3.5, Vec3d.ZERO, 0xFFFFFF, 0.7F * f, 0.9F * f, 16, 32);
+			}
+			FxKit.fire(consumers, m, cb, c.add(0, 25 + e * 0.5, 0), 40 + e * 0.5, 0xFFE0B0, Math.min(1.0F, e / 110.0F), 1 - k, t, 360);
+			double front = 30 + e * 5;
+			if (front < 300) {
+				float fa = (float) (1 - front / 300);
+				FxKit.groundShock(consumers, m, c.add(0, 0.5, 0), front, 0xFFE0B0, fa);
+				for (int i = 0; i < 32; i++) {
+					double az = i * MathHelper.TAU / 32 + Solids.hash(i, 81) * 0.15;
+					FxKit.fire(consumers, m, cb, c.add(Math.cos(az) * front, 5, Math.sin(az) * front), 8 + front * 0.03, 0xFFC070,
+							(float) ((e * 0.03 + Solids.hash(i, 82)) % 1.0), fa, t, 370 + i);
+				}
+			}
+			if (e < 220) {
+				Cinematics.debris(solid, glow, m, c, e, 90, 2.6, 4, 0.05, 61, 0x4A3C34, 0xFF9040);
+			}
+			FxKit.column(c, 50 + Math.min(e, 200) * 1.1, 20 + Math.min(e, 200) * 0.2, t, 0x9A7A64, 0x241A14, 0.7F * (1 - k), 390, smoke);
+		}
+		FxKit.flush(smoke, consumers, m, cb);
 	}
 
 	/** Dust hanging in a lamp's beam, drifting slowly through the light. */

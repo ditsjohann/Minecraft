@@ -462,6 +462,50 @@ public final class NewFx {
 				double twitch = Math.sin((age + tickDelta) * 1.7 + i) * 0.03;
 				FxDraw.ribbon(shade, m, p.add(head.multiply(0.12 * s)), p.add(head.multiply((0.26 + twitch) * s)), Vec3d.ZERO, 0.14 * s, col, fade, fade);
 			}
+			renderDust(consumers, m, cam, age + tickDelta, FxDraw.cameraBasis(camYaw, camPitch), fade);
+		}
+
+		/**
+		 * What the colony throws up: sawdust and splinters where the front is chewing through the town, plumes of spoil
+		 * off the mound while it is raised, and in the nuptial flight a dark cloud of wings rolling out over the land.
+		 */
+		private void renderDust(VertexConsumerProvider consumers, Matrix4f m, Vec3d cam, float a, Vec3d[] cb, float fade) {
+			java.util.List<Effects.Puff> dust = FxKit.puffs();
+			Vec3d gc = g.subtract(cam);
+			if (a > Termite.EMERGE && a < Termite.EAT_END + 30) {
+				double front = Termite.front(a);
+				float k = fade * (a > Termite.EAT_END ? 1 - (a - Termite.EAT_END) / 30.0F : 1.0F);
+				int n = 18 + (int) Math.min(30, front * 0.4);
+				for (int i = 0; i < n; i++) {
+					double ang = i * MathHelper.TAU / n + NewBombShapes.hash(i, 20) * 0.3;
+					double life = (a * 0.025 + NewBombShapes.hash(i, 21)) % 1.0;
+					double x = g.x + Math.cos(ang) * front, z = g.z + Math.sin(ang) * front;
+					Vec3d p = new Vec3d(x - cam.x, ground(x, z) - cam.y + 0.8 + life * 7, z - cam.z);
+					dust.add(new Effects.Puff(p, 1.8 + life * 4.5, 0xB89466, 0x3A2A1A, 0.55F * k * (float) (1 - life)));
+				}
+			}
+			if (a > Termite.BUILD && a < Termite.BUILD_END + 40) {
+				float k = fade * (a > Termite.BUILD_END ? 1 - (a - Termite.BUILD_END) / 40.0F : 1.0F);
+				double top = Termite.built(a) * Termite.HILL_H;
+				FxKit.column(gc.add(0, top, 0), 16 + top * 0.6, 4 + top * 0.12, a, 0xA08060, 0x302218, 0.5F * k, 251, dust);
+				FxKit.dustRing(m, cb, gc.add(0, 0.5, 0), Termite.HILL_R + 6, 5, 0x9A7A58, 0x2A2016, 0.45F * k, 252, dust);
+			}
+			if (a > Termite.FLIGHT && a < Termite.FLIGHT_END + 40) {
+				float k = fade * (a > Termite.FLIGHT_END ? 1 - (a - Termite.FLIGHT_END) / 40.0F : 1.0F) * Math.min(1.0F, (a - Termite.FLIGHT) / 40.0F);
+				double fly = Math.max(10, Termite.flightFront(a) * Math.min(1.0, (a - Termite.FLIGHT) / 120.0));
+				int n = 40;
+				for (int i = 0; i < n; i++) {
+					double ang = i * MathHelper.TAU / n + a * 0.004 + NewBombShapes.hash(i, 22) * 0.2;
+					double rr = fly * (0.78 + 0.22 * NewBombShapes.hash(i, 23));
+					Vec3d p = gc.add(Math.cos(ang) * rr, 8 + NewBombShapes.hash(i, 24) * 20 + Math.sin(a * 0.05 + i) * 2, Math.sin(ang) * rr);
+					dust.add(new Effects.Puff(p, 5 + rr * 0.05, 0x5A4A38, 0x140C08, 0.32F * k));
+				}
+				if (a < Termite.FLIGHT + 220) {
+					double top = Termite.built(a) * Termite.HILL_H;
+					FxKit.column(gc.add(0, top, 0), 50, 7, a, 0x5A4A38, 0x140C08, 0.55F * (1 - (a - Termite.FLIGHT) / 220.0F) * fade, 253, dust);
+				}
+			}
+			FxKit.flush(dust, consumers, m, cb);
 		}
 	}
 
@@ -568,6 +612,61 @@ public final class NewFx {
 					FxDraw.ribbon(glow, m, c, c.subtract(back.multiply(r * 4)), Vec3d.ZERO, r * 1.2, 0xFF6020, 0.35F, 0.0F);
 				}
 			}
+			if (t >= Sun.IMPACT && t < Sun.END) {
+				renderImpact(consumers, solid, glow, m, cb, cam, t - Sun.IMPACT);
+			}
+		}
+
+		/**
+		 * The dead star lands: it ploughs half into the ground and lies there cooling from white to black, a flash and a
+		 * wall of fire roll outward with the destruction front (7 blocks a tick, as the server's devastation runs), the
+		 * crust and the city are thrown into the sky, and a burning plume climbs out of the crater.
+		 */
+		private void renderImpact(VertexConsumerProvider consumers, VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d cam, float e) {
+			Vec3d gp = g.subtract(cam);
+			double r = Sun.CORPSE_R;
+			float life = Sun.END - Sun.IMPACT;
+			float k = e / life;
+			double heat = Math.max(0, 1 - e / 220.0);
+			Solids.ellipsoid(solid, m, gp.add(0, -r * 0.25, 0), r, r * 0.75, r, 14, 26, (lat, lon, n) -> {
+				double crack = Math.abs(Math.sin(n.x * 9) * Math.sin(n.y * 7) * Math.sin(n.z * 8 + 1.3));
+				int crust = Solids.mix(0x2A0E06, 0xFFD090, heat * heat);
+				return crack < 0.08 ? Solids.mix(0x8A2008, 0xFFF0C0, heat) : crust;
+			}, true, 1.0F);
+			FxDraw.sphere(glow, m, gp, r * 1.2, Vec3d.ZERO, 0xFF5010, 0.0F, 0.5F * (float) heat + 0.1F, 14, 24);
+			if (e < 40) {
+				float f = 1 - e / 40.0F;
+				FxKit.flare(consumers, m, cb, gp.add(0, r, 0), 900 * f + 120, 0xFFF4E0, f, e * 0.004);
+				FxDraw.sphere(glow, m, gp, r * 1.3 + e * 9, Vec3d.ZERO, 0xFFFFFF, 0.8F * f, 0.9F * f, 16, 32);
+			}
+			// The front: a ground-hugging shock ring and a wall of fire riding it out to the edge of the devastation.
+			double front = r + e * 7;
+			if (front < 420) {
+				float fa = (float) (1 - front / 420);
+				FxKit.groundShock(consumers, m, gp.add(0, 0.6, 0), front, 0xFFE0B0, fa);
+				FxKit.groundShock(consumers, m, gp.add(0, 0.6, 0), front * 0.85, 0xFF7030, 0.7F * fa);
+				int n = 40;
+				for (int i = 0; i < n; i++) {
+					double ang = i * MathHelper.TAU / n + NewBombShapes.hash(i, 9) * 0.1;
+					Vec3d fp = gp.add(Math.cos(ang) * front, 6 + NewBombShapes.hash(i, 10) * 6, Math.sin(ang) * front);
+					FxKit.fire(consumers, m, cb, fp, 10 + front * 0.03, 0xFFC070, (float) ((e * 0.03 + NewBombShapes.hash(i, 11)) % 1.0), fa, e, 230 + i);
+				}
+			}
+			// Everything inside the front keeps burning.
+			for (int i = 0; i < 30; i++) {
+				double ang = NewBombShapes.hash(i, 12) * MathHelper.TAU;
+				double rr = r * 1.4 + NewBombShapes.hash(i, 13) * Math.min(front, 420) * 0.9;
+				Vec3d fp = gp.add(Math.cos(ang) * rr, 3, Math.sin(ang) * rr);
+				Solids.dot(glow, m, fp, cb, 10 + NewBombShapes.hash(i, 14) * 10, 0xFF6A20, 0.4F * (1 - k));
+			}
+			if (e < 260) {
+				Cinematics.debris(solid, glow, m, gp, e, 120, 3.6, 10, 0.05, 41, 0x3A2A20, 0xFF7030);
+				Cinematics.debris(solid, glow, m, gp, e, 50, 5.5, 4, 0.05, 43, 0x5A4030, 0xFFD080);
+			}
+			java.util.List<Effects.Puff> plume = FxKit.puffs();
+			FxKit.column(gp.add(0, r * 0.4, 0), 80 + Math.min(e, 220) * 1.6, r * 0.9 + Math.min(e, 220) * 0.35, e, 0x9A6A50, 0x221410, 0.75F * (1 - k), 240, plume);
+			FxKit.dustRing(m, cb, gp, Math.min(front, 420) * 0.9, 30 + e * 0.1, 0x8A7060, 0x2A2018, 0.6F * (1 - k), 241, plume);
+			FxKit.flush(plume, consumers, m, cb);
 		}
 	}
 }
