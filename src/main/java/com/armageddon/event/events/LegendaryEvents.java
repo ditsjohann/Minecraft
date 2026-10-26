@@ -157,7 +157,7 @@ public final class LegendaryEvents {
 				for (LivingEntity e : Kit.living(world, c, 12)) {
 					if (e != owner()) {
 						// Damage first: its vanilla knockback would otherwise overwrite the launch.
-						e.damage(ModDamageTypes.source(world, ModDamageTypes.SHRAPNEL, null, owner()), 12.0F);
+						e.damage(ModDamageTypes.source(world, ModDamageTypes.SHRAPNEL, null, owner()), 20.0F);
 						Kit.push(e, new Vec3d(0, 1.4, 0));
 					}
 				}
@@ -177,7 +177,7 @@ public final class LegendaryEvents {
 				Vfx.layeredBlast(world, c, 5.0F, 0xFFC040);
 				Vfx.shake(world, c, 160, 2.8F);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 8.0F, 1.6F);
-				Detonations.blast(world, c, 22, 36.0F, ModDamageTypes.SHRAPNEL, owner(), 0, 2.4, owner());
+				Detonations.blast(world, c, 26, 70.0F, ModDamageTypes.SHRAPNEL, owner(), 0, 2.6, owner());
 				Kit.ringCrack(world, c, 12, 3, ModBlocks.GOLD_FISSURE.getDefaultState(), 0.8F);
 				return true;
 			}

@@ -58,10 +58,10 @@ public class AntimatterLanceItem extends GunItem {
 		Vfx.layeredBlast(world, end, 4.0F, 0xE070FF);
 		Vfx.orb(world, end, 4.5F, 0.0F, 0x100018, 1, 20);
 		for (Entity e : Hitscan.pierce(world, player, from, end, 1.0)) {
-			e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, player, player), 60.0F);
+			e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, player, player), 45.0F);
 		}
 		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, new net.minecraft.util.math.Box(end, end).expand(5), e -> e != player)) {
-			e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, player, player), 40.0F);
+			e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, player, player), 30.0F);
 		}
 		if (Destruction.enabled(world)) {
 			DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(end), 4.5F, CraterJob.Mode.ANTIMATTER));

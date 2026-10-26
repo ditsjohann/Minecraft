@@ -79,7 +79,8 @@ can be disabled with `armageddonAllowCelestial`. Players are protected during ca
 **Signature aftermaths** — every Celestial, Celestial II, City Destruction and world cutscene bomb leaves its own
 mark instead of a generic crater: a cow-print countryside, a fist imprint lined with crying obsidian, a moon that
 lands and stays, a time-stopped hollow, a terracotta bullseye with one terrace per boom, and so on.
-Every bomb carries a tier that matches how much it destroys: FUN (harmless), Uncommon, Rare, Epic, Legendary,
+Every bomb, weapon and grenade carries a tier that matches how much it destroys: FUN (harmless toys such as the
+Party Popper, Airhorn Cannon and Bounce Bomb), Uncommon, Rare, Epic, Legendary,
 Mythic, Celestial, City Destruction and World Destruction.
 
 **Testing events** — `/armageddon event <id>` starts any scripted event (every bomb, Celestial and

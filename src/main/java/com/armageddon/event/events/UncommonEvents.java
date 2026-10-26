@@ -25,7 +25,7 @@ import net.minecraft.util.math.Vec3d;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Yellow tier: chaos without killing. None of these deal damage or permanently alter terrain. */
+/** The FUN tier: chaos without killing. None of these deal damage or permanently alter terrain. */
 public final class UncommonEvents {
 	private UncommonEvents() {
 	}
