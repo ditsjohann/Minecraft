@@ -77,6 +77,19 @@ public final class CityDestructionEvents {
 		}
 	}
 
+	/** Steps a devastation front at {@code speed} blocks a tick, throwing rubble and people off its edge. */
+	static void devastate(ServerWorld w, com.armageddon.destruction.world.TerrainJob job, Vec3d c, int k, double start, double speed, double max,
+			@org.jetbrains.annotations.Nullable net.minecraft.entity.Entity owner) {
+		if (job == null) {
+			return;
+		}
+		job.limit = start + k * speed;
+		job.step(3500);
+		if (job.limit < max && k % 2 == 0) {
+			WorldCutsceneEvents.shockFront(w, c, job.limit, 8, 30.0F, owner);
+		}
+	}
+
 	static int hsv(float h) {
 		return MathHelper.hsvToRgb(((h % 1.0F) + 1.0F) % 1.0F, 0.7F, 1.0F);
 	}
@@ -178,7 +191,14 @@ public final class CityDestructionEvents {
 					MoonTerrain.moon(world, queue, ground, r, seed);
 					MoonTerrain.berm(world, queue, ground, r, seed);
 					MoonTerrain.regolith(world, queue, ground, r, seed);
+					// The landing's blast wave flattens everything for hundreds of blocks around the berm.
+					devastation = com.armageddon.destruction.world.Devastation.of(world, g, 0, Destruction.radius(world, 300.0F),
+							MathHelper.floor(g.y) - 1, com.armageddon.destruction.world.Devastation.MOON);
+					devastation.limit = 0;
 				}
+			}
+			if (devastation != null && t > FALL) {
+				devastate(world, devastation, g, t - FALL, r * 1.6, 5.0, 300, owner());
 			}
 			if (t == FALL + 24) {
 				Vfx.skyTint(world, g, 100000, 0x0C1020, 0.85F);
@@ -206,8 +226,10 @@ public final class CityDestructionEvents {
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 48.0F, 0.2F);
 			}
 			queue.drain(BlockQueue.PER_TICK);
-			return t > END;
+			return t > END && (devastation == null || devastation.isDone()) || t > END + 1200;
 		}
+
+		private com.armageddon.destruction.world.TerrainJob devastation;
 
 		/**
 		 * The shock front sweeps the ring r0..r1: leaves are stripped, grass and flowers flattened, glass shattered,
@@ -418,17 +440,44 @@ public final class CityDestructionEvents {
 				Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_BURP, 64.0F, 0.3F);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.4F);
 				Vfx.shake(world, g, 100000, 1.8F);
+				// Gorged, it dives for the core and the hollowed land caves in after it.
+				Kit.boom(world, g.add(0, 1, 0), 20.0F, 0x7040C0, owner(), true);
+				Vfx.ring(world, g.add(0, 1, 0), 400.0F, 8.0F, 0x6030A0, true, 90);
+				if (Destruction.enabled(world)) {
+					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 40.0F), CraterJob.Mode.ANTIMATTER));
+					collapse = com.armageddon.destruction.world.Devastation.of(world, g, Destruction.radius(world, 46.0F), Destruction.radius(world, 240.0F),
+							MathHelper.floor(g.y) - 1, com.armageddon.destruction.world.Devastation.VOID);
+					collapse.limit = 0;
+					collapseAt = t;
+				}
+			}
+			for (com.armageddon.destruction.world.TerrainJob j : breaches) {
+				j.step(1500);
+			}
+			breaches.removeIf(com.armageddon.destruction.world.TerrainJob::isDone);
+			if (collapse != null) {
+				devastate(world, collapse, g, t - collapseAt, 0, 4.0, 240, owner());
 			}
 			queue.drain(BlockQueue.PER_TICK);
-			return t > END;
+			return t > END && breaches.isEmpty() && (collapse == null || collapse.isDone()) || t > END + 1200;
 		}
+
+		private final java.util.List<com.armageddon.destruction.world.TerrainJob> breaches = new java.util.ArrayList<>();
+		private com.armageddon.destruction.world.TerrainJob collapse;
+		private int collapseAt;
 
 		/** Bursting out of the ground or diving back in: a blown-out crater, flying rock, a roar. */
 		private void breach(Vec3d h, boolean out) {
 			Vec3d at = Kit.ground(world, h.x, h.z);
 			frames(world, at, out ? 2 : 0);
-			Kit.boom(world, at, 7.0F, 0x9060FF, owner(), true);
-			Detonations.debris(world, at, 16, 50);
+			Kit.boom(world, at, 12.0F, 0x9060FF, owner(), true);
+			Detonations.debris(world, at, 24, 90);
+			if (Destruction.enabled(world)) {
+				DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(at), 14.0F, CraterJob.Mode.NUKE));
+				com.armageddon.destruction.world.TerrainJob j = com.armageddon.destruction.world.Devastation.of(world, at, 0, 70,
+						MathHelper.floor(at.y) - 1, com.armageddon.destruction.world.Devastation.VOID);
+				breaches.add(j);
+			}
 			Vfx.ring(world, at.add(0, 0.5, 0), 40.0F, 3.0F, 0x8A7A70, true, 40);
 			Vfx.fov(world, at, 8.0F, 14);
 			Kit.sound(world, at, out ? SoundEvents.ENTITY_WARDEN_ROAR : SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.35F);
@@ -658,6 +707,8 @@ public final class CityDestructionEvents {
 		private long[] columns;
 		private int columnCursor;
 		private final List<Vec3d> vents = new ArrayList<>();
+		private com.armageddon.destruction.world.TerrainJob devastation;
+		private int devastAt;
 
 		/** Every surface column in range, ordered by distance from the dividing line so the halves spread outward. */
 		private void planColumns() {
@@ -758,7 +809,10 @@ public final class CityDestructionEvents {
 				Kit.sound(world, g, SoundEvents.EVENT_RAID_HORN.value(), 64.0F, 0.25F);
 			}
 			queue.drain(BlockQueue.PER_TICK);
-			return t > END;
+			if (devastation != null) {
+				devastate(world, devastation, center(), t - devastAt, 0, 5.0, 300, owner());
+			}
+			return t > END && (devastation == null || devastation.isDone()) || t > END + 1200;
 		}
 
 		/** Thunderstorms that walk the land: real lightning, more and more of it. */
@@ -856,6 +910,10 @@ public final class CityDestructionEvents {
 			}
 			if (Destruction.enabled(world)) {
 				RagnarokTerrain.chasm(world, queue, g, fwd, (int) reach, 32, seed);
+				devastation = com.armageddon.destruction.world.Devastation.of(world, g, 0, Destruction.radius(world, 300.0F), MathHelper.floor(g.y) - 1,
+						com.armageddon.destruction.world.Devastation.FIRE);
+				devastation.limit = 0;
+				devastAt = age();
 			}
 			planColumns();
 		}

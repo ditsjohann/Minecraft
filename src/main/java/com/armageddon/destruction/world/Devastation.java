@@ -23,6 +23,8 @@ public final class Devastation {
 			Blocks.BLACKSTONE.getDefaultState(), Blocks.PURPLE_STAINED_GLASS.getDefaultState(), 0.02F);
 	public static final Palette ALIEN = new Palette(Blocks.END_STONE.getDefaultState(), Blocks.PURPUR_BLOCK.getDefaultState(),
 			Blocks.END_STONE.getDefaultState(), Blocks.LIME_STAINED_GLASS.getDefaultState(), 0.03F);
+	public static final Palette MOON = new Palette(Blocks.TUFF.getDefaultState(), Blocks.SMOOTH_BASALT.getDefaultState(),
+			Blocks.GRAVEL.getDefaultState(), Blocks.TINTED_GLASS.getDefaultState(), 0.01F);
 	public static final Palette FROST = new Palette(Blocks.PACKED_ICE.getDefaultState(), Blocks.BLUE_ICE.getDefaultState(),
 			Blocks.SNOW_BLOCK.getDefaultState(), Blocks.ICE.getDefaultState(), 0.0F);
 

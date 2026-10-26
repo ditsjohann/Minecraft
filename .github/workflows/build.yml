@@ -20,7 +20,8 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build
-        run: ./gradlew build --stacktrace
+        run: ./gradlew build --stacktrace 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+        shell: bash
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -40,3 +41,6 @@ jobs:
           git -c user.name=ci -c user.email=ci@users.noreply.github.com add -A
           git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -q -m "fx previews for ${GITHUB_SHA}"
           git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:refs/fx-previews/latest
+      - name: compile errors
+        if: failure()
+        run: grep -E "error:|warning: \\[|\\.java:[0-9]+: " build.log | head -60
