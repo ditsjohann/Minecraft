@@ -39,6 +39,9 @@ public final class PreviewMain {
 	static int atlasW, atlasH, frames;
 
 	public static void main(String[] args) throws Exception {
+		// Render layers reach into the block and sound registries: bootstrap them like data generation does.
+		net.minecraft.SharedConstants.createGameVersion();
+		net.minecraft.Bootstrap.initialize();
 		BufferedImage at = ImageIO.read(new File(args[1]));
 		atlasW = at.getWidth();
 		atlasH = at.getHeight();
