@@ -629,11 +629,12 @@ public final class NewFx {
 			float k = e / life;
 			double heat = Math.max(0, 1 - e / 220.0);
 			Solids.ellipsoid(solid, m, gp.add(0, -r * 0.25, 0), r, r * 0.75, r, 14, 26, (lat, lon, n) -> {
-				double crack = Math.abs(Math.sin(n.x * 9) * Math.sin(n.y * 7) * Math.sin(n.z * 8 + 1.3));
-				int crust = Solids.mix(0x2A0E06, 0xFFD090, heat * heat);
-				return crack < 0.08 ? Solids.mix(0x8A2008, 0xFFF0C0, heat) : crust;
+				double crack = Math.abs(Math.sin(n.x * 17 + 0.7) * Math.sin(n.y * 13) * Math.sin(n.z * 15 + 1.3));
+				int crust = Solids.mix(Solids.mix(0x1E0A06, 0x3A1A0E, Solids.hash(lat, lon)), 0xFFD090, heat * heat);
+				// The seams stay lit long after the crust has gone dark.
+				return crack < 0.05 ? Solids.mix(0xFF5A14, 0xFFF0C0, heat) : crack < 0.11 ? Solids.mix(0x6A1808, 0xFFB060, heat) : crust;
 			}, true, 1.0F);
-			FxDraw.sphere(glow, m, gp, r * 1.2, Vec3d.ZERO, 0xFF5010, 0.0F, 0.5F * (float) heat + 0.1F, 14, 24);
+			FxDraw.sphere(glow, m, gp, r * 1.15, Vec3d.ZERO, 0xFF5010, 0.0F, 0.5F * (float) (heat * heat), 14, 24);
 			if (e < 40) {
 				float f = 1 - e / 40.0F;
 				FxKit.flare(consumers, m, cb, gp.add(0, r, 0), 900 * f + 120, 0xFFF4E0, f, e * 0.004);

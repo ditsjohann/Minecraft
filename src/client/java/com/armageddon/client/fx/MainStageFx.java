@@ -286,7 +286,7 @@ public class MainStageFx extends FxEffect {
 			if (e < 50) {
 				float f = 1 - e / 50.0F;
 				FxKit.flare(consumers, m, cb, c.add(0, 30, 0), 500 * f + 60, 0xFFF0D0, f, e * 0.005);
-				FxDraw.sphere(glow, m, c, 20 + e * 3.5, Vec3d.ZERO, 0xFFFFFF, 0.7F * f, 0.9F * f, 16, 32);
+				FxDraw.sphere(glow, m, c, 20 + e * 3.5, Vec3d.ZERO, 0xFFFFFF, 0.7F * f * f, 0.9F * f * f, 16, 32);
 			}
 			FxKit.fire(consumers, m, cb, c.add(0, 25 + e * 0.5, 0), 40 + e * 0.5, 0xFFE0B0, Math.min(1.0F, e / 110.0F), 1 - k, t, 360);
 			double front = 30 + e * 5;
