@@ -43,4 +43,5 @@ jobs:
           git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:refs/fx-previews/latest
       - name: compile errors
         if: failure()
-        run: grep -E "error:|warning: \\[|\\.java:[0-9]+: " build.log | head -60
+        run: |
+          grep -E 'error:|\.java:[0-9]+:' build.log | head -60 || true
