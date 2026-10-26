@@ -27,7 +27,7 @@ public final class FxSprites {
 	public static final int FULL_BRIGHT = LightmapTextureManager.MAX_LIGHT_COORDINATE;
 
 	/** Textured colour without a cut-off: soft edges fade all the way out (the particle shader discards below 10%). */
-	private static final RenderPhase.ShaderProgram PARTICLE = RenderPhase.POSITION_TEXTURE_COLOR_PROGRAM;
+	private static final RenderPhase.ShaderProgram PARTICLE = new RenderPhase.ShaderProgram(net.minecraft.client.render.GameRenderer::getPositionTexColorProgram);
 
 	/** Alpha-blended, lit by the world: smoke, dust, ash. */
 	public static final RenderLayer SMOKE_LAYER = RenderLayer.of("armageddon_fx_smoke", VertexFormats.POSITION_TEXTURE_COLOR,
