@@ -12,9 +12,9 @@ full-screen post-processing shader.
 |---|---|
 | **Mushroom clouds** | Hundreds of emissive smoke particles form a rising, rolling toroidal cap, stem, base surge and condensation ring. Light reaches you first; the shockwave, shake and boom arrive later depending on distance (speed of sound ≈ 17 blocks/tick). |
 | **Progressive craters** | Terrain is carved over several ticks with a per-tick budget, so even a 52-block hydrogen bomb doesn't freeze the server. Craters are bowl-shaped with noisy edges, glassed trinitite linings, scorched earth, charred forests and fires. |
-| **Fallout** | Nukes leave radioactive zones that cause Radiation Sickness. Wear a hazmat suit, carry a Geiger counter, pack Rad-X. |
+| **Fallout** | Nukes leave radioactive zones that cause Radiation Sickness. Wear a hazmat suit, carry a Geiger counter (and watch the HUD meter), pack Rad-X. |
 | **Black holes** | Pull in mobs and players, rip blocks out of the ground and swallow them, then collapse. Rendered with an event horizon, photon ring and tilted accretion disc, plus real-time **gravitational lensing** in the post shader. |
-| **Post-processing shader** | Nuclear flash bloom, heat haze, chromatic aberration, radiation-sickness vision (green cast, film grain, vignette, glitches) and black-hole lensing. |
+| **Post-processing shader** | Nuclear flash bloom, heat haze, chromatic aberration and black-hole lensing. |
 
 ## Content
 
@@ -68,6 +68,10 @@ and leaves a painted-sky wall with an EXIT door. DISCO BALL: a giant disco ball 
 land, cools to blue, stops, then drops the bass and turns the world into a dance floor.
 All of these need two lights to confirm, respect protected regions and `armageddonMaxRadius` (default 256), and
 can be disabled with `armageddonAllowCelestial`. Players are protected during camera cutscenes.
+
+**Signature aftermaths** — every Celestial, Celestial II, City Destruction and world cutscene bomb leaves its own
+mark instead of a generic crater: a cow-print countryside, a fist imprint lined with crying obsidian, a moon that
+lands and stays, a time-stopped hollow, a terracotta bullseye with one terrace per boom, and so on.
 Fifteen more bombs fill Uncommon (6), Rare (3), Legendary (3) and Mythic (3).
 
 **Testing events** — `/armageddon event <id>` starts any scripted event (every bomb, Celestial and
