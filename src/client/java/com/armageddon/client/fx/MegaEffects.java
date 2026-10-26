@@ -376,7 +376,7 @@ public final class MegaEffects {
 			super(Math.max(120, life));
 			this.target = target;
 			this.length = length;
-			this.radius = length * 0.06;
+			this.radius = length * 0.034;
 			this.depth = depth;
 		}
 
@@ -446,52 +446,90 @@ public final class MegaEffects {
 			Vec3d ax = axis(a);
 			Vec3d tip = tip(a).subtract(cam);
 			Vec3d back = tip.subtract(ax.multiply(length));
-			double headLen = length * 0.17;
+			double headLen = length * 0.24;
 			Vec3d headBase = tip.subtract(ax.multiply(headLen));
 			Vec3d[] bs = ArsenalEffects.basis(ax);
 			double sp = spin(a);
-			// Shaft: dark wood-like core wrapped in alternating metal bands.
-			Solids.tube(solid, m, back, headBase, radius, radius * 1.05, 12, 0x6E5A3A, 1.0F, true);
-			for (int k = 0; k < 9; k++) {
-				Vec3d p0 = back.add(ax.multiply(length * (0.06 + 0.085 * k)));
-				Solids.tube(solid, m, p0, p0.add(ax.multiply(length * 0.025)), radius * 1.12, radius * 1.12, 12, k % 3 == 0 ? 0xC8A050 : 0x3A3A44, 1.0F, true);
+			// Shaft: slender polished ivory, ringed with gold bands, a leather-wrapped grip near the back.
+			int ivory = 0xE6DCC4, gold = 0xD8A838, darkGold = 0x8A6418;
+			Solids.tube(solid, m, back, headBase, radius * 0.82, radius * 0.9, 16, ivory, 1.0F, true);
+			for (int k = 0; k < 7; k++) {
+				Vec3d p0 = back.add(ax.multiply(length * (0.1 + 0.11 * k)));
+				double w = k % 3 == 0 ? 0.03 : 0.012;
+				Solids.tube(solid, m, p0, p0.add(ax.multiply(length * w)), radius * 0.98, radius * 0.98, 16, k % 3 == 0 ? gold : darkGold, 1.0F, true);
 			}
-			// Head: faceted blade with a bright cutting edge, collar and pommel.
-			Solids.tube(solid, m, headBase, tip, radius * 1.45, 0.0, 6, 0xD4D8E4, 1.0F, true);
-			Solids.tube(solid, m, headBase.subtract(ax.multiply(radius)), headBase, radius * 1.9, radius * 1.45, 12, 0x2A2A34, 1.0F, true);
-			Solids.tube(solid, m, back.subtract(ax.multiply(radius * 1.5)), back, radius * 0.4, radius * 1.3, 8, 0x8A6A2A, 1.0F, true);
-			for (int k = 0; k < 6; k++) {
-				double ang = sp + k * MathHelper.TAU / 6;
-				Vec3d edge = bs[0].multiply(Math.cos(ang)).add(bs[1].multiply(Math.sin(ang)));
-				FxDraw.ribbon(glow, m, headBase.add(edge.multiply(radius * 1.45)), tip, Vec3d.ZERO, radius * 0.1, 0xFFFFFF, 0.55F, 0.9F);
+			Vec3d gripA = back.add(ax.multiply(length * 0.06)), gripB = back.add(ax.multiply(length * 0.3));
+			Solids.tube(solid, m, gripA, gripB, radius * 0.88, radius * 0.88, 16, 0x2A2440, 1.0F, true);
+			Vec3d wrapPrev = null;
+			for (int s2 = 0; s2 <= 60; s2++) {
+				double u = s2 / 60.0, ang = u * 30 + sp;
+				Vec3d p = gripA.lerp(gripB, u).add(bs[0].multiply(Math.cos(ang) * radius * 0.92)).add(bs[1].multiply(Math.sin(ang) * radius * 0.92));
+				if (wrapPrev != null) {
+					Solids.tube(solid, m, wrapPrev, p, radius * 0.12, radius * 0.12, 5, 0x6A4A90, 1.0F, true);
+				}
+				wrapPrev = p;
 			}
-			Solids.tube(glow, m, headBase, tip, radius * 1.6, 0.0, 12, 0xFFB050, 0.25F, false);
+			// Butt: a gold orb in a ring collar with a short spike.
+			Vec3d orb = back.subtract(ax.multiply(radius * 1.1));
+			Solids.tube(solid, m, back.subtract(ax.multiply(radius * 0.3)), back.add(ax.multiply(radius * 0.4)), radius * 1.25, radius * 1.25, 16, gold, 1.0F, true);
+			Solids.ellipsoid(solid, m, orb, radius * 1.15, radius * 1.15, radius * 1.15, 12, 20, (i, j, n) -> Solids.mix(gold, 0xFFE8A0, Math.max(0, n.y) * 0.5), true, 1.0F);
+			Solids.tube(solid, m, orb.subtract(ax.multiply(radius * 0.9)), orb.subtract(ax.multiply(radius * 3.2)), radius * 0.55, 0.0, 12, darkGold, 1.0F, true);
+			// Socket and crossguard: a fluted gold socket, a glowing gem, and two crescent guards sweeping back.
+			Vec3d socketA = headBase.subtract(ax.multiply(length * 0.05));
+			Solids.tube(solid, m, socketA, headBase, radius * 1.0, radius * 1.45, 16, gold, 1.0F, true);
+			Vec3d wd = bs[0].multiply(Math.cos(sp * 0.0)).add(bs[1].multiply(Math.sin(sp * 0.0)));
+			for (int sgn = -1; sgn <= 1; sgn += 2) {
+				Vec3d prev = headBase;
+				for (int k = 1; k <= 10; k++) {
+					double u = k / 10.0;
+					Vec3d p = headBase.add(wd.multiply(sgn * radius * (1.2 + 3.4 * Math.sin(u * Math.PI * 0.6)))).subtract(ax.multiply(length * 0.07 * u * u));
+					double rr = radius * 0.5 * (1 - u * 0.85) + 0.15;
+					Solids.tube(solid, m, prev, p, rr + radius * 0.06, rr, 8, k % 4 == 0 ? 0xFFE08A : gold, 1.0F, true);
+					prev = p;
+				}
+				Solids.flare(glow, m, prev, cb, radius * 0.9, 0xFFE8A0, 0.8F);
+			}
+			Vec3d gem = headBase.add(bs[1].multiply(radius * 1.35));
+			Solids.ellipsoid(solid, m, gem, radius * 0.45, radius * 0.45, radius * 0.45, 8, 12, (i, j, n) -> Solids.mix(0x2060FF, 0xA0E0FF, Math.max(0, n.y)), false, 1.0F);
+			Solids.flare(glow, m, gem, cb, radius * 1.6, 0x80C8FF, 0.9F);
+			// The blade: a leaf-shaped, double-edged blade lofted as a flat diamond, with a glowing fuller and edges.
+			int rows = 18;
+			Vec3d wdir = wd, tdir = ax.crossProduct(wdir).normalize();
+			Vec3d[] prevQ = null;
+			for (int k = 0; k <= rows; k++) {
+				double u = k / (double) rows;
+				double half = radius * (1.4 + 1.9 * Math.sin(Math.min(1.0, u / 0.72) * Math.PI * 0.62)) * (u > 0.72 ? (1 - u) / 0.28 : 1.0);
+				double thick = radius * 0.42 * (1 - u * 0.8) + 0.05;
+				Vec3d c0 = headBase.add(ax.multiply(headLen * u));
+				Vec3d[] q = {c0.add(wdir.multiply(half)), c0.add(tdir.multiply(thick)), c0.subtract(wdir.multiply(half)), c0.subtract(tdir.multiply(thick))};
+				if (prevQ != null) {
+					for (int f = 0; f < 4; f++) {
+						int g = (f + 1) % 4;
+						boolean lit = f % 2 == 0;
+						int col = Solids.mix(0xC8D0DC, 0xF4F8FF, lit ? 0.8 : 0.25);
+						Solids.quad(solid, m, prevQ[f], prevQ[g], q[g], q[f], col, 1.0F);
+					}
+					FxDraw.ribbon(glow, m, prevQ[0], q[0], Vec3d.ZERO, radius * 0.12, 0xFFFFFF, 0.8F, 0.8F);
+					FxDraw.ribbon(glow, m, prevQ[2], q[2], Vec3d.ZERO, radius * 0.12, 0xFFFFFF, 0.8F, 0.8F);
+				}
+				prevQ = q;
+			}
+			FxDraw.ribbon(glow, m, headBase.add(tdir.multiply(radius * 0.44)), tip, Vec3d.ZERO, radius * 0.35, 0xFFC870, 0.75F, 0.2F);
+			FxDraw.ribbon(glow, m, headBase.subtract(tdir.multiply(radius * 0.44)), tip, Vec3d.ZERO, radius * 0.35, 0xFFC870, 0.75F, 0.2F);
 			Solids.dot(glow, m, tip, cb, radius * 1.6, 0xFFE8C0, 0.6F);
-			// Rune spirals racing along the shaft.
-			for (int k = 0; k < 4; k++) {
+			// Rune light racing along the shaft in two thin spirals.
+			for (int k = 0; k < 2; k++) {
 				Vec3d prev = null;
-				for (int s = 0; s <= 28; s++) {
-					double u = s / 28.0;
-					double ang = sp + k * MathHelper.TAU / 4 + u * 14;
-					Vec3d p = back.add(ax.multiply(length * 0.82 * u)).add(bs[0].multiply(Math.cos(ang) * radius * 1.14)).add(bs[1].multiply(Math.sin(ang) * radius * 1.14));
+				for (int s2 = 0; s2 <= 40; s2++) {
+					double u = s2 / 40.0;
+					double ang = sp + k * Math.PI + u * 10;
+					Vec3d p = back.add(ax.multiply(length * (0.32 + 0.48 * u))).add(bs[0].multiply(Math.cos(ang) * radius * 0.95)).add(bs[1].multiply(Math.sin(ang) * radius * 0.95));
 					if (prev != null) {
-						float pulse = 0.6F + 0.4F * MathHelper.sin((float) (u * 20 - a * 0.4));
-						FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, radius * 0.16, k % 2 == 0 ? 0xFFB050 : 0xFFFFFF, 0.9F * pulse, 0.9F * pulse);
+						float pulse = 0.5F + 0.5F * MathHelper.sin((float) (u * 20 - a * 0.4));
+						FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, radius * 0.08, 0xFFD890, 0.8F * pulse, 0.8F * pulse);
 					}
 					prev = p;
 				}
-			}
-			for (int k = 0; k < 6; k++) {
-				Vec3d p0 = back.add(ax.multiply(length * (0.12 + 0.14 * k)));
-				FxDraw.ring(glow, m, p0, bs[0], bs[1], radius * 1.15, radius * 1.4, 0xFFB050, 0.0F, 0.7F, 0.0F, 24);
-			}
-			for (int f = 0; f < 3; f++) {
-				double ang = sp * 0.5 + f * MathHelper.TAU / 3;
-				Vec3d out = bs[0].multiply(Math.cos(ang)).add(bs[1].multiply(Math.sin(ang)));
-				Vec3d root = back.add(ax.multiply(length * 0.12));
-				Vec3d end = back.add(out.multiply(radius * 3.2)).subtract(ax.multiply(length * 0.04));
-				Solids.tube(solid, m, root, end, radius * 0.5, radius * 0.08, 4, 0xB03A2A, 1.0F, true);
-				FxDraw.ribbon(glow, m, root, end, Vec3d.ZERO, radius * 0.08, 0xFF6040, 0.6F, 0.0F);
 			}
 			// Angelic wings: two fans of glowing feathers spread from the back of the shaft, beating slowly.
 			Vec3d wingSide = ax.crossProduct(new Vec3d(0, 1, 0));
@@ -532,37 +570,38 @@ public final class MegaEffects {
 				}
 			}
 			if (a >= THROW) {
+				double fxR = length * 0.06;
 				Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
 				Vec3d g = target.subtract(cam).add(0, 0.8, 0);
 				float ramp = (float) Math.min(1.0, (a - THROW) / 20.0);
 				// Molten collar where the spear bores in, sparks thrown off in a spiral, and a dust ring.
-				FxDraw.disc(glow, m, g, x, z, radius * 4.5, 0xFF8A20, 0.5F * ramp, 0.0F, 32);
-				FxDraw.disc(glow, m, g.add(0, 0.1, 0), x, z, radius * 2.2, 0xFFE0A0, 0.7F * ramp, 0.0F, 24);
+				FxDraw.disc(glow, m, g, x, z, fxR * 4.5, 0xFF8A20, 0.5F * ramp, 0.0F, 32);
+				FxDraw.disc(glow, m, g.add(0, 0.1, 0), x, z, fxR * 2.2, 0xFFE0A0, 0.7F * ramp, 0.0F, 24);
 				for (int k = 0; k < 3; k++) {
-					double rr = radius * (2.4 + ((a * 0.6 + k * 12) % 30) * 0.3);
+					double rr = fxR * (2.4 + ((a * 0.6 + k * 12) % 30) * 0.3);
 					FxDraw.ring(glow, m, g, x, z, rr * 0.9, rr, 0xFFD090, 0.0F, 0.6F * ramp, 0.0F, 40);
 				}
 				for (int i = 0; i < 18; i++) {
 					double t = ((a * 0.05 + i / 18.0) % 1.0);
 					double ang = sp * 2 + i * 2.4;
-					double rr = radius * (1.6 + t * 6);
-					Vec3d p0 = g.add(Math.cos(ang) * rr, t * radius * 5 - t * t * radius * 4, Math.sin(ang) * rr);
-					Vec3d p1 = g.add(Math.cos(ang - 0.25) * rr * 0.92, (t - 0.04) * radius * 5, Math.sin(ang - 0.25) * rr * 0.92);
-					FxDraw.ribbon(glow, m, p1, p0, Vec3d.ZERO, radius * 0.12, i % 3 == 0 ? 0xFFFFFF : 0xFFA040, 0.0F, 0.9F * (float) (1 - t) * ramp);
+					double rr = fxR * (1.6 + t * 6);
+					Vec3d p0 = g.add(Math.cos(ang) * rr, t * fxR * 5 - t * t * fxR * 4, Math.sin(ang) * rr);
+					Vec3d p1 = g.add(Math.cos(ang - 0.25) * rr * 0.92, (t - 0.04) * fxR * 5, Math.sin(ang - 0.25) * rr * 0.92);
+					FxDraw.ribbon(glow, m, p1, p0, Vec3d.ZERO, fxR * 0.12, i % 3 == 0 ? 0xFFFFFF : 0xFFA040, 0.0F, 0.9F * (float) (1 - t) * ramp);
 				}
 				double e = a - THROW;
 				// The landing: a fireball of gold, a spark shower and two textured shock fronts racing out.
 				if (e < 40) {
 					float k = (float) (e / 40.0);
-					FxKit.fire(consumers, m, cb, g.add(0, radius * 3, 0), radius * 9, 0xFFE0A0, k, 1.0F, a, 91);
-					FxKit.sparks(consumers, m, g.add(0, 2, 0), radius * 40, 90, 0xFFC070, k, 1.0F, 92);
-					FxKit.groundShock(consumers, m, g, radius * 4 + e * radius * 3.2, 0xFFE0B0, 1 - k);
-					FxKit.groundShock(consumers, m, g, radius * 2 + e * radius * 1.8, 0xFFFFFF, 0.8F * (1 - k));
+					FxKit.fire(consumers, m, cb, g.add(0, fxR * 3, 0), fxR * 9, 0xFFE0A0, k, 1.0F, a, 91);
+					FxKit.sparks(consumers, m, g.add(0, 2, 0), fxR * 40, 90, 0xFFC070, k, 1.0F, 92);
+					FxKit.groundShock(consumers, m, g, fxR * 4 + e * fxR * 3.2, 0xFFE0B0, 1 - k);
+					FxKit.groundShock(consumers, m, g, fxR * 2 + e * fxR * 1.8, 0xFFFFFF, 0.8F * (1 - k));
 				}
 				// Dust rolling out from the bore, and smoke climbing off the molten collar while it drills.
 				java.util.List<Effects.Puff> dust = FxKit.puffs();
-				FxKit.dustRing(m, cb, g, radius * 6 + Math.min(e, 60) * radius * 0.25, radius * 2.2, 0xA89478, 0x4E4232, 0.55F * ramp, 93, dust);
-				FxKit.column(g.add(0, radius, 0), radius * 22, radius * 4, a, 0x8A7E70, 0x2C2420, 0.45F * ramp, 94, dust);
+				FxKit.dustRing(m, cb, g, fxR * 6 + Math.min(e, 60) * fxR * 0.25, fxR * 2.2, 0xA89478, 0x4E4232, 0.55F * ramp, 93, dust);
+				FxKit.column(g.add(0, fxR, 0), fxR * 22, fxR * 4, a, 0x8A7E70, 0x2C2420, 0.45F * ramp, 94, dust);
 				FxKit.flush(dust, consumers, m, cb);
 			}
 		}

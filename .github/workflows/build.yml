@@ -5,6 +5,8 @@ on: [pull_request, push]
 jobs:
   build:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -27,3 +29,14 @@ jobs:
       - name: effect preview frames
         continue-on-error: true
         run: ./gradlew fxPreview --stacktrace
+      - name: publish preview frames
+        if: github.event_name == 'push'
+        continue-on-error: true
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd build/fx-previews
+          git init -q
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -q -m "fx previews for ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:refs/fx-previews/latest

@@ -18,7 +18,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,7 @@ public final class PreviewMain {
 	static final Vec3d ANCHOR = new Vec3d(0.5, 64, 0.5);
 	static final Vec3d HEADING = new Vec3d(0, 0, 1);
 	static int[] atlas;
-	static int atlasW, atlasH;
+	static int atlasW, atlasH, frames;
 
 	public static void main(String[] args) throws Exception {
 		BufferedImage at = ImageIO.read(new File(args[1]));
@@ -163,14 +162,12 @@ public final class PreviewMain {
 	}
 
 	static void emit(String name, BufferedImage img) throws Exception {
+		File dir = new File("build/fx-previews");
+		dir.mkdirs();
+		ImageIO.write(img, "jpg", new File(dir, String.format("%02d_%s.jpg", ++frames, name.replace(' ', '_').replace('@', '_'))));
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ImageIO.write(img, "jpg", out);
-		String b64 = Base64.getEncoder().encodeToString(out.toByteArray());
-		System.out.println("PREVIEW-BEGIN " + name);
-		for (int i = 0; i < b64.length(); i += 4000) {
-			System.out.println("PV:" + b64.substring(i, Math.min(b64.length(), i + 4000)));
-		}
-		System.out.println("PREVIEW-END");
+		System.out.println("PREVIEW " + name + " " + out.size() + " bytes");
 	}
 
 	// ------------------------------------------------------------------ capture
