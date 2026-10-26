@@ -19,7 +19,8 @@ import static com.armageddon.client.fx.Cinematics.lerp;
  * slamming down around the world tree. Ground-level shots stay near the anchor, where terrain is loaded.
  */
 public class EternalSaplingCine extends Cinematics.Cine {
-	private static final int MACRO = 60, SMALL = 130, CUT_WORLD = 265, CRANE = 400, CUT_ROOTS = 525, CLOSE = 600, BACK = 655, HERO = 700;
+	private static final int MACRO = EternalTree.TREE1_START, CUT_WORLD = EternalTree.WORLD_START, CRANE = CUT_WORLD + 135,
+			CUT_ROOTS = EternalTree.ROOTS_START - 5, CLOSE = CUT_ROOTS + 75, BACK = CLOSE + 55, HERO = BACK + 45;
 	private final Vec3d base;
 	private final double s;
 	private final EternalTreeFx tree;
@@ -33,7 +34,7 @@ public class EternalSaplingCine extends Cinematics.Cine {
 		this.s = tree != null ? tree.s : 1.0;
 		int best = 0;
 		for (int i = 0; i < EternalTree.ROOTS; i++) {
-			if (Math.abs(EternalTree.rootSlam(i) - 628) < Math.abs(EternalTree.rootSlam(best) - 628)) {
+			if (Math.abs(EternalTree.rootSlam(i) - (CLOSE + 28)) < Math.abs(EternalTree.rootSlam(best) - (CLOSE + 28))) {
 				best = i;
 			}
 		}
@@ -58,12 +59,13 @@ public class EternalSaplingCine extends Cinematics.Cine {
 		if (a < MACRO) {
 			// Macro: down at sapling height, circling it.
 			aim(s0, orbit(0.4 + a * 0.012, 3.2, 0.7), base.add(0, 0.45, 0), 45, false);
-		} else if (a < SMALL) {
-			double u = ease((a - MACRO) / (double) (SMALL - MACRO));
-			aim(s0, orbit(1.1 + a * 0.006, lerp(4, 13, u), lerp(1, 5, u)), base.add(0, lerp(0.6, 4, u), 0), (float) lerp(48, 62, u), false);
 		} else if (a < CUT_WORLD) {
-			double u = ease((a - SMALL) / (double) (CUT_WORLD - SMALL));
-			aim(s0, orbit(1.6 + a * 0.004, lerp(18, 42, u), lerp(3, 12, u)), base.add(0, lerp(6, 18, u), 0), 66, false);
+			// The ladder: one shot per stage, each pulled back far enough to fit the tree as it grows, from a new side.
+			int k = Math.max(0, EternalTree.stageAt(a));
+			double h = tree != null ? tree.height(a) : EternalTree.stageHeight(k, s);
+			double u = clamp01((a - EternalTree.STAGE_START[k]) / (double) (EternalTree.STAGE_END[k] - EternalTree.STAGE_START[k] + 10));
+			double dist = Math.max(5, h * 1.25 + 6), y = Math.max(1, h * 0.35);
+			aim(s0, orbit(0.9 + k * 1.3 + u * 0.35, dist, y), base.add(0, h * 0.5, 0), (float) lerp(50, 70, Math.min(1, k / 6.0)), false);
 		} else if (a < CRANE) {
 			// Worm's-eye at the foot of the world tree, tilting up with the growth front.
 			double front = EternalTree.front(s, a);
@@ -97,8 +99,12 @@ public class EternalSaplingCine extends Cinematics.Cine {
 
 	@Override
 	protected float handheld(float a) {
-		if (a < SMALL) {
+		if (a < EternalTree.STAGE_START[1]) {
 			return 0.1F;
+		}
+		if (a < CUT_WORLD) {
+			int k = Math.max(0, EternalTree.stageAt(a));
+			return 0.12F + k * 0.05F;
 		}
 		if (a >= CUT_WORLD && a < CUT_ROOTS) {
 			return 0.35F + 0.4F * (float) clamp01((a - CUT_WORLD) / 200.0);
@@ -117,7 +123,11 @@ public class EternalSaplingCine extends Cinematics.Cine {
 
 	@Override
 	public float fade(float a) {
-		return Math.max(super.fade(a), Math.max(Math.max(dip(a, CUT_WORLD, 6), dip(a, CUT_ROOTS, 7)), Math.max(dip(a, CLOSE, 5), dip(a, BACK, 5))));
+		float cuts = 0;
+		for (int i = 1; i < EternalTree.STAGES; i++) {
+			cuts = Math.max(cuts, dip(a, EternalTree.STAGE_START[i], 3));
+		}
+		return Math.max(Math.max(super.fade(a), cuts), Math.max(Math.max(dip(a, CUT_WORLD, 6), dip(a, CUT_ROOTS, 7)), Math.max(dip(a, CLOSE, 5), dip(a, BACK, 5))));
 	}
 
 	@Override

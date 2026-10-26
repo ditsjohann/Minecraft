@@ -28,8 +28,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ETERNAL SAPLING: a sapling becomes a tree, a bigger tree, then a world tree built from real blocks,
- * whose roots tear out of the trunk and slam into the ground on every side. Timeline in {@link EternalTree}.
+ * ETERNAL SAPLING: a sapling climbs a ladder of ever bigger trees (small, young, big, great, giant, titan,
+ * colossus), then becomes a world tree built from real blocks, whose roots tear out of the trunk and slam into
+ * the ground on every side, and the land around every one of them turns to moss and forest.
+ * Timeline in {@link EternalTree}.
  */
 public class EternalSaplingEvent extends WorldEvent {
 	private static final int BUDGET = 2500;
@@ -38,6 +40,9 @@ public class EternalSaplingEvent extends WorldEvent {
 	}
 
 	private List<Put> queue = new ArrayList<>();
+	/** Forest spreading out where the roots came down, planted with whatever budget the tree leaves over. */
+	private final List<Put> greens = new ArrayList<>();
+	private int greenHead;
 	private int head, stageEnd;
 	@SuppressWarnings("unchecked")
 	private final List<Put>[] roots = new List[EternalTree.ROOTS];
@@ -72,16 +77,20 @@ public class EternalSaplingEvent extends WorldEvent {
 			world.spawnParticles(ParticleTypes.HAPPY_VILLAGER, baseV.x, baseV.y + 0.5, baseV.z, 12, 0.4, 0.4, 0.4, 0.02);
 			Kit.sound(world, baseV, SoundEvents.ITEM_BONE_MEAL_USE, 3.0F, 0.6F + t * 0.01F);
 		}
-		if (t == EternalTree.TREE1_START) {
-			stage(smallTree(), EternalTree.TREE1_END);
-			Kit.sound(world, baseV, SoundEvents.BLOCK_AZALEA_LEAVES_PLACE, 8.0F, 0.6F);
-			Vfx.ring(world, baseV.add(0, 0.3, 0), 8.0F, 0.5F, 0x80FF90, false, 20);
-		}
-		if (t == EternalTree.TREE2_START) {
-			stage(bigTree(), EternalTree.TREE2_END);
-			Kit.sound(world, baseV, SoundEvents.BLOCK_WOOD_PLACE, 16.0F, 0.4F);
-			Vfx.ring(world, baseV.add(0, 0.3, 0), 22.0F, 1.0F, 0x80FF90, true, 30);
-			Vfx.shake(world, baseV, 160, 0.6F);
+		for (int i = 0; i < EternalTree.STAGES; i++) {
+			if (t == EternalTree.STAGE_START[i]) {
+				// Each stage grows a bigger tree over the last, louder and heavier every time.
+				stage(i == 0 ? smallTree() : stageTree(i), EternalTree.STAGE_END[i]);
+				double h = EternalTree.stageHeight(i, s);
+				Kit.sound(world, baseV, i < 2 ? SoundEvents.BLOCK_AZALEA_LEAVES_PLACE : SoundEvents.BLOCK_WOOD_PLACE, 8.0F + i * 6, 0.7F - i * 0.05F);
+				Kit.sound(world, baseV, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 8.0F + i * 6, 0.6F + i * 0.1F);
+				if (i >= 3) {
+					Kit.sound(world, baseV, ModSounds.NUKE_RUMBLE, 16.0F + i * 6, 0.6F - i * 0.03F);
+				}
+				Vfx.ring(world, baseV.add(0, 0.3, 0), (float) (h * 0.9 + 4), 0.5F + i * 0.3F, 0x80FF90, i >= 2, 20 + i * 4);
+				Vfx.shake(world, baseV, 60 + h * 4, 0.2F + i * 0.12F);
+				Vfx.light(world, baseV.add(0, h * 0.7, 0), 0.6F + i * 0.06F, 0xA0FF90);
+			}
 		}
 		if (t == EternalTree.WORLD_START) {
 			stage(worldTree(), EternalTree.WORLD_END);
@@ -99,7 +108,7 @@ public class EternalSaplingEvent extends WorldEvent {
 				Kit.sound(world, baseV, ModSounds.NUKE_RUMBLE, 32.0F, 0.35F);
 			}
 		}
-		if (t > EternalTree.TREE2_START && t < EternalTree.WORLD_END && t % 2 == 0) {
+		if (t > EternalTree.STAGE_START[1] && t < EternalTree.WORLD_END && t % 2 == 0) {
 			clearTrunk(t);
 		}
 		if (t == EternalTree.WORLD_END) {
@@ -109,7 +118,11 @@ public class EternalSaplingEvent extends WorldEvent {
 		for (int i = 0; i < EternalTree.ROOTS; i++) {
 			root(i, t);
 		}
-		boolean built = head >= queue.size() && slams >= EternalTree.ROOTS;
+		while (greenHead < greens.size() && budget > 0) {
+			place(greens.get(greenHead++));
+			budget--;
+		}
+		boolean built = head >= queue.size() && slams >= EternalTree.ROOTS && greenHead >= greens.size();
 		return (t > EternalTree.LIFE && built) || t > EternalTree.LIFE + 200;
 	}
 
@@ -117,6 +130,8 @@ public class EternalSaplingEvent extends WorldEvent {
 	public void finish() {
 		queue = new ArrayList<>();
 		head = 0;
+		greens.clear();
+		greenHead = 0;
 	}
 
 	// --- building ---------------------------------------------------------------------------
@@ -161,8 +176,9 @@ public class EternalSaplingEvent extends WorldEvent {
 	/** Keeps creatures from being entombed in the growing trunk: anything inside it is shoved out. */
 	private void clearTrunk(int t) {
 		boolean worldStage = t >= EternalTree.WORLD_START;
-		double r = worldStage ? EternalTree.trunkRadius(s) + 5 * s + 2 : 4;
-		double top = worldStage ? EternalTree.front(s, t) : 30;
+		int k = Math.max(0, EternalTree.stageAt(t));
+		double r = worldStage ? EternalTree.trunkRadius(s) + 7 * s + 2 : EternalTree.stageRadius(k, s) + 3;
+		double top = worldStage ? EternalTree.front(s, t) : EternalTree.stageHeight(k, s) + 4;
 		for (LivingEntity e : Kit.living(world, baseV.add(0, top * 0.5, 0), Math.max(r, top))) {
 			double dx = e.getX() - baseV.x, dz = e.getZ() - baseV.z;
 			double d = Math.sqrt(dx * dx + dz * dz);
@@ -307,32 +323,50 @@ public class EternalSaplingEvent extends WorldEvent {
 		return plan.sorted();
 	}
 
-	private List<Put> bigTree() {
+	/**
+	 * One rung of the ladder: a trunk of height and radius from {@link EternalTree}, more and longer branches the
+	 * higher the stage, each with its own crown, and a crown on top. The species changes as it climbs: oak, then
+	 * birch-barked, then dark oak, then mangrove-flared, with blossom and glow creeping into the leaves.
+	 */
+	private List<Put> stageTree(int i) {
 		Plan plan = new Plan();
-		BlockState wood = Blocks.OAK_WOOD.getDefaultState();
-		int h = 26;
+		BlockState wood = switch (i) {
+			case 1 -> Blocks.BIRCH_WOOD.getDefaultState();
+			case 2, 3 -> Blocks.OAK_WOOD.getDefaultState();
+			case 4 -> Blocks.SPRUCE_WOOD.getDefaultState();
+			case 5 -> Blocks.MANGROVE_WOOD.getDefaultState();
+			default -> Blocks.DARK_OAK_WOOD.getDefaultState();
+		};
+		double hgt = EternalTree.stageHeight(i, s), rad = EternalTree.stageRadius(i, s);
+		int h = MathHelper.ceil(hgt);
 		for (int y = -1; y < h; y++) {
-			double r = 2.2 - y * 0.03 + (y < 3 ? (3 - y) * 0.6 : 0);
+			double r = rad * (1 - 0.35 * y / hgt) + (y < 3 ? (3 - y) * rad * 0.3 : 0);
 			int ri = MathHelper.ceil(r);
 			for (int dx = -ri; dx <= ri; dx++) {
 				for (int dz = -ri; dz <= ri; dz++) {
 					if (dx * dx + dz * dz <= r * r) {
-						plan.wood(base.add(dx, y, dz), wood);
+						BlockPos p = base.add(dx, y, dz);
+						// Moss climbs the bark of the older trees.
+						boolean mossy = i >= 3 && y < hgt * 0.3 && dx * dx + dz * dz > (r - 1) * (r - 1) && h3(p, 70 + i) < 0.35;
+						plan.wood(p, mossy ? Blocks.MOSS_BLOCK.getDefaultState() : wood);
 					}
 				}
 			}
 		}
-		for (int k = 0; k < 5; k++) {
-			double a = k * Math.PI * 2 / 5 + EternalTree.hash(k, 11) * 0.6;
-			double y0 = 13 + EternalTree.hash(k, 12) * 8, len = 8 + EternalTree.hash(k, 13) * 4, rise = 5 + EternalTree.hash(k, 14) * 3;
+		int branches = 3 + i;
+		for (int k = 0; k < branches; k++) {
+			double a = k * Math.PI * 2 / branches + EternalTree.hash(k, 11 + i) * 0.6;
+			double y0 = hgt * (0.45 + 0.3 * EternalTree.hash(k, 12 + i));
+			double len = hgt * (0.3 + 0.15 * EternalTree.hash(k, 13 + i)), rise = hgt * (0.18 + 0.1 * EternalTree.hash(k, 14 + i));
 			Vec3d d = new Vec3d(Math.cos(a), 0, Math.sin(a));
 			Vec3d p0 = baseV.add(0, y0, 0), p2 = baseV.add(d.multiply(len)).add(0, y0 + rise, 0);
-			for (double u = 0; u <= 1; u += 0.08) {
-				plan.woodBall(p0.lerp(p2, u).add(0, Math.sin(u * Math.PI) * 1.5, 0), 1.3 - u * 0.4, wood);
+			double thick = Math.max(0.9, rad * 0.5);
+			for (double u = 0; u <= 1; u += Math.min(0.08, 1.2 / len)) {
+				plan.woodBall(p0.lerp(p2, u).add(0, Math.sin(u * Math.PI) * hgt * 0.05, 0), thick * (1 - u * 0.5), wood);
 			}
-			plan.crown(p2.add(0, 2, 0), 5 + EternalTree.hash(k, 15) * 1.5, 0.7, 20 + k, false);
+			plan.crown(p2.add(0, 2, 0), Math.max(3, hgt * (0.18 + 0.05 * EternalTree.hash(k, 15 + i))), 0.68, 20 + k + i * 31, i >= 5, i >= 4 ? k % 3 : 0);
 		}
-		plan.crown(baseV.add(0, h + 2, 0), 7.5, 0.65, 30, false);
+		plan.crown(baseV.add(0, hgt + 2, 0), Math.max(3.5, hgt * 0.28), 0.65, 30 + i, i >= 5, i >= 4 ? 1 : 0);
 		return plan.sorted();
 	}
 
@@ -404,22 +438,22 @@ public class EternalSaplingEvent extends WorldEvent {
 			}
 		}
 		// Branches, each ending in a vast crown; one more crown on top.
-		for (int k = 0; k < 9; k++) {
-			double a = k * Math.PI * 2 / 9 + (EternalTree.hash(k, 41) - 0.5) * 0.4;
+		for (int k = 0; k < 11; k++) {
+			double a = k * Math.PI * 2 / 11 + (EternalTree.hash(k, 41) - 0.5) * 0.4;
 			double y0 = hgt * (0.5 + 0.35 * EternalTree.hash(k, 42));
-			double len = (26 + 18 * EternalTree.hash(k, 43)) * s, rise = (16 + 14 * EternalTree.hash(k, 44)) * s;
+			double len = (36 + 24 * EternalTree.hash(k, 43)) * s, rise = (22 + 18 * EternalTree.hash(k, 44)) * s;
 			Vec3d d = new Vec3d(Math.cos(a), 0, Math.sin(a));
 			Vec3d p0 = baseV.add(0, y0, 0), p1 = baseV.add(d.multiply(len * 0.5)).add(0, y0 + rise * 0.2, 0), p2 = baseV.add(d.multiply(len)).add(0, y0 + rise, 0);
 			double steps = Math.max(10, len * 1.6);
 			for (int i = 0; i <= steps; i++) {
 				double u = i / steps, v = 1 - u;
 				Vec3d p = p0.multiply(v * v).add(p1.multiply(2 * v * u)).add(p2.multiply(u * u));
-				plan.woodBall(p, (3.4 * s + 0.8) * (1 - u) + 1.3 * u, bark);
+				plan.woodBall(p, (4.4 * s + 0.8) * (1 - u) + 1.3 * u, bark);
 			}
-			plan.crown(p2.add(0, 3 * s, 0), (12 + 5 * EternalTree.hash(k, 45)) * s, 0.62, 100 + k, true, k % 3);
-			plan.crown(p1.add(0, 4 * s, 0), 7 * s + 2, 0.6, 200 + k, true, (k + 1) % 3);
+			plan.crown(p2.add(0, 3 * s, 0), (15 + 6 * EternalTree.hash(k, 45)) * s, 0.62, 100 + k, true, k % 3);
+			plan.crown(p1.add(0, 4 * s, 0), 9 * s + 2, 0.6, 200 + k, true, (k + 1) % 3);
 		}
-		plan.crown(baseV.add(0, hgt + 4 * s, 0), 19 * s, 0.6, 300, true, 1);
+		plan.crown(baseV.add(0, hgt + 4 * s, 0), 25 * s, 0.6, 300, true, 1);
 		return plan.sorted();
 	}
 
@@ -531,6 +565,71 @@ public class EternalSaplingEvent extends WorldEvent {
 		Kit.sound(world, e, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 24.0F, 0.55F);
 		if (slams == 1 || slams == EternalTree.ROOTS) {
 			CityDestructionEvents.frames(world, center(), 0);
+		}
+		forest(e, (int) Math.round(18 + 16 * s), i);
+		Vfx.ring(world, e.add(0, 0.6, 0), (float) (18 + 16 * s), 1.5F, 0x60D060, false, 50);
+		Kit.sound(world, e, SoundEvents.BLOCK_MOSS_PLACE, 32.0F, 0.5F);
+		Kit.sound(world, e, SoundEvents.BLOCK_AZALEA_LEAVES_PLACE, 32.0F, 0.5F);
+		world.spawnParticles(ParticleTypes.HAPPY_VILLAGER, e.x, e.y + 1, e.z, 120, 10, 2, 10, 0.05);
+	}
+
+	/**
+	 * Where a root comes down, life follows: the ground around it turns to moss, grass, podzol and rooted dirt, with
+	 * moss carpet, ferns, azaleas, flowers, mushrooms and berry bushes on top and a few young trees among them.
+	 */
+	private void forest(Vec3d c, int r, int salt) {
+		int cx = MathHelper.floor(c.x), cz = MathHelper.floor(c.z);
+		BlockState[] plants = {Blocks.FERN.getDefaultState(), Blocks.LARGE_FERN.getDefaultState(), Blocks.AZALEA.getDefaultState(),
+				Blocks.FLOWERING_AZALEA.getDefaultState(), Blocks.LILY_OF_THE_VALLEY.getDefaultState(), Blocks.BLUE_ORCHID.getDefaultState(),
+				Blocks.BROWN_MUSHROOM.getDefaultState(), Blocks.RED_MUSHROOM.getDefaultState(), Blocks.SWEET_BERRY_BUSH.getDefaultState(),
+				Blocks.SHORT_GRASS.getDefaultState()};
+		for (int dx = -r; dx <= r; dx++) {
+			for (int dz = -r; dz <= r; dz++) {
+				double d = Math.sqrt(dx * dx + dz * dz);
+				double edge = r * (0.8 + 0.25 * EternalTree.hash(dx * 7 + salt, dz * 11 + salt));
+				if (d > edge || !world.isChunkLoaded(new BlockPos(cx + dx, 0, cz + dz))) {
+					continue;
+				}
+				BlockPos top = Kit.surface(world, cx + dx, cz + dz);
+				BlockState st = world.getBlockState(top);
+				if (!(st.isIn(BlockTags.DIRT) || st.isIn(BlockTags.SAND) || st.isIn(BlockTags.BASE_STONE_OVERWORLD) || st.isOf(Blocks.GRAVEL)
+						|| st.isOf(Blocks.SNOW_BLOCK) || st.isOf(Blocks.COARSE_DIRT))) {
+					continue;
+				}
+				double h = EternalTree.hash((cx + dx) * 31 + salt, (cz + dz) * 17);
+				BlockState ground = h < 0.55 ? Blocks.MOSS_BLOCK.getDefaultState() : h < 0.78 ? Blocks.GRASS_BLOCK.getDefaultState()
+						: h < 0.9 ? Blocks.PODZOL.getDefaultState() : Blocks.ROOTED_DIRT.getDefaultState();
+				greens.add(new Put(top, ground, true));
+				double u = EternalTree.hash((cx + dx) * 13 + 5, (cz + dz) * 29 + salt);
+				BlockPos up = top.up();
+				if (u < 0.012 && d > 4) {
+					youngTree(up, h < 0.5);
+				} else if (u < 0.3) {
+					greens.add(new Put(up, ground.isOf(Blocks.MOSS_BLOCK) && u < 0.15 ? Blocks.MOSS_CARPET.getDefaultState()
+							: plants[(int) (u * 1000) % plants.length], false));
+				}
+			}
+		}
+	}
+
+	/** A young oak or birch springing up in the new forest. */
+	private void youngTree(BlockPos at, boolean birch) {
+		BlockState log = (birch ? Blocks.BIRCH_LOG : Blocks.OAK_LOG).getDefaultState();
+		BlockState leaves = (birch ? Blocks.BIRCH_LEAVES : Blocks.OAK_LEAVES).getDefaultState().with(LeavesBlock.PERSISTENT, true);
+		int h = 4 + (int) (EternalTree.hash(at.getX(), at.getZ()) * 3);
+		for (int y = h - 2; y <= h + 1; y++) {
+			int r = y >= h ? 1 : 2;
+			for (int dx = -r; dx <= r; dx++) {
+				for (int dz = -r; dz <= r; dz++) {
+					if (Math.abs(dx) == r && Math.abs(dz) == r && y >= h) {
+						continue;
+					}
+					greens.add(new Put(at.add(dx, y, dz), leaves, false));
+				}
+			}
+		}
+		for (int y = 0; y < h; y++) {
+			greens.add(new Put(at.up(y), log, true));
 		}
 	}
 }

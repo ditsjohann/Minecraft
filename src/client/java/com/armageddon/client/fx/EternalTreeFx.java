@@ -41,22 +41,26 @@ public class EternalTreeFx extends FxEffect {
 		return t != null && t.base.squaredDistanceTo(anchor) < 64 * 64 ? t : null;
 	}
 
-	/** Visible height of the tree at {@code a} ticks: sapling, tree, big tree, then the world tree's growth front. */
+	/** Visible height of the tree at {@code a} ticks: the sapling, each rung of the ladder, then the world tree's growth front. */
 	double height(double a) {
-		if (a < EternalTree.TREE1_START) {
+		int k = EternalTree.stageAt(a);
+		if (k < 0) {
 			return 0.8;
 		}
-		if (a < EternalTree.TREE2_START) {
-			return 1 + 6 * Cinematics.clamp01((a - EternalTree.TREE1_START) / (double) (EternalTree.TREE1_END - EternalTree.TREE1_START));
-		}
 		if (a < EternalTree.WORLD_START) {
-			return 7 + 21 * Cinematics.clamp01((a - EternalTree.TREE2_START) / (double) (EternalTree.TREE2_END - EternalTree.TREE2_START));
+			double from = k == 0 ? 1 : EternalTree.stageHeight(k - 1, s);
+			double u = Cinematics.clamp01((a - EternalTree.STAGE_START[k]) / (double) (EternalTree.STAGE_END[k] - EternalTree.STAGE_START[k]));
+			return from + (EternalTree.stageHeight(k, s) - from) * u;
 		}
-		return Math.max(28, Math.min(EternalTree.height(s), EternalTree.front(s, a)));
+		return Math.max(EternalTree.stageHeight(EternalTree.STAGES - 1, s), Math.min(EternalTree.height(s), EternalTree.front(s, a)));
 	}
 
 	double trunkR(double a, double y) {
-		return a < EternalTree.WORLD_START ? (a < EternalTree.TREE2_START ? 0.6 : 2.4) : EternalTree.trunkRadiusAt(s, y);
+		if (a >= EternalTree.WORLD_START) {
+			return EternalTree.trunkRadiusAt(s, y);
+		}
+		int k = EternalTree.stageAt(a);
+		return k < 0 ? 0.3 : EternalTree.stageRadius(k, s);
 	}
 
 	/** Ground height at root {@code i}'s tip, looked up once the chunk is around. */
