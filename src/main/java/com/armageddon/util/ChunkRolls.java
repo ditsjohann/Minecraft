@@ -6,12 +6,14 @@ import net.minecraft.util.math.Vec3d;
 import java.util.Random;
 
 /**
- * The 16 CHUNKS dice table. Server and client derive the same seed from the bomb's position and
- * heading, so the cutscene can name every roll before the blocks arrive.
+ * The 32 CHUNKS dice table: an 8 x 4 grid of chunks around the bomb, each rolled once. Server and client derive
+ * the same seed from the bomb's position and heading, so the cutscene can name every roll before the blocks arrive.
  */
 public final class ChunkRolls {
-	/** First roll, ticks between rolls, the simultaneous reroll, its per-chunk stagger, and the cutscene length. */
-	public static final int ROLL_START = 90, GAP = 24, REROLL = 500, REROLL_STAGGER = 2, CINE = 640;
+	/** Grid width and depth in chunks, and the number of chunks. Cell index = x + z * W. */
+	public static final int W = 8, H = 4, CELLS = W * H;
+	/** First roll, ticks between rolls, and the cutscene length. */
+	public static final int ROLL_START = 90, GAP = 16, CINE = ROLL_START + CELLS * GAP + 70;
 
 	public enum Kind {
 		FLOOD("FLOOD", 0x40C0FF, true),
@@ -70,23 +72,23 @@ public final class ChunkRolls {
 		return h ^ 0x5DEECE66DL;
 	}
 
-	/** Chunk coordinates of the grid's north-west chunk: the bomb sits in grid cell (2, 2). */
+	/** Chunk coordinates of the grid's north-west chunk: the bomb sits in grid cell (4, 2). */
 	public static int originChunkX(Vec3d anchor) {
-		return (MathHelper.floor(anchor.x) >> 4) - 2;
+		return (MathHelper.floor(anchor.x) >> 4) - W / 2;
 	}
 
 	public static int originChunkZ(Vec3d anchor) {
-		return (MathHelper.floor(anchor.z) >> 4) - 2;
+		return (MathHelper.floor(anchor.z) >> 4) - H / 2;
 	}
 
-	/** The order the 16 chunks roll in (cell index = x + z * 4). */
+	/** The order the chunks roll in. */
 	public static int[] order(long seed) {
-		int[] o = new int[16];
-		for (int i = 0; i < 16; i++) {
+		int[] o = new int[CELLS];
+		for (int i = 0; i < CELLS; i++) {
 			o[i] = i;
 		}
 		Random r = new Random(seed);
-		for (int i = 15; i > 0; i--) {
+		for (int i = CELLS - 1; i > 0; i--) {
 			int j = r.nextInt(i + 1);
 			int t = o[i];
 			o[i] = o[j];
@@ -95,31 +97,23 @@ public final class ChunkRolls {
 		return o;
 	}
 
-	/** Round 0 is the one-by-one roll, round 1 the simultaneous reroll. */
-	public static Roll roll(long seed, int round, int cell) {
-		Random r = new Random(seed * 31 + round * 977L + cell * 7717L);
+	/** What chunk {@code cell} rolls. */
+	public static Roll roll(long seed, int cell) {
+		Random r = new Random(seed * 31 + cell * 7717L);
 		Kind[] kinds = Kind.values();
 		Kind k = r.nextInt(4) == 0 ? Kind.FLOOD : kinds[1 + r.nextInt(kinds.length - 1)];
-		if (round == 1 && k == Kind.SWAP) {
-			// Everything mutates at once in the reroll: a swap would fight its partner's own roll.
-			k = Kind.RANDOMIZE;
-		}
 		int variant = 0;
 		if (k == Kind.FLOOD) {
 			variant = r.nextInt(Flood.values().length);
 		} else if (k == Kind.SWAP) {
-			variant = (cell + 1 + r.nextInt(15)) % 16;
+			variant = (cell + 1 + r.nextInt(CELLS - 1)) % CELLS;
 		}
 		return new Roll(k, variant);
 	}
 
-	/** Tick at which cell {@code order[slot]} rolls in round 0. */
+	/** Tick at which cell {@code order[slot]} rolls. */
 	public static int rollTick(int slot) {
 		return ROLL_START + slot * GAP;
-	}
-
-	public static int rerollTick(int slot) {
-		return REROLL + slot * REROLL_STAGGER;
 	}
 
 	private ChunkRolls() {

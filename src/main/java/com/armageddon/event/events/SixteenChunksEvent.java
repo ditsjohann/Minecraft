@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 16 CHUNKS: the 4x4 chunks around the bomb roll the dice one by one (floods of random blocks,
- * upside-down terrain, sky islands, swaps, voids, mob parties...), then all of them reroll at once.
+ * 32 CHUNKS: the 8x4 chunks around the bomb roll the dice one by one (floods of random blocks,
+ * upside-down terrain, sky islands, swaps, voids, mob parties...), and every result stays.
  * Rolls come from {@link ChunkRolls} so the client cutscene names each one as it lands.
  */
 public class SixteenChunksEvent extends WorldEvent {
@@ -67,7 +67,7 @@ public class SixteenChunksEvent extends WorldEvent {
 			EntityType.VILLAGER, EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.SLIME, EntityType.WITCH);
 
 	private final ArrayDeque<Op> queue = new ArrayDeque<>();
-	private final int[] base = new int[16];
+	private final int[] base = new int[ChunkRolls.CELLS];
 	private Vec3d fwd;
 	private long seed;
 	private int[] order;
@@ -83,15 +83,15 @@ public class SixteenChunksEvent extends WorldEvent {
 			order = ChunkRolls.order(seed);
 			ox = ChunkRolls.originChunkX(g);
 			oz = ChunkRolls.originChunkZ(g);
-			for (int cell = 0; cell < 16; cell++) {
+			for (int cell = 0; cell < ChunkRolls.CELLS; cell++) {
 				base[cell] = loaded(cell) ? Kit.surface(world, minX(cell) + 8, minZ(cell) + 8).getY() : Integer.MIN_VALUE;
 			}
 			WorldCutsceneEvents.begin(this, world, g, "block.armageddon.sixteen_chunks", 5, fwd, CINE);
-			Vfx.custom(world, FxType.CHUNK_GLITCH, g, fwd, 64.0F, 0xFF40FF, 0, (float) Kit.ground(world, g.x, g.z).y, 0, CINE + 300, Vfx.FAR);
+			Vfx.custom(world, FxType.CHUNK_GLITCH, g, fwd, 128.0F, 0xFF40FF, 0, (float) Kit.ground(world, g.x, g.z).y, 0, CINE + 300, Vfx.FAR);
 			Vfx.skyTint(world, g, 100000, 0x301040, 0.5F);
 			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 32.0F, 0.6F);
 		}
-		for (int slot = 0; slot < 16; slot++) {
+		for (int slot = 0; slot < ChunkRolls.CELLS; slot++) {
 			int at = ChunkRolls.rollTick(slot);
 			if (t < at - 14 || t > at) {
 				continue;
@@ -102,23 +102,14 @@ public class SixteenChunksEvent extends WorldEvent {
 				Kit.sound(world, cc, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 16.0F, 0.6F + (t - at + 14) * 0.08F);
 			}
 			if (t == at) {
-				apply(order[slot], ChunkRolls.roll(seed, 0, order[slot]));
+				apply(order[slot], ChunkRolls.roll(seed, order[slot]));
 			}
 		}
-		if (t == ChunkRolls.REROLL - 40) {
-			Vfx.screen(world, g, 100000, 3, 0.45F, 20);
-			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 48.0F, 0.5F);
-		}
-		if (t == ChunkRolls.REROLL) {
-			CityDestructionEvents.frames(world, g, 1, 0);
-			Vfx.shake(world, g, 400, 2.0F);
-			Vfx.ring(world, g, 90.0F, 2.0F, 0xFF40FF, true, 40);
+		if (t == ChunkRolls.rollTick(ChunkRolls.CELLS - 1) + 20) {
+			// Every chunk has rolled: a fanfare, and the results stay.
+			Vfx.ring(world, g, 140.0F, 2.0F, 0xFF40FF, true, 40);
 			Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_LEVELUP, 48.0F, 0.5F);
-		}
-		for (int slot = 0; slot < 16; slot++) {
-			if (t == ChunkRolls.rerollTick(slot)) {
-				apply(order[slot], ChunkRolls.roll(seed, 1, order[slot]));
-			}
+			Kit.sound(world, g, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 48.0F, 1.0F);
 		}
 		flush();
 		return (t > CINE + 40 && queue.isEmpty()) || t > CINE + 2400;
@@ -127,15 +118,15 @@ public class SixteenChunksEvent extends WorldEvent {
 	// --- grid ------------------------------------------------------------------------
 
 	private int minX(int cell) {
-		return (ox + cell % 4) * 16;
+		return (ox + cell % ChunkRolls.W) * 16;
 	}
 
 	private int minZ(int cell) {
-		return (oz + cell / 4) * 16;
+		return (oz + cell / ChunkRolls.W) * 16;
 	}
 
 	private boolean loaded(int cell) {
-		return world.isChunkLoaded(ox + cell % 4, oz + cell / 4);
+		return world.isChunkLoaded(ox + cell % ChunkRolls.W, oz + cell / ChunkRolls.W);
 	}
 
 	private int lo(int cell) {
@@ -201,7 +192,7 @@ public class SixteenChunksEvent extends WorldEvent {
 		Vfx.shake(world, cc, 120, 0.6F);
 		Kit.sound(world, cc, SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 24.0F, 0.5F + world.random.nextFloat());
 		Kit.sound(world, cc, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 24.0F, 0.6F);
-		Kit.broadcast(world, cc, 160, Text.literal("[16 CHUNKS] #" + (cell + 1) + ": " + roll.label()).withColor(kind.color));
+		Kit.broadcast(world, cc, 200, Text.literal("[32 CHUNKS] #" + (cell + 1) + ": " + roll.label()).withColor(kind.color));
 		if (kind.destructive && !Destruction.enabled(world)) {
 			return;
 		}

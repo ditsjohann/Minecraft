@@ -10,14 +10,16 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 /**
- * 16 CHUNKS cutscene: rise from the bomb to a top-down view of the 4x4 grid, a slot-machine roll for
- * every chunk (with swoops down into a few of them), then the REROLL where all sixteen go at once.
+ * 32 CHUNKS cutscene: rise from the bomb to a top-down view of the 8x4 grid, a slot-machine roll for
+ * every chunk (with swoops down into a few of them), then a long pull up and away over the results.
  * The schedule and results come from {@link ChunkRolls}, the same table the server rolls from.
  */
 public class SixteenChunksCine extends Cinematics.Cine {
 	/** Rolls the camera swoops down into instead of watching from above. */
-	private static final int[] SWOOPS = {2, 6, 10, 13};
-	private static final int PRE_REROLL = ChunkRolls.REROLL - 40;
+	private static final int[] SWOOPS = {3, 9, 16, 23, 29};
+	/** When the last roll has landed and the camera pulls away. */
+	private static final int DONE = ChunkRolls.rollTick(ChunkRolls.CELLS - 1) + 24;
+	private static final double HIGH = 140, ORBIT = 30;
 	private final long seed;
 	private final int[] order;
 	private final Vec3d grid;
@@ -29,18 +31,18 @@ public class SixteenChunksCine extends Cinematics.Cine {
 		this.order = ChunkRolls.order(seed);
 		this.x0 = ChunkRolls.originChunkX(anchor) * 16;
 		this.z0 = ChunkRolls.originChunkZ(anchor) * 16;
-		this.grid = new Vec3d(x0 + 32, anchor.y, z0 + 32);
+		this.grid = new Vec3d(x0 + ChunkRolls.W * 8, anchor.y, z0 + ChunkRolls.H * 8);
 	}
 
 	private Vec3d cellCenter(int cell) {
-		return new Vec3d(x0 + (cell % 4) * 16 + 8, anchor.y, z0 + (cell / 4) * 16 + 8);
+		return new Vec3d(x0 + (cell % ChunkRolls.W) * 16 + 8, anchor.y, z0 + (cell / ChunkRolls.W) * 16 + 8);
 	}
 
 	/** Index of the round-0 roll in progress (spinning or just landed) at time {@code a}, or -1. */
 	private int activeSlot(float a) {
-		for (int slot = 0; slot < 16; slot++) {
+		for (int slot = 0; slot < ChunkRolls.CELLS; slot++) {
 			float d = a - ChunkRolls.rollTick(slot);
-			if (d >= -14 && d < ChunkRolls.GAP - 14) {
+			if (d >= -14 && d < ChunkRolls.GAP) {
 				return slot;
 			}
 		}
@@ -56,22 +58,20 @@ public class SixteenChunksCine extends Cinematics.Cine {
 			// From the bomb up into the sky, tipping over to look straight down at the grid.
 			double u = ease(a / 75.0);
 			Vec3d from = anchor.subtract(fwd.multiply(9)).add(0, 3, 0);
-			Vec3d to = grid.add(Math.cos(spin) * 22, 92, Math.sin(spin) * 22);
-			aim(s, lerp(from, to, u), lerp(anchor.add(0, 1, 0), grid, u), (float) lerp(70, 64, u), false);
+			Vec3d to = grid.add(Math.cos(spin) * ORBIT, HIGH, Math.sin(spin) * ORBIT);
+			aim(s, lerp(from, to, u), lerp(anchor.add(0, 1, 0), grid, u), (float) lerp(70, 70, u), false);
 			return;
 		}
-		if (a >= PRE_REROLL) {
-			// Lower, faster orbit for the reroll, then a long pull up and away.
-			double k = a - PRE_REROLL;
-			double ang = spin + k * k * 0.00012 + k * 0.004;
-			double rad = a < ChunkRolls.REROLL + 60 ? lerp(22, 42, ease(k / 40.0)) : lerp(42, 30, ease((a - ChunkRolls.REROLL - 60) / 80.0));
-			double h = a < ChunkRolls.REROLL + 60 ? lerp(92, 58, ease(k / 40.0)) : lerp(58, 125, ease((a - ChunkRolls.REROLL - 60) / 80.0));
-			aim(s, grid.add(Math.cos(ang) * rad, h, Math.sin(ang) * rad), grid, (float) lerp(64, 82, ease(k / 40.0)), false);
+		if (a >= DONE) {
+			// All 32 rolled: a long, slow pull up and away over the patchwork.
+			double k = ease((a - DONE) / (double) Math.max(1, lifetime - DONE));
+			double ang = spin + k * 0.6;
+			aim(s, grid.add(Math.cos(ang) * lerp(ORBIT, 70, k), lerp(HIGH, 190, k), Math.sin(ang) * lerp(ORBIT, 70, k)), grid, (float) lerp(70, 76, k), false);
 			return;
 		}
-		Vec3d pos = grid.add(Math.cos(spin) * 22, 92, Math.sin(spin) * 22);
+		Vec3d pos = grid.add(Math.cos(spin) * ORBIT, HIGH, Math.sin(spin) * ORBIT);
 		Vec3d target = grid;
-		double fov = 64;
+		double fov = 70;
 		// Swoop down into a few of the rolls and back up again.
 		for (int slot : SWOOPS) {
 			float d = a - ChunkRolls.rollTick(slot);
@@ -94,22 +94,15 @@ public class SixteenChunksCine extends Cinematics.Cine {
 
 	@Override
 	protected float handheld(float a) {
-		if (a >= ChunkRolls.REROLL && a < ChunkRolls.REROLL + 60) {
-			return 1.0F;
-		}
 		return 0.2F;
 	}
 
 	@Override
 	public boolean tick(ClientWorld world) {
-		for (int slot = 0; slot < 16; slot++) {
-			if (age == ChunkRolls.rollTick(slot) || age == ChunkRolls.rerollTick(slot)) {
-				int round = age == ChunkRolls.rollTick(slot) ? 0 : 1;
-				ClientFx.light(cellCenter(order[slot]).add(0, 6, 0), 0.7F, ChunkRolls.roll(seed, round, order[slot]).kind().color);
+		for (int slot = 0; slot < ChunkRolls.CELLS; slot++) {
+			if (age == ChunkRolls.rollTick(slot)) {
+				ClientFx.light(cellCenter(order[slot]).add(0, 6, 0), 0.7F, ChunkRolls.roll(seed, order[slot]).kind().color);
 			}
-		}
-		if (age >= PRE_REROLL && age < ChunkRolls.REROLL) {
-			ClientFx.hue = Math.max(ClientFx.hue, 0.25F * (age - PRE_REROLL) / 40.0F);
 		}
 		return super.tick(world);
 	}
@@ -154,37 +147,32 @@ public class SixteenChunksCine extends Cinematics.Cine {
 		if (s >= 0) {
 			int cell = order[s];
 			int at = ChunkRolls.rollTick(s);
-			ChunkRolls.Roll roll = ChunkRolls.roll(seed, 0, cell);
-			machine(ctx, f, w, h, a, at, roll.kind(), roll.label(), "CHUNK #" + (cell + 1), "ROLL " + (s + 1) + " / 16", cell, in);
-		} else if (a >= PRE_REROLL && a < ChunkRolls.rerollTick(15) + 20) {
-			int at = ChunkRolls.REROLL;
-			machine(ctx, f, w, h, a, at, ChunkRolls.Kind.RANDOMIZE, "x16", "ALL CHUNKS", "REROLL", 7, in);
+			ChunkRolls.Roll roll = ChunkRolls.roll(seed, cell);
+			machine(ctx, f, w, h, a, at, roll.kind(), roll.label(), "CHUNK #" + (cell + 1), "ROLL " + (s + 1) + " / " + ChunkRolls.CELLS, cell, in);
 		}
 	}
 
-	/** The 4x4 grid in the corner: dark slots that light up in each result's colour, the rolling one strobing. */
+	/** The 8x4 grid in the corner: dark slots that light up in each result's colour, the rolling one strobing. */
 	private void miniMap(DrawContext ctx, TextRenderer f, int h, float a, float in) {
-		int cs = Math.max(11, h / 26);
-		int mx = 16, my = h / 2 - cs * 2;
+		int cs = Math.max(9, h / 34);
+		int gw = cs * ChunkRolls.W, gh = cs * ChunkRolls.H;
+		int mx = 16, my = h / 2 - gh / 2;
 		int alpha = (int) (230 * in);
-		ctx.fillGradient(mx - 6, my - 20, mx + cs * 4 + 6, my + cs * 4 + 18, argb((int) (200 * in), 0x140A1E), argb((int) (200 * in), 0x05030A));
-		frame(ctx, mx - 6, my - 20, mx + cs * 4 + 6, my + cs * 4 + 18, 0xFF60FF, (int) (160 * in), 3);
-		ctx.drawTextWithShadow(f, Text.literal("16 CHUNKS"), mx, my - 14, argb(alpha, 0xFF80FF));
+		ctx.fillGradient(mx - 6, my - 20, mx + gw + 6, my + gh + 18, argb((int) (200 * in), 0x140A1E), argb((int) (200 * in), 0x05030A));
+		frame(ctx, mx - 6, my - 20, mx + gw + 6, my + gh + 18, 0xFF60FF, (int) (160 * in), 3);
+		ctx.drawTextWithShadow(f, Text.literal("32 CHUNKS"), mx, my - 14, argb(alpha, 0xFF80FF));
 		int done = 0;
 		int frameIdx = (int) (a * 1.5F);
-		for (int cell = 0; cell < 16; cell++) {
+		for (int cell = 0; cell < ChunkRolls.CELLS; cell++) {
 			int slot = slotOf(cell);
-			int x = mx + (cell % 4) * cs, y = my + (cell / 4) * cs;
+			int x = mx + (cell % ChunkRolls.W) * cs, y = my + (cell / ChunkRolls.W) * cs;
 			int col = 0x24202E;
 			boolean landed = false, spinning = false;
-			if (a >= ChunkRolls.rerollTick(slot)) {
-				col = ChunkRolls.roll(seed, 1, cell).kind().color;
-				landed = true;
-			} else if (a >= ChunkRolls.rerollTick(slot) - 14 || (a >= ChunkRolls.rollTick(slot) - 14 && a < ChunkRolls.rollTick(slot))) {
+			if (a >= ChunkRolls.rollTick(slot) - 14 && a < ChunkRolls.rollTick(slot)) {
 				col = KINDS[Math.floorMod(frameIdx + cell, KINDS.length)].color;
 				spinning = true;
 			} else if (a >= ChunkRolls.rollTick(slot)) {
-				col = ChunkRolls.roll(seed, 0, cell).kind().color;
+				col = ChunkRolls.roll(seed, cell).kind().color;
 				landed = true;
 			}
 			if (landed) {
@@ -197,9 +185,8 @@ public class SixteenChunksCine extends Cinematics.Cine {
 			}
 		}
 		// Progress bar.
-		int bw = cs * 4;
-		ctx.fill(mx, my + cs * 4 + 6, mx + bw, my + cs * 4 + 9, argb(alpha / 2, 0x301838));
-		ctx.fill(mx, my + cs * 4 + 6, mx + bw * Math.min(16, done) / 16, my + cs * 4 + 9, argb(alpha, 0xFF60FF));
+		ctx.fill(mx, my + gh + 6, mx + gw, my + gh + 9, argb(alpha / 2, 0x301838));
+		ctx.fill(mx, my + gh + 6, mx + gw * Math.min(ChunkRolls.CELLS, done) / ChunkRolls.CELLS, my + gh + 9, argb(alpha, 0xFF60FF));
 	}
 
 	/**
@@ -280,7 +267,7 @@ public class SixteenChunksCine extends Cinematics.Cine {
 	}
 
 	private int slotOf(int cell) {
-		for (int slot = 0; slot < 16; slot++) {
+		for (int slot = 0; slot < ChunkRolls.CELLS; slot++) {
 			if (order[slot] == cell) {
 				return slot;
 			}
