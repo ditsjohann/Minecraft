@@ -16,7 +16,8 @@ import org.joml.Matrix4f;
 
 /**
  * Signature aftermath visuals for Galactic Smash, Booming Tick and Alien Death Ray. {@code p.seed()} picks
- * the effect: 1 smash aftermath, 2 tick clock, 3 terrace glow, 4 EMP static, 5 alien bloom. Shapes come from
+ * the effect: 1 smash aftermath, 2 tick clock, 3 terrace glow, 4 EMP static, 5 alien bloom, 6 the sky clock over
+ * Booming Tick. Shapes come from
  * {@link WorldShapes} so they sit exactly on the blocks the server placed.
  */
 public final class WorldFx {
@@ -30,6 +31,7 @@ public final class WorldFx {
 			case 3 -> new BandGlow(p);
 			case 4 -> new EmpStatic(p);
 			case 5 -> new AlienBloom(p);
+			case 6 -> new SkyClock(p);
 			default -> null;
 		};
 	}
@@ -415,6 +417,107 @@ public final class WorldFx {
 				FxDraw.ring(glow, m, b.add(0, 1.1, 0).subtract(cam), X, Z, s[3] + ring * 0.4, s[3] + ring * 0.4 + 0.5, color, 0.0F,
 						0.35F * (float) (1 - ring / 30) * grown, 0.0F, 32);
 			}
+		}
+	}
+
+	// ====================================================================== Booming Tick: the sky clock
+
+	/**
+	 * A clock face of light hanging over the bomb, numerals and all. The second hand sweeps once per boom; the hour hand
+	 * steps to the next numeral, which then breaks off the face (the server drops it, burning, onto the bomb).
+	 */
+	static final class SkyClock extends FxEffect {
+		/** Seven-segment masks for 0..9: bits a b c d e f g. */
+		private static final int[] DIGITS = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
+		private final Vec3d c, fwd, right;
+		private final double R;
+		private final int gap, lead;
+
+		SkyClock(FxPayload p) {
+			super(Math.max(40, p.duration()));
+			c = new Vec3d(p.x(), p.y(), p.z());
+			fwd = flat(new Vec3d(p.x2(), p.y2(), p.z2()));
+			right = new Vec3d(-fwd.z, 0, fwd.x);
+			R = p.scale();
+			gap = Math.max(1, (int) p.p1());
+			lead = (int) p.p2();
+		}
+
+		private Vec3d onFace(double th, double r) {
+			return c.add(fwd.multiply(Math.cos(th) * r)).add(right.multiply(Math.sin(th) * r));
+		}
+
+		/** One digit as seven glowing segments, laid on the face with {@code up} pointing to twelve o'clock. */
+		private static void digit(VertexConsumer glow, Matrix4f m, Vec3d o, Vec3d up, Vec3d side, double h, int d, int rgb, float alpha) {
+			int mask = DIGITS[d];
+			double w = h * 0.5;
+			Vec3d tl = o.add(up.multiply(h * 0.5)).subtract(side.multiply(w * 0.5)), tr = tl.add(side.multiply(w));
+			Vec3d ml = o.subtract(side.multiply(w * 0.5)), mr = ml.add(side.multiply(w));
+			Vec3d bl = o.subtract(up.multiply(h * 0.5)).subtract(side.multiply(w * 0.5)), br = bl.add(side.multiply(w));
+			Vec3d[][] seg = {{tl, tr}, {tr, mr}, {mr, br}, {bl, br}, {ml, bl}, {tl, ml}, {ml, mr}};
+			for (int k = 0; k < 7; k++) {
+				if ((mask >> k & 1) != 0) {
+					FxDraw.ribbon(glow, m, seg[k][0], seg[k][1], Vec3d.ZERO, h * 0.14, rgb, alpha, alpha);
+				}
+			}
+		}
+
+		@Override
+		public boolean tick(ClientWorld world) {
+			if ((age - lead) % 20 == 0) {
+				ClientFx.light(c, 0.4F, 0xFFC870);
+			}
+			return super.tick(world);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
+			float k = envelope(a, lifetime, 30, 20);
+			Vec3d o = c.subtract(cam);
+			Vec3d off = cam.multiply(-1);
+			Vec3d up = new Vec3d(0, 1, 0);
+			// The face: a dark glassy disc with a bright double rim and sixty minute marks.
+			FxDraw.disc(shade, m, o, fwd, right, R, 0x100804, 0.55F * k, 0.35F * k, 64);
+			FxDraw.disc(glow, m, o, fwd, right, R, 0xFFB050, 0.06F * k, 0.12F * k, 64);
+			FxDraw.ring(glow, m, o, fwd, right, R * 0.97, R, 0xFFD890, 0.0F, 0.9F * k, 0.0F, 96);
+			FxDraw.ring(glow, m, o, fwd, right, R * 0.9, R * 0.92, 0xFFB050, 0.0F, 0.6F * k, 0.0F, 96);
+			float tickPulse = (float) Math.exp(-((a - lead) % 20 + 20) % 20 / 4.0);
+			for (int i = 0; i < 60; i++) {
+				double th = i * Math.PI * 2 / 60;
+				double len = i % 5 == 0 ? 0.1 : 0.04;
+				FxDraw.ribbon(glow, m, onFace(th, R * 0.92).add(off), onFace(th, R * (0.92 - len)).add(off), Vec3d.ZERO, i % 5 == 0 ? 1.4 : 0.6,
+						0xFFE0A0, (0.6F + 0.4F * tickPulse) * k, (0.6F + 0.4F * tickPulse) * k);
+			}
+			// The numerals that have not fallen yet.
+			int fallen = (int) Math.floor((a - lead + WorldShapes.CLOCK_DROP) / gap) + 1;
+			for (int n = 1; n <= 12; n++) {
+				if (n <= fallen && a >= lead - WorldShapes.CLOCK_DROP) {
+					continue;
+				}
+				Vec3d pos = WorldShapes.clockNumeral(c, fwd, n).add(off);
+				boolean next = n == fallen + 1;
+				int col = next ? 0xFFFFFF : 0xFFC870;
+				float al = (next ? 0.7F + 0.3F * MathHelper.sin(a * 0.6F) : 0.8F) * k;
+				Vec3d side = right.multiply(-1);
+				if (n >= 10) {
+					digit(glow, m, pos.subtract(side.multiply(R * 0.06)), fwd, side, R * 0.11, n / 10, col, al);
+					digit(glow, m, pos.add(side.multiply(R * 0.06)), fwd, side, R * 0.11, n % 10, col, al);
+				} else {
+					digit(glow, m, pos, fwd, side, R * 0.11, n, col, al);
+				}
+			}
+			// Hands: the hour hand on the next numeral to fall, and a sweeping second hand.
+			double hourTh = (fallen + 1) * Math.PI * 2 / 12;
+			double secTh = Math.floorMod((long) (a - lead), gap) / (double) gap * Math.PI * 2 + (fallen) * Math.PI * 2 / 12;
+			FxDraw.ribbon(glow, m, o, onFace(hourTh, R * 0.62).add(off), Vec3d.ZERO, R * 0.05, 0xFFD890, 0.95F * k, 0.95F * k);
+			FxDraw.ribbon(glow, m, o, onFace(secTh, R * 0.86).add(off), Vec3d.ZERO, R * 0.015, 0xFF4030, 0.95F * k, 0.95F * k);
+			Solids.dot(glow, m, o, FxDraw.cameraBasis(yaw, pitch), R * 0.05, 0xFFFFFF, 0.9F * k);
+			Solids.dot(glow, m, o, FxDraw.cameraBasis(yaw, pitch), R * 0.6, 0xFF9040, 0.08F * k);
+			// A faint column of light holding it up over the bomb.
+			FxDraw.beam(glow, m, o, o.subtract(up.multiply(WorldShapes.CLOCK_H)), Vec3d.ZERO, 1.2, 0xFFC870, 0.25F * k);
 		}
 	}
 }

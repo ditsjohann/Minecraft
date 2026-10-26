@@ -135,7 +135,19 @@ public final class WorldShapes {
 
 	/** Outer radius of terrace {@code i} (1..12) for a final reach of {@code R}; terrace 0 is the hub. */
 	public static double bandRadius(int i, double R) {
-		return R * 1.5 * Math.pow(1.45, i) / (1.5 * Math.pow(1.45, BANDS));
+		// Grows fast from the start (boom 6 already levels almost half the field) instead of saving it all for the end.
+		return R * Math.pow((i + 1) / (double) (BANDS + 1), 1.3);
+	}
+
+	/** The sky clock over Booming Tick: height above the ground, radius, and the lead time of a falling numeral. */
+	public static final double CLOCK_H = 120, CLOCK_R = 60;
+	public static final int CLOCK_DROP = 16;
+
+	/** Where numeral {@code n} (1..12) sits on the sky clock centred at {@code c}, twelve o'clock along {@code fwd}. */
+	public static Vec3d clockNumeral(Vec3d c, Vec3d fwd, int n) {
+		double th = n * Math.PI * 2 / 12;
+		Vec3d right = new Vec3d(-fwd.z, 0, fwd.x);
+		return c.add(fwd.multiply(Math.cos(th) * CLOCK_R * 0.8)).add(right.multiply(Math.sin(th) * CLOCK_R * 0.8));
 	}
 
 	/** How far terrace {@code i} sits below the original ground. The centre is the deepest step. */
