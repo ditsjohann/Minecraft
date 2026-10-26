@@ -44,6 +44,18 @@ public final class FxDraw {
 	/** Radial gradient disc facing along {@code right x up}. */
 	public static void disc(VertexConsumer vc, Matrix4f m, Vec3d c, Vec3d right, Vec3d up, double radius, int rgb,
 			float alphaCenter, float alphaEdge, int segments) {
+		// Soft radial discs become one smooth textured sprite: no polygon fan to facet under shader packs.
+		if (alphaEdge <= 0.0F && FxBuffers.current() != null) {
+			net.minecraft.client.render.RenderLayer layer = FxBuffers.layerOf(vc);
+			net.minecraft.client.render.RenderLayer to = layer == FxRenderLayers.GLOW ? FxSprites.GLOW_LAYER
+					: layer == FxRenderLayers.GLOW_NO_DEPTH ? FxSprites.GLOW_TOP_LAYER : layer == FxRenderLayers.SHADE ? FxSprites.SMOKE_LAYER : null;
+			if (to != null) {
+				int light = to == FxSprites.SMOKE_LAYER ? FxSprites.light(c, 0.0F) : FxSprites.FULL_BRIGHT;
+				FxSprites.sprite(FxBuffers.current().getBuffer(to), m, c, right, up, radius * 1.35, 0.0, FxSprites.GLOW, rgb, rgb,
+						Math.min(1.0F, alphaCenter * 1.15F), light);
+				return;
+			}
+		}
 		for (int i = 0; i < segments; i++) {
 			double a0 = MathHelper.TAU * i / segments;
 			double a1 = MathHelper.TAU * (i + 1) / segments;

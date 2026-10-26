@@ -21,7 +21,8 @@ public final class FxWorldRenderer {
 		float tickDelta = ctx.tickCounter().getTickDelta(false);
 		MatrixStack matrices = new MatrixStack();
 		Matrix4f m = matrices.peek().getPositionMatrix();
-		VertexConsumerProvider.Immediate consumers = mc.getBufferBuilders().getEntityVertexConsumers();
+		// Our own buffers: one per layer, so interleaved layers never flush each other (and shader packs get lit layers).
+		com.armageddon.client.render.FxBuffers consumers = com.armageddon.client.render.FxBuffers.begin();
 		java.util.List<FxEffect> broken = null;
 		for (FxEffect effect : ClientFx.EFFECTS) {
 			try {
@@ -41,11 +42,7 @@ public final class FxWorldRenderer {
 		if (broken != null) {
 			ClientFx.EFFECTS.removeAll(broken);
 		}
-		consumers.draw(FxRenderLayers.SOLID);
-		consumers.draw(FxRenderLayers.VOID);
-		consumers.draw(FxRenderLayers.SHADE);
-		consumers.draw(FxRenderLayers.GLOW);
-		consumers.draw(FxRenderLayers.GLOW_NO_DEPTH);
+		consumers.finish();
 	}
 
 	private FxWorldRenderer() {

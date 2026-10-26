@@ -89,7 +89,29 @@ public final class Effects {
 	 * a dense middle and feathered edge. Drawn on an alpha-blended layer it reads as a volumetric billow.
 	 */
 	static void puff(VertexConsumer vc, Matrix4f m, Vec3d c, Vec3d[] cb, double r, int top, int bottom, float alpha, int segs) {
+		puff(vc, m, c, cb, r, top, bottom, alpha, segs, (int) (Double.doubleToLongBits(r) >>> 20));
+	}
+
+	/**
+	 * The billow as two textured smoke sprites from the FX atlas (a big puff and a smaller one riding on it), lit by
+	 * the world so it darkens at night, with fire-lit undersides glowing. {@code id} picks the puff shape and spin.
+	 */
+	static void puff(VertexConsumer vc, Matrix4f m, Vec3d c, Vec3d[] cb, double r, int top, int bottom, float alpha, int segs, int id) {
 		if (alpha <= 0.004F || r <= 0.01) {
+			return;
+		}
+		com.armageddon.client.render.FxBuffers fb = com.armageddon.client.render.FxBuffers.current();
+		if (fb != null) {
+			VertexConsumer smoke = fb.getBuffer(com.armageddon.client.render.FxSprites.SMOKE_LAYER);
+			int br = (bottom >> 16) & 0xFF, bb = bottom & 0xFF;
+			float glow = MathHelper.clamp((br - bb) / 200.0F, 0.0F, 1.0F) * (br / 255.0F);
+			int light = com.armageddon.client.render.FxSprites.light(c, glow);
+			int cell = com.armageddon.client.render.FxSprites.SMOKE + Math.floorMod(id, 6);
+			double rot = com.armageddon.client.render.FxSprites.hash(id, 1) * MathHelper.TAU;
+			com.armageddon.client.render.FxSprites.sprite(smoke, m, c, cb[0], cb[1], r * 1.3, rot, cell, top, bottom, Math.min(1.0F, alpha * 1.25F), light);
+			Vec3d lift = cb[1].multiply(r * 0.3).add(cb[0].multiply((com.armageddon.client.render.FxSprites.hash(id, 2) - 0.5) * r * 0.6));
+			com.armageddon.client.render.FxSprites.sprite(smoke, m, c.add(lift), cb[0], cb[1], r * 0.85, rot + 2.1,
+					com.armageddon.client.render.FxSprites.SMOKE + Math.floorMod(id + 3, 6), top, fade(bottom, top, 0.5F), alpha * 0.8F, light);
 			return;
 		}
 		int mid = fade(bottom, top, 0.55F);
@@ -118,9 +140,15 @@ public final class Effects {
 	}
 
 	static void drawPuffs(java.util.List<Puff> puffs, VertexConsumer vc, Matrix4f m, Vec3d[] cb, int segs) {
-		puffs.sort((p, q) -> Double.compare(q.c().lengthSquared(), p.c().lengthSquared()));
-		for (Puff p : puffs) {
-			puff(vc, m, p.c(), cb, p.r(), p.top(), p.bottom(), p.alpha(), segs);
+		// Ids from the build order (stable frame to frame), then back-to-front.
+		Integer[] order = new Integer[puffs.size()];
+		for (int i = 0; i < order.length; i++) {
+			order[i] = i;
+		}
+		java.util.Arrays.sort(order, (x, y) -> Double.compare(puffs.get(y).c().lengthSquared(), puffs.get(x).c().lengthSquared()));
+		for (int i : order) {
+			Puff p = puffs.get(i);
+			puff(vc, m, p.c(), cb, p.r(), p.top(), p.bottom(), p.alpha(), segs, i * 7 + 3);
 		}
 	}
 
@@ -408,31 +436,39 @@ public final class Effects {
 			float t = progress(tickDelta);
 			float alpha = (float) Math.pow(1 - t, 1.5);
 			Vec3d c = center.subtract(cam);
-			int lat = lod(c, r, 8, 16), lon = lat + lat / 2;
-			VertexConsumer vc = consumers.getBuffer(FxRenderLayers.GLOW);
+			Vec3d[] basis = FxDraw.cameraBasis(yaw, pitch);
 			// The tint is the caller's palette, pushed through the black-body ramp as it cools.
 			int shell = fade(fade(hot, cool, t * 1.4F), heat(0.2F + t * 0.7F), 0.35F);
-			FxDraw.sphere(vc, m, c, r, Vec3d.ZERO, shell, alpha * 0.22F, alpha * 0.9F, lat, lon);
-			// Churning lobes.
-			int lobes = r > 3 ? 6 : 3;
-			for (int k = 0; k < lobes; k++) {
-				Vec3d d = dir(k, 17);
-				double boil = 0.28 + 0.12 * Math.sin(a * 0.21 + k * 1.7);
-				Vec3d lc = c.add(d.multiply(r * boil));
-				int lcol = fade(hot, heat(0.25F + t * 0.6F + k * 0.03F), 0.4F + t * 0.4F);
-				FxDraw.sphere(vc, m, lc, r * (0.5 + 0.08 * Math.sin(a * 0.17 + k)), Vec3d.ZERO, lcol, alpha * 0.18F, alpha * 0.55F, Math.max(6, lat - 4), Math.max(8, lon - 6));
-			}
 			float coreA = alpha * (1 - smooth(t * 1.6F));
-			FxDraw.sphere(vc, m, c, r * 0.62, Vec3d.ZERO, 0xFFFFF4, coreA * 0.7F, coreA * 0.12F, Math.max(6, lat - 4), Math.max(8, lon - 6));
-			Vec3d[] basis = FxDraw.cameraBasis(yaw, pitch);
-			FxDraw.disc(vc, m, c, basis[0], basis[1], r * 2.4, shell, alpha * 0.45F, 0.0F, 32);
-			FxDraw.disc(vc, m, c, basis[0], basis[1], r * 1.1, 0xFFF4D8, coreA * 0.5F, 0.0F, 24);
+			VertexConsumer fire = consumers.getBuffer(com.armageddon.client.render.FxSprites.GLOW_LAYER);
+			int full = com.armageddon.client.render.FxSprites.FULL_BRIGHT;
+			// Outer heat glow, then churning tongues of textured fire, each cooling at its own pace and spinning.
+			com.armageddon.client.render.FxSprites.billboard(fire, m, c, basis, r * 2.8, 0, com.armageddon.client.render.FxSprites.GLOW, shell, alpha * 0.45F, full);
+			int tongues = r > 3 ? 18 : 9;
+			for (int k = 0; k < tongues; k++) {
+				Vec3d d = dir(k, 17);
+				double h1 = hash(k, 31), h2 = hash(k, 32);
+				double boil = 0.18 + 0.5 * h1 + 0.1 * Math.sin(a * 0.21 + k * 1.7);
+				Vec3d lc = c.add(d.multiply(r * boil)).add(0, r * t * 0.35 * h2, 0);
+				int lcol = fade(hot, heat(0.25F + t * 0.65F + (float) h1 * 0.15F), 0.35F + t * 0.45F);
+				double spin = h2 * MathHelper.TAU + a * (k % 2 == 0 ? 0.025 : -0.02);
+				com.armageddon.client.render.FxSprites.billboard(fire, m, lc, basis, r * (0.55 + 0.35 * h2), spin,
+						com.armageddon.client.render.FxSprites.FIRE + (k & 1), lcol, alpha * (0.75F - (float) h1 * 0.3F), full);
+			}
+			com.armageddon.client.render.FxSprites.billboard(fire, m, c, basis, r * 1.25, a * 0.01, com.armageddon.client.render.FxSprites.FIRE, 0xFFF4D8, coreA * 0.9F, full);
+			com.armageddon.client.render.FxSprites.billboard(fire, m, c, basis, r * 0.9, 0, com.armageddon.client.render.FxSprites.GLOW, 0xFFFFFF, coreA, full);
+			VertexConsumer vc = consumers.getBuffer(FxRenderLayers.GLOW);
 			streak(vc, m, c, basis, r * 5.5, r * 0.12, fade(shell, 0xFFFFFF, 0.4F), coreA * 0.35F);
-			// Soot crust darkening the surface as it cools.
-			if (t > 0.3F) {
-				float soot = smooth((t - 0.3F) / 0.4F) * alpha;
-				VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
-				FxDraw.sphere(shade, m, c, r * 1.04, Vec3d.ZERO, 0x2E2624, soot * 0.35F, soot * 0.08F, lat, lon);
+			// Soot billowing up out of it as it cools.
+			if (t > 0.25F) {
+				float soot = smooth((t - 0.25F) / 0.45F) * alpha;
+				VertexConsumer smoke = consumers.getBuffer(com.armageddon.client.render.FxSprites.SMOKE_LAYER);
+				for (int k = 0; k < 7; k++) {
+					Vec3d d = dir(k, 41);
+					Vec3d sc = c.add(d.multiply(r * 0.6)).add(0, r * (0.3 + t * 0.9), 0);
+					com.armageddon.client.render.FxSprites.billboard(smoke, m, sc, basis, r * (0.8 + 0.3 * hash(k, 42)), hash(k, 43) * 6,
+							com.armageddon.client.render.FxSprites.SMOKE + k % 6, 0x2E2624, soot * 0.55F, com.armageddon.client.render.FxSprites.light(sc, 0.4F * (1 - t)));
+				}
 			}
 		}
 	}

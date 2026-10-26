@@ -544,6 +544,15 @@ def gen_sounds():
     write_json(os.path.join(ASSETS, "sounds.json"), out)
 
 
+def gen_fx_atlas():
+    import fx_atlas
+    out = os.path.join(ASSETS, "textures", "fx")
+    os.makedirs(out, exist_ok=True)
+    fx_atlas.write(os.path.join(out, "atlas.png"))
+    from PIL import Image as _I
+    _I.new("RGBA", (16, 16), (255, 255, 255, 255)).save(os.path.join(out, "white.png"))
+
+
 def gen_shaders():
     write_json(os.path.join(ASSETS, "shaders/post/armageddon_fx.json"), {
         "targets": ["swap"],
@@ -599,6 +608,7 @@ def main():
     gen_worldgen()
     gen_sounds()
     gen_shaders()
+    gen_fx_atlas()
     AD.blocks(write_json, ASSETS, DATA, NS)
     AD.recipes(shaped, shapeless)
     print("Assets generated into", ROOT)
