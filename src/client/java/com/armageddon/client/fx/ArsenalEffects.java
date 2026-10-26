@@ -1345,6 +1345,8 @@ public final class ArsenalEffects {
 
 	/** A cratered moon that falls out of the sky: slow at first, then faster than anything should fall. */
 	public static class Moon extends FxEffect {
+		/** Fraction of the fall at which it breaks the sound barrier (CityDestructionEvents.Moonfall.SONIC on the server). */
+		static final float SONIC = 0.7F;
 		private final Vec3d ground;
 		private final float radius, startHeight;
 
@@ -1433,6 +1435,34 @@ public final class ArsenalEffects {
 					FxDraw.ribbon(glow, m, edge, edge.add(0, radius * (2 + 3 * k), 0), Vec3d.ZERO, radius * 0.5, 0xFF6A20, 0.35F * k, 0.0F);
 				}
 				FxDraw.ribbon(glow, m, c, c.add(0, radius * (3 + 5 * k), 0), Vec3d.ZERO, radius * 1.6, 0xFF9040, 0.25F * k, 0.0F);
+			}
+			if (t > SONIC - 0.02F) {
+				// Through the sound barrier: a vapour cone snaps around it, shock shells race out, and a Mach cone trails it.
+				float k = (t - SONIC) * lifetime;
+				Vec3d x0 = new Vec3d(1, 0, 0), z0 = new Vec3d(0, 0, 1);
+				float vapour = (float) (MathHelper.clamp((k + 4) / 4.0, 0, 1) * MathHelper.clamp(1 - k / 40.0, 0, 1));
+				for (int ring = 0; ring < 7; ring++) {
+					double h = radius * (0.1 + ring * 0.32);
+					double rr = radius * (1.04 + ring * 0.2);
+					FxDraw.ring(glow, m, c.add(0, h, 0), x0, z0, rr * 0.86, rr, 0xFFFFFF, 0.0F, 0.6F * vapour * (1 - ring / 8.0F), 0.0F, 56);
+				}
+				FxDraw.disc(glow, m, c.add(0, radius * 0.2, 0), x0, z0, radius * 1.6, 0xFFFFFF, 0.0F, 0.5F * vapour, 48);
+				for (int sh = 0; sh < 3; sh++) {
+					double rr = radius * 1.1 + Math.max(0, k - sh * 5) * 10;
+					float fa = (float) Math.max(0, 1 - rr / (radius * 16));
+					if (k > sh * 5 && fa > 0) {
+						FxDraw.sphere(glow, m, c, rr, Vec3d.ZERO, 0xE8F0FF, 0.0F, 0.4F * fa, 16, 32);
+					}
+				}
+				if (k > 0) {
+					float cone = (float) Math.min(1.0, k / 10.0) * 0.16F;
+					for (int i = 0; i < 32; i++) {
+						double ang = i * MathHelper.TAU / 32;
+						Vec3d base = c.add(Math.cos(ang) * radius, 0, Math.sin(ang) * radius);
+						Vec3d tipC = c.add(Math.cos(ang) * radius * 3.6, radius * 6.5, Math.sin(ang) * radius * 3.6);
+						FxDraw.ribbon(glow, m, base, tipC, Vec3d.ZERO, radius * 0.35, 0xF0F4FF, cone, 0.0F);
+					}
+				}
 			}
 		}
 

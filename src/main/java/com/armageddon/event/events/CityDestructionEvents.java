@@ -5,7 +5,6 @@ import com.armageddon.destruction.EnergyFields;
 import com.armageddon.destruction.TemporaryBlocks;
 import com.armageddon.destruction.city.BlockQueue;
 import com.armageddon.destruction.city.CosmosTerrain;
-import com.armageddon.destruction.city.MawTerrain;
 import com.armageddon.destruction.city.MoonTerrain;
 import com.armageddon.destruction.city.RagnarokTerrain;
 import com.armageddon.destruction.city.TimeScarTerrain;
@@ -49,8 +48,8 @@ import java.util.Map;
 
 /**
  * CITY DESTRUCTION tier. Every event opens with letterbox bars, then reshapes the map in its own
- * way, and none of them end the same: a moon that stays, a newborn solar system, a bitten-out city
- * around a throat, a rewind that leaves time scars, a world split into fire and frost. All block
+ * way, and none of them end the same: a moon that stays, a newborn solar system alone in a void, a
+ * city tunnelled through by a cosmic worm, a rewind that leaves time scars, a world split into fire and frost. All block
  * edits go through a budgeted {@link BlockQueue} and respect the max-radius gamerule, protected
  * regions and the block-damage rule.
  */
@@ -59,7 +58,7 @@ public final class CityDestructionEvents {
 	}
 
 	/** Effect ids for {@link FxType#CITY_FX}; the client's CityFx switches on these. */
-	public static final int FX_MOON_TIDE = 1, FX_INFLATION = 2, FX_JAWS = 3, FX_MAW = 4, FX_CHRONO_DIAL = 5, FX_SERPENT = 6, FX_WORLD_TREE = 7;
+	public static final int FX_MOON_TIDE = 1, FX_INFLATION = 2, FX_CHRONO_DIAL = 5, FX_WORM = 8, FX_SWORD = 9;
 
 	static void open(ServerWorld w, Vec3d c, String key, int barTicks) {
 		CelestialEvents.announce(w, c, key);
@@ -98,6 +97,9 @@ public final class CityDestructionEvents {
 	 */
 	public static class Moonfall extends WorldEvent {
 		private static final int FALL = CityShapes.MOON_FALL, END = FALL + 170;
+		/** It breaks the sound barrier here (client: ArsenalEffects.Moon.SONIC); the shock reaches the ground soon after. */
+		private static final int SONIC = (int) (FALL * 0.7), SHOCK = SONIC + 22;
+		private int shockR = -1, shockMax;
 		private final List<FallingBlockEntity> tide = new ArrayList<>();
 		private final List<BlockPos> pocks = new ArrayList<>();
 		private BlockQueue queue;
@@ -142,6 +144,28 @@ public final class CityDestructionEvents {
 					}
 				}
 			}
+			if (t == SONIC) {
+				// The sonic boom: a crack that rolls across the whole world.
+				frames(world, g, 3);
+				Vfx.flash(world, g.add(0, 250, 0), 0.7F, 100000, 0xFFFFFF);
+				Vfx.screen(world, g, 100000, 1, 0.45F, 8);
+				Vfx.shake(world, g, 100000, 2.6F);
+				Vfx.fov(world, g, 12.0F, 20);
+				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.5F);
+				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.45F);
+				Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.35F);
+			}
+			if (t == SHOCK) {
+				shockR = 0;
+				shockMax = (int) Math.min(200, r * 6.0);
+				Vfx.ring(world, g.add(0, 0.5, 0), shockMax, 6.0F, 0xE8ECF4, true, 60);
+				Kit.sound(world, g, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 64.0F, 0.3F);
+				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
+			}
+			if (shockR >= 0 && shockR <= shockMax) {
+				shockwave(g, shockR, shockR + 7);
+				shockR += 7;
+			}
 			if (t == FALL) {
 				Kit.vanish(tide);
 				Vfx.shake(world, g, 100000, 3.0F);
@@ -185,6 +209,59 @@ public final class CityDestructionEvents {
 			return t > END;
 		}
 
+		/**
+		 * The shock front sweeps the ring r0..r1: leaves are stripped, grass and flowers flattened, glass shattered,
+		 * and everything standing is shoved outward and down.
+		 */
+		private void shockwave(Vec3d g, int r0, int r1) {
+			for (LivingEntity e : Kit.living(world, g, r1)) {
+				double d = Math.hypot(e.getX() - g.x, e.getZ() - g.z);
+				if (d >= r0 && !Kit.creativeOrSpectator(e)) {
+					Vec3d out = new Vec3d(e.getX() - g.x, 0, e.getZ() - g.z).normalize();
+					Kit.push(e, out.multiply(1.4).add(0, -0.3, 0));
+					e.damage(ModDamageTypes.source(world, ModDamageTypes.NUCLEAR_BLAST, null, owner()), 4.0F);
+				}
+			}
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			int cx = MathHelper.floor(g.x), cz = MathHelper.floor(g.z);
+			BlockPos.Mutable p = new BlockPos.Mutable();
+			for (int dx = -r1; dx <= r1; dx++) {
+				for (int dz = -r1; dz <= r1; dz++) {
+					int d2 = dx * dx + dz * dz;
+					if (d2 < r0 * r0 || d2 >= r1 * r1) {
+						continue;
+					}
+					int x = cx + dx, z = cz + dz;
+					if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+						continue;
+					}
+					int top = world.getTopY(net.minecraft.world.Heightmap.Type.WORLD_SURFACE, x, z) - 1;
+					for (int y = top; y > top - 28; y--) {
+						p.set(x, y, z);
+						net.minecraft.block.BlockState st = world.getBlockState(p);
+						if (st.isAir()) {
+							continue;
+						}
+						boolean glass = st.isIn(net.minecraft.registry.tag.BlockTags.IMPERMEABLE) || st.isOf(Blocks.GLASS_PANE)
+								|| st.getBlock() instanceof net.minecraft.block.StainedGlassPaneBlock;
+						if (st.isIn(net.minecraft.registry.tag.BlockTags.LEAVES) || glass
+								|| (st.isReplaceable() && st.getFluidState().isEmpty() && !st.isIn(net.minecraft.registry.tag.BlockTags.SNOW))) {
+							queue.add(x, y, z, Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
+							continue;
+						}
+						if (st.isIn(net.minecraft.registry.tag.BlockTags.LOGS) || !st.getFluidState().isEmpty() && y == top) {
+							continue;
+						}
+						if (st.isOpaqueFullCube(world, p) || !st.getFluidState().isEmpty()) {
+							break;
+						}
+					}
+				}
+			}
+		}
+
 		@Override
 		public void finish() {
 			Kit.vanish(tide);
@@ -220,7 +297,8 @@ public final class CityDestructionEvents {
 				seed = BlockPos.ofFloored(point).asLong();
 				open(world, g, "block.armageddon.big_bang", 330);
 				Vfx.screen(world, g, 100000, 2, 0.92F, BANG - 16);
-				Vfx.custom(world, FxType.CITY_FX, point, g, (float) scale, 0xFFFFFF, FX_INFLATION, BANG, 0, END, Vfx.FAR);
+				// Runs on past the event so the void around the new system lingers a while.
+				Vfx.custom(world, FxType.CITY_FX, point, g, (float) scale, 0xFFFFFF, FX_INFLATION, BANG, 0, END + 400, Vfx.FAR);
 				Kit.sound(world, g, ModSounds.ANTIMATTER, 64.0F, 0.2F);
 			}
 			if (t < BANG - 4 && t % 20 == 0) {
@@ -282,20 +360,21 @@ public final class CityDestructionEvents {
 	// ====================================================================== WORLD EATER
 
 	/**
-	 * WORLD EATER: something under the city is hungry. A heartbeat; then jaws of bone burst out of the
-	 * ground and bite, again and again, spiralling inward, each bite leaving a sawtooth bowl soaked in
-	 * sculk. Then the throat opens in the middle and swallows what's left.
+	 * WORLD EATER: something under the city is hungry. A heartbeat; then one gigantic cosmic worm, its skin a night
+	 * sky, breaks out of the ground and runs through the earth, diving and surfacing again and again in a figure that
+	 * crosses the whole field. It eats what it passes through: tunnels lined with sculk and crying obsidian, blown-out
+	 * craters where it breaches, and nothing left alive near its mouth.
 	 */
 	public static class WorldEater extends WorldEvent {
-		private static final int GULP = CityShapes.gulpAt(), END = GULP + 140, THROAT = 14;
+		private static final int END = CityShapes.WORM_START + CityShapes.WORM_RUN + 60, BITE = 8;
 		private BlockQueue queue;
 		private BlockPos ground;
-		private double reach;
-		private long seed;
+		private double reach, phase;
+		private boolean above;
 
-		private Vec3d bite(int i) {
-			Vec3d o = CityShapes.biteOffset(i, reach);
-			return Kit.ground(world, center().x + o.x, center().z + o.z);
+		private Vec3d head(double t) {
+			Vec3d o = CityShapes.worm(t, reach, phase);
+			return new Vec3d(center().x + o.x, ground.getY() + o.y, center().z + o.z);
 		}
 
 		@Override
@@ -305,75 +384,91 @@ public final class CityDestructionEvents {
 			if (t == 0) {
 				queue = new BlockQueue(world);
 				ground = Kit.surface(world, MathHelper.floor(g.x), MathHelper.floor(g.z));
-				reach = Destruction.radius(world, 56.0F);
-				seed = ground.asLong();
-				open(world, g, "block.armageddon.world_eater", GULP + 60);
+				reach = Destruction.radius(world, 64.0F);
+				phase = Math.atan2(Kit.dir(data.getFloat("Yaw")).z, Kit.dir(data.getFloat("Yaw")).x);
+				open(world, g, "block.armageddon.world_eater", END);
 				Vfx.skyTint(world, g, 100000, 0x14061E, 0.85F);
+				Vfx.custom(world, FxType.CITY_FX, Vec3d.ofBottomCenter(ground), g, (float) reach, 0xA060FF, FX_WORM, (float) phase, 0, END, Vfx.FAR);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_EMERGE, 64.0F, 0.5F);
 			}
-			if (t < GULP && t % 20 == 0) {
+			if (t < CityShapes.WORM_START && t % 20 == 0) {
 				// The heartbeat speeds up as it gets closer.
-				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 64.0F, 0.6F + t * 0.0015F);
-				Vfx.shake(world, g, 1024, 0.4F);
+				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 64.0F, 0.6F + t * 0.004F);
+				Vfx.shake(world, g, 1024, 0.4F + t * 0.01F);
 			}
-			for (int i = 0; i < CityShapes.BITES; i++) {
-				int at = CityShapes.biteAt(i);
-				if (t == at - CityShapes.JAW_LEAD) {
-					Vec3d p = bite(i);
-					double rb = CityShapes.biteRadius(i, reach);
-					double toward = Math.atan2(g.z - p.z, g.x - p.x);
-					Vfx.custom(world, FxType.CITY_FX, p, g, (float) rb, 0xF0E8D8, FX_JAWS, (float) toward, CityShapes.JAW_LEAD,
-							CityShapes.JAW_LEAD + 34, Vfx.FAR);
-					Kit.sound(world, p, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 32.0F, 0.3F);
+			int run = t - CityShapes.WORM_START;
+			if (run >= 0 && run <= CityShapes.WORM_RUN) {
+				Vec3d h = head(t);
+				double surface = Kit.ground(world, h.x, h.z).y;
+				boolean up = h.y > surface;
+				if (run > 0 && up != above) {
+					breach(h, up);
 				}
-				if (t == at) {
-					Vec3d p = bite(i);
-					double rb = CityShapes.biteRadius(i, reach);
-					double toward = Math.atan2(g.z - p.z, g.x - p.x);
-					Kit.sound(world, p, SoundEvents.ENTITY_EVOKER_FANGS_ATTACK, 48.0F, 0.4F);
-					Kit.sound(world, p, SoundEvents.ENTITY_RAVAGER_ATTACK, 48.0F, 0.35F);
-					Vfx.shake(world, p, 1024, 1.3F);
-					Vfx.fov(world, g, 6.0F, 10);
-					// Whatever stood inside the bite is simply gone.
-					for (LivingEntity e : Kit.living(world, p, rb)) {
-						if (!Kit.creativeOrSpectator(e)) {
-							e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 60.0F);
-						}
-					}
-					if (Destruction.enabled(world)) {
-						MawTerrain.bite(world, queue, BlockPos.ofFloored(p).down(), rb, toward, seed + i * 31L);
+				above = up;
+				devour(h);
+				if (run % 10 == 0) {
+					Kit.sound(world, h, ModSounds.NUKE_RUMBLE, 48.0F, 0.3F);
+					Vfx.shake(world, h, 300, 1.0F);
+					if (up) {
+						Kit.sound(world, h, SoundEvents.ENTITY_WARDEN_ROAR, 48.0F, 0.4F);
 					}
 				}
 			}
-			if (t == GULP - 24) {
-				Vfx.custom(world, FxType.CITY_FX, Vec3d.ofBottomCenter(ground.up()), g, THROAT, 0x30D0C0, FX_MAW, 0, 0, END - GULP + 24, Vfx.FAR);
-				Kit.sound(world, g, SoundEvents.BLOCK_SCULK_SHRIEKER_SHRIEK, 64.0F, 0.5F);
-			}
-			if (t == GULP) {
-				frames(world, g, 2, 2);
-				Vfx.shake(world, g, 100000, 2.5F);
-				Vfx.fov(world, g, 18.0F, 30);
-				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.4F);
-				Kit.sound(world, g, SoundEvents.ENTITY_EVOKER_FANGS_ATTACK, 64.0F, 0.25F);
-				if (Destruction.enabled(world)) {
-					int depth = Math.min(70, ground.getY() - world.getBottomY() - 4);
-					MawTerrain.throat(world, queue, ground, THROAT, depth, seed);
-					MawTerrain.gnaw(world, queue, ground, reach, seed);
-				}
-			}
-			if (t > GULP && t < GULP + 120 && t % 4 == 0) {
-				Detonations.pull(world, g, reach, 0.22);
-				for (LivingEntity e : Kit.living(world, g.add(0, -6, 0), THROAT)) {
-					if (e.getY() < ground.getY() - 2 && !Kit.creativeOrSpectator(e)) {
-						e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 40.0F);
-					}
-				}
-			}
-			if (t == GULP + 36) {
-				Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_BURP, 64.0F, 0.35F);
+			if (t == CityShapes.WORM_START + CityShapes.WORM_RUN) {
+				Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_BURP, 64.0F, 0.3F);
+				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.4F);
+				Vfx.shake(world, g, 100000, 1.8F);
 			}
 			queue.drain(BlockQueue.PER_TICK);
 			return t > END;
+		}
+
+		/** Bursting out of the ground or diving back in: a blown-out crater, flying rock, a roar. */
+		private void breach(Vec3d h, boolean out) {
+			Vec3d at = Kit.ground(world, h.x, h.z);
+			frames(world, at, out ? 2 : 0);
+			Kit.boom(world, at, 7.0F, 0x9060FF, owner(), true);
+			Detonations.debris(world, at, 16, 50);
+			Vfx.ring(world, at.add(0, 0.5, 0), 40.0F, 3.0F, 0x8A7A70, true, 40);
+			Vfx.fov(world, at, 8.0F, 14);
+			Kit.sound(world, at, out ? SoundEvents.ENTITY_WARDEN_ROAR : SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.35F);
+			Kit.sound(world, at, SoundEvents.ENTITY_RAVAGER_ROAR, 64.0F, 0.3F);
+		}
+
+		/** The mouth eats a sphere of world every tick, lining what it leaves with sculk and crying obsidian. */
+		private void devour(Vec3d h) {
+			for (LivingEntity e : Kit.living(world, h, BITE + 6)) {
+				if (!Kit.creativeOrSpectator(e)) {
+					e.timeUntilRegen = 0;
+					e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 80.0F);
+				}
+			}
+			if (age() % 2 == 0) {
+				Detonations.pull(world, h, 36, 0.14);
+			}
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			int cx = MathHelper.floor(h.x), cy = MathHelper.floor(h.y), cz = MathHelper.floor(h.z), ro = BITE + 1;
+			for (int dx = -ro; dx <= ro; dx++) {
+				for (int dz = -ro; dz <= ro; dz++) {
+					if (!world.isChunkLoaded((cx + dx) >> 4, (cz + dz) >> 4)) {
+						continue;
+					}
+					for (int dy = -ro; dy <= ro; dy++) {
+						double d2 = dx * dx + dy * dy + dz * dz;
+						if (d2 > (BITE + 1.3) * (BITE + 1.3) || cy + dy <= world.getBottomY() + 2) {
+							continue;
+						}
+						if (d2 <= BITE * BITE) {
+							queue.add(cx + dx, cy + dy, cz + dz, Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
+						} else if (dy < 0 && CityShapes.hash(cx + dx, (cy + dy) * 31 + cz + dz) < 0.35) {
+							queue.add(cx + dx, cy + dy, cz + dz, (CityShapes.hash(cz + dz, cx + dx + cy) < 0.2 ? Blocks.CRYING_OBSIDIAN
+									: Blocks.SCULK).getDefaultState(), BlockQueue.SOLID_ONLY);
+						}
+					}
+				}
+			}
 		}
 
 		@Override
@@ -548,21 +643,24 @@ public final class CityDestructionEvents {
 	// ====================================================================== RAGNAROK
 
 	/**
-	 * RAGNAROK: the horn sounds and the world tree burns across the sky. The world serpent coils in
-	 * around the city, burning its path into the ground; the horn sounds again, the land splits along
-	 * a chasm, and the two halves become fire and frost. Then the tree falls.
+	 * RAGNAROK: the end of the world, the old way. The horn sounds and the sky goes red; lightning storms walk the land,
+	 * a meteor shower falls, the ground quakes open in fissures, volcanic vents burst out of the fields and the forests
+	 * burn, faster and faster. Then Surtr's sword falls out of the sky: a blade of fire the size of a tower drives into
+	 * the world, splits it along a chasm, and the two halves become fire and frost.
 	 */
 	public static class Ragnarok extends WorldEvent {
-		private static final int END = 440;
+		private static final int METEORS = 90, SWORD_DROP = 420, STRIKE = 480, SWEEP = 120, END = STRIKE + SWEEP + 60;
+		private static final int[] QUAKES = {140, 220, 300, 370}, VOLCANOES = {190, 260, 330};
 		private BlockQueue queue;
 		private Vec3d fwd;
-		private double reach, phase, lastHead = -1;
+		private double reach;
 		private long seed;
 		private long[] columns;
 		private int columnCursor;
+		private final List<Vec3d> vents = new ArrayList<>();
 
 		/** Every surface column in range, ordered by distance from the dividing line so the halves spread outward. */
-		private void planColumns(Vec3d g) {
+		private void planColumns() {
 			int r = (int) reach;
 			Vec3d side = new Vec3d(-fwd.z, 0, fwd.x);
 			List<Long> list = new ArrayList<>();
@@ -578,6 +676,11 @@ public final class CityDestructionEvents {
 			columns = list.stream().mapToLong(Long::longValue).sorted().toArray();
 		}
 
+		/** How wild things are: 0 at the horn, 1 just before the sword falls. */
+		private double fury(int t) {
+			return MathHelper.clamp(t / (double) SWORD_DROP, 0.0, 1.0);
+		}
+
 		@Override
 		public boolean tick() {
 			int t = age();
@@ -586,59 +689,58 @@ public final class CityDestructionEvents {
 				queue = new BlockQueue(world);
 				fwd = Kit.dir(data.getFloat("Yaw"));
 				reach = Destruction.radius(world, 90.0F);
-				phase = CityShapes.serpentPhase(fwd);
 				seed = BlockPos.ofFloored(g).asLong();
-				open(world, g, "block.armageddon.ragnarok", 460);
+				open(world, g, "block.armageddon.ragnarok", END);
 				Kit.sound(world, g, SoundEvents.EVENT_RAID_HORN.value(), 64.0F, 0.5F);
 				Vfx.skyTint(world, g, 100000, 0x400808, 0.85F);
-				Vfx.custom(world, FxType.CITY_FX, g, fwd, (float) reach, 0xFF5020, FX_SERPENT, 0, 0, CityShapes.SERPENT_END + 30, Vfx.FAR);
-				Vfx.custom(world, FxType.CITY_FX, g, fwd, (float) reach, 0xFF8030, FX_WORLD_TREE, 0, 0, END, Vfx.FAR);
+				world.setWeather(0, 1200, true, true);
 			}
-			// Jormungandr: the head runs the coil; the server burns the same path into the ground.
-			if (t >= CityShapes.SERPENT_START && t <= CityShapes.SERPENT_END) {
-				double s = CityShapes.serpentHead(t);
-				Vec3d head = Kit.ground(world, g.x + CityShapes.serpent(s, reach, phase).x, g.z + CityShapes.serpent(s, reach, phase).z);
-				if (Destruction.enabled(world)) {
-					double from = lastHead < 0 ? s : lastHead;
-					Vec3d a = CityShapes.serpent(from, reach, phase), b = CityShapes.serpent(s, reach, phase);
-					int steps = Math.max(1, (int) Math.ceil(a.distanceTo(b) / 1.5));
-					for (int i = 1; i <= steps; i++) {
-						Vec3d o = a.lerp(b, i / (double) steps);
-						RagnarokTerrain.trench(world, queue, new Vec3d(g.x + o.x, g.y, g.z + o.z), 3, seed);
+			double fury = fury(t);
+			if (t < STRIKE) {
+				storm(g, t, fury);
+			}
+			if (t >= METEORS && t < STRIKE && t % Math.max(3, 12 - (int) (fury * 9)) == 0) {
+				// The sky falls in burning pieces.
+				Kit.meteor(world, CityDestructionEvents.around(world, g, reach), owner());
+			}
+			for (int q : QUAKES) {
+				if (t == q) {
+					quake(g, q);
+				}
+			}
+			for (int v : VOLCANOES) {
+				if (t == v) {
+					for (int i = 0; i < 2; i++) {
+						Vec3d at = CityDestructionEvents.around(world, g, reach * 0.85);
+						vents.add(at);
+						erupt(at, true);
 					}
 				}
-				lastHead = s;
-				for (LivingEntity e : Kit.living(world, head, 8)) {
-					if (!Kit.creativeOrSpectator(e)) {
-						e.setOnFireFor(6);
-						e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA, null, owner()), 12.0F);
-					}
-				}
-				if (t % 12 == 0) {
-					Kit.sound(world, head, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 48.0F, 0.4F);
-					Vfx.shake(world, head, 160, 0.8F);
+			}
+			if (t % 6 == 0 && t < END) {
+				for (Vec3d at : vents) {
+					erupt(at, false);
 				}
 			}
-			if (t == CityShapes.SPLIT - 14) {
-				Kit.sound(world, g, SoundEvents.EVENT_RAID_HORN.value(), 64.0F, 0.4F);
+			if (t == SWORD_DROP - 20) {
+				Kit.sound(world, g, SoundEvents.EVENT_RAID_HORN.value(), 64.0F, 0.35F);
 			}
-			if (t == CityShapes.SPLIT) {
-				frames(world, g, 2, 0);
-				Vfx.shake(world, g, 100000, 2.0F);
-				Vfx.fov(world, g, 14.0F, 24);
-				Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.5F);
-				Kit.sound(world, g, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 64.0F, 0.4F);
-				for (int i = -4; i <= 4; i++) {
-					Vfx.steam(world, g.add(fwd.multiply(i * reach / 5.0)), 6.0F);
-				}
-				if (Destruction.enabled(world)) {
-					RagnarokTerrain.chasm(world, queue, g, fwd, (int) reach, 28, seed);
-				}
-				planColumns(g);
+			if (t == SWORD_DROP) {
+				Vfx.custom(world, FxType.CITY_FX, g, fwd, (float) reach, 0xFF6020, FX_SWORD, STRIKE - SWORD_DROP, 0, END - SWORD_DROP, Vfx.FAR);
+				Vfx.skyTint(world, g, 100000, 0x601004, 1.0F);
+				Kit.sound(world, g, SoundEvents.ENTITY_BLAZE_SHOOT, 64.0F, 0.3F);
+				Kit.sound(world, g, SoundEvents.ITEM_FIRECHARGE_USE, 64.0F, 0.3F);
+			}
+			if (t > SWORD_DROP && t < STRIKE && t % 10 == 0) {
+				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F + (t - SWORD_DROP) * 0.004F);
+				Vfx.shake(world, g, 100000, 0.6F + (t - SWORD_DROP) * 0.03F);
+			}
+			if (t == STRIKE) {
+				strike(g);
 			}
 			// Fire on one side, frost on the other, spreading out from the chasm.
-			if (columns != null && t > CityShapes.SPLIT && Destruction.enabled(world)) {
-				double front = reach * Math.min(1.0, (t - CityShapes.SPLIT) / (double) CityShapes.SPLIT_SWEEP);
+			if (columns != null && t > STRIKE && Destruction.enabled(world)) {
+				double front = reach * Math.min(1.0, (t - STRIKE) / (double) SWEEP);
 				Vec3d side = new Vec3d(-fwd.z, 0, fwd.x);
 				while (columnCursor < columns.length && (columns[columnCursor] >>> 40) <= front * 8) {
 					long c = columns[columnCursor++];
@@ -651,23 +753,111 @@ public final class CityDestructionEvents {
 					}
 				}
 			}
-			if (t > CityShapes.SPLIT && t < CityShapes.SPLIT + CityShapes.SPLIT_SWEEP && t % 7 == 0) {
-				// Thor's lightning walks the dividing line.
-				Vec3d p = Kit.ground(world, g.x + fwd.x * (world.random.nextDouble() - 0.5) * reach * 1.6,
-						g.z + fwd.z * (world.random.nextDouble() - 0.5) * reach * 1.6);
-				Vfx.beam(world, p.add(world.random.nextGaussian() * 6, 90, world.random.nextGaussian() * 6), p, 1.4F, 0xD8E8FF, 5);
-				Kit.sound(world, p, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 12.0F, 0.7F);
-			}
-			if (t == CityShapes.TREE_FALL) {
-				Kit.sound(world, g, SoundEvents.ENTITY_ENDER_DRAGON_DEATH, 64.0F, 0.5F);
-				Kit.sound(world, g, SoundEvents.EVENT_RAID_HORN.value(), 64.0F, 0.3F);
-				Vfx.shake(world, g, 100000, 1.5F);
-			}
-			if (t == CityShapes.TREE_FALL + 30) {
+			if (t == STRIKE + SWEEP + 30) {
 				Vfx.skyTint(world, g, 100000, 0x2A2020, 0.9F);
+				Kit.sound(world, g, SoundEvents.EVENT_RAID_HORN.value(), 64.0F, 0.25F);
 			}
 			queue.drain(BlockQueue.PER_TICK);
 			return t > END;
+		}
+
+		/** Thunderstorms that walk the land: real lightning, more and more of it. */
+		private void storm(Vec3d g, int t, double fury) {
+			int every = Math.max(2, 16 - (int) (fury * 14));
+			if (t % every != 0) {
+				return;
+			}
+			int bolts = 1 + (int) (fury * 3);
+			for (int i = 0; i < bolts; i++) {
+				Vec3d p = CityDestructionEvents.around(world, g, reach * 1.1);
+				net.minecraft.entity.LightningEntity bolt = net.minecraft.entity.EntityType.LIGHTNING_BOLT.create(world);
+				if (bolt != null) {
+					bolt.refreshPositionAfterTeleport(p);
+					bolt.setCosmetic(!Destruction.enabled(world));
+					world.spawnEntity(bolt);
+				}
+				Vfx.beam(world, p, p.add(world.random.nextGaussian() * 8, 120, world.random.nextGaussian() * 8), 1.6F, 0xD8E8FF, 5);
+			}
+			if (world.random.nextFloat() < 0.3F + fury * 0.4F) {
+				Vfx.flash(world, g.add(0, 120, 0), 0.25F, 2000, 0xD0E0FF);
+			}
+		}
+
+		/** An earthquake: the ground splits in fissures, the land shudders and the forests catch fire. */
+		private void quake(Vec3d g, int k) {
+			Vfx.shake(world, g, 100000, 2.2F);
+			Vfx.custom(world, FxType.QUAKE, g, g, (float) reach, 0x8A6A50, 0, 0, 0, 60, Vfx.FAR);
+			Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F);
+			Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.3F);
+			frames(world, g, 0);
+			for (int i = 0; i < 4; i++) {
+				Vec3d from = CityDestructionEvents.around(world, g, reach * 0.8);
+				Vec3d d = Kit.dir(world.random.nextFloat() * 360.0F);
+				Kit.fissure(world, from, d, 24 + world.random.nextInt(30), 5 + world.random.nextInt(5), 2, Blocks.LAVA.getDefaultState());
+			}
+			if (Destruction.enabled(world)) {
+				Detonations.ignite(world, CityDestructionEvents.around(world, g, reach * 0.6), 18, 0.12F);
+			}
+			for (LivingEntity e : Kit.living(world, g, reach)) {
+				if (e.isOnGround() && !Kit.creativeOrSpectator(e)) {
+					Kit.push(e, new Vec3d(world.random.nextGaussian() * 0.3, 0.5, world.random.nextGaussian() * 0.3));
+				}
+			}
+		}
+
+		/** A volcanic vent bursts out of the fields; afterwards it keeps spitting lava bombs. */
+		private void erupt(Vec3d at, boolean first) {
+			if (first) {
+				Kit.boom(world, at, 6.0F, 0xFF5010, owner(), true);
+				Vfx.pillar(world, at, 5.0F, 0xFF6020, false, END - age());
+				Kit.sound(world, at, SoundEvents.BLOCK_LAVA_POP, 64.0F, 0.3F);
+				if (Destruction.enabled(world)) {
+					BlockPos b = BlockPos.ofFloored(at);
+					for (int dx = -4; dx <= 4; dx++) {
+						for (int dz = -4; dz <= 4; dz++) {
+							int d2 = dx * dx + dz * dz;
+							if (d2 > 16) {
+								continue;
+							}
+							for (int dy = -3; dy <= 0; dy++) {
+								queue.add(b.getX() + dx, b.getY() + dy, b.getZ() + dz,
+										(d2 <= 4 ? Blocks.LAVA : d2 <= 9 ? Blocks.MAGMA_BLOCK : Blocks.BLACKSTONE).getDefaultState(), BlockQueue.ANY);
+							}
+						}
+					}
+				}
+				return;
+			}
+			world.spawnParticles(ParticleTypes.LAVA, at.x, at.y + 1, at.z, 12, 1.5, 1, 1.5, 0.0);
+			world.spawnParticles(ParticleTypes.LARGE_SMOKE, at.x, at.y + 3, at.z, 10, 2, 4, 2, 0.05);
+			if (world.random.nextInt(3) == 0 && Destruction.enabled(world) && Kit.debrisBudget(world, at) > 0) {
+				// A lava bomb: a molten block lobbed out of the vent.
+				FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, BlockPos.ofFloored(at).up(2), Blocks.MAGMA_BLOCK.getDefaultState());
+				double a = world.random.nextDouble() * Math.PI * 2;
+				Kit.velocity(fb, new Vec3d(Math.cos(a) * 0.7, 1.4 + world.random.nextDouble(), Math.sin(a) * 0.7));
+				fb.setDestroyedOnLanding();
+			}
+		}
+
+		/** Surtr's sword strikes: the world splits along the chasm and the halves turn to fire and frost. */
+		private void strike(Vec3d g) {
+			frames(world, g, 3, 2, 0, 2);
+			Kit.boom(world, g.add(0, 2, 0), 18.0F, 0xFF6020, owner(), false);
+			Vfx.flash(world, g, 1.0F, 100000, 0xFFB060);
+			Vfx.shake(world, g, 100000, 3.0F);
+			Vfx.fov(world, g, 20.0F, 30);
+			Vfx.ring(world, g.add(0, 1, 0), (float) reach * 1.6F, 6.0F, 0xFF8030, true, 70);
+			Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.3F);
+			Kit.sound(world, g, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 64.0F, 0.3F);
+			Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.4F);
+			Detonations.blast(world, g, reach * 0.5, 500.0F, ModDamageTypes.ANNIHILATION, owner(), reach * 0.3, 4.0);
+			for (int i = -4; i <= 4; i++) {
+				Vfx.steam(world, g.add(fwd.multiply(i * reach / 5.0)), 6.0F);
+			}
+			if (Destruction.enabled(world)) {
+				RagnarokTerrain.chasm(world, queue, g, fwd, (int) reach, 32, seed);
+			}
+			planColumns();
 		}
 
 		@Override

@@ -27,11 +27,9 @@ public final class CityFx {
 		return switch (p.seed()) {
 			case 1 -> new MoonTide(a, p.scale(), (int) p.p1(), p.duration());
 			case 2 -> new Inflation(a, p.scale(), (int) p.p1(), p.duration());
-			case 3 -> new Jaws(a, p.scale(), p.p1(), (int) p.p2(), p.duration());
-			case 4 -> new Maw(a, p.scale(), p.duration());
 			case 5 -> new ChronoDial(a, b, p.scale(), (int) p.p1(), (int) p.p2(), p.duration());
-			case 6 -> new Serpent(a, b, p.scale(), p.duration());
-			case 7 -> new WorldTree(a, b, p.scale(), p.duration());
+			case 8 -> new Worm(a, p.scale(), p.p1(), p.duration());
+			case 9 -> new Sword(a, b, p.scale(), (int) p.p1(), p.duration());
 			default -> null;
 		};
 	}
@@ -174,6 +172,7 @@ public final class CityFx {
 				return;
 			}
 			float e = a - bang;
+			renderVoid(consumers, m, c, cb, e);
 			// The inflating shell.
 			if (e < 40) {
 				double rad = scale * 2.6 * Cinematics.ease(e / 40.0);
@@ -225,155 +224,177 @@ public final class CityFx {
 				Solids.dot(glow, m, nc, cb, scale * 0.12, 0xFFFFFF, 0.08F * al);
 			}
 		}
-	}
 
-	// ======================================================================== WORLD EATER
-
-	/** Jaws of bone burst from the ground around a bite and snap shut over it, then sink away. */
-	static final class Jaws extends FxEffect {
-		private final Vec3d c;
-		private final double r, toward;
-		private final int snap;
-
-		Jaws(Vec3d c, float r, float toward, int snap, int life) {
-			super(Math.max(20, life));
-			this.c = c;
-			this.r = r;
-			this.toward = toward;
-			this.snap = Math.max(4, snap);
-		}
-
-		@Override
-		public boolean tick(ClientWorld world) {
-			if (age < 6) {
-				for (int i = 0; i < 10; i++) {
-					double ang = world.random.nextDouble() * MathHelper.TAU;
-					world.addImportantParticle(ParticleTypes.SCULK_SOUL, true, c.x + Math.cos(ang) * r, c.y + 0.5, c.z + Math.sin(ang) * r,
-							0, 0.08, 0);
-				}
-			}
-			if (age == snap) {
-				ClientFx.light(c.add(0, r * 0.5, 0), 0.6F, 0x40E0C0);
-			}
-			return super.tick(world);
-		}
-
-		@Override
-		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
-			float a = age + td;
-			Vec3d g = c.subtract(cam);
-			// Rise, rear back, snap, hold, sink.
-			double rise = Cinematics.ease(a / (snap * 0.6));
-			double close = a < snap - 6 ? -0.25 * Cinematics.ease(a / (snap - 6.0)) : MathHelper.lerp(clamp01((a - (snap - 6)) / 6.0), -0.25, 1.45);
-			double sink = Cinematics.ease((a - snap - 6) / 18.0);
-			double h = r * 0.95 * rise * (1 - sink);
-			if (h < 0.3) {
-				return;
-			}
-			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
-			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			Vec3d up = new Vec3d(0, 1, 0);
-			for (int jaw = 0; jaw < 2; jaw++) {
-				double mid = toward + (jaw == 0 ? Math.PI : 0);
-				int segs = 14;
-				Vec3d prevB = null, prevT = null;
-				for (int s = 0; s <= segs; s++) {
-					double ang = mid + (s / (double) segs - 0.5) * Math.PI * 0.95;
-					Vec3d radial = new Vec3d(Math.cos(ang), 0, Math.sin(ang));
-					Vec3d base = g.add(radial.multiply(r)).add(0, -sink * r * 0.3, 0);
-					Vec3d dirTip = up.multiply(Math.cos(close)).add(radial.multiply(-Math.sin(close)));
-					Vec3d tip = base.add(dirTip.multiply(h));
-					if (prevB != null) {
-						Solids.quad(solid, m, prevB, base, tip, prevT, 0x3A1A2A, 1.0F);
-						// The gum line glows with sculk.
-						FxDraw.ribbon(glow, m, prevB.add(prevT.subtract(prevB).multiply(0.85)), base.add(tip.subtract(base).multiply(0.85)),
-								Vec3d.ZERO, 0.6, 0x30E0C0, 0.6F, 0.6F);
-					}
-					// A tooth on every segment, raking inward.
-					if (s > 0 && s < segs) {
-						double len = r * (0.22 + 0.12 * Solids.hash(s, jaw + 5));
-						Vec3d toothDir = dirTip.multiply(0.6).add(radial.multiply(-0.8)).normalize();
-						Solids.tube(solid, m, tip, tip.add(toothDir.multiply(len)), r * 0.07, 0.0, 4, 0xEDE6D6, 1.0F, true);
-					}
-					prevB = base;
-					prevT = tip;
-				}
-			}
-			Cinematics.dustWall(consumers.getBuffer(FxRenderLayers.SHADE), m, FxDraw.cameraBasis(yaw, pitch), g, r * 1.08, r * 0.35,
-					0x4A3A40, 0.6F * (float) (1 - clamp01(a / 30.0)), 41);
-		}
-	}
-
-	/** The throat: a lamprey ring of turning teeth around a sculk-lit vortex. */
-	static final class Maw extends FxEffect {
-		private final Vec3d c;
-		private final double r;
-
-		Maw(Vec3d c, float r, int life) {
-			super(Math.max(40, life));
-			this.c = c;
-			this.r = r;
-		}
-
-		@Override
-		public boolean tick(ClientWorld world) {
-			if (age % 2 == 0) {
-				for (int i = 0; i < 4; i++) {
-					double ang = world.random.nextDouble() * MathHelper.TAU;
-					double d = world.random.nextDouble() * r;
-					world.addImportantParticle(ParticleTypes.SCULK_SOUL, true, c.x + Math.cos(ang) * d, c.y - 2, c.z + Math.sin(ang) * d, 0, 0.12, 0);
-				}
-			}
-			if (age % 20 == 0) {
-				ClientFx.light(c.add(0, -4, 0), 0.6F, 0x30E0C0);
-			}
-			return super.tick(world);
-		}
-
-		@Override
-		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
-			float a = age + td;
-			Vec3d g = c.subtract(cam);
-			float in = (float) Cinematics.ease(a / 24.0), out = 1 - (float) clamp01((a - (lifetime - 40)) / 40.0);
+		/**
+		 * Outside creation there is nothing: nested dark shells close in around the new system so the world beyond
+		 * fades into a deep void, with faint galaxies and dust hanging at different depths between the shells.
+		 */
+		private void renderVoid(VertexConsumerProvider consumers, Matrix4f m, Vec3d c, Vec3d[] cb, float e) {
+			double v = Math.min(80.0, scale * 1.4);
+			float in = (float) clamp01(e / 30.0), out = (float) (1 - clamp01((e - (lifetime - bang - 80)) / 80.0));
 			float k = in * out;
 			if (k <= 0.01F) {
 				return;
 			}
-			Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
 			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			// The vortex: dark spiral arms turning down into the throat.
-			for (int arm = 0; arm < 5; arm++) {
-				Vec3d prev = null;
-				for (int s = 0; s <= 24; s++) {
-					double u = s / 24.0;
-					double ang = arm * MathHelper.TAU / 5 + u * 4 - a * 0.06;
-					Vec3d p = g.add(Math.cos(ang) * r * (1 - u * 0.9), -u * 10 + 0.4, Math.sin(ang) * r * (1 - u * 0.9));
-					if (prev != null) {
-						FxDraw.ribbon(shade, m, prev, p, Vec3d.ZERO, 2.5 * (1 - u * 0.6), 0x08040C, 0.8F * k, 0.8F * k);
-						FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 0.4, 0x30E0C0, 0.5F * k * (float) (1 - u), 0.5F * k * (float) (1 - u));
+			double[] shells = {1.0, 1.12, 1.26, 1.45, 1.7};
+			for (int i = 0; i < shells.length; i++) {
+				FxDraw.sphere(shade, m, c, v * shells[i], Vec3d.ZERO, 0x020108, 0.35F * k, 0.5F * k, 18, 36);
+				// Between each pair of shells, a sparse layer of very distant things: the deeper, the dimmer.
+				double depth = v * (shells[i] - 0.05);
+				float dim = (float) (1.0 - i * 0.17) * k;
+				for (int j = 0; j < 26; j++) {
+					Vec3d d = Cinematics.sphereDir(j + i * 40, 71);
+					Vec3d p = c.add(d.multiply(depth));
+					double sz = 0.3 + Solids.hash(j, i + 72) * 0.6;
+					if (j % 9 == 0) {
+						// A tiny spiral galaxy, tilted.
+						Vec3d[] gb = ArsenalEffects.basis(Cinematics.sphereDir(j, 73));
+						FxDraw.disc(glow, m, p, gb[0], gb[1], v * 0.05, j % 2 == 0 ? 0xB0A0FF : 0xFFC8A0, 0.25F * dim, 0.0F, 16);
+						Solids.dot(glow, m, p, cb, v * 0.008, 0xFFFFFF, 0.7F * dim);
+					} else {
+						Solids.dot(glow, m, p, cb, sz, j % 4 == 0 ? 0xC8D0FF : 0xFFFFFF, 0.5F * dim);
 					}
-					prev = p;
 				}
 			}
-			FxDraw.disc(shade, m, g.add(0, -2, 0), x, z, r * 0.9, 0x000000, 0.9F * k, 0.4F * k, 32);
-			FxDraw.ring(glow, m, g.add(0, 0.5, 0), x, z, r * 1.02, r * 1.12 + Math.sin(a * 0.3) * 0.4, 0x30E0C0, 0.0F, 0.7F * k, 0.0F, 48);
-			// The lamprey ring: rows of bone teeth around the rim, slowly turning.
-			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
-			double rise = r * 0.3 * k;
-			for (int row = 0; row < 2; row++) {
-				int n = 22 - row * 6;
-				double rr = r * (1.0 - row * 0.25);
-				for (int i = 0; i < n; i++) {
-					double ang = i * MathHelper.TAU / n + a * (row == 0 ? 0.01 : -0.016);
-					Vec3d radial = new Vec3d(Math.cos(ang), 0, Math.sin(ang));
-					Vec3d base = g.add(radial.multiply(rr)).add(0, -row * 2.0, 0);
-					Vec3d tip = base.add(radial.multiply(-rise * 1.3)).add(0, rise, 0);
-					Solids.tube(solid, m, base, tip, r * 0.06, 0.0, 4, 0xE8E0CC, 1.0F, true);
-				}
+			// The edge of creation: a faint violet rim of dust where the new universe stops.
+			FxDraw.sphere(glow, m, c, v * 0.97, Vec3d.ZERO, 0x6040C0, 0.0F, 0.3F * k, 18, 36);
+			for (int j = 0; j < 40; j++) {
+				Vec3d d = Cinematics.sphereDir(j, 77);
+				Solids.dot(glow, m, c.add(d.multiply(v * 0.96)), cb, v * 0.04, 0x8060FF, 0.06F * k);
 			}
 		}
 	}
+
+	// ======================================================================== WORLD EATER
+
+	/**
+	 * The world worm: a gigantic segmented body whose skin is a drifting night sky, ringed with violet bands and
+	 * strung with constellations, behind a round maw of bone teeth around a swirling cosmic throat. Its head follows
+	 * {@link CityShapes#worm} exactly, so the tunnels the server carves are where the body runs.
+	 */
+	static final class Worm extends FxEffect {
+		private final Vec3d base;
+		private final double reach, phase;
+
+		Worm(Vec3d base, float reach, float phase, int life) {
+			super(Math.max(40, life));
+			this.base = base;
+			this.reach = reach;
+			this.phase = phase;
+		}
+
+		private Vec3d at(double t) {
+			Vec3d o = CityShapes.worm(t, reach, phase);
+			return base.add(o);
+		}
+
+		private static double radius(int i) {
+			double u = i / (double) CityShapes.WORM_SEGMENTS;
+			return CityShapes.WORM_R * (i < 4 ? 0.86 + 0.035 * i : 1.0 - 0.6 * Math.pow(u, 1.6));
+		}
+
+		@Override
+		public boolean tick(ClientWorld world) {
+			if (age < CityShapes.WORM_START - 5) {
+				return super.tick(world);
+			}
+			Vec3d h = at(age);
+			Vec3d cam = ClientFx.cameraPos();
+			double d = cam.distanceTo(h);
+			ClientFx.shake = Math.max(ClientFx.shake, (float) MathHelper.clamp(1 - d / 160, 0, 1) * 3.0F);
+			double gy = groundY(h.x, h.z, base.y);
+			if (Math.abs(h.y - gy) < CityShapes.WORM_R + 4) {
+				// Where it breaks the surface the ground erupts around it.
+				for (int i = 0; i < 10; i++) {
+					double ang = world.random.nextDouble() * MathHelper.TAU;
+					double r = CityShapes.WORM_R * (1 + world.random.nextDouble());
+					world.addImportantParticle(com.armageddon.registry.ModParticles.SHOCK_DUST, true, h.x + Math.cos(ang) * r, gy + 0.5, h.z + Math.sin(ang) * r,
+							Math.cos(ang) * 0.6, 0.6 + world.random.nextDouble() * 0.8, Math.sin(ang) * 0.6);
+				}
+			}
+			if (age % 3 == 0) {
+				ClientFx.light(h, 0.6F, 0xA060FF);
+			}
+			return super.tick(world);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			if (a < CityShapes.WORM_START - 40) {
+				return;
+			}
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			Solids.Cell sky = Solids.nightSky(a, 29);
+			int n = CityShapes.WORM_SEGMENTS;
+			Vec3d prev = at(a).subtract(cam);
+			for (int i = 0; i < n; i++) {
+				Vec3d next = at(a - (i + 1) * CityShapes.WORM_LAG).subtract(cam);
+				double r0 = radius(i), r1 = radius(i + 1);
+				Solids.tube(solid, m, prev, next, r0, r1, 14, 2, sky, true, 1.0F);
+				Vec3d axis = prev.subtract(next);
+				if (axis.lengthSquared() > 1.0E-4) {
+					Vec3d[] sb = ArsenalEffects.basis(axis);
+					if (i % 3 == 0) {
+						// Glowing violet segment rings, and a ridge of bony spines along the back.
+						float pulse = 0.55F + 0.45F * MathHelper.sin(a * 0.2F - i * 0.5F);
+						FxDraw.ring(glow, m, prev, sb[0], sb[1], r0 * 1.0, r0 * 1.1, i % 6 == 0 ? 0xC070FF : 0x50D0FF, 0.0F, 0.8F * pulse, 0.0F, 28);
+						Vec3d upish = sb[1].y < 0 ? sb[1].multiply(-1) : sb[1];
+						Solids.tube(solid, m, prev.add(upish.multiply(r0 * 0.9)), prev.add(upish.multiply(r0 * 1.7)).subtract(axis.normalize().multiply(r0 * 0.4)),
+								r0 * 0.22, 0.2, 6, 0xE0D8C4, 1.0F, true);
+					}
+					for (int k = 0; k < 3; k++) {
+						double ang = Solids.hash(i, k + 40) * MathHelper.TAU;
+						Vec3d sp = prev.add(sb[0].multiply(Math.cos(ang) * r0 * 1.02)).add(sb[1].multiply(Math.sin(ang) * r0 * 1.02));
+						Solids.dot(glow, m, sp, cb, 0.35 + Solids.hash(i, k + 50) * 0.5, 0xFFFFFF, 0.7F + 0.3F * MathHelper.sin(a * 0.3F + i + k));
+					}
+				}
+				prev = next;
+			}
+			// The head: a round maw ringed with bone teeth, a swirling throat, and a crown of eyes.
+			Vec3d h = at(a).subtract(cam);
+			Vec3d dir = at(a).subtract(at(a - 1));
+			dir = dir.lengthSquared() < 1.0E-6 ? new Vec3d(0, 1, 0) : dir.normalize();
+			Vec3d[] hb = ArsenalEffects.basis(dir);
+			double R = CityShapes.WORM_R;
+			Vec3d mouth = h.add(dir.multiply(R * 0.35));
+			double gape = 0.75 + 0.25 * Math.sin(a * 0.25);
+			for (int k = 0; k < 14; k++) {
+				double ang = k * MathHelper.TAU / 14;
+				Vec3d out = hb[0].multiply(Math.cos(ang)).add(hb[1].multiply(Math.sin(ang)));
+				Vec3d root = mouth.add(out.multiply(R * 0.88));
+				Vec3d tip = root.add(dir.multiply(R * 0.9)).subtract(out.multiply(R * 0.35 * gape));
+				Solids.tube(solid, m, root, tip, R * 0.13, 0.1, 5, 0xEEE6D0, 1.0F, true);
+			}
+			FxDraw.disc(glow, m, mouth, hb[0], hb[1], R * 0.8, 0x2A0A50, 0.9F, 0.6F, 28);
+			for (int k = 0; k < 3; k++) {
+				Vec3d prevS = null;
+				for (int s2 = 0; s2 <= 20; s2++) {
+					double u = s2 / 20.0;
+					double ang = k * MathHelper.TAU / 3 + u * 7 - a * 0.15;
+					Vec3d p = mouth.add(hb[0].multiply(Math.cos(ang) * R * 0.75 * u)).add(hb[1].multiply(Math.sin(ang) * R * 0.75 * u)).subtract(dir.multiply(R * 0.3 * (1 - u)));
+					if (prevS != null) {
+						FxDraw.ribbon(glow, m, prevS, p, Vec3d.ZERO, R * 0.08, k == 0 ? 0xFFFFFF : 0xC070FF, 0.9F, 0.9F);
+					}
+					prevS = p;
+				}
+			}
+			Solids.dot(glow, m, mouth.subtract(dir.multiply(R * 0.3)), cb, R * 0.35, 0xFFFFFF, 0.9F);
+			Solids.dot(glow, m, mouth, cb, R * 2.2, 0x8040FF, 0.25F);
+			for (int k = 0; k < 6; k++) {
+				double ang = k * MathHelper.TAU / 6 + 0.3;
+				Vec3d out = hb[0].multiply(Math.cos(ang)).add(hb[1].multiply(Math.sin(ang)));
+				Vec3d eye = h.subtract(dir.multiply(R * 0.6)).add(out.multiply(R * 0.98));
+				Solids.dot(glow, m, eye, cb, R * 0.12, 0xFFFFFF, 1.0F);
+				Solids.dot(glow, m, eye, cb, R * 0.35, 0x60F0FF, 0.45F);
+			}
+		}
+	}
+
 
 	// ======================================================================== CHRONO BREAK
 
@@ -477,38 +498,56 @@ public final class CityFx {
 
 	// ======================================================================== RAGNAROK
 
-	/** Jormungandr: a molten-seamed serpent breaching through the ground along its coil, diving at the centre. */
-	static final class Serpent extends FxEffect {
-		private final Vec3d c;
-		private final double reach, phase;
+	/**
+	 * Surtr's sword: a blade of fire the size of a tower falls point-first out of a burning sky, strikes the centre,
+	 * stands there burning while the world splits, then crumbles to embers. Laid along the event heading.
+	 */
+	static final class Sword extends FxEffect {
+		private final Vec3d c, fwd, side;
+		private final double reach;
+		private final int strike;
 
-		Serpent(Vec3d c, Vec3d heading, float reach, int life) {
+		Sword(Vec3d c, Vec3d heading, float reach, int strike, int life) {
 			super(Math.max(40, life));
 			this.c = c;
+			Vec3d h = new Vec3d(heading.x, 0, heading.z);
+			this.fwd = h.lengthSquared() < 1.0E-4 ? new Vec3d(0, 0, 1) : h.normalize();
+			this.side = new Vec3d(-fwd.z, 0, fwd.x);
 			this.reach = reach;
-			this.phase = CityShapes.serpentPhase(heading);
+			this.strike = strike;
 		}
 
-		private Vec3d at(double s, float a, int k, double body) {
-			Vec3d o = CityShapes.serpent(s, reach, phase);
-			double x = c.x + o.x, z = c.z + o.z;
-			// Breaching arcs travel down the body; the head dives as it reaches the centre.
-			double arc = Math.sin(k * 0.32 - a * 0.25) * body * 1.6;
-			double dive = s > 0.92 ? (s - 0.92) / 0.08 * body * 6 : 0;
-			return new Vec3d(x, groundY(x, z, c.y) + arc - dive, z);
+		/** Height of the blade's point above the ground: falling, then buried a little, then sinking away. */
+		private double point(float a) {
+			if (a < strike) {
+				double u = a / strike;
+				return 700 * (1 - u * u) - 8 * u * u;
+			}
+			return -8 - Math.max(0, a - strike - 140) * 0.6;
 		}
 
 		@Override
 		public boolean tick(ClientWorld world) {
-			double s = CityShapes.serpentHead(age);
-			if (s > 0 && s < 1) {
-				Vec3d head = at(s, age, 0, 4);
-				ClientFx.light(head.add(0, 4, 0), 0.8F, 0xFF6020);
-				for (int i = 0; i < 3; i++) {
-					world.addImportantParticle(ParticleTypes.FLAME, true, head.x + world.random.nextGaussian() * 3, head.y + 1, head.z + world.random.nextGaussian() * 3,
-							0, 0.1, 0);
+			if (age == strike) {
+				ClientFx.flash(c, 100000, 1.0F, 0xFFB060);
+				ClientFx.shake = 9.0F;
+				ClientFx.light(c.add(0, 40, 0), 1.6F, 0xFF8030);
+			}
+			if (age >= strike && age < strike + 160) {
+				for (int i = 0; i < 14; i++) {
+					double h = world.random.nextDouble() * 220;
+					Vec3d p = c.add(side.multiply(world.random.nextGaussian() * 3)).add(fwd.multiply(world.random.nextGaussian() * 1.2)).add(0, h, 0);
+					world.addImportantParticle(ParticleTypes.FLAME, true, p.x, p.y, p.z, world.random.nextGaussian() * 0.1, 0.25, world.random.nextGaussian() * 0.1);
+					if (i % 3 == 0) {
+						world.addImportantParticle(com.armageddon.registry.ModParticles.EMBER, true, p.x, p.y, p.z, world.random.nextGaussian() * 0.3, 0.4, world.random.nextGaussian() * 0.3);
+					}
 				}
-				world.addImportantParticle(ParticleTypes.LARGE_SMOKE, true, head.x, head.y + 3, head.z, 0, 0.15, 0);
+			} else if (age < strike && age % 2 == 0) {
+				Vec3d tip = c.add(0, point(age), 0);
+				for (int i = 0; i < 6; i++) {
+					world.addImportantParticle(ParticleTypes.FLAME, true, tip.x + world.random.nextGaussian() * 4, tip.y + 30 + world.random.nextDouble() * 160,
+							tip.z + world.random.nextGaussian() * 4, 0, 0.8, 0);
+				}
 			}
 			return super.tick(world);
 		}
@@ -516,124 +555,78 @@ public final class CityFx {
 		@Override
 		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
 			float a = age + td;
-			double head = CityShapes.serpentHead(a);
-			if (head <= 0) {
-				return;
-			}
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
-			int n = 64;
-			double ds = 0.011;
-			Vec3d prev = null;
-			for (int k = 0; k <= n; k++) {
-				double s = head - k * ds;
-				if (s < 0) {
-					break;
-				}
-				double body = 4.2 * (1 - k / (double) n * 0.75);
-				Vec3d p = at(s, a, k, body).subtract(cam);
-				if (prev != null) {
-					int scale = k % 2 == 0 ? 0x2A0C08 : 0x401410;
-					Solids.tube(solid, m, prev, p, body * 1.04, body, 8, scale, 1.0F, true);
-					// Molten seams between the scales, and a ridge of spines.
-					Solids.tube(glow, m, prev, p, body * 1.12, body * 1.08, 8, 0xFF5010, 0.22F, false);
-					if (k % 2 == 0) {
-						Solids.tube(solid, m, p.add(0, body * 0.9, 0), p.add(0, body * 1.9, 0), body * 0.25, 0.0, 4, 0x1A0806, 1.0F, true);
-					}
-				}
-				prev = p;
+			float crumble = (float) clamp01((a - strike - 140) / 60.0);
+			float alive = 1 - crumble;
+			if (alive <= 0.01F) {
+				return;
 			}
-			// The head: a heavy wedge, horns, and eyes like coals.
-			Vec3d h0 = at(head, a, 0, 4.2).subtract(cam);
-			Vec3d h1 = at(Math.max(0, head - ds), a, 1, 4.2).subtract(cam);
-			Vec3d dir = h0.subtract(h1);
-			dir = dir.lengthSquared() < 1.0E-6 ? new Vec3d(1, 0, 0) : dir.normalize();
-			Vec3d snout = h0.add(dir.multiply(7));
-			Solids.tube(solid, m, h0, snout, 5.2, 2.2, 8, 0x30100A, 1.0F, true);
-			Vec3d side = new Vec3d(-dir.z, 0, dir.x);
+			Vec3d g = c.subtract(cam);
+			Vec3d tip = g.add(0, point(a), 0);
+			double blade = 230, width = 16, thick = 3.2;
+			Vec3d up = new Vec3d(0, 1, 0);
+			Vec3d guard = tip.add(up.multiply(blade));
+			// The blade: a dark core blazing along both edges, a fuller of fire down the middle, flames licking off it.
+			int steps = 12;
+			for (int i = 0; i < steps; i++) {
+				double u0 = i / (double) steps, u1 = (i + 1) / (double) steps;
+				double w0 = width * Math.min(1, u0 * 5) * (1 - 0.15 * u0), w1 = width * Math.min(1, u1 * 5) * (1 - 0.15 * u1);
+				Vec3d p0 = tip.add(up.multiply(blade * u0)), p1 = tip.add(up.multiply(blade * u1));
+				int core = Solids.mix(0x2A0A04, 0x5A1A08, u0);
+				for (int sgn = -1; sgn <= 1; sgn += 2) {
+					Vec3d e0 = p0.add(side.multiply(sgn * w0 * 0.5)), e1 = p1.add(side.multiply(sgn * w1 * 0.5));
+					Vec3d f0 = p0.add(fwd.multiply(sgn * thick * Math.min(1, u0 * 5))), f1 = p1.add(fwd.multiply(sgn * thick * Math.min(1, u1 * 5)));
+					Solids.quad(solid, m, e0, e1, f1, f0, Solids.scale(core, sgn > 0 ? 1.0 : 0.7), 1.0F);
+					Solids.quad(solid, m, p0.add(side.multiply(-sgn * w0 * 0.5)), p1.add(side.multiply(-sgn * w1 * 0.5)), f1, f0, Solids.scale(core, sgn > 0 ? 0.8 : 0.6), 1.0F);
+					FxDraw.ribbon(glow, m, e0, e1, Vec3d.ZERO, 2.2, 0xFFD060, 0.95F * alive, 0.95F * alive);
+					FxDraw.ribbon(glow, m, e0, e1, Vec3d.ZERO, 7.0, 0xFF6020, 0.35F * alive, 0.35F * alive);
+				}
+				float flick = 0.7F + 0.3F * MathHelper.sin(a * 0.9F + i * 1.7F);
+				FxDraw.ribbon(glow, m, p0, p1, Vec3d.ZERO, width * 0.22, 0xFFF0B0, 0.85F * flick * alive, 0.85F * flick * alive);
+			}
+			for (int k = 0; k < 18; k++) {
+				double u = Solids.hash(k, 3);
+				double life = ((a * 0.03 + Solids.hash(k, 4)) % 1.0);
+				Vec3d base = tip.add(up.multiply(blade * u)).add(side.multiply((Solids.hash(k, 5) - 0.5) * width));
+				Vec3d lick = base.add(side.multiply((Solids.hash(k, 6) - 0.5) * 20 * life)).add(0, 30 * life, 0);
+				FxDraw.ribbon(glow, m, base, lick, Vec3d.ZERO, 6 * (1 - life), life < 0.5 ? 0xFFA030 : 0xFF4010, 0.7F * (float) (1 - life) * alive, 0.0F);
+			}
+			// Crossguard, grip and pommel.
+			Solids.tube(solid, m, guard.subtract(side.multiply(38)), guard.add(side.multiply(38)), 4.5, 4.5, 8, 0x3A1A0A, 1.0F, true);
+			FxDraw.ribbon(glow, m, guard.subtract(side.multiply(40)), guard.add(side.multiply(40)), Vec3d.ZERO, 3.0, 0xFF8030, 0.8F * alive, 0.8F * alive);
 			for (int sgn = -1; sgn <= 1; sgn += 2) {
-				Vec3d hornBase = h0.add(side.multiply(sgn * 3.2)).add(0, 3.5, 0);
-				Solids.tube(solid, m, hornBase, hornBase.add(dir.multiply(-6)).add(side.multiply(sgn * 2)).add(0, 4, 0), 1.1, 0.0, 5, 0x0E0604, 1.0F, true);
-				Vec3d eye = h0.add(dir.multiply(3.5)).add(side.multiply(sgn * 2.8)).add(0, 2.2, 0);
-				Solids.dot(glow, m, eye, cb, 0.9, 0xFFC040, 1.0F);
-				Solids.dot(glow, m, eye, cb, 2.6, 0xFF4010, 0.4F);
+				Vec3d end = guard.add(side.multiply(sgn * 38));
+				Solids.tube(solid, m, end, end.add(side.multiply(sgn * 6)).add(0, 12, 0), 4.5, 1.0, 6, 0x3A1A0A, 1.0F, true);
+				Solids.dot(glow, m, end.add(0, 12, 0), cb, 6, 0xFFB040, 0.9F * alive);
 			}
-			FxDraw.beam(glow, m, snout, snout.add(dir.multiply(4)).add(0, -1, 0), Vec3d.ZERO, 1.6, 0xFF8030, 0.7F);
-		}
-	}
-
-	/** Yggdrasil across the sky: a black silhouette of a tree that catches fire, burns, and falls. */
-	static final class WorldTree extends FxEffect {
-		private record Branch(Vec3d a, Vec3d b, double r, int depth) {
-		}
-
-		private final Vec3d base, fwd, side;
-		private final List<Branch> branches = new ArrayList<>();
-
-		WorldTree(Vec3d c, Vec3d heading, float reach, int life) {
-			super(Math.max(40, life));
-			Vec3d f = new Vec3d(heading.x, 0, heading.z);
-			this.fwd = f.lengthSquared() < 1.0E-4 ? new Vec3d(0, 0, 1) : f.normalize();
-			this.side = new Vec3d(-fwd.z, 0, fwd.x);
-			this.base = c.add(fwd.multiply(520)).add(0, -60, 0);
-			grow(base, new Vec3d(0, 1, 0), 300, 26, 0, 1);
-		}
-
-		private void grow(Vec3d from, Vec3d dir, double len, double r, int depth, int salt) {
-			Vec3d to = from.add(dir.multiply(len));
-			branches.add(new Branch(from, to, r, depth));
-			if (depth >= 4) {
-				return;
+			Vec3d grip = guard.add(0, 50, 0);
+			Solids.tube(solid, m, guard, grip, 3.6, 3.6, 8, 0x1A0A06, 1.0F, true);
+			for (int k = 0; k < 6; k++) {
+				Vec3d wrap = guard.add(0, 6 + k * 7.5, 0);
+				Solids.tube(solid, m, wrap, wrap.add(0, 2.4, 0), 4.0, 4.0, 8, 0x8A4A1A, 1.0F, true);
 			}
-			int kids = depth == 0 ? 5 : 3;
-			for (int i = 0; i < kids; i++) {
-				double spread = depth == 0 ? 1.0 : 0.7;
-				double ang = (i - (kids - 1) / 2.0) * spread + (Solids.hash(salt, i) - 0.5) * 0.5;
-				Vec3d out = side.multiply(Math.sin(ang)).add(fwd.multiply((Solids.hash(salt, i + 7) - 0.5) * 0.6));
-				Vec3d nd = dir.multiply(Math.cos(ang) * 0.8).add(out).add(0, 0.25, 0).normalize();
-				grow(to, nd, len * (0.62 + 0.1 * Solids.hash(salt, i + 3)), r * 0.55, depth + 1, salt * 7 + i + 1);
-			}
-		}
-
-		@Override
-		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
-			float a = age + td;
-			float burn = (float) clamp01((a - 150) / 200.0);
-			double fall = Cinematics.ease((a - CityShapes.TREE_FALL) / 60.0);
-			double sinkDown = Cinematics.ease((a - CityShapes.TREE_FALL - 50) / 40.0) * 500;
-			double tilt = fall * 0.7;
-			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
-			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
-			float rise = (float) Cinematics.ease(a / 40.0);
-			for (Branch br : branches) {
-				Vec3d p = tilt(br.a(), tilt).subtract(cam).add(0, -sinkDown - (1 - rise) * 300, 0);
-				Vec3d q = tilt(br.b(), tilt).subtract(cam).add(0, -sinkDown - (1 - rise) * 300, 0);
-				Solids.tube(solid, m, p, q, br.r(), br.r() * 0.7, 6, 0x120808, 1.0F, false);
-				// Fire climbs the tree from its outermost twigs inward.
-				float lit = (float) clamp01(burn * 5 - (4 - br.depth()));
-				if (lit > 0) {
-					float flick = 0.7F + 0.3F * MathHelper.sin(a * 0.4F + br.depth() * 3 + (float) br.r());
-					Solids.tube(glow, m, p, q, br.r() * 1.25, br.r() * 0.95, 6, 0xFF5010, 0.35F * lit * flick, false);
-					if (br.depth() >= 3) {
-						Solids.dot(glow, m, q, cb, br.r() * 6, 0xFF8030, 0.35F * lit * flick);
-					}
+			Solids.sphere(solid, m, grip.add(0, 5, 0), 7, 0x3A1A0A, 8, 12, true);
+			Solids.dot(glow, m, grip.add(0, 5, 0), cb, 12, 0xFF6020, 0.8F * alive);
+			if (a < strike) {
+				// Falling: a burning wake streaming up from the blade.
+				float k = (float) clamp01(a / strike);
+				FxDraw.beam(glow, m, guard, guard.add(0, 300, 0), Vec3d.ZERO, width * 0.7, 0xFF6020, 0.4F * k);
+				Solids.dot(glow, m, tip, cb, width * 1.6, 0xFFC060, 0.6F * k);
+				// The target burns ahead of it: a ring of fire marking the strike.
+				FxDraw.ring(glow, m, g.add(0, 0.6, 0), side, fwd, 24 * (1 - k * 0.6), 30 * (1 - k * 0.6), 0xFF6020, 0.0F, 0.8F * k, 0.0F, 48);
+			} else {
+				// Struck: the land splits away from it in a line of fire both ways, and a glow climbs the blade.
+				float e = a - strike;
+				float open = (float) clamp01(e / 30.0) * alive;
+				for (int sgn = -1; sgn <= 1; sgn += 2) {
+					Vec3d end = g.add(fwd.multiply(sgn * reach * Math.min(1, e / 20.0)));
+					FxDraw.ribbon(glow, m, g.add(0, 0.8, 0), end.add(0, 0.8, 0), new Vec3d(0, 100, 0), 10, 0xFF5010, 0.8F * open, 0.2F * open);
 				}
+				FxDraw.disc(glow, m, g.add(0, 0.6, 0), side, fwd, 40 + e * 0.5, 0xFF8030, 0.6F * open, 0.0F, 40);
+				Solids.dot(glow, m, g.add(0, 20, 0), cb, 60, 0xFF6020, 0.3F * open);
 			}
-		}
-
-		private Vec3d tilt(Vec3d p, double ang) {
-			if (ang <= 0) {
-				return p;
-			}
-			Vec3d d = p.subtract(base);
-			double up = d.y, along = d.dotProduct(fwd);
-			Vec3d rest = d.subtract(fwd.multiply(along)).subtract(0, up, 0);
-			// Falls away from the city, toward the horizon.
-			double nUp = up * Math.cos(ang) - along * Math.sin(ang);
-			double nAlong = along * Math.cos(ang) + up * Math.sin(ang);
-			return base.add(rest).add(fwd.multiply(nAlong)).add(0, nUp, 0);
 		}
 	}
 }

@@ -105,55 +105,19 @@ public final class CityShapes {
 
 	// ------------------------------------------------------------------ WORLD EATER
 
-	public static final int BITES = 9, FIRST_BITE = 60, BITE_GAP = 28, JAW_LEAD = 18;
+	/** The world worm: when it surfaces, how long it runs, how many body segments and how far apart (in ticks of path). */
+	public static final int WORM_START = 70, WORM_RUN = 560, WORM_SEGMENTS = 56;
+	public static final double WORM_R = 8.5, WORM_LAG = 1.2, WORM_SWING = 34;
 
-	public static int biteAt(int i) {
-		return FIRST_BITE + i * BITE_GAP;
-	}
-
-	public static int gulpAt() {
-		return biteAt(BITES);
-	}
-
-	/** Bites walk inward on a spiral, each one a little closer to where the maw will open. */
-	public static Vec3d biteOffset(int i, double reach) {
-		double f = i / (double) BITES;
-		double a = i * 2.1 + 0.4;
-		double d = reach * (0.9 - 0.6 * f);
-		return new Vec3d(Math.cos(a) * d, 0, Math.sin(a) * d);
-	}
-
-	public static double biteRadius(int i, double reach) {
-		return Math.max(5.0, reach * (0.27 - 0.012 * i));
-	}
-
-	/** Sawtooth bite edge: radius multiplier at angle {@code a} around the bite centre (teeth marks). */
-	public static double toothEdge(double a, int teeth) {
-		double u = (a / MathHelper.TAU * teeth) % 1.0;
-		if (u < 0) {
-			u += 1;
-		}
-		return 1.0 + 0.16 * (u < 0.5 ? u * 2 : (1 - u) * 2) - 0.08;
-	}
-
-	// ------------------------------------------------------------------ RAGNAROK
-
-	public static final int SERPENT_START = 40, SERPENT_END = 250, SPLIT = 262, SPLIT_SWEEP = 120, TREE_FALL = 380;
-
-	/** Fraction of the coil the serpent's head has travelled at event tick {@code t}. */
-	public static double serpentHead(double t) {
-		return MathHelper.clamp((t - SERPENT_START) / (double) (SERPENT_END - SERPENT_START), 0.0, 1.0);
-	}
-
-	/** A point on the serpent's coil, {@code s} 0 (far outside) .. 1 (diving at the centre); xz offset. */
-	public static Vec3d serpent(double s, double reach, double phase) {
-		double ang = phase + s * Math.PI * 2 * 2.25;
-		double r = reach * (1.05 - 0.85 * s) + Math.sin(s * 46) * reach * 0.03;
-		return new Vec3d(Math.cos(ang) * r, 0, Math.sin(ang) * r);
-	}
-
-	/** Phase of the coil from the event heading, so the serpent enters from behind the player. */
-	public static double serpentPhase(Vec3d heading) {
-		return Math.atan2(heading.z, heading.x) + Math.PI;
+	/**
+	 * Head of the world worm at event tick {@code t}, as an offset from the centre's ground (x, height, z). It weaves a
+	 * figure across the whole field so it passes over everything, and dives in and out of the ground as it goes.
+	 */
+	public static Vec3d worm(double t, double reach, double phase) {
+		double s = Math.max(0, Math.min(WORM_RUN + 40, t - WORM_START)) * 0.021;
+		double x = reach * 0.9 * Math.sin(s + phase);
+		double z = reach * 0.9 * Math.sin(s * 1.618 + phase * 2);
+		double y = -WORM_SWING * Math.cos(s * 2.7) - 4;
+		return new Vec3d(x, y, z);
 	}
 }

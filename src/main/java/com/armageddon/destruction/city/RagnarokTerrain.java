@@ -9,38 +9,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 /**
- * RAGNAROK splits the world in two. The serpent's coil is burned into the ground as a winding
- * trench of magma and basalt; a chasm opens along the dividing line; on one side everything turns
+ * RAGNAROK splits the world in two. Where Surtr's sword strikes, a chasm opens along the dividing line;
+ * on one side everything turns
  * to fire (netherrack, magma, blackstone and flame), on the other to frost (packed and blue ice,
  * snow, ice spikes).
  */
 public final class RagnarokTerrain {
 	private RagnarokTerrain() {
-	}
-
-	/** One stretch of the serpent's path: a trench as wide as its body, glowing at the bottom. */
-	public static void trench(ServerWorld w, BlockQueue q, Vec3d at, int width, long seed) {
-		BlockPos c = BlockPos.ofFloored(at);
-		for (int dx = -width - 1; dx <= width + 1; dx++) {
-			for (int dz = -width - 1; dz <= width + 1; dz++) {
-				double d = Math.sqrt(dx * dx + dz * dz);
-				if (d > width + 1) {
-					continue;
-				}
-				int x = c.getX() + dx, z = c.getZ() + dz;
-				int top = Kit.surface(w, x, z).getY();
-				if (d <= width) {
-					int cut = (int) Math.round((width - d) * 0.8) + 2;
-					for (int y = top + 3; y > top - cut; y--) {
-						q.add(x, y, z, Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
-					}
-					double n = CityShapes.hash(seed, x * 31 + z * 7);
-					q.add(x, top - cut, z, n < 0.18 ? Blocks.LAVA.getDefaultState() : Blocks.MAGMA_BLOCK.getDefaultState(), BlockQueue.ANY);
-				} else {
-					q.add(x, top, z, Blocks.BASALT.getDefaultState(), BlockQueue.SOLID_ONLY);
-				}
-			}
-		}
 	}
 
 	/** Ginnungagap: the chasm along the dividing line, walled in obsidian that weeps. */
