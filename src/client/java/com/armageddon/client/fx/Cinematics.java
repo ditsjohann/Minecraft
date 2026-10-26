@@ -402,8 +402,8 @@ public final class Cinematics {
 				double p = (a - PUNCH_START) / (double) (IMPACT - PUNCH_START);
 				return lerp(wind, tgt, p * p * p);
 			}
-			// Fist stays buried, then slowly pulls free as the giant dissolves.
-			return tgt.add(0, ease((a - 600) / 100.0) * 120, 0);
+			// Fist drives on into the crust and stays buried, then slowly pulls free as the giant dissolves.
+			return tgt.add(0, -26 * ease((a - IMPACT) / 14.0) + ease((a - 600) / 100.0) * 140, 0);
 		}
 
 		private Vec3d headDir(float a) {
@@ -631,8 +631,10 @@ public final class Cinematics {
 		/** Void skin: near-black with a faint violet sheen and the odd dying star deep inside it. */
 		private static Solids.Cell voidSkin(float a) {
 			return (i, j, n) -> {
-				double sheen = Math.max(0, Math.sin(n.x * 2.3 + n.y * 1.7 + a * 0.01)) * 0.5;
-				int col = Solids.mix(0x040308, 0x140A24, sheen);
+				// Not pure black: a deep indigo with nebula swirls, so the light still models its form up close.
+				double sheen = Math.max(0, Math.sin(n.x * 2.3 + n.y * 1.7 + a * 0.01)) * 0.6;
+				double neb = Math.max(0, Math.sin(n.x * 5.1 - n.z * 4.3 + n.y * 3.7 + a * 0.004));
+				int col = Solids.mix(Solids.mix(0x161028, 0x3A2468, sheen), 0x5A2A7A, neb * neb * 0.45);
 				return Solids.hash(i * 5 + 1, j * 7 + 3) > 0.985 ? Solids.mix(col, 0x8A90C0, 0.5 + 0.5 * Math.sin(a * 0.15 + i + j)) : col;
 			};
 		}
@@ -683,7 +685,7 @@ public final class Cinematics {
 			Vec3d elbowL = elbow(LS, handL, BONE, BONE, rt.multiply(-1).add(fwd.multiply(0.4)));
 			Vec3d hd = headDir(a);
 			Vec3d punchDir = handR.subtract(elbowR).normalize();
-			int plate = 0x1A1C28, edge = 0x2A2E40;
+			int plate = 0x2E3044, edge = 0x464C68;
 			Solids.Cell skin = voidSkin(a);
 			Vec3d[][] limbs = {{RS, elbowR}, {elbowR, handR}, {LS, elbowL}, {elbowL, handL}};
 			float rage = (float) clamp01((a - 270) / 60.0);
@@ -742,6 +744,16 @@ public final class Cinematics {
 			Solids.tube(glow, m, N, P, 76, 54, 12, 0x6A50D0, rim, false);
 			for (Vec3d[] seg : limbs) {
 				Solids.tube(glow, m, seg[0], seg[1], 34, 29, 8, 0x6A50D0, rim, false);
+			}
+			Solids.ellipsoid(glow, m, handR, 55, 55, 55, 8, 12, (i, j, n) -> 0x7A60E0, false, rim * 1.2F);
+			Solids.ellipsoid(glow, m, H, 46, 52, 46, 8, 12, (i, j, n) -> 0x6A50D0, false, rim * 0.8F);
+			if (a >= IMPACT) {
+				// Where the fist went in, the crust is molten: a glowing collar of slag around the wrist.
+				float hot = (float) (1 - clamp01((a - IMPACT - 60) / 200.0));
+				Vec3d g0 = anchor.subtract(cam).add(0, 1.2, 0);
+				FxDraw.ring(glow, m, g0, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 30, 84, 0xFF6A20, 0.5F * hot, 0.9F * hot, 0.0F, 48);
+				FxDraw.ring(glow, m, g0, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 26, 52, 0xFFE0A0, 0.9F * hot, 0.4F * hot, 0.0F, 48);
+				Solids.dot(glow, m, g0.add(0, 12, 0), cb, 140, 0xFF7030, 0.45F * hot);
 			}
 			// Starlight leaking through the cracks in the armour; it burns brighter as it gets angry.
 			float crackA = env * (0.6F + 0.4F * rage);
@@ -953,13 +965,98 @@ public final class Cinematics {
 				double ang = Math.atan2(-fwd.z, -fwd.x) + a * 0.009;
 				double dist = lerp(50, 120, t);
 				Vec3d p = anchor.add(Math.cos(ang) * dist, lerp(8, 230, t), Math.sin(ang) * dist);
-				aim(s, p, anchor, (float) lerp(78, 88, t), false);
+				// Looking up at the bombers at first, then down onto the burning ground as the camera climbs.
+				aim(s, p, anchor.add(0, lerp(70, 0, ease(a / 110.0)), 0), (float) lerp(78, 88, t), false);
 			} else {
 				double u = a - SPACE_AT;
 				double ang = 0.5 + u * 0.004;
 				double dist = lerp(250, 205, clamp01(u / 140.0));
 				aim(s, sa.add(Math.cos(ang) * dist, 45 - u * 0.1, Math.sin(ang) * dist), sa, 62, true);
 			}
+		}
+
+		/**
+		 * The carpet-bombing the survey flies over: three waves of black bombers in vics cross the site, their bombs
+		 * tumble down in strings and walk fireballs across the ground, and each strike leaves a burning smoke column.
+		 * (The real bombs are going off in the world at the same time; this is what drops them.)
+		 */
+		private void renderRaid(VertexConsumerProvider consumers, Matrix4f m, Vec3d cam, Vec3d[] cb, float a) {
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			Vec3d g = anchor.subtract(cam);
+			List<Effects.Puff> smoke = FxKit.puffs();
+			double speed = 3.6, grav = 0.09;
+			for (int w = 0; w < 3; w++) {
+				float wt = a - w * 50;
+				double hdg = w * 0.9 - 0.4;
+				Vec3d dir = fwd.multiply(Math.cos(hdg)).add(right.multiply(Math.sin(hdg)));
+				Vec3d side = new Vec3d(-dir.z, 0, dir.x);
+				double alt = 85 + w * 18;
+				for (int p = 0; p < 5; p++) {
+					int row = (p + 1) / 2;
+					double sgn = p == 0 ? 0 : p % 2 == 0 ? 1 : -1;
+					Vec3d pos0 = g.add(dir.multiply(-330 - row * 22)).add(side.multiply((w - 1) * 45 + sgn * row * 30)).add(0, alt + row * 3, 0);
+					if (wt > -5 && wt < 190) {
+						bomber(solid, glow, m, cb, pos0.add(dir.multiply(wt * speed)), dir, side);
+					}
+					double h = pos0.y - g.y;
+					double tf = Math.sqrt(2 * h / grav);
+					for (int b = 0; b < 10; b++) {
+						double rel = 40 + b * 7 + Solids.hash(p * 10 + b, w) * 3;
+						double ft = wt - rel;
+						if (ft < 0) {
+							continue;
+						}
+						Vec3d rp = pos0.add(dir.multiply(rel * speed));
+						int salt = w * 100 + p * 10 + b;
+						if (ft < tf) {
+							// Falling: nose-down as it picks up speed, with a faint whistle-streak behind.
+							Vec3d bp = rp.add(dir.multiply(ft * speed * 0.8)).add(0, -0.5 * grav * ft * ft, 0);
+							Vec3d vel = dir.multiply(speed * 0.8).add(0, -grav * ft, 0).normalize();
+							Solids.tube(solid, m, bp.subtract(vel.multiply(1.6)), bp.add(vel.multiply(1.6)), 0.55, 0.3, 6, 0x22242A, 1.0F, true);
+							FxDraw.ribbon(glow, m, bp.subtract(vel.multiply(10)), bp, Vec3d.ZERO, 0.35, 0xFFFFFF, 0.0F, 0.25F);
+							continue;
+						}
+						float et = (float) (ft - tf);
+						Vec3d ip = rp.add(dir.multiply(tf * speed * 0.8));
+						ip = new Vec3d(ip.x, g.y, ip.z);
+						if (et < 34) {
+							float k = et / 34.0F;
+							FxKit.fire(consumers, m, cb, ip.add(0, 5 + et * 0.35, 0), 9 + et * 0.5, 0xFFD890, k, 1.0F, a, salt);
+							if (et < 8) {
+								FxKit.flare(consumers, m, cb, ip.add(0, 4, 0), 40, 0xFFF0D0, 1 - et / 8.0F, salt);
+								FxKit.groundShock(consumers, m, ip.add(0, 0.4, 0), 6 + et * 3.5, 0xFFE0B0, 1 - et / 8.0F);
+							}
+						}
+						// The ground keeps burning, and every few strikes a column of smoke climbs out of the fires.
+						Solids.dot(glow, m, ip.add(0, 2, 0), cb, 12, 0xFF6A20, 0.35F * (float) Math.min(1, et / 10.0));
+						if (b % 3 == 0 && et > 6) {
+							FxKit.column(ip, 14 + Math.min(et, 150) * 0.45, 6 + Math.min(et, 150) * 0.06, a, 0x6E6258, 0x221E1C, 0.55F, salt, smoke);
+						}
+					}
+				}
+			}
+			FxKit.flush(smoke, consumers, m, cb);
+		}
+
+		/** A swept-wing strategic bomber, nose along {@code dir}, about thirty blocks across. */
+		private static void bomber(VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d p, Vec3d dir, Vec3d side) {
+			int hull = 0x30333C, dark = 0x1C1E24;
+			Solids.tube(solid, m, p.add(dir.multiply(-10)), p.add(dir.multiply(8)), 1.7, 1.3, 8, hull, 1.0F, true);
+			Solids.tube(solid, m, p.add(dir.multiply(8)), p.add(dir.multiply(12)), 1.3, 0.2, 8, hull, 1.0F, true);
+			for (int sg = -1; sg <= 1; sg += 2) {
+				Vec3d tip = p.add(side.multiply(sg * 15)).add(dir.multiply(-8)).add(0, 0.8, 0);
+				Solids.quad(solid, m, p.add(dir.multiply(4)), tip, tip.add(dir.multiply(-2.8)), p.add(dir.multiply(-4)), Solids.scale(hull, 0.85), 1.0F);
+				Solids.quad(solid, m, p.add(dir.multiply(-7)), p.add(dir.multiply(-10)).add(side.multiply(sg * 5.5)),
+						p.add(dir.multiply(-11.5)).add(side.multiply(sg * 5.5)), p.add(dir.multiply(-10)), dark, 1.0F);
+				for (int e = 1; e <= 2; e++) {
+					Vec3d eng = p.add(side.multiply(sg * (3.5 + e * 3))).add(dir.multiply(-2 - e * 1.2)).add(0, -0.7, 0);
+					Solids.tube(solid, m, eng.add(dir.multiply(2.2)), eng.add(dir.multiply(-2.2)), 0.6, 0.5, 6, dark, 1.0F, true);
+					Solids.dot(glow, m, eng.add(dir.multiply(-2.5)), cb, 1.3, 0xFFA040, 0.9F);
+				}
+				Solids.dot(glow, m, tip.add(dir.multiply(-1)), cb, 0.9, sg < 0 ? 0xFF2020 : 0x20FF40, 0.9F);
+			}
+			Solids.tube(solid, m, p.add(dir.multiply(-8)), p.add(dir.multiply(-10.5)).add(0, 4.5, 0), 0.7, 0.3, 4, dark, 1.0F, true);
 		}
 
 		@Override
@@ -998,6 +1095,7 @@ public final class Cinematics {
 		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
 			float a = age + td;
 			if (a < SPACE_AT - 2) {
+				renderRaid(consumers, m, cam, FxDraw.cameraBasis(yaw, pitch), a);
 				return;
 			}
 			float u = a - SPACE_AT;
@@ -1192,8 +1290,9 @@ public final class Cinematics {
 				// Down the barrel from behind the turret, Earth waiting at the end of it.
 				aim(s, pivot.subtract(aimDir.multiply(30)).add(up.multiply(16)), earth, 66, true);
 			} else if (a < FIRE) {
-				// Extreme close-up, shaking.
-				aim(s, mz.add(aimSide.multiply(9)).add(d.multiply(4)), mz, 72, true);
+				// Close on the muzzle, shaking, the camera easing back as the orb swells (it must never swallow the lens).
+				double u = (a - 252) / (double) (FIRE - 252);
+				aim(s, mz.add(aimSide.multiply(lerp(26, 40, u))).subtract(d.multiply(lerp(4, 10, u))).add(0, 5, 0), mz.add(d.multiply(8)), (float) lerp(60, 70, u), true);
 			} else if (a < 280) {
 				// FIRE: side-on as the beam erupts.
 				aim(s, muzzleAimed.add(aimSide.multiply(62)).add(0, 10, 0), muzzleAimed.add(aimDir.multiply(40)), 78, true);

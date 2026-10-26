@@ -1,35 +1,37 @@
 # Offline effect preview: name tick [dx dy dz [tx ty tz]] (camera offset / target from the anchor)
-spear 112 -30 150 -40 0 200 0
-spear 150 -90 40 -90 0 40 0
-galactic 20
-galactic 60
-galactic 100
-galactic 150
-galactic 200
-galactic 250
+spear 150 -28 40 -28 0 40 0
+spear 150 -16 84 -16 0 86 0
+spear 150 -40 8 -40 0 6 0
 galactic 300
-galactic 350
-galactic 400
-galactic 440
-galactic 460
-galactic 470
+galactic 465
+galactic 480
 galactic 500
-galactic 560
-galactic 640
-galactic 720
-galactic 470 -260 160 -260 0 40 0
-boom 20
-boom 80
-boom 140
-boom 200
-boom 260
-boom 330
-boom 380
-alien 30
-alien 90
-alien 150
-alien 210
+boom 30
+boom 70
+boom 110
+boom 160
+alien 255
 alien 260
-alien 320
-alien 360
-alien 420
+stage 150
+stage 400
+stage 790
+stage 820
+stage 850
+stage 900
+stage 930
+stage 960
+stage 900 -160 90 -160 0 20 0
+termites 100
+termites 300
+termites 500
+termites 760
+termites 850
+termites 950
+termites 850 -180 120 -180 0 0 0
+sun 120
+sun 400
+sun 1100
+sun 1222
+sun 1260
+sun 1320
+sun 1260 -250 150 -250 0 20 0
