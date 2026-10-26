@@ -343,7 +343,8 @@ public final class MegaEffects {
 	// ======================================================================== SPEAR
 
 	public static class Spear extends FxEffect {
-		private static final int THROW = 36;
+		/** Matches CelestialIIEvents.ColossalSpear.THROW: about five seconds of approach, visible across the sky. */
+		private static final int THROW = 120;
 		private final Vec3d target;
 		private final double length, radius, depth;
 		private final Vec3d throwDir = new Vec3d(0.32, -1, 0.2).normalize();
@@ -374,7 +375,7 @@ public final class MegaEffects {
 		private Vec3d tip(double a) {
 			if (a < THROW) {
 				double u = a / THROW;
-				return target.subtract(throwDir.multiply(380 * (1 - u * u)));
+				return target.subtract(throwDir.multiply(720 * (1 - Math.pow(u, 1.7))));
 			}
 			// Matches the server drill: 0.6 blocks per tick from 24 ticks after the throw lands.
 			double sink = Math.min(depth, Math.max(0, a - THROW - 24) * 0.6);
@@ -469,7 +470,31 @@ public final class MegaEffects {
 				Solids.tube(solid, m, root, end, radius * 0.5, radius * 0.08, 4, 0xB03A2A, 1.0F, true);
 				FxDraw.ribbon(glow, m, root, end, Vec3d.ZERO, radius * 0.08, 0xFF6040, 0.6F, 0.0F);
 			}
+			// Angelic wings: two fans of glowing feathers spread from the back of the shaft, beating slowly.
+			Vec3d wingSide = ax.crossProduct(new Vec3d(0, 1, 0));
+			wingSide = wingSide.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : wingSide.normalize();
+			Vec3d wingRoot = back.add(ax.multiply(length * 0.22));
+			double beat = Math.sin(a * 0.12) * 0.18;
+			for (int side = -1; side <= 1; side += 2) {
+				for (int f = 0; f < 8; f++) {
+					double th = 0.15 + f * 0.17 + beat;
+					Vec3d dir = wingSide.multiply(side * Math.cos(th)).add(ax.multiply(-Math.sin(th))).normalize();
+					double fl = length * (0.42 - f * 0.025);
+					Vec3d tipF = wingRoot.add(dir.multiply(fl));
+					FxDraw.ribbon(glow, m, wingRoot, tipF, Vec3d.ZERO, radius * (1.3 - f * 0.08), f % 2 == 0 ? 0xFFF6E0 : 0xFFE0A0, 0.55F, 0.15F);
+					FxDraw.ribbon(glow, m, wingRoot, tipF, Vec3d.ZERO, radius * 0.25, 0xFFFFFF, 0.8F, 0.3F);
+				}
+			}
+			Vec3d haloC = back.subtract(ax.multiply(radius * 3));
+			FxDraw.ring(glow, m, haloC, bs[0], bs[1], radius * 3.0, radius * 3.6, 0xFFE8A0, 0.0F, 0.85F, 0.0F, 32);
 			if (a < THROW) {
+				// Heaven opens over the target: a column of light marks where it will land.
+				float open = (float) Math.min(1.0, a / 30.0);
+				Vec3d gT = target.subtract(cam);
+				FxDraw.beam(glow, m, gT, gT.add(0, 500, 0), Vec3d.ZERO, 10, 0xFFF0C0, 0.35F * open);
+				Vec3d x0 = new Vec3d(1, 0, 0), z0 = new Vec3d(0, 0, 1);
+				FxDraw.ring(glow, m, gT.add(0, 220, 0), x0, z0, 50 + a * 0.3, 62 + a * 0.3, 0xFFF4D0, 0.0F, 0.5F * open, 0.0F, 64);
+				FxDraw.disc(glow, m, gT.add(0, 0.5, 0), x0, z0, 30 * (0.4 + 0.6 * a / THROW), 0xFFF0C0, 0.4F * open, 0.0F, 32);
 				// In flight: a long shock trail and a glowing bow wave at the tip.
 				Vec3d tail = back.subtract(throwDir.multiply(length * 2.5));
 				FxDraw.beam(glow, m, back, tail, Vec3d.ZERO, radius * 1.4, 0xFFC070, 0.5F);

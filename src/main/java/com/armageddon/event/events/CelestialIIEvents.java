@@ -28,7 +28,6 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.GiantEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.passive.CowEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
@@ -206,6 +205,11 @@ public final class CelestialIIEvents {
 			Kit.sound(world, p, SoundEvents.ENTITY_SLIME_SQUISH, 64.0F, 0.25F);
 			Detonations.blast(world, p, 90, 800.0F, ModDamageTypes.NUCLEAR_BLAST, owner(), 0, 4.0);
 			world.spawnParticles(ParticleTypes.SPLASH, p.x, p.y + 2, p.z, 1500, 40, 6, 40, 1.0);
+			// Boom: the last cow goes off like a warhead of milk.
+			Kit.boom(world, p.add(0, 3, 0), 15.0F, 0xFFF6E8, owner(), false);
+			Vfx.dome(world, p, 60.0F, 0xFFFFFF, 40);
+			Vfx.flash(world, p, 0.8F, 2000, 0xFFFFFF);
+			world.spawnParticles(ParticleTypes.SNOWFLAKE, p.x, p.y + 4, p.z, 800, 18, 10, 18, 0.6);
 			int salt = (int) (Math.abs(p.x) * 13 + Math.abs(p.z) * 7);
 			double s = 17;
 			Vec3d f = Kit.dir(cow.getYaw()), side = new Vec3d(-f.z, 0, f.x);
@@ -227,6 +231,34 @@ public final class CelestialIIEvents {
 						q().put(sp.up(), Blocks.WHITE_CONCRETE.getDefaultState());
 					} else if (d < reach * (0.8 + 0.2 * CelestialIIShapes.noise(dx / 9.0, dz / 9.0, salt + 3)) && natural(at(world, sp))) {
 						q().put(sp, patch);
+					}
+				}
+			}
+			// The milky crater: a deep round bowl blown into the middle of the print, glazed white and pooled with milk.
+			double cr = Destruction.radius(world, 22.0F), depthMax = cr * 0.45;
+			int ci = (int) Math.ceil(cr) + 2;
+			for (int dx = -ci; dx <= ci; dx++) {
+				for (int dz = -ci; dz <= ci; dz++) {
+					double d = Math.sqrt(dx * dx + dz * dz) + CelestialIIShapes.noise(dx / 5.0, dz / 5.0, salt + 9) * 1.5;
+					BlockPos sp = top(world, b.getX() + dx, b.getZ() + dz);
+					if (d > cr + 2) {
+						continue;
+					}
+					if (d > cr) {
+						// A splashed lip of cream thrown up around the bowl.
+						q().put(sp.up(), cream(dx, dz));
+						continue;
+					}
+					int depth = (int) Math.round((1 - (d / cr) * (d / cr)) * depthMax);
+					for (int k = -3; k < depth; k++) {
+						q().put(sp.down(k), Blocks.AIR.getDefaultState());
+					}
+					q().put(sp.down(depth), cream(dx, dz));
+					q().put(sp.down(depth + 1), Blocks.CALCITE.getDefaultState());
+					// Milk pools in the deepest part of the bowl.
+					int pool = depth - (int) (depthMax * 0.55);
+					for (int k = 0; k < pool; k++) {
+						q().put(sp.down(depth - 1 - k), Blocks.POWDER_SNOW.getDefaultState());
 					}
 				}
 			}
@@ -572,7 +604,8 @@ public final class CelestialIIEvents {
 	 * land around the shaft, one glyph after another, until the whole circle is lit.
 	 */
 	public static class ColossalSpear extends Event {
-		private static final int THROW = 36;
+		/** About five seconds of approach; must match MegaEffects.Spear.THROW on the client. */
+		private static final int THROW = 120;
 		private int surfaceY, bottomY, steps, sigilDone;
 		private final List<long[]> sigil = new ArrayList<>();
 
@@ -589,8 +622,8 @@ public final class CelestialIIEvents {
 					for (int dy = -ir; dy <= ir; dy++) {
 						for (int dz = -ir; dz <= ir; dz++) {
 							if (dx * dx + dy * dy + dz * dz <= r * r) {
-								BlockState mat = s > len * 0.7 ? Blocks.SMOOTH_BASALT.getDefaultState()
-										: s < len * 0.2 ? Blocks.BLACKSTONE.getDefaultState() : Blocks.BASALT.getDefaultState();
+								BlockState mat = s > len * 0.7 ? Blocks.SMOOTH_QUARTZ.getDefaultState()
+										: s < len * 0.2 ? Blocks.CALCITE.getDefaultState() : Blocks.QUARTZ_PILLAR.getDefaultState();
 								q().put(BlockPos.ofFloored(c.x + dx, c.y + dy, c.z + dz), mat);
 							}
 						}
@@ -610,10 +643,10 @@ public final class CelestialIIEvents {
 					for (int k = 0; k < depth; k++) {
 						q().put(s.down(k), Blocks.AIR.getDefaultState());
 					}
-					q().put(s.down(depth), Blocks.MAGMA_BLOCK.getDefaultState());
+					q().put(s.down(depth), Blocks.GLOWSTONE.getDefaultState());
 					BlockPos lip = top(world, b.getX() + Math.cos(ang + 0.6 / r) * (r + 0.8), b.getZ() + Math.sin(ang + 0.6 / r) * (r + 0.8));
 					if (natural(at(world, lip))) {
-						q().put(lip, Blocks.OBSIDIAN.getDefaultState());
+						q().put(lip, Blocks.SMOOTH_QUARTZ.getDefaultState());
 					}
 				}
 			}
@@ -630,10 +663,24 @@ public final class CelestialIIEvents {
 				int depth = Math.max(20, surfaceY - bottomY);
 				steps = (int) Math.ceil(depth / 0.6);
 				CelestialEvents.announce(world, c, "block.armageddon.colossal_spear");
-				Vfx.skyTint(world, c, 100000, 0x503010, 0.5F);
+				Vfx.skyTint(world, c, 100000, 0xFFF0C8, 0.55F);
+				Vfx.pillar(world, c, 10.0F, 0xFFF0C0, false, THROW);
 				Vfx.grid(world, c.add(0, 0.2, 0), new Vec3d(0, 1, 0), 34.0F, 0xFFB050, 1, THROW + 4);
 				Vfx.spear(world, c, 92.0F, depth, THROW + 24 + steps + 50);
 				Kit.sound(world, c, ModSounds.ORBITAL_CHARGE, 64.0F, 0.5F);
+				Kit.sound(world, c, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.6F);
+			}
+			if (t < THROW) {
+				// Heaven announces it: chimes and bells as it falls, feathers of light drifting down over the target.
+				if (t % 20 == 0) {
+					Kit.sound(world, c, SoundEvents.BLOCK_BELL_RESONATE, 48.0F, 0.8F + t * 0.006F);
+					Kit.sound(world, c, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 48.0F, 0.5F + t * 0.008F);
+				}
+				world.spawnParticles(ParticleTypes.END_ROD, c.x, c.y + 40, c.z, 6, 30, 20, 30, 0.02);
+				if (t == THROW - 30) {
+					Kit.sound(world, c, SoundEvents.ENTITY_PHANTOM_SWOOP, 64.0F, 0.4F);
+					Vfx.shake(world, c, 800, 0.8F);
+				}
 			}
 			if (t == THROW) {
 				fx(world, RUNE_SIGIL, c, c, CelestialIIShapes.SIGIL_R, 0xFFC860, steps, 0, 24 + steps + 160);
@@ -710,8 +757,8 @@ public final class CelestialIIEvents {
 				while (sigilDone < sigil.size() && Double.longBitsToDouble(sigil.get(sigilDone)[0]) <= sweep) {
 					long[] e = sigil.get(sigilDone++);
 					BlockPos s = top(world, b.getX() + e[1], b.getZ() + e[2]);
-					BlockState mat = e[3] == 2 ? Blocks.MAGMA_BLOCK.getDefaultState()
-							: ((e[1] + e[2]) % 5 == 0 ? Blocks.SHROOMLIGHT : Blocks.GILDED_BLACKSTONE).getDefaultState();
+					BlockState mat = e[3] == 2 ? Blocks.SMOOTH_QUARTZ.getDefaultState()
+							: ((e[1] + e[2]) % 5 == 0 ? Blocks.SEA_LANTERN : Blocks.GOLD_BLOCK).getDefaultState();
 					q().put(s, mat);
 				}
 				if (sigilDone - before > 0 && drill % 10 == 0) {
@@ -719,13 +766,15 @@ public final class CelestialIIEvents {
 				}
 			}
 			if (drill == steps) {
-				// The core answers: a lava geyser up the shaft, and the whole sigil rings.
-				Vfx.pillar(world, c, 7.0F, 0xFF8A30, false, 220);
+				// The core answers: a geyser of light up the shaft, the whole sigil rings, and the land blossoms white.
+				Vfx.pillar(world, c, 9.0F, 0xFFF4D0, false, 220);
+				Vfx.skyTint(world, c, 100000, 0xFFF8E0, 0.6F);
+				blossom(b);
 				Vfx.ring(world, c.add(0, 0.6, 0), CelestialIIShapes.SIGIL_R + 6, 2.0F, 0xFFC860, false, 50);
 				Vfx.shake(world, c, 800, 2.0F);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 64.0F, 0.5F);
 				Kit.sound(world, c, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.4F);
-				world.spawnParticles(ParticleTypes.LAVA, c.x, surfaceY + 4, c.z, 300, 5, 30, 5, 0.0);
+				world.spawnParticles(ParticleTypes.END_ROD, c.x, surfaceY + 4, c.z, 400, 5, 30, 5, 0.2);
 				if (Destruction.enabled(world)) {
 					for (int dx = -9; dx <= 9; dx++) {
 						for (int dz = -9; dz <= 9; dz++) {
@@ -737,6 +786,23 @@ public final class CelestialIIEvents {
 				}
 			}
 			return drill > steps + 60;
+		}
+
+		/** Heaven on earth: white flowers, lilies and lanterns of light spread over the grass around the sigil. */
+		private void blossom(BlockPos b) {
+			int reach = (int) Destruction.radius(world, 70.0F);
+			BlockState[] flowers = {Blocks.LILY_OF_THE_VALLEY.getDefaultState(), Blocks.OXEYE_DAISY.getDefaultState(),
+					Blocks.WHITE_TULIP.getDefaultState(), Blocks.AZURE_BLUET.getDefaultState()};
+			for (int i = 0; i < reach * reach / 6; i++) {
+				double ang = world.random.nextDouble() * MathHelper.TAU;
+				double d = CelestialIIShapes.SIGIL_R + 2 + world.random.nextDouble() * (reach - CelestialIIShapes.SIGIL_R);
+				BlockPos s = top(world, b.getX() + Math.cos(ang) * d, b.getZ() + Math.sin(ang) * d);
+				BlockState ground = at(world, s);
+				if (!ground.isOf(Blocks.GRASS_BLOCK) || !at(world, s.up()).isAir()) {
+					continue;
+				}
+				q().put(s.up(), world.random.nextInt(40) == 0 ? Blocks.END_ROD.getDefaultState() : flowers[world.random.nextInt(flowers.length)]);
+			}
 		}
 	}
 
@@ -760,6 +826,14 @@ public final class CelestialIIEvents {
 		private static final int GIANT_FUSE = 420;
 		private final List<ZombieEntity> zombies = new ArrayList<>();
 		private final Map<GiantEntity, Integer> giants = new HashMap<>();
+		/** Where each giant is currently lumbering: a random spot in the blight, re-rolled on arrival or every so often. */
+		private final Map<GiantEntity, Vec3d> wander = new HashMap<>();
+
+		private Vec3d wanderGoal(Vec3d c) {
+			double a = world.random.nextDouble() * Math.PI * 2;
+			double d = 20 + world.random.nextDouble() * 110;
+			return new Vec3d(c.x + Math.cos(a) * d, c.y, c.z + Math.sin(a) * d);
+		}
 
 		private static final BlockState[] BLIGHT = {Blocks.PODZOL.getDefaultState(), Blocks.MYCELIUM.getDefaultState(),
 				Blocks.COARSE_DIRT.getDefaultState(), Blocks.SOUL_SOIL.getDefaultState(), Blocks.ROOTED_DIRT.getDefaultState(),
@@ -976,9 +1050,12 @@ public final class CelestialIIEvents {
 					dead.add(giant);
 					continue;
 				}
-				// Giants have no AI of their own: march on the nearest player, or the centre.
-				PlayerEntity target = world.getClosestPlayer(giant, 240);
-				Vec3d goal = target != null ? target.getPos() : c;
+				// Giants have no AI of their own: they lumber about the blight at random, wherever their feet take them.
+				Vec3d goal = wander.get(giant);
+				if (goal == null || (t - en.getValue()) % 240 == 0 || Math.hypot(goal.x - giant.getX(), goal.z - giant.getZ()) < 6) {
+					goal = wanderGoal(c);
+					wander.put(giant, goal);
+				}
 				Vec3d to = new Vec3d(goal.x - giant.getX(), 0, goal.z - giant.getZ());
 				if (to.length() > 3) {
 					Vec3d v = to.normalize().multiply(0.26);
@@ -1036,6 +1113,7 @@ public final class CelestialIIEvents {
 				}
 			}
 			dead.forEach(giants::remove);
+			dead.forEach(wander::remove);
 			if (t >= LIFE) {
 				for (ZombieEntity z : zombies) {
 					world.spawnParticles(ParticleTypes.POOF, z.getX(), z.getY() + 1, z.getZ(), 6, 0.3, 0.5, 0.3, 0.02);
@@ -1069,8 +1147,37 @@ public final class CelestialIIEvents {
 	 */
 	public static class UfoInvasion extends Event {
 		private static final int LIFE = 640;
+		/** Scout saucers flanking the mothership: lane offset, altitude above the mothership's, start tick. */
+		private static final double[][] SCOUTS = {{-150, -50, 30}, {150, -40, 60}, {-280, -60, 110}, {280, -55, 140}};
+		private static final float SCOUT_R = 24.0F;
 		private Vec3d from, to, dir;
 		private int stamps;
+		private Vec3d[] scoutFrom, scoutTo;
+
+		private int scoutLife(int k) {
+			return LIFE - (int) SCOUTS[k][2];
+		}
+
+		/** A scout's beam: no writing, just a trail of explosions where it touches down. */
+		private void scouts(int t) {
+			for (int k = 0; k < SCOUTS.length; k++) {
+				int st = (int) SCOUTS[k][2], life = scoutLife(k), a = t - st;
+				if (a == 0) {
+					Vfx.ufo(world, scoutFrom[k], scoutTo[k], SCOUT_R, life);
+				}
+				if (a < life * 0.12 || a > life * 0.88 || a % 6 != 0) {
+					continue;
+				}
+				Vec3d ship = Paths.ufo(scoutFrom[k], scoutTo[k], a, life);
+				Vec3d b = Paths.ufoBeam(new Vec3d(ship.x, 0, ship.z), dir, a);
+				if (!world.isChunkLoaded(BlockPos.ofFloored(b))) {
+					continue;
+				}
+				Vec3d g = Kit.ground(world, b.x, b.z);
+				Kit.boom(world, g.add(0, 0.5, 0), 2.6F + world.random.nextFloat() * 0.8F, 0x60B8FF, owner(), true);
+				world.spawnParticles(ParticleTypes.FLAME, g.x, g.y + 1, g.z, 20, 2, 1, 2, 0.08);
+			}
+		}
 
 		private void cropCircle(Vec3d g, int index) {
 			fx(world, CROP_STAMP, g, g, 1.0F, index, 0, 0, 240);
@@ -1139,8 +1246,19 @@ public final class CelestialIIEvents {
 				to = new Vec3d(c.x + dir.x * 560, alt, c.z + dir.z * 560);
 				CelestialEvents.announce(world, c, "block.armageddon.ufo_invasion");
 				Vfx.ufo(world, from, to, 95.0F, LIFE);
+				Vec3d side = new Vec3d(-dir.z, 0, dir.x);
+				scoutFrom = new Vec3d[SCOUTS.length];
+				scoutTo = new Vec3d[SCOUTS.length];
+				for (int k = 0; k < SCOUTS.length; k++) {
+					Vec3d off = side.multiply(SCOUTS[k][0]).add(0, SCOUTS[k][1], 0);
+					scoutFrom[k] = from.add(off).subtract(dir.multiply(60));
+					scoutTo[k] = to.add(off);
+				}
 				Vfx.skyTint(world, c, 100000, 0x0A1624, 0.6F);
 				Kit.sound(world, c, ModSounds.DEATH_RAY, 64.0F, 0.3F);
+			}
+			if (scoutFrom != null) {
+				scouts(t);
 			}
 			Vec3d ship = Paths.ufo(from, to, t, LIFE);
 			if (t % 20 == 0) {
