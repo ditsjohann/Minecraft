@@ -41,7 +41,9 @@ public class MainStageFx extends FxEffect {
 	/** How far the rig still has to come down: it lowers out of the sky over the first few seconds. */
 	private static double drop(float t) {
 		double u = MathHelper.clamp(t / MainStageSet.RIG_DOWN, 0.0, 1.0);
-		return 140 * (1 - u) * (1 - u);
+		double w = Math.max(0, t - MainStageSet.WRAP - 10);
+		// After the wrap the whole rig falls in on the set.
+		return 140 * (1 - u) * (1 - u) - w * w * 0.06;
 	}
 
 	/** A point on the rig: from the top of the painted wall ({@code phi} = 0) arching up to the zenith. */
@@ -118,6 +120,15 @@ public class MainStageFx extends FxEffect {
 		for (int i = 0; i < MainStageSet.LAMPS; i++) {
 			float lit = t >= MainStageSet.lampOn(i) ? 1.0F : 0.0F;
 			Vec3d lamp = MainStageSet.lamp(g, fwd, i).add(0, drop, 0);
+			if (t >= MainStageSet.WRAP) {
+				// Cut loose: the lamp drops straight down and is gone in its own explosion.
+				double f = (t - MainStageSet.WRAP) / MainStageSet.LAMP_FALL;
+				if (f >= 1) {
+					continue;
+				}
+				Vec3d top = MainStageSet.lamp(g, fwd, i);
+				lamp = top.add(0, -(top.y - groundY(top.x, top.z)) * f * f, 0);
+			}
 			Vec3d spot = MainStageSet.spot(g, fwd, i, Math.max(t, MainStageSet.LAMPS_ON));
 			Vec3d hit = new Vec3d(spot.x, groundY(spot.x, spot.z), spot.z);
 			Vec3d dir = hit.subtract(lamp);

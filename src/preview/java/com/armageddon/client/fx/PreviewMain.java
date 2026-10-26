@@ -63,13 +63,7 @@ public final class PreviewMain {
 	}
 
 	static void run(String[] args) throws Exception {
-		// Render layers reach into the block and sound registries: bootstrap them like data generation does.
-		try {
-			net.minecraft.SharedConstants.createGameVersion();
-			net.minecraft.Bootstrap.initialize();
-		} catch (Throwable t) {
-			error("bootstrap", t);
-		}
+		// No registry bootstrap: the preview source set stubs RenderLayer/RenderPhase so nothing touches the registries.
 		BufferedImage at = ImageIO.read(new File(args[1]));
 		atlasW = at.getWidth();
 		atlasH = at.getHeight();

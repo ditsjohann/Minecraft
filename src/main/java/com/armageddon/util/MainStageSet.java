@@ -24,6 +24,11 @@ public final class MainStageSet {
 	public static final int STAGE = 225, WALL = 250;
 	/** Showtime: the curtain call, once the set is built. */
 	public static final int CURTAIN_CALL = 420;
+	/**
+	 * THAT'S A WRAP: the lamps drop out of the rig and the rig comes down after them, the painted wall topples
+	 * outward, and the stage goes up in a pyrotechnic blast that flattens everything far beyond the set.
+	 */
+	public static final int WRAP = SCORCH_END + 20, LAMP_FALL = 32, WALL_FALL = WRAP + 50, FINALE = WRAP + 140, END = FINALE + 420;
 
 	// ---- layout (blocks) ----
 	public static final double DOME_R = 96, DOME_H = 80;

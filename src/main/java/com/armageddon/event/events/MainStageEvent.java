@@ -6,6 +6,7 @@ import com.armageddon.event.Kit;
 import com.armageddon.event.WorldEvent;
 import com.armageddon.network.FxType;
 import com.armageddon.network.Vfx;
+import com.armageddon.detonation.Detonations;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.util.MainStageSet;
 import net.minecraft.block.BlockState;
@@ -60,7 +61,7 @@ public class MainStageEvent extends WorldEvent {
 			wallR = (int) Destruction.radius(world, (float) MainStageSet.WALL_R);
 			CelestialEvents.announce(world, g, "block.armageddon.truman_show");
 			// The rig, lamps and beams, from the moment it is lit.
-			Vfx.custom(world, FxType.STAGE_SET, g, fwd, (float) MainStageSet.DOME_R, 0xFFF0D0, 0, 0, 0, MainStageSet.SCORCH_END + 60, 1024);
+			Vfx.custom(world, FxType.STAGE_SET, g, fwd, (float) MainStageSet.DOME_R, 0xFFF0D0, 0, 0, 0, MainStageSet.FINALE + 60, 1024);
 			world.spawnParticles(ParticleTypes.NOTE, g.x, g.y + 2, g.z, 6, 1.5, 0.5, 1.5, 0.5);
 			Kit.sound(world, g, SoundEvents.BLOCK_PISTON_EXTEND, 32.0F, 0.4F);
 		}
@@ -123,6 +124,7 @@ public class MainStageEvent extends WorldEvent {
 		if (t > MainStageSet.CURTAIN_CALL && t < MainStageSet.CURTAIN_CALL + 40 && t % 3 == 0) {
 			Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_SNARE.value(), 32.0F, 1.0F + world.random.nextFloat() * 0.2F);
 		}
+		wrap(g, t);
 		flying.entrySet().removeIf(en -> {
 			if (!en.getKey().isAlive() || t - en.getValue() > 55) {
 				en.getKey().discard();
@@ -131,8 +133,119 @@ public class MainStageEvent extends WorldEvent {
 			return false;
 		});
 		drain();
-		boolean done = t > MainStageSet.SCORCH_END && queue.isEmpty();
-		return done || t > MainStageSet.SCORCH_END + 1200;
+		boolean done = t > MainStageSet.END && queue.isEmpty() && (devastation == null || devastation.isDone());
+		return done || t > MainStageSet.END + 1200;
+	}
+
+	// ------------------------------------------------------------------ that's a wrap
+
+	private com.armageddon.destruction.world.TerrainJob devastation;
+
+	/**
+	 * The set is struck for real: the lamps drop out of the rig and explode where they land, the painted wall
+	 * topples outward in burning chunks, and the stage goes up in one last pyrotechnic blast whose shock front
+	 * flattens everything for hundreds of blocks beyond the set.
+	 */
+	private void wrap(Vec3d g, int t) {
+		if (t == MainStageSet.WRAP) {
+			Kit.title(world, g, 400, net.minecraft.text.Text.literal("THAT'S A WRAP!").formatted(net.minecraft.util.Formatting.RED, net.minecraft.util.Formatting.BOLD),
+					net.minecraft.text.Text.literal("strike the set").formatted(net.minecraft.util.Formatting.GRAY));
+			Kit.sound(world, g, SoundEvents.BLOCK_CHAIN_BREAK, 64.0F, 0.5F);
+			Kit.sound(world, g, SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, 64.0F, 0.4F);
+		}
+		if (t == MainStageSet.WRAP + MainStageSet.LAMP_FALL) {
+			for (int i = 0; i < MainStageSet.LAMPS; i++) {
+				Vec3d l = MainStageSet.lamp(g, fwd, i);
+				Vec3d hit = Kit.ground(world, l.x, l.z);
+				Kit.boom(world, hit.add(0, 1, 0), 9.0F, 0xFFC060, owner(), true);
+				if (Destruction.enabled(world)) {
+					com.armageddon.detonation.DetonationManager.add(new com.armageddon.detonation.CraterJob(world, BlockPos.ofFloored(hit), 9.0F,
+							com.armageddon.detonation.CraterJob.Mode.NUKE));
+				}
+			}
+			Vfx.shake(world, g, 400, 2.5F);
+		}
+		if (t == MainStageSet.WRAP + 50) {
+			// The rig itself comes down across the floor.
+			for (int k = 0; k < 10; k++) {
+				double a = k * Math.PI * 2 / 10 + 0.3;
+				Vec3d p = Kit.ground(world, g.x + Math.cos(a) * MainStageSet.WALL_R * 0.6, g.z + Math.sin(a) * MainStageSet.WALL_R * 0.6);
+				final Vec3d at = p;
+				com.armageddon.detonation.DetonationManager.schedule(world, k * 3, () -> Kit.boom(world, at.add(0, 1, 0), 5.0F, 0xFF9040, owner(), true));
+			}
+		}
+		if (t >= MainStageSet.WALL_FALL && t < MainStageSet.WALL_FALL + 60 && Destruction.enabled(world)) {
+			// The painted sky falls outward, a slice of wall at a time, as burning chunks.
+			int slices = 60;
+			int k = t - MainStageSet.WALL_FALL;
+			double a0 = k * Math.PI * 2 / slices, a1 = (k + 1) * Math.PI * 2 / slices;
+			for (double a = a0; a < a1; a += 0.5 / wallR) {
+				for (int dr = -2; dr <= 2; dr++) {
+					int x = MathHelper.floor(g.x + Math.cos(a) * (wallR + dr)), z = MathHelper.floor(g.z + Math.sin(a) * (wallR + dr));
+					for (int y = floorY + 1; y <= floorY + MainStageSet.WALL_H + 2; y++) {
+						BlockPos p = new BlockPos(x, y, z);
+						BlockState st = world.getBlockState(p);
+						if (st.isAir() || st.hasBlockEntity()) {
+							continue;
+						}
+						if (world.random.nextInt(14) == 0 && flying.size() < 400) {
+							Destruction.record(world, p, st);
+							FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, p, st);
+							fb.setDestroyedOnLanding();
+							fb.dropItem = false;
+							Kit.velocity(fb, new Vec3d(Math.cos(a) * (0.8 + world.random.nextDouble()), 0.3 + world.random.nextDouble() * 0.6, Math.sin(a) * (0.8 + world.random.nextDouble())));
+							flying.put(fb, t);
+						} else {
+							queue.add(new Op(p.asLong(), Blocks.AIR.getDefaultState()));
+						}
+					}
+				}
+			}
+			if (k % 6 == 0) {
+				Vec3d p = Kit.ground(world, g.x + Math.cos(a0) * wallR, g.z + Math.sin(a0) * wallR);
+				Kit.boom(world, p.add(0, 4, 0), 4.0F, 0xFF7030, owner(), false);
+			}
+		}
+		if (t == MainStageSet.FINALE - 40) {
+			Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_SNARE.value(), 64.0F, 1.0F);
+			Kit.title(world, g, 400, net.minecraft.text.Text.literal("AND FOR OUR FINAL ACT...").formatted(net.minecraft.util.Formatting.GOLD), net.minecraft.text.Text.empty());
+		}
+		if (t == MainStageSet.FINALE) {
+			Vec3d st = Kit.ground(world, g.x + fwd.x * MainStageSet.STAGE_AT, g.z + fwd.z * MainStageSet.STAGE_AT);
+			for (int i = 0; i < 12; i++) {
+				final Vec3d p = st.add(right.multiply((i - 5.5) * 3)).add(0, 2 + (i % 3) * 3, 0);
+				final int k = i;
+				com.armageddon.detonation.DetonationManager.schedule(world, i * 2, () -> {
+					Vfx.firework(world, p.add(0, 8, 0), 4.0F, k % 5, 0xFF4040 + k * 0x101010);
+					Kit.boom(world, p, 4.0F, 0xFFD040, owner(), true);
+				});
+			}
+			com.armageddon.detonation.DetonationManager.schedule(world, 30, () -> {
+				Kit.boom(world, st.add(0, 4, 0), 18.0F, 0xFFB050, owner(), true);
+				Vfx.flash(world, st, 1.0F, 1200, 0xFFF0D0);
+				Vfx.ring(world, st, 500.0F, 10.0F, 0xFFD080, true, 100);
+				Vfx.dome(world, st, 200.0F, 0xFFB050, 60);
+				Vfx.pillar(world, st, 20.0F, 0xFFE0A0, false, 120);
+				Detonations.blast(world, st, 260, 400.0F, ModDamageTypes.ANNIHILATION, owner(), 60, 8.0);
+				if (Destruction.enabled(world)) {
+					com.armageddon.detonation.DetonationManager.add(new com.armageddon.detonation.CraterJob(world, BlockPos.ofFloored(st),
+							Destruction.radius(world, 34.0F), com.armageddon.detonation.CraterJob.Mode.NUKE));
+					devastation = com.armageddon.destruction.world.Devastation.of(world, st, 0, Destruction.radius(world, 280.0F), floorY,
+							com.armageddon.destruction.world.Devastation.FIRE);
+					devastation.limit = 0;
+				}
+				Kit.title(world, g, 600, net.minecraft.text.Text.literal("THANK YOU, GOODNIGHT!").formatted(net.minecraft.util.Formatting.GOLD, net.minecraft.util.Formatting.BOLD),
+						net.minecraft.text.Text.empty());
+			});
+		}
+		if (devastation != null) {
+			int k = t - MainStageSet.FINALE - 30;
+			devastation.limit = 4.5 * k;
+			devastation.step(3500);
+			if (devastation.limit < 280 && k % 2 == 0) {
+				WorldCutsceneEvents.shockFront(world, center().add(fwd.multiply(MainStageSet.STAGE_AT)), devastation.limit, 8, 30.0F, owner());
+			}
+		}
 	}
 
 	@Override
@@ -292,6 +405,10 @@ public class MainStageEvent extends WorldEvent {
 				if (world.random.nextInt(6) == 0 && world.getBlockState(top.up()).isAir()) {
 					Destruction.set(world, top.up(), Blocks.FIRE.getDefaultState(), Kit.FLAGS);
 				}
+			}
+			// The beams don't just scorch: whatever they sweep over blows apart.
+			if ((t + i * 5) % 14 == 0) {
+				Kit.boom(world, hit, 2.2F, 0xFFB040, owner(), true);
 			}
 			if (t % 4 == 0) {
 				for (LivingEntity e : Kit.living(world, hit, 3.0)) {
