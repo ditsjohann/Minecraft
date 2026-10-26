@@ -628,27 +628,46 @@ public final class Cinematics {
 			Vec3d elbowL = elbow(LS, handL, BONE, BONE, rt.multiply(-1).add(fwd.multiply(0.4)));
 			Vec3d hd = headDir(a);
 			Vec3d punchDir = handR.subtract(elbowR).normalize();
-			int skin = 0x1E1848, limb = 0x2A2060, plate = 0x3A2C78;
+			int plate = 0x241C46, gold = 0xD8A030, gem = 0x60FFE0;
+			Solids.Cell sky = Solids.nightSky(a, 3);
 
 			if (body) {
-				Solids.tube(solid, m, N, P, 72, 50, 16, skin, 1.0F, true);
+				renderCape(solid, glow, m, LS, RS, rt, a, env);
+				// Skin is a window onto a drifting night sky.
+				Solids.tube(solid, m, N, P, 72, 50, 16, 8, sky, true, 1.0F);
+				Solids.tube(solid, m, N, N.add(0, 32, 0), 26, 22, 10, 2, sky, true, 1.0F);
+				Solids.ellipsoid(solid, m, H, 44, 44, 44, 14, 22, sky, true, 1.0F);
+				Solids.tube(solid, m, RS, elbowR, 32, 27, 12, 6, sky, true, 1.0F);
+				Solids.tube(solid, m, elbowR, handR, 27, 25, 12, 6, sky, true, 1.0F);
+				Solids.tube(solid, m, LS, elbowL, 32, 27, 12, 6, sky, true, 1.0F);
+				Solids.tube(solid, m, elbowL, handL, 27, 25, 12, 6, sky, true, 1.0F);
+				// Breastplate with gold trim at its collar and hem.
 				Solids.tube(solid, m, N.add(0, -30, 0), N.add(0, -120, 0), 80, 70, 16, plate, 1.0F, true);
-				Solids.tube(solid, m, N, N.add(0, 32, 0), 26, 22, 10, skin, 1.0F, true);
-				Solids.sphere(solid, m, H, 44, limb, 14, 22, true);
-				Solids.ellipsoid(solid, m, RS.add(0, 8, 0), 52, 34, 52, 8, 14, (i, j, n) -> plate, true, 1.0F);
-				Solids.ellipsoid(solid, m, LS.add(0, 8, 0), 52, 34, 52, 8, 14, (i, j, n) -> plate, true, 1.0F);
-				Solids.tube(solid, m, RS, elbowR, 32, 27, 12, limb, 1.0F, true);
-				Solids.tube(solid, m, elbowR, handR, 27, 25, 12, limb, 1.0F, true);
+				Solids.tube(solid, m, N.add(0, -27, 0), N.add(0, -33, 0), 82.5, 82.5, 24, gold, 1.0F, true);
+				Solids.tube(solid, m, N.add(0, -117, 0), N.add(0, -123, 0), 72.5, 72.5, 24, gold, 1.0F, true);
+				// Pauldrons with gold rims.
+				for (Vec3d sh : new Vec3d[]{RS, LS}) {
+					Solids.ellipsoid(solid, m, sh.add(0, 8, 0), 52, 34, 52, 8, 14, (i, j, n) -> n.y < -0.25 ? gold : plate, true, 1.0F);
+					Solids.ellipsoid(solid, m, sh.add(0, 30, 0), 26, 16, 26, 6, 10, (i, j, n) -> gold, true, 1.0F);
+				}
+				// Bracers and gold-knuckled gauntlets.
+				for (Vec3d[] arm : new Vec3d[][]{{elbowR, handR}, {elbowL, handL}}) {
+					Vec3d d = arm[1].subtract(arm[0]);
+					Solids.tube(solid, m, arm[0].add(d.multiply(0.45)), arm[0].add(d.multiply(0.85)), 30, 29, 12, plate, 1.0F, true);
+					for (double k : new double[]{0.45, 0.65, 0.85}) {
+						Vec3d bc = arm[0].add(d.multiply(k));
+						Solids.tube(solid, m, bc.subtract(d.normalize().multiply(2.5)), bc.add(d.normalize().multiply(2.5)), 31.5, 31.5, 16, gold, 1.0F, true);
+					}
+				}
 				Solids.sphere(solid, m, elbowR, 30, plate, 8, 12, true);
+				Solids.sphere(solid, m, elbowL, 30, plate, 8, 12, true);
 				Solids.sphere(solid, m, handR, 50, plate, 12, 18, true);
+				Solids.sphere(solid, m, handL, 44, plate, 10, 16, true);
 				Vec3d[] kb = ArsenalEffects.basis(punchDir);
 				for (int k = 0; k < 4; k++) {
 					double s = (k - 1.5) * 22;
-					Solids.sphere(solid, m, handR.add(punchDir.multiply(38)).add(kb[0].multiply(s)), 17, 0x463290, 6, 10, true);
+					Solids.sphere(solid, m, handR.add(punchDir.multiply(38)).add(kb[0].multiply(s)), 17, gold, 6, 10, true);
 				}
-				Solids.tube(solid, m, LS, elbowL, 32, 27, 12, limb, 1.0F, true);
-				Solids.tube(solid, m, elbowL, handL, 27, 25, 12, limb, 1.0F, true);
-				Solids.sphere(solid, m, handL, 44, plate, 10, 16, true);
 			}
 			float rim = 0.25F * env;
 			Solids.tube(glow, m, N, P, 76, 54, 12, 0x7A5CFF, rim, false);
@@ -656,34 +675,10 @@ public final class Cinematics {
 			Solids.tube(glow, m, elbowR, handR, 31, 28, 8, 0x7A5CFF, rim, false);
 			Solids.tube(glow, m, LS, elbowL, 35, 30, 8, 0x7A5CFF, rim, false);
 			Solids.tube(glow, m, elbowL, handL, 31, 28, 8, 0x7A5CFF, rim, false);
-			// Galaxy skin: twinkling stars and a constellation drawn across the chest.
+			// Stars on the skin, a few big enough to flare, linked into constellations.
 			Vec3d[] tb = ArsenalEffects.basis(P.subtract(N));
 			Vec3d prevStar = null;
-			for (int i = 0; i < 46; i++) {
-				double u = 0.1 + 0.8 * Solids.hash(i, 21);
-				double ang = Solids.hash(i, 22) * MathHelper.TAU;
-				double rad = lerp(72, 50, u) * 1.02;
-				Vec3d p = N.add(P.subtract(N).multiply(u)).add(tb[0].multiply(Math.cos(ang) * rad)).add(tb[1].multiply(Math.sin(ang) * rad));
-				float tw = 0.5F + 0.5F * MathHelper.sin(a * 0.2F + i);
-				Solids.dot(glow, m, p, cb, 2.5 + 3 * Solids.hash(i, 23), i % 5 == 0 ? 0xFFD8A0 : 0xFFFFFF, tw * env);
-				if (i < 9) {
-					if (prevStar != null) {
-						FxDraw.ribbon(glow, m, prevStar, p, Vec3d.ZERO, 1.2, 0xB0C8FF, 0.5F * env, 0.5F * env);
-					}
-					prevStar = p;
-				}
-			}
-			// Nebula body: drifting coloured mist through the torso so it reads as a galaxy, not a statue.
-			for (int i = 0; i < 34; i++) {
-				double u = Solids.hash(i, 31);
-				double ang = Solids.hash(i, 32) * MathHelper.TAU + a * 0.004 * (i % 2 == 0 ? 1 : -1);
-				double rad = lerp(85, 55, u) * (0.4 + 0.9 * Solids.hash(i, 33));
-				Vec3d p = N.add(P.subtract(N).multiply(u)).add(tb[0].multiply(Math.cos(ang) * rad)).add(tb[1].multiply(Math.sin(ang) * rad));
-				int nc = i % 3 == 0 ? 0xC060FF : i % 3 == 1 ? 0x4080FF : 0xFF60C0;
-				Solids.dot(glow, m, p, cb, 30 + 40 * Solids.hash(i, 34), nc, 0.07F * env);
-			}
-			// More stars, a few of them big enough to flare.
-			for (int i = 46; i < 130; i++) {
+			for (int i = 0; i < 130; i++) {
 				double u = 0.05 + 0.9 * Solids.hash(i, 21);
 				double ang = Solids.hash(i, 22) * MathHelper.TAU;
 				double rad = lerp(74, 52, u) * 1.03;
@@ -692,35 +687,87 @@ public final class Cinematics {
 				if (i % 19 == 0) {
 					Solids.flare(glow, m, p, cb, 9, 0xC8D8FF, tw * env * 0.8F);
 				} else {
-					Solids.dot(glow, m, p, cb, 1.5 + 2 * Solids.hash(i, 23), 0xFFFFFF, tw * env * 0.8F);
+					Solids.dot(glow, m, p, cb, 1.5 + 2.5 * Solids.hash(i, 23), i % 5 == 0 ? 0xFFD8A0 : 0xFFFFFF, tw * env * 0.85F);
+				}
+				// The first 28 stars form four constellations of seven.
+				if (i < 28) {
+					if (i % 7 != 0 && prevStar != null) {
+						float draw = (float) clamp01((a - 60 - (i / 7) * 25) / 30.0);
+						FxDraw.ribbon(glow, m, prevStar, prevStar.lerp(p, draw), Vec3d.ZERO, 1.3, 0xB0C8FF, 0.55F * env, 0.55F * env);
+					}
+					prevStar = p;
 				}
 			}
-			// Armour: glowing seams around the chest plates and down the arms.
+			Vec3d[][] limbs = {{RS, elbowR}, {elbowR, handR}, {LS, elbowL}, {elbowL, handL}};
+			for (int l = 0; l < limbs.length; l++) {
+				Vec3d[] seg = limbs[l];
+				Vec3d dirS = seg[1].subtract(seg[0]);
+				Vec3d[] sb = ArsenalEffects.basis(dirS);
+				Vec3d prev = null;
+				for (int i = 0; i < 5; i++) {
+					double ang = Solids.hash(i, l * 3 + 70) * MathHelper.TAU;
+					Vec3d p = seg[0].add(dirS.multiply(0.12 + 0.18 * i)).add(sb[0].multiply(Math.cos(ang) * 29)).add(sb[1].multiply(Math.sin(ang) * 29));
+					Solids.dot(glow, m, p, cb, 2.5, 0xFFFFFF, (0.6F + 0.4F * MathHelper.sin(a * 0.2F + i)) * env);
+					if (prev != null) {
+						FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 1.0, 0xB0C8FF, 0.4F * env, 0.4F * env);
+					}
+					prev = p;
+				}
+			}
+			// Nebula body: drifting coloured mist through the torso so it reads as a galaxy, not a statue.
+			for (int i = 0; i < 34; i++) {
+				double u = Solids.hash(i, 31);
+				double ang = Solids.hash(i, 32) * MathHelper.TAU + a * 0.004 * (i % 2 == 0 ? 1 : -1);
+				double rad = lerp(85, 55, u) * (0.4 + 0.9 * Solids.hash(i, 33));
+				Vec3d p = N.add(P.subtract(N).multiply(u)).add(tb[0].multiply(Math.cos(ang) * rad)).add(tb[1].multiply(Math.sin(ang) * rad));
+				int nc = i % 3 == 0 ? 0xC060FF : i % 3 == 1 ? 0x30C0D0 : 0xFF60C0;
+				Solids.dot(glow, m, p, cb, 30 + 40 * Solids.hash(i, 34), nc, 0.07F * env);
+			}
+			// Glyph seams: runes chase around the armour joints, gold on the trim, violet on the arms.
+			float chase = a * 0.08F;
 			for (int k = 0; k < 4; k++) {
 				Vec3d bandC = N.add(0, -40 - k * 26, 0);
-				double br = lerp(82, 70, k / 3.0);
-				FxDraw.ring(glow, m, bandC, rt, fwd, br, br + 2.2, 0xB090FF, 0.0F, 0.55F * env, 0.0F, 48);
+				double br = lerp(83, 71, k / 3.0);
+				FxDraw.ring(glow, m, bandC, rt, fwd, br, br + 2.2, 0xB090FF, 0.0F, 0.5F * env, 0.0F, 48);
+				for (int g = 0; g < 14; g++) {
+					double ang = g * MathHelper.TAU / 14 + k * 0.2;
+					Vec3d out = rt.multiply(Math.cos(ang)).add(fwd.multiply(Math.sin(ang)));
+					float lit = 0.3F + 0.7F * (float) Math.max(0, Math.sin(chase - g * 0.7 - k));
+					Solids.glyph(glow, m, bandC.add(out.multiply(br + 0.8)).add(0, 6, 0), out.crossProduct(new Vec3d(0, 1, 0)).normalize(), new Vec3d(0, 1, 0), 9, g * 5 + k, 0xFFD070, lit * env);
+				}
 			}
-			for (Vec3d[] seg : new Vec3d[][]{{RS, elbowR}, {elbowR, handR}, {LS, elbowL}, {elbowL, handL}}) {
+			for (Vec3d[] seg : limbs) {
 				Vec3d dirS = seg[1].subtract(seg[0]);
+				Vec3d axis = dirS.normalize();
 				Vec3d[] sb = ArsenalEffects.basis(dirS);
 				for (int k = 1; k <= 3; k++) {
 					Vec3d bc = seg[0].add(dirS.multiply(k / 4.0));
 					FxDraw.ring(glow, m, bc, sb[0], sb[1], 29, 31, 0x9A7CFF, 0.0F, 0.5F * env, 0.0F, 24);
+					for (int g = 0; g < 6; g++) {
+						double ang = g * MathHelper.TAU / 6;
+						Vec3d out = sb[0].multiply(Math.cos(ang)).add(sb[1].multiply(Math.sin(ang)));
+						float lit = 0.3F + 0.7F * (float) Math.max(0, Math.sin(chase - g - k * 1.3));
+						Solids.glyph(glow, m, bc.add(out.multiply(30.5)), axis.crossProduct(out).normalize(), axis, 6, g * 11 + k * 3, 0xC8A8FF, lit * env);
+					}
 				}
 			}
 			for (Vec3d sh : new Vec3d[]{RS, LS}) {
-				FxDraw.ring(glow, m, sh.add(0, 14, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 50, 54, 0xD0B0FF, 0.0F, 0.6F * env, 0.0F, 40);
+				FxDraw.ring(glow, m, sh.add(0, 14, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 50, 54, 0xFFD070, 0.0F, 0.6F * env, 0.0F, 40);
 			}
-			// A crown of horns.
+			// A gold crown: a band of seven spikes, gems at their roots and points of light at their tips.
 			if (body) {
-				for (int k = 0; k < 5; k++) {
-					double ang = (k - 2) * 0.42;
-					Vec3d out = rt.multiply(Math.sin(ang)).add(0, Math.cos(ang), 0).normalize();
-					Vec3d root = H.add(out.multiply(38));
-					Vec3d tip = root.add(out.multiply(k == 2 ? 70 : 45)).add(fwd.multiply(12));
-					Solids.tube(solid, m, root, tip, 9, 0.5, 6, plate, 1.0F, true);
-					Solids.dot(glow, m, tip, cb, 10, 0xFFE0A0, 0.8F * env);
+				Vec3d crownBase = H.add(0, 26, 0);
+				Solids.tube(solid, m, crownBase, crownBase.add(0, 12, 0), 40, 42, 24, gold, 1.0F, true);
+				FxDraw.ring(glow, m, crownBase.add(0, 6, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 42, 44.5, 0xFFE0A0, 0.0F, 0.5F * env, 0.0F, 48);
+				for (int k = 0; k < 7; k++) {
+					double ang = k * MathHelper.TAU / 7 + Math.atan2(-hd.z, -hd.x) + Math.PI;
+					Vec3d out = new Vec3d(Math.cos(ang), 0, Math.sin(ang));
+					Vec3d root = crownBase.add(out.multiply(41)).add(0, 12, 0);
+					double tall = k == 0 ? 62 : k == 1 || k == 6 ? 44 : 32;
+					Vec3d tip = root.add(out.multiply(tall * 0.25)).add(0, tall, 0);
+					Solids.tube(solid, m, root, tip, 8, 0.5, 6, gold, 1.0F, true);
+					Solids.dot(glow, m, root.add(out.multiply(2)).add(0, 2, 0), cb, 5, k % 2 == 0 ? gem : 0xC070FF, 0.9F * env);
+					Solids.flare(glow, m, tip, cb, k == 0 ? 14 : 8, 0xFFE0A0, (0.6F + 0.3F * MathHelper.sin(a * 0.25F + k)) * env);
 				}
 			}
 			// Chest core.
@@ -781,6 +828,46 @@ public final class Cinematics {
 					Vec3d p = hand(a - k * 4F).add(off);
 					FxDraw.ring(glow, m, p, ArsenalEffects.basis(punchDir)[0], ArsenalEffects.basis(punchDir)[1], 50 + k * 22, 58 + k * 22, 0xFFFFFF, 0.0F, 0.5F / k, 0.0F, 40);
 				}
+			}
+		}
+
+		/**
+		 * A nebula cape hung from the shoulders: a rippling sheet of night sky that billows behind the giant and
+		 * streams back hard during the punch.
+		 */
+		private void renderCape(VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d LS, Vec3d RS, Vec3d rt, float a, float env) {
+			int cols = 12, rows = 14;
+			double punch = clamp01((a - PUNCH_START) / (double) (IMPACT - PUNCH_START)) * (1 - clamp01((a - IMPACT - 40) / 80.0));
+			Vec3d[][] g = new Vec3d[rows + 1][cols + 1];
+			for (int r = 0; r <= rows; r++) {
+				double v = (double) r / rows;
+				for (int c = 0; c <= cols; c++) {
+					double u = (double) c / cols;
+					Vec3d top = LS.lerp(RS, u).add(0, 22, 0).add(fwd.multiply(34));
+					double flare = 1 + v * 0.5;
+					double across = (u - 0.5) * flare * 156 - (u - 0.5) * 156;
+					double wave = Math.sin(a * 0.06 + u * 5.0 + v * 3.2) * 14 * v + Math.sin(a * 0.11 + u * 9.0) * 4 * v;
+					double back = 20 * v * v + wave + punch * 140 * v * v;
+					g[r][c] = top.add(rt.multiply(across)).add(fwd.multiply(back)).add(0, -v * 360 + punch * 70 * v * v, 0);
+				}
+			}
+			Solids.Cell sky = Solids.nightSky(a * 0.7F, 17);
+			for (int r = 0; r < rows; r++) {
+				for (int c = 0; c < cols; c++) {
+					Vec3d n = g[r + 1][c].subtract(g[r][c]).crossProduct(g[r][c + 1].subtract(g[r][c]));
+					n = n.lengthSquared() < 1.0E-6 ? fwd : n.normalize();
+					int col = Solids.scale(sky.color(r, c, n.multiply(0.6).add(c * 0.08, r * 0.06, 0)), Solids.light(n.y < 0 ? n.multiply(-1) : n) * 0.85);
+					Solids.quad(solid, m, g[r][c], g[r][c + 1], g[r + 1][c + 1], g[r + 1][c], col, 1.0F);
+				}
+			}
+			// A glowing hem and nebula wisps trailing off it.
+			for (int c = 0; c < cols; c++) {
+				FxDraw.ribbon(glow, m, g[rows][c], g[rows][c + 1], Vec3d.ZERO, 6, c % 2 == 0 ? 0xC070FF : 0x40D0E0, 0.8F * env, 0.8F * env);
+				FxDraw.ribbon(glow, m, g[0][c], g[0][c + 1], Vec3d.ZERO, 4, 0xFFD070, 0.7F * env, 0.7F * env);
+			}
+			for (int r = 0; r < rows; r += 2) {
+				FxDraw.ribbon(glow, m, g[r][0], g[r + 2 > rows ? rows : r + 2][0], Vec3d.ZERO, 3, 0xFFD070, 0.5F * env, 0.5F * env);
+				FxDraw.ribbon(glow, m, g[r][cols], g[r + 2 > rows ? rows : r + 2][cols], Vec3d.ZERO, 3, 0xFFD070, 0.5F * env, 0.5F * env);
 			}
 		}
 
@@ -1022,18 +1109,65 @@ public final class Cinematics {
 			return d.lengthSquared() < 1.0E-6 ? new Vec3d(0, 1, 0) : d.normalize();
 		}
 
+		// --- launch prep timeline (ignition at 240 and liftoff at 282 are fixed by the server's sounds) ----------
+
+		/** Nose petals: open while the warhead goes in, shut when it is seated. */
+		private static double hatch(float a) {
+			return ease((a - 112) / 14.0) * (1 - ease((a - 146) / 8.0));
+		}
+
+		/** Gantry towers, arms, hoses and the crane: 0 docked, 1 pulled clear of the pad. */
+		private static double retreat(float a) {
+			return ease((a - 206) / 30.0);
+		}
+
+		/** A warning beacon flash that spikes on each of the server's beeps and decays. */
+		private static float beep(float a) {
+			float k = 0;
+			for (int t : new int[]{160, 185, 210}) {
+				if (a >= t) {
+					k = Math.max(k, (float) Math.exp(-(a - t) / 6.0));
+				}
+			}
+			return k;
+		}
+
+		private Vec3d corePos(float a) {
+			Vec3d high = base.add(0, LEN + 34, 0);
+			Vec3d seat = base.add(0, LEN * 0.74, 0);
+			return lerp(high, seat, ease((a - 118) / 30.0));
+		}
+
+		private Vec3d drone(int i, float a) {
+			double ang = a * (0.03 + 0.01 * (i % 3)) * (i % 2 == 0 ? 1 : -1) + i * 1.9;
+			double h = 8 + (i * 7.3) % (LEN - 10) + Math.sin(a * 0.07 + i) * 3;
+			double r = RR + 5 + 2 * Math.sin(a * 0.11 + i * 2);
+			double away = ease((a - 214 - i) / 18.0) * 120;
+			return base.add(Math.cos(ang) * (r + away), h + away * 0.6, Math.sin(ang) * (r + away));
+		}
+
 		@Override
 		protected void direct(float a, State s) {
 			Vec3d rc = rocketCentre(a);
 			Vec3d rd = rocketDir(a);
+			Vec3d nose = base.add(0, LEN * 0.84, 0);
 			if (a < 110) {
 				double ang = 0.3 + a * 0.006;
 				double r = 430 - a * 1.1;
 				aim(s, c.add(Math.cos(ang) * r, 130 - a * 0.5, Math.sin(ang) * r), c.add(0, PR + 20, 0), 70, true);
-			} else if (a < 230) {
-				double ang = a * 0.012;
-				Vec3d focus = base.add(0, LEN * 0.45, 0);
-				aim(s, focus.add(Math.cos(ang) * 78, -6 + (a - 110) * 0.28, Math.sin(ang) * 78), focus, 60, true);
+			} else if (a < 162) {
+				// Close on the nose: the petals open, the glowing core is lowered in, the clamps bite.
+				double u = ease((a - 110) / 52.0);
+				aim(s, nose.add(lerp(26, 17, u), lerp(14, 6, u), lerp(20, 13, u)), lerp(corePos(a), nose, 0.5 + 0.5 * u), (float) lerp(56, 46, u), true);
+			} else if (a < 206) {
+				// Tracking down the hull past the fuel hoses and the drone swarm.
+				double u = (a - 162) / 44.0;
+				double h = lerp(LEN * 0.7, 12, ease(u));
+				aim(s, base.add(lerp(-14, 8, u), h + 6, -26), base.add(0, h - 2, 0), 58, true);
+			} else if (a < 236) {
+				// Wide: steam, beacons, and the towers pulling away from the rocket.
+				double u = ease((a - 206) / 30.0);
+				aim(s, base.add(lerp(120, 100, u), lerp(16, 10, u), lerp(96, 80, u)), base.add(0, LEN * 0.42, 0), 62, true);
 			} else if (a < 300) {
 				aim(s, base.add(40, -4, 30), rc.add(0, LEN * 0.2, 0), 92, true);
 			} else if (a < 400) {
@@ -1046,8 +1180,11 @@ public final class Cinematics {
 
 		@Override
 		protected float handheld(float a) {
-			if (a >= 240 && a < 330) {
-				return 0.6F + (a - 240) * 0.02F;
+			if (a >= 148 && a < 162) {
+				return 0.5F;
+			}
+			if (a >= 236 && a < 330) {
+				return 0.6F + Math.max(0, a - 240) * 0.02F;
 			}
 			if (a >= 400) {
 				return 1.2F;
@@ -1056,8 +1193,30 @@ public final class Cinematics {
 		}
 
 		@Override
+		public float fade(float a) {
+			return Math.max(super.fade(a), Math.max(dip(a, 110, 4), Math.max(dip(a, 206, 3), dip(a, 236, 3))));
+		}
+
+		@Override
 		public boolean tick(ClientWorld world) {
 			ClientFx.tintSky(0x000006, 1.0F);
+			if (age >= 112 && age < 150) {
+				ClientFx.light(corePos(age), 0.5F, 0x60FFE0);
+			}
+			if (age >= 150 && age < 160) {
+				// The clamps snap shut on the nose in a spray of sparks.
+				for (int q = 0; q < 4; q++) {
+					double ang = q * Math.PI / 2 + Math.PI / 4;
+					Vec3d p = base.add(Math.cos(ang) * RR, LEN * 0.72, Math.sin(ang) * RR);
+					for (int i = 0; i < 4; i++) {
+						world.addImportantParticle(ModParticles.PLASMA_SPARK, true, p.x, p.y, p.z,
+								Math.cos(ang) * 0.4 + world.random.nextGaussian() * 0.3, world.random.nextDouble() * 0.5, Math.sin(ang) * 0.4 + world.random.nextGaussian() * 0.3);
+					}
+				}
+			}
+			if (age >= 228 && age < 240 && world.random.nextFloat() < 0.6F) {
+				ClientFx.light(base.add(0, -2, 0), 0.3F, 0x6080FF);
+			}
 			if (age >= 240) {
 				// The engine is the light source of every shot from ignition on.
 				ClientFx.light(rocketCentre(age).subtract(rocketDir(age).multiply(LEN / 2)), 0.6F + 0.6F * (float) clamp01((age - 240) / 50.0), 0xC0FFE0);
@@ -1073,80 +1232,14 @@ public final class Cinematics {
 			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 			Solids.stars(glow, m, cb, a, 1.0F);
-			Solids.nebula(glow, m, cb, 11, 0xC040A0, 0x20A0A0, 1.2F);
+			Solids.nebula(glow, m, cb, 11, 0x8040E0, 0x20B0B0, 1.2F);
 			Solids.sun(glow, m, cb, new Vec3d(-0.6, 0.5, 0.6), 9, 0xB0D8FF, a);
-			Vec3d pc = c.subtract(cam);
-			double spin = a * 0.002;
-			Solids.ellipsoid(solid, m, pc, PR, PR, PR, 28, 56, rotated(Solids.bands(0x5A2A9A, 0x1E8C8C, 0xB03A8A, 7), spin), true, 1.0F);
-			FxDraw.sphere(glow, m, pc, PR * 1.06, Vec3d.ZERO, 0xA070FF, 0.0F, 0.5F, 14, 28);
-			// City lights on the night side.
-			for (int i = 0; i < 160; i++) {
-				Vec3d d = sphereDir(i, 61);
-				d = new Vec3d(d.x * Math.cos(spin) - d.z * Math.sin(spin), d.y, d.x * Math.sin(spin) + d.z * Math.cos(spin));
-				if (d.dotProduct(Solids.LIGHT) < -0.05) {
-					Solids.dot(glow, m, pc.add(d.multiply(PR * 1.004)), cb, 1.2 + Solids.hash(i, 62) * 1.6, i % 3 == 0 ? 0x60FFA0 : 0xFFC860, 0.9F);
-				}
-			}
-			// Storm vortices spinning in the bands.
-			for (int k = 0; k < 4; k++) {
-				Vec3d sd = sphereDir(k, 91);
-				sd = new Vec3d(sd.x * Math.cos(spin) - sd.z * Math.sin(spin), sd.y * 0.6, sd.x * Math.sin(spin) + sd.z * Math.cos(spin)).normalize();
-				Vec3d[] sb = ArsenalEffects.basis(sd);
-				Vec3d prev = null;
-				for (int i = 0; i <= 40; i++) {
-					double t = i / 40.0;
-					double ang = t * 9 + a * 0.05 * (k % 2 == 0 ? 1 : -1);
-					double rr = PR * (0.02 + 0.16 * t);
-					Vec3d q = sd.multiply(PR * 1.004).add(sb[0].multiply(Math.cos(ang) * rr)).add(sb[1].multiply(Math.sin(ang) * rr));
-					q = pc.add(sd.multiply(PR * 1.004)).add(q.subtract(sd.multiply(PR * 1.004)));
-					if (prev != null) {
-						FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 1.6 * (1 - t) + 0.4, k % 2 == 0 ? 0xFFC0F0 : 0x80FFE0, 0.55F * (float) (1 - t), 0.55F * (float) (1 - t));
-					}
-					prev = q;
-				}
-				Solids.dot(glow, m, pc.add(sd.multiply(PR * 1.006)), cb, PR * 0.04, 0xFFFFFF, 0.5F);
-			}
-			// Polar aurora.
-			for (int k = 0; k < 2; k++) {
-				Vec3d pole = new Vec3d(0, k == 0 ? 1 : -1, 0);
-				Vec3d prev = null;
-				for (int i = 0; i <= 48; i++) {
-					double ang = i * MathHelper.TAU / 48;
-					double wob = 0.32 + 0.05 * Math.sin(ang * 5 + a * 0.08);
-					Vec3d d = pole.multiply(Math.cos(wob)).add(new Vec3d(Math.cos(ang), 0, Math.sin(ang)).multiply(Math.sin(wob)));
-					Vec3d q = pc.add(d.multiply(PR * 1.05));
-					if (prev != null) {
-						FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, PR * 0.05, i % 2 == 0 ? 0x60FFB0 : 0xA060FF, 0.35F, 0.35F);
-					}
-					prev = q;
-				}
-			}
-			FxDraw.sphere(glow, m, pc, PR * 1.02, Vec3d.ZERO, 0xE0C0FF, 0.0F, 0.35F, 14, 28);
-			// Rings with gaps, like Saturn's.
-			Vec3d ringN = new Vec3d(0.25, 1, 0.1).normalize();
-			Vec3d[] rb = ArsenalEffects.basis(ringN);
-			double[][] bands = {{150, 172, 0.30}, {176, 198, 0.42}, {204, 214, 0.22}, {218, 236, 0.30}, {242, 248, 0.15}};
-			int[] bandCol = {0xB890E8, 0xD8B0FF, 0x9AC0FF, 0xC8A0FF, 0xFFFFFF};
-			for (int k = 0; k < bands.length; k++) {
-				FxDraw.ring(shade, m, pc, rb[0], rb[1], bands[k][0], bands[k][1], bandCol[k], (float) bands[k][2] * 0.6F, (float) bands[k][2], (float) bands[k][2] * 0.6F, 128);
-			}
-			FxDraw.ring(glow, m, pc, rb[0], rb[1], 186, 190, 0xFFFFFF, 0.0F, 0.3F, 0.0F, 128);
-			for (int i = 0; i < 90; i++) {
-				double ang = Solids.hash(i, 95) * MathHelper.TAU + a * 0.003;
-				double rr = 150 + Solids.hash(i, 96) * 98;
-				Vec3d q = pc.add(rb[0].multiply(Math.cos(ang) * rr)).add(rb[1].multiply(Math.sin(ang) * rr));
-				Solids.dot(glow, m, q, cb, 0.5 + Solids.hash(i, 97), 0xFFFFFF, 0.6F);
-			}
-			for (int k = 0; k < 3; k++) {
-				double ang = a * (0.008 + k * 0.004) + k * 2.1;
-				Vec3d mp = pc.add(Math.cos(ang) * (270 + k * 50), 30 + Math.sin(k * 3) * 50, Math.sin(ang) * (270 + k * 50));
-				Solids.sphere(solid, m, mp, 15 - k * 4, k == 1 ? 0x8A8A98 : 0xB8A8A0, 10, 16, true);
-			}
+			renderPlanet(solid, glow, shade, m, cb, cam, a);
 			Vec3d bs = base.subtract(cam);
 			Vec3d rcw = rocketCentre(a);
 			Vec3d rdir = rocketDir(a);
 			float flame = a < 240 ? 0 : (float) clamp01((a - 240) / 50.0);
-			Solids.rocket(solid, glow, m, rcw.subtract(cam), rdir, LEN, RR, a, flame);
+			Solids.rocket(solid, glow, m, rcw.subtract(cam), rdir, LEN, RR, a, flame, hatch(a));
 			// Searchlights sweeping the alien sky.
 			for (int k = 0; k < 2; k++) {
 				double ang = a * 0.03 + k * Math.PI;
@@ -1155,36 +1248,20 @@ public final class Cinematics {
 				FxDraw.beam(glow, m, from, from.add(dir.multiply(300)), Vec3d.ZERO, 3, 0x60FFA0, 0.35F);
 			}
 			if (a < 285) {
-				Solids.tube(solid, m, bs.add(0, -1, 0), bs.add(0, 1.5, 0), 28, 26, 16, 0x1A1424, 1.0F, true);
-				for (int sgn = -1; sgn <= 1; sgn += 2) {
-					Vec3d tbp = bs.add(sgn * 28, 0, 0);
-					Solids.tube(solid, m, tbp, tbp.add(0, 74, 0), 2.4, 2.0, 6, 0x3A3A48, 1.0F, true);
-					for (int k = 0; k < 4; k++) {
-						double h = 14 + k * 15;
-						Vec3d anchorPt = tbp.add(0, h, 0);
-						Vec3d hull = bs.add(sgn * RR * 0.9, h, 0);
-						double ret = ease((a - 170 - k * 10) / 40.0);
-						Vec3d end = lerp(hull, anchorPt.add(-sgn * 4, 0, 0), ret);
-						Solids.tube(solid, m, anchorPt, end, 1.0, 0.7, 5, 0x6A6A7A, 1.0F, true);
-						Solids.tube(glow, m, end, end.add(0, 0.8, 0), 1.5, 1.5, 6, ret < 1 ? 0xFF8A20 : 0x404058, 0.9F, false);
-					}
-				}
-				for (int k = 0; k < 3; k++) {
-					double h = ((a * 0.9 + k * 24) % 72);
-					if (a > 120) {
-						FxDraw.ring(glow, m, bs.add(0, h, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), RR * 1.2, RR * 1.5, 0xC070FF, 0.0F, 0.8F, 0.0F, 32);
-					}
-				}
-				float blink = ((int) (a * 0.15) & 1) == 0 ? 1.0F : 0.2F;
-				if (a > 150) {
-					Solids.dot(glow, m, bs.add(0, LEN + 6, 0), cb, 4, 0xFF3030, blink);
-				}
+				renderPad(solid, glow, shade, m, cb, bs, a);
 			} else {
 				Solids.dot(glow, m, bs.add(0, 2, 0), cb, 90 * Math.max(0.0, 1 - (a - 280) / 80.0), 0xC0FFE0, 0.7F);
 			}
+			if (a >= 228 && a < 240) {
+				// Ignition sequence start: a blue flicker in the nozzle.
+				float flick = Solids.hash((int) (a * 3), 7) < 0.5 ? 0.9F : 0.3F;
+				Vec3d nozzle = bs.subtract(0, LEN * 0.02, 0);
+				Solids.tube(glow, m, nozzle, nozzle.subtract(0, RR * (1 + (a - 228) * 0.3), 0), RR * 0.7, 0.0, 10, 0x6080FF, 0.6F * flick, false);
+				Solids.dot(glow, m, nozzle, cb, RR * 2.5, 0x80A0FF, 0.5F * flick);
+			}
 			if (flame > 0) {
 				// Shock diamonds in the exhaust.
-				Vec3d nozzle = rcw.subtract(cam).subtract(rdir.multiply(LEN / 2));
+				Vec3d nozzle = rcw.subtract(cam).subtract(rdir.multiply(LEN / 2 + LEN * 0.02));
 				Solids.flare(glow, m, nozzle.subtract(rdir.multiply(RR)), cb, RR * 3.5, 0xC0FFE0, flame * 0.8F);
 				for (int k = 1; k <= 6; k++) {
 					Vec3d np = nozzle.subtract(rdir.multiply(k * RR * 1.7));
@@ -1193,9 +1270,13 @@ public final class Cinematics {
 				}
 			}
 			if (a >= 240 && a < 360) {
-				// Exhaust billowing across the pad, and the launch shock rings.
+				// The plume floods across the pad and swallows it, then the launch shock rings.
 				float l = a - 240;
+				float swallow = (float) (ease(l / 30.0) * (1 - clamp01((l - 70) / 50.0)));
 				dustWall(shade, m, cb, bs, 8 + l * 1.5, 10 + l * 0.3, 0xD0C8DC, 0.8F * (1 - l / 120.0F), 7);
+				dustWall(shade, m, cb, bs, 4 + l * 0.8, 14 + l * 0.4, 0xE8E4F0, 0.7F * swallow, 13);
+				Solids.dot(glow, m, bs.add(0, 6, 0), cb, 20 + l * 1.4, 0x80FFE0, 0.5F * swallow);
+				Solids.dot(glow, m, bs.add(0, 3, 0), cb, 10 + l * 0.6, 0xFFFFFF, 0.6F * swallow);
 				for (int k = 0; k < 3; k++) {
 					double rr = (a - 280 - k * 9) * 3.2;
 					if (rr > 1) {
@@ -1226,6 +1307,214 @@ public final class Cinematics {
 							}
 						}
 					}
+				}
+			}
+		}
+
+		/** The alien world: teal and violet storm bands, vortices with lightning, aurora, coloured rings, moons. */
+		private void renderPlanet(VertexConsumer solid, VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d cam, float a) {
+			Vec3d pc = c.subtract(cam);
+			double spin = a * 0.002;
+			Solids.ellipsoid(solid, m, pc, PR, PR, PR, 28, 56, rotated(Solids.bands(0x2C1470, 0x129C98, 0x6A3CC8, 7), spin), true, 1.0F);
+			FxDraw.sphere(glow, m, pc, PR * 1.06, Vec3d.ZERO, 0x60D0E0, 0.0F, 0.5F, 14, 28);
+			// City lights on the night side.
+			for (int i = 0; i < 160; i++) {
+				Vec3d d = sphereDir(i, 61);
+				d = new Vec3d(d.x * Math.cos(spin) - d.z * Math.sin(spin), d.y, d.x * Math.sin(spin) + d.z * Math.cos(spin));
+				if (d.dotProduct(Solids.LIGHT) < -0.05) {
+					Solids.dot(glow, m, pc.add(d.multiply(PR * 1.004)), cb, 1.2 + Solids.hash(i, 62) * 1.6, i % 3 == 0 ? 0x60FFA0 : 0xC8A0FF, 0.9F);
+				}
+			}
+			// Swirling storm vortices in the bands, lit from inside by lightning.
+			for (int k = 0; k < 5; k++) {
+				Vec3d sd = sphereDir(k, 91);
+				sd = new Vec3d(sd.x * Math.cos(spin) - sd.z * Math.sin(spin), sd.y * 0.6, sd.x * Math.sin(spin) + sd.z * Math.cos(spin)).normalize();
+				Vec3d[] sb = ArsenalEffects.basis(sd);
+				Vec3d eye = pc.add(sd.multiply(PR * 1.004));
+				for (int arm = 0; arm < 2; arm++) {
+					Vec3d prev = null;
+					for (int i = 0; i <= 40; i++) {
+						double t = i / 40.0;
+						double ang = t * 9 + arm * Math.PI + a * 0.05 * (k % 2 == 0 ? 1 : -1);
+						double rr = PR * (0.02 + 0.16 * t);
+						Vec3d q = eye.add(sb[0].multiply(Math.cos(ang) * rr)).add(sb[1].multiply(Math.sin(ang) * rr));
+						if (prev != null) {
+							FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 1.6 * (1 - t) + 0.4, k % 2 == 0 ? 0xC8A0FF : 0x80FFE0, 0.55F * (float) (1 - t), 0.55F * (float) (1 - t));
+						}
+						prev = q;
+					}
+				}
+				Solids.dot(glow, m, eye, cb, PR * 0.04, 0xFFFFFF, 0.5F);
+				if (Solids.hash(k, (int) (a * 0.25F)) > 0.7) {
+					Solids.dot(glow, m, eye, cb, PR * 0.12, 0xE0F0FF, 0.6F);
+				}
+			}
+			// Polar aurora curtains.
+			for (int k = 0; k < 2; k++) {
+				Vec3d pole = new Vec3d(0, k == 0 ? 1 : -1, 0);
+				Vec3d prev = null, prevHi = null;
+				for (int i = 0; i <= 48; i++) {
+					double ang = i * MathHelper.TAU / 48;
+					double wob = 0.32 + 0.05 * Math.sin(ang * 5 + a * 0.08);
+					Vec3d d = pole.multiply(Math.cos(wob)).add(new Vec3d(Math.cos(ang), 0, Math.sin(ang)).multiply(Math.sin(wob)));
+					Vec3d q = pc.add(d.multiply(PR * 1.05)), hi = pc.add(d.multiply(PR * 1.11));
+					if (prev != null) {
+						FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, PR * 0.05, i % 2 == 0 ? 0x60FFB0 : 0xA060FF, 0.35F, 0.35F);
+						FxDraw.ribbon(glow, m, prevHi, hi, Vec3d.ZERO, PR * 0.03, 0x40E0FF, 0.15F, 0.15F);
+					}
+					prev = q;
+					prevHi = hi;
+				}
+			}
+			FxDraw.sphere(glow, m, pc, PR * 1.02, Vec3d.ZERO, 0xB0A0FF, 0.0F, 0.35F, 14, 28);
+			// Coloured rings with gaps, like Saturn's.
+			Vec3d ringN = new Vec3d(0.25, 1, 0.1).normalize();
+			Vec3d[] rb = ArsenalEffects.basis(ringN);
+			double[][] bands = {{150, 172, 0.30}, {176, 198, 0.42}, {204, 214, 0.22}, {218, 236, 0.30}, {242, 248, 0.15}};
+			int[] bandCol = {0x40C8D0, 0x9A70FF, 0x60FFE0, 0xC880E8, 0xFFFFFF};
+			for (int k = 0; k < bands.length; k++) {
+				FxDraw.ring(shade, m, pc, rb[0], rb[1], bands[k][0], bands[k][1], bandCol[k], (float) bands[k][2] * 0.6F, (float) bands[k][2], (float) bands[k][2] * 0.6F, 128);
+			}
+			FxDraw.ring(glow, m, pc, rb[0], rb[1], 186, 190, 0xE0FFFF, 0.0F, 0.3F, 0.0F, 128);
+			FxDraw.ring(glow, m, pc, rb[0], rb[1], 214, 218, 0xC070FF, 0.0F, 0.25F, 0.0F, 128);
+			for (int i = 0; i < 90; i++) {
+				double ang = Solids.hash(i, 95) * MathHelper.TAU + a * 0.003;
+				double rr = 150 + Solids.hash(i, 96) * 98;
+				Vec3d q = pc.add(rb[0].multiply(Math.cos(ang) * rr)).add(rb[1].multiply(Math.sin(ang) * rr));
+				Solids.dot(glow, m, q, cb, 0.5 + Solids.hash(i, 97), i % 3 == 0 ? 0x80FFE0 : 0xFFFFFF, 0.6F);
+			}
+			for (int k = 0; k < 3; k++) {
+				double ang = a * (0.008 + k * 0.004) + k * 2.1;
+				Vec3d mp = pc.add(Math.cos(ang) * (270 + k * 50), 30 + Math.sin(k * 3) * 50, Math.sin(ang) * (270 + k * 50));
+				Solids.sphere(solid, m, mp, 15 - k * 4, k == 1 ? 0x6A8A98 : 0x9A88B8, 10, 16, true);
+			}
+		}
+
+		/** Launch complex: towers and arms, crane and warhead, clamps, fuel hoses, drones, steam and beacons. */
+		private void renderPad(VertexConsumer solid, VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d bs, float a) {
+			double ret = retreat(a);
+			float flash = beep(a);
+			Solids.tube(solid, m, bs.add(0, -1, 0), bs.add(0, 1.5, 0), 28, 26, 16, 0x1A1424, 1.0F, true);
+			// Hazard ring painted round the pad edge.
+			Solids.tube(solid, m, bs.add(0, 1.5, 0), bs.add(0, 1.7, 0), 26, 26, 32, 1, (i, j, n) -> j % 2 == 0 ? 0xE8B020 : 0x161218, false, 1.0F);
+			for (int sgn = -1; sgn <= 1; sgn += 2) {
+				// Towers slide out and lean away once fuelling ends.
+				Vec3d foot = bs.add(sgn * (28 + ret * 34), 0, 0);
+				Vec3d top = foot.add(sgn * ret * 22, 74, 0);
+				Solids.tube(solid, m, foot, top, 2.4, 2.0, 6, 0x3A3A48, 1.0F, true);
+				for (int k = 0; k < 7; k++) {
+					Vec3d p = foot.lerp(top, k / 7.0);
+					Solids.tube(solid, m, p, foot.lerp(top, (k + 1) / 7.0).add(0, 0, (k % 2 == 0 ? 3 : -3)), 0.5, 0.5, 4, 0x56566A, 1.0F, true);
+				}
+				for (int k = 0; k < 4; k++) {
+					double h = 14 + k * 15;
+					Vec3d anchorPt = foot.lerp(top, h / 74.0);
+					Vec3d hull = bs.add(sgn * RR * 0.9, h, 0);
+					double arm = ease((a - 206 - k * 4) / 16.0);
+					Vec3d end = lerp(hull, anchorPt.add(-sgn * 4, 0, 0), arm);
+					Solids.tube(solid, m, anchorPt, end, 1.0, 0.7, 5, 0x6A6A7A, 1.0F, true);
+					Solids.tube(glow, m, end, end.add(0, 0.8, 0), 1.5, 1.5, 6, arm < 1 ? 0xFF8A20 : 0x404058, 0.9F, false);
+				}
+				// Rotating warning beacon on the tower top.
+				double rot = a * 0.25 + (sgn > 0 ? Math.PI : 0);
+				int bc = sgn > 0 ? 0xFF3030 : 0xFFA020;
+				float on = a > 150 ? 0.6F + 0.4F * flash : 0.0F;
+				Solids.dot(glow, m, top.add(0, 2, 0), cb, 2.5 + 4 * flash, bc, on);
+				FxDraw.beam(glow, m, top.add(0, 2, 0), top.add(Math.cos(rot) * 40, 2, Math.sin(rot) * 40), Vec3d.ZERO, 1.6, bc, 0.4F * on);
+				// Fuel hoses sag from the tower to the hull; pulses run along them until they drop away.
+				for (int k = 0; k < 2; k++) {
+					double h = 18 + k * 26;
+					Vec3d from = foot.lerp(top, h / 74.0);
+					Vec3d to = lerp(bs.add(sgn * RR, h - 4, 0), from.add(-sgn * 3, -12, 0), ease((a - 200 - k * 3) / 10.0));
+					Vec3d prev = null;
+					for (int i = 0; i <= 12; i++) {
+						double t = i / 12.0;
+						Vec3d q = from.lerp(to, t).add(0, -Math.sin(t * Math.PI) * 6, 0);
+						if (prev != null) {
+							Solids.tube(solid, m, prev, q, 0.8, 0.8, 6, 0x22222C, 1.0F, true);
+							if (a > 160 && a < 204) {
+								double pulse = ((a - 160) * 0.06 + k * 0.3) % 1.0;
+								float g = (float) Math.max(0, 1 - Math.abs(t - pulse) * 6);
+								FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 1.9, k == 0 ? 0x40FFB0 : 0xC070FF, 0.25F + 0.75F * g, 0.25F + 0.75F * g);
+							}
+						}
+						prev = q;
+					}
+				}
+			}
+			// Crane: a mast behind the rocket whose jib carries the warhead core down into the open nose.
+			Vec3d mastFoot = bs.add(0, 0, -34 - ret * 30);
+			Vec3d mastTop = mastFoot.add(0, LEN + 46, -ret * 26);
+			Vec3d trolley = mastTop.add(0, 0, 34 + ret * 30 + ret * 26);
+			Solids.tube(solid, m, mastFoot, mastTop, 2.2, 1.8, 6, 0x3A3A48, 1.0F, true);
+			Solids.tube(solid, m, mastTop.add(0, 0, -10), trolley.add(0, 0, 6), 1.4, 1.4, 4, 0xE8B020, 1.0F, true);
+			Solids.tube(solid, m, trolley.add(-1.5, -1, -1.5), trolley.add(1.5, 1, 1.5), 1.8, 1.8, 4, 0x2A2A34, 1.0F, true);
+			if (a < 150) {
+				Vec3d core = corePos(a).subtract(base).add(bs);
+				Solids.tube(solid, m, trolley, core.add(0, 3.4, 0), 0.25, 0.25, 4, 0x8A8A9A, 1.0F, true);
+				float pulse = 0.8F + 0.2F * MathHelper.sin(a * 0.6F);
+				Solids.tube(solid, m, core.add(0, 2.6, 0), core.add(0, 3.4, 0), 2.2, 1.0, 8, 0x2A2A34, 1.0F, true);
+				for (int k = 0; k < 4; k++) {
+					double ang = k * Math.PI / 2 + a * 0.05;
+					Solids.tube(solid, m, core.add(Math.cos(ang) * 2.2, 2.6, Math.sin(ang) * 2.2), core.add(Math.cos(ang) * 2.2, -2.6, Math.sin(ang) * 2.2), 0.25, 0.25, 4, 0x6A6A7A, 1.0F, true);
+				}
+				FxDraw.sphere(glow, m, core, 2.0, Vec3d.ZERO, 0xFFFFFF, 0.95F * pulse, 0.6F, 8, 12);
+				FxDraw.sphere(glow, m, core, 4.2, Vec3d.ZERO, 0x60FFE0, 0.4F * pulse, 0.0F, 8, 12);
+				Solids.dot(glow, m, core, cb, 12, 0x60FFE0, 0.25F * pulse);
+			}
+			// Clamps: four jaws round the nose collar, swinging shut at 150.
+			double shut = ease((a - 148) / 4.0);
+			for (int q = 0; q < 4; q++) {
+				double ang = q * Math.PI / 2 + Math.PI / 4;
+				Vec3d out = new Vec3d(Math.cos(ang), 0, Math.sin(ang));
+				Vec3d jaw = bs.add(out.multiply(RR * (1.02 + (1 - shut) * 0.8))).add(0, LEN * 0.72, 0);
+				Solids.tube(solid, m, jaw.add(0, -1.6, 0), jaw.add(0, 1.6, 0), 1.2, 1.2, 4, 0xE8B020, 1.0F, true);
+				float spark = (float) Math.max(0, 1 - Math.abs(a - 151) / 5.0);
+				if (spark > 0) {
+					Solids.flare(glow, m, jaw, cb, 4, 0xFFE0A0, spark);
+					for (int i = 0; i < 6; i++) {
+						Vec3d d = out.multiply(1.5).add(sphereDir(i + q * 6, 31)).normalize();
+						FxDraw.ribbon(glow, m, jaw, jaw.add(d.multiply(3 + (a - 148) * 1.2)), Vec3d.ZERO, 0.3, 0xFFC060, spark, 0.0F);
+					}
+				}
+			}
+			// Drones swarm the hull, welding as they go, then scatter before ignition.
+			if (a > 150 && a < 240) {
+				for (int i = 0; i < 12; i++) {
+					Vec3d dp = drone(i, a).subtract(base).add(bs);
+					Vec3d[] db = {new Vec3d(1, 0, 0), new Vec3d(0, 0, 1)};
+					Solids.tube(solid, m, dp.add(0, -0.4, 0), dp.add(0, 0.4, 0), 0.9, 0.7, 6, 0x2A2A34, 1.0F, true);
+					for (int r = 0; r < 4; r++) {
+						Vec3d rp = dp.add(db[r % 2].multiply(r < 2 ? 1.4 : -1.4));
+						FxDraw.disc(glow, m, rp.add(0, 0.5, 0), db[0], db[1], 0.7, 0xA0E0FF, 0.25F, 0.0F, 8);
+					}
+					Solids.dot(glow, m, dp.add(0, 0.6, 0), cb, 0.5, ((int) (a * 0.3F + i) & 1) == 0 ? 0xFF3030 : 0x40FF80, 0.9F);
+					if (a < 212 && Solids.hash(i, (int) (a * 0.5F)) > 0.6) {
+						Vec3d hit = new Vec3d(dp.x - bs.x, 0, dp.z - bs.z).normalize().multiply(RR).add(bs.x, dp.y, bs.z);
+						FxDraw.ribbon(glow, m, dp, hit, Vec3d.ZERO, 0.25, 0x80E0FF, 0.9F, 0.9F);
+						Solids.flare(glow, m, hit, cb, 1.6, 0xC0F0FF, 0.9F);
+					}
+				}
+			}
+			// Steam venting from the hull and from under the pad as the tanks top off.
+			if (a > 192) {
+				float vent = (float) clamp01((a - 192) / 12.0);
+				for (int i = 0; i < 24; i++) {
+					double life = ((a * 0.9 + i * 7.3) % 40) / 40.0;
+					double ang = Solids.hash(i, 71) * MathHelper.TAU;
+					boolean pad = i % 3 != 0;
+					Vec3d src = pad ? bs.add(Math.cos(ang) * 10, 1, Math.sin(ang) * 10) : bs.add(Math.cos(ang) * RR, 20 + (i % 4) * 9, Math.sin(ang) * RR);
+					Vec3d p = src.add(Math.cos(ang) * life * (pad ? 20 : 10), life * (pad ? 10 : 4), Math.sin(ang) * life * (pad ? 20 : 10));
+					Solids.dot(shade, m, p, cb, 2 + life * (pad ? 10 : 5), 0xE8E8F0, vent * 0.55F * (float) (1 - life));
+				}
+			}
+			// Pad-corner beacons, flashing with each beep.
+			if (a > 150) {
+				for (int q = 0; q < 4; q++) {
+					double ang = q * Math.PI / 2 + Math.PI / 4;
+					Vec3d p = bs.add(Math.cos(ang) * 25, 2.5, Math.sin(ang) * 25);
+					Solids.tube(solid, m, p.add(0, -1, 0), p, 0.6, 0.6, 4, 0x2A2A34, 1.0F, true);
+					Solids.dot(glow, m, p.add(0, 0.6, 0), cb, 1 + 3 * flash, 0xFF3030, 0.4F + 0.6F * flash);
 				}
 			}
 		}
