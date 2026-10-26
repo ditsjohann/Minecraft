@@ -96,7 +96,7 @@ public final class CelestialIIFx {
 					Vec3d tip = base.add(out.multiply(h * 0.28)).add(0, h, 0);
 					Solids.tube(solid, m, base, tip, s * 0.11, s * 0.035, 5, 0xFFFBF2, 1.0F, true);
 					// The bead about to break free from each point.
-					Solids.sphere(solid, m, tip.add(out.multiply(s * 0.05)).add(0, s * 0.06, 0), s * 0.07, 0xFFFFFF, 4, 6, true);
+					Solids.sphere(solid, m, tip.add(out.multiply(s * 0.05)).add(0, s * 0.06, 0), s * 0.07, 0xFFFFFF, 8, 12, true);
 				}
 				// The rim wall joining the spikes.
 				Solids.tube(solid, m, g.add(0, -0.2, 0), g.add(0, s * 0.18 * rise, 0), ring * 1.02, ring * 1.06, 24, 0xF6EFE2, 1.0F, true);
@@ -121,6 +121,12 @@ public final class CelestialIIFx {
 			double splat = s * (0.6 + 1.6 * Effects.smooth(t * 1.4F));
 			FxDraw.disc(shade, m, g.add(0, 0.12, 0), x, z, splat, 0xFFF4DE, 0.55F * (1 - t), 0.0F, 28);
 			FxDraw.ring(shade, m, g.add(0, 0.14, 0), x, z, splat * 0.9, splat * 1.05, 0xFFFFFF, 0.0F, 0.7F * (1 - t), 0.0F, 40);
+			// A fine mist of milk spray hanging over the splat.
+			if (t < 0.7F) {
+				java.util.List<Effects.Puff> mist = FxKit.puffs();
+				FxKit.dustRing(m, cb, g, ring * 1.2, s * 0.35, 0xFFFFFF, 0xE8DCC8, 0.5F * (1 - t / 0.7F), 101, mist);
+				FxKit.flush(mist, consumers, m, cb);
+			}
 		}
 	}
 
@@ -398,6 +404,10 @@ public final class CelestialIIFx {
 				puffs.add(new Effects.Puff(p, rr, 0xB6F08A, 0x3E6A2A, 0.5F * body));
 			}
 			Effects.drawPuffs(puffs, shade, m, cb, 8);
+			FxKit.halo(consumers, m, cb, g.add(0, s, 0), s * 2.4, 0x7AFF40, 0.35F * body);
+			if (t < 0.4F) {
+				FxKit.groundShock(consumers, m, g, s * (0.6 + t * 6), 0x9CFF6A, 1 - t / 0.4F);
+			}
 			for (int k = 0; k < 40; k++) {
 				double ang = Effects.hash(k, 32) * MathHelper.TAU;
 				double rr = s * (0.4 + Effects.hash(k, 33) * 1.4);

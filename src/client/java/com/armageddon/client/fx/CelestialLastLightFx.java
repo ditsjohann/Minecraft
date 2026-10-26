@@ -105,6 +105,8 @@ public class CelestialLastLightFx extends FxEffect {
 		Solids.dot(glow, m, s, cb, size * 2.2, halo, 0.5F * bright);
 		Solids.dot(glow, m, s, cb, size, core, bright);
 		Solids.flare(glow, m, s, cb, size * 3.0, halo, 0.55F * bright);
+		FxKit.flare(consumers, m, cb, s, size * 7.0, halo, 0.6F * bright, a * 0.002);
+		FxKit.halo(consumers, m, cb, s, size * 9.0, halo, 0.22F * bright * (float) (0.6 + 0.4 * pulse));
 		int spikes = Effects.lod(s, 40, 10, 22);
 		for (int i = 0; i < spikes; i++) {
 			double ang = i * MathHelper.TAU / spikes + a * 0.004 + Solids.hash(i, 3) * 0.2;
@@ -141,6 +143,7 @@ public class CelestialLastLightFx extends FxEffect {
 			double rad = MathHelper.lerp(Cinematics.ease(w / 14.0), r0, r1);
 			float al = (float) (1 - w / 26.0);
 			FxDraw.ring(glow, m, g.add(0, 0.4, 0), X, Z, Math.max(0, rad - 4), rad + 1.2, 0xFFFFFF, 0.0F, 0.7F * al, 0.0F, segs);
+			FxKit.groundShock(consumers, m, g, rad, 0xFFFFFF, 0.85F * al);
 			FxDraw.ring(glow, m, g.add(0, 0.3, 0), X, Z, r0, Math.max(r0 + 0.1, rad), 0xFFF8F0, 0.12F * al, 0.12F * al, 0.0F, segs);
 		}
 
@@ -152,6 +155,11 @@ public class CelestialLastLightFx extends FxEffect {
 				float al = (float) (1 - e / 80.0);
 				FxDraw.ring(glow, m, g.add(0, 0.5, 0), X, Z, Math.max(0, rad - 10), rad + 2, 0xFFFFFF, 0.0F, 0.6F * al, 0.0F, segs);
 				FxDraw.ring(glow, m, g.add(0, 0.5, 0), X, Z, Math.max(0, rad * 0.6 - 3), rad * 0.6 + 1, 0xE8F0FF, 0.0F, 0.35F * al, 0.0F, segs);
+				FxKit.groundShock(consumers, m, g, rad, 0xF4F8FF, al);
+				// White ash kicked up behind the last wave.
+				java.util.List<Effects.Puff> ash = FxKit.puffs();
+				FxKit.dustRing(m, cb, g, rad * 0.92, 6 + rad * 0.04, 0xF4F4F8, 0xA8A8B4, 0.55F * al, 71, ash);
+				FxKit.flush(ash, consumers, m, cb);
 			}
 			int glints = Effects.lod(g, radius, 20, 70);
 			for (int i = 0; i < glints; i++) {

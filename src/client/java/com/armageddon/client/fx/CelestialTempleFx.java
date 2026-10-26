@@ -80,6 +80,13 @@ public class CelestialTempleFx extends FxEffect {
 			FxDraw.ribbon(glow, m, tip.add(d.multiply(6.8)), tip.add(d.multiply(9.5 + 1.5 * Solids.hash(i, 61))), Vec3d.ZERO, 0.35, 0xFFE8A0, 0.6F * f, 0.0F);
 		}
 		Solids.flare(glow, m, tip, cb, 6, 0xFFE8A0, 0.6F * f);
+		FxKit.flare(consumers, m, cb, tip, 22, 0xFFE8A0, 0.7F * f, a * 0.004);
+		// Heavenly haze filling the light column, brightest at the altar.
+		for (int k = 0; k < 8; k++) {
+			Vec3d p = altar.add(0, 6 + k * 24, 0);
+			FxKit.halo(consumers, m, cb, p, 9 + k * 2.5, 0xFFE8B0, 0.16F * f * (1 - k / 9.0F));
+		}
+		FxKit.groundShock(consumers, m, g.add(0, -2 * steps + 1.2, 0), radius * (0.5 + 0.5 * ((a * 0.01) % 1.0)), 0xFFE070, 0.35F * f);
 
 		// Motes spiralling up the column.
 		int n = Effects.lod(altar, 20, 12, 40);

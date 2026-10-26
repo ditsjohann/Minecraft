@@ -168,16 +168,20 @@ public final class Cinematics {
 		if (alpha <= 0.01) {
 			return;
 		}
-		int n = 64;
+		// Billows stacked three high around the ring: sunlit tops, shadowed bases, drawn back to front.
+		int n = MathHelper.clamp((int) (radius * MathHelper.TAU / Math.max(2.0, height * 0.7)), 24, 96);
+		java.util.List<Effects.Puff> puffs = new java.util.ArrayList<>(n * 3);
 		for (int k = 0; k < n; k++) {
 			double ang = k * MathHelper.TAU / n + Solids.hash(k, salt) * 0.08;
 			for (int j = 0; j < 3; j++) {
 				double rr = radius * (0.94 + 0.1 * Solids.hash(k, salt + j));
 				double h = height * (0.15 + 0.35 * j + 0.2 * Solids.hash(k, salt + 7 + j));
 				Vec3d p = g.add(Math.cos(ang) * rr, h, Math.sin(ang) * rr);
-				Solids.dot(shade, m, p, cb, height * (0.45 - j * 0.1), Solids.scale(rgb, 0.85 + 0.15 * j), alpha * (1 - j * 0.25F));
+				int lit = Solids.scale(rgb, 1.05 + 0.1 * j);
+				puffs.add(new Effects.Puff(p, height * (0.5 - j * 0.1), lit, Solids.scale(rgb, 0.5 + 0.1 * j), alpha * (1 - j * 0.2F)));
 			}
 		}
+		Effects.drawPuffs(puffs, shade, m, cb, 10);
 	}
 
 	/** Branching crack lines of light radiating over the ground from {@code g} (camera-relative). */
@@ -553,6 +557,21 @@ public final class Cinematics {
 				}
 				FxDraw.beam(glow, m, g, g.add(0, 400, 0), Vec3d.ZERO, 14 * (1 - Math.min(1, t / 90)), 0xFFE0B0, 0.6F);
 				FxDraw.disc(shade, m, g, x, z, 60 + t * 3, 0x6A5A50, 0.5F * (1 - Math.min(1, t / 140)), 0.0F, 40);
+				if (t < 90) {
+					float k = t / 90.0F;
+					FxKit.fire(consumers, m, cb, g.add(0, 40 + t * 0.8, 0), 70 + t * 0.6, 0xFFE0B0, k, 1.0F, a, 141);
+					FxKit.sparks(consumers, m, g.add(0, 10, 0), 420, 160, 0xFFB060, Math.min(1.0F, t / 70.0F), 1.0F, 142);
+					FxKit.groundShock(consumers, m, g, 40 + t * 9, 0xFFFFFF, 1 - k);
+					FxKit.groundShock(consumers, m, g, 20 + t * 5, 0xFFB070, 0.8F * (1 - k));
+					FxKit.flare(consumers, m, cb, g.add(0, 30, 0), 260 * (1 - k * 0.6), 0xFFF0D0, 1 - k, t * 0.01);
+				}
+				if (t < 400) {
+					// A pillar of smoke and pulverised city climbing out of the fist crater.
+					java.util.List<Effects.Puff> pillar = FxKit.puffs();
+					float pk = 1 - Math.min(1, t / 400);
+					FxKit.column(g, 60 + Math.min(t, 200) * 2.2, 50 + Math.min(t, 200) * 0.25, a, 0x9A8676, 0x2E2420, 0.6F * pk, 143, pillar);
+					FxKit.flush(pillar, consumers, m, cb);
+				}
 				if (t < 320) {
 					// The city is thrown into the sky, the ground splits with light, and a wall of dust rolls out.
 					debris(solid, glow, m, g, t, 110, 3.4, 8, 0.05, 11, 0x5A4C40, 0xFF9040);
@@ -646,6 +665,7 @@ public final class Cinematics {
 		}
 
 		private void renderGiant(VertexConsumer solid, VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d cam, Vec3d[] cb, float a) {
+			VertexConsumerProvider consumers = com.armageddon.client.render.FxBuffers.current();
 			if (a > 730) {
 				return;
 			}
@@ -755,6 +775,7 @@ public final class Cinematics {
 				}
 				float flareK = a > 270 && a < IMPACT ? 1.0F : 0.5F;
 				Solids.flare(glow, m, eye, cb, 26 * flareK + 10, eyeCol, 0.7F * env * flareK);
+				FxKit.fire(consumers, m, cb, eye.add(0, 20, 0), 18, 0xFFB040, (float) ((a * 0.02) % 0.5), env, a, 160 + e);
 				if (a > 130 && a < 270 && hd.y < -0.05) {
 					double t = (anchor.y - cam.y - eye.y) / hd.y;
 					Vec3d spot = eye.add(hd.multiply(Math.max(0, t)));
@@ -782,7 +803,11 @@ public final class Cinematics {
 				FxDraw.ribbon(glow, m, p0, p1, Vec3d.ZERO, 18, 0xFF2000, 0.15F * env, 0.15F * env);
 			}
 			// Black smoke where the legs would be, lit red from below.
-			FxDraw.disc(shade, m, P.add(0, -10, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 170, 0x0A0608, 0.7F * env, 0.0F, 32);
+			FxDraw.disc(shade, m, P.add(0, -10, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 170, 0x0A0608, 0.5F * env, 0.0F, 32);
+			java.util.List<Effects.Puff> legs = FxKit.puffs();
+			FxKit.dustRing(m, cb, P.add(0, -40, 0), 90, 70, 0x3A1E18, 0x060404, 0.75F * env, 151, legs);
+			FxKit.column(P.add(0, -60, 0), 140, 120, a, 0x2A1612, 0x060404, 0.55F * env, 152, legs);
+			FxKit.flush(legs, consumers, m, cb);
 			FxDraw.disc(glow, m, P.add(0, -20, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 220, 0x601808, 0.25F * env, 0.0F, 32);
 			// Wind-up: the void around the fist curdles into rings of fire, and the punch's sonic-boom trail.
 			if (a > 330 && a < IMPACT + 10) {
@@ -1042,6 +1067,11 @@ public final class Cinematics {
 					Solids.dot(glow, m, mc, cb, 30 * Math.max(0, 1 - me / 30), 0xFFE0C0, 0.8F);
 				}
 				Solids.flare(glow, m, c, cb, 60 + e * 2, 0xFFD8A0, (float) Math.max(0, 1 - e / 70));
+				float fk = (float) Math.min(1, e / 90.0);
+				FxKit.fire(consumers, m, cb, c, R * 1.1 + e * 4, 0xFFE8C0, fk, 1 - fk, a, 171);
+				FxKit.flare(consumers, m, cb, c, 260 + e * 6, 0xFFF0D0, 1 - fk, e * 0.004);
+				FxKit.shock(consumers, m, c, cb[0], cb[1], 30 + e * 15, 0xFFFFFF, (float) Math.max(0, 1 - e / 55));
+				FxKit.shock(consumers, m, c, db[0], db[1], R + e * 7, 0xFFB060, 0.8F * dfade);
 				double fr = 20 + e * 9;
 				FxDraw.sphere(glow, m, c, fr, Vec3d.ZERO, 0xFFFFFF, 0.6F * (float) Math.max(0, 1 - e / 50), 0.9F * (float) Math.max(0, 1 - e / 60), 16, 32);
 				FxDraw.sphere(glow, m, c, fr * 1.4, Vec3d.ZERO, 0xFF8030, 0.0F, 0.5F * (float) Math.max(0, 1 - e / 55), 14, 28);
@@ -1446,10 +1476,16 @@ public final class Cinematics {
 				FxDraw.sphere(glow, m, orb, r * 1.8, Vec3d.ZERO, 0x60FFC0, 0.4F * flick, 0.0F, 10, 16);
 				Solids.dot(glow, m, orb, cb, r * 5, 0x80FFD0, 0.25F * (float) ch);
 				Solids.flare(glow, m, orb, cb, r * 3, 0xC0FFE0, 0.6F * (float) ch);
+				VertexConsumerProvider vcp = com.armageddon.client.render.FxBuffers.current();
+				FxKit.fire(vcp, m, cb, orb, r * 1.4, 0xA0FFD0, 0.15F, (float) ch, a, 181);
+				FxKit.flare(vcp, m, cb, orb, r * 9, 0xC0FFE0, 0.7F * (float) ch, a * 0.01);
 			}
 			if (fired && a < FIRE + 14) {
 				float f = 1 - (a - FIRE) / 14.0F;
 				Solids.dot(glow, m, orb, cb, 60 * f + 10, 0xFFFFFF, f);
+				VertexConsumerProvider vcp = com.armageddon.client.render.FxBuffers.current();
+				FxKit.shock(vcp, m, mz, db[0], db[1], (a - FIRE) * 12 + 6, 0xC0FFE0, f);
+				FxKit.flare(vcp, m, cb, orb, 140 * f + 20, 0xE0FFF0, f, 0);
 				for (int k = 0; k < 3; k++) {
 					double rr = (a - FIRE) * (6 + k * 3);
 					FxDraw.ring(glow, m, mz, db[0], db[1], rr, rr + 3, 0xC0FFE0, 0.0F, 0.8F * f, 0.0F, 48);
@@ -1523,6 +1559,12 @@ public final class Cinematics {
 				Vec3d hp = hitP.subtract(cam);
 				Solids.dot(glow, m, hp, cb, Math.min(80, 10 + e * 2), 0xFFFFFF, (float) Math.max(0.4, 1 - e / 60.0));
 				Solids.flare(glow, m, hp, cb, 30 + e * 0.5, 0xC0FFE0, 0.8F);
+				VertexConsumerProvider vcp = com.armageddon.client.render.FxBuffers.current();
+				float fk = (float) Math.min(1, e / 100.0);
+				FxKit.fire(vcp, m, cb, hp.add(hitN.multiply(ER * 0.08 + e * 0.15)), ER * 0.2 + e * 0.4, 0xC0FFE0, fk, 1 - fk * 0.7F, a, 191);
+				FxKit.flare(vcp, m, cb, hp, 120 + e * 2, 0xE0FFF0, (float) Math.max(0, 1 - e / 80.0), e * 0.01);
+				Vec3d[] tb = ArsenalEffects.basis(hitN);
+				FxKit.shock(vcp, m, hp.add(hitN.multiply(1)), tb[0], tb[1], 8 + e * 1.8, 0xA0FFD0, (float) Math.max(0, 1 - e / 70.0));
 				for (int k = 0; k < 3; k++) {
 					double theta = Math.min(Math.PI * 0.95, Math.max(0, e * 0.02 - k * 0.1));
 					if (theta > 0.01) {

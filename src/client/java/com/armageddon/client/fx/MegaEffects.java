@@ -96,6 +96,22 @@ public final class MegaEffects {
 			int strands = far ? 6 : 12;
 			Vec3d[] prev = new Vec3d[strands];
 			Vec3d[] prevIn = new Vec3d[strands];
+			// The funnel wall: billows of dust and cloud spiralling up it, drawn back to front as real smoke.
+			java.util.List<Effects.Puff> funnel = FxKit.puffs();
+			for (int k = 0; k <= layers; k++) {
+				double h = H * k / layers;
+				float hf = (float) (h / H);
+				double r = 5 + (radius - 5) * Math.pow(hf, 1.4);
+				Vec3d c = center(h, a).subtract(cam);
+				int lit = hf < 0.25F ? Effects.fade(0x8A7660, 0x6E747C, hf / 0.25F) : Effects.fade(0x6E747C, 0xC4CCD4, (hf - 0.25F) / 0.75F);
+				int per = far ? 5 : 8;
+				for (int s = 0; s < per; s++) {
+					double ang = s * MathHelper.TAU / per + a * (0.3 + h * 0.0015) + h * 0.05 + Solids.hash(k, s) * 0.5;
+					Vec3d p = c.add(Math.cos(ang) * r * 0.82, (Solids.hash(k, s + 9) - 0.5) * H / layers, Math.sin(ang) * r * 0.82);
+					funnel.add(new Effects.Puff(p, r * 0.55 + 2, lit, Solids.scale(lit, 0.55), 0.55F * env));
+				}
+			}
+			FxKit.flush(funnel, consumers, m, cb);
 			for (int k = 0; k <= layers; k++) {
 				double h = H * k / layers;
 				float hf = (float) (h / H);
@@ -103,8 +119,7 @@ public final class MegaEffects {
 				Vec3d c = center(h, a).subtract(cam);
 				// Dusty brown at the ground, slate in the middle, pale where it meets the storm.
 				int col = hf < 0.25F ? Effects.fade(0x5A4A3A, 0x464C54, hf / 0.25F) : Effects.fade(0x464C54, 0xA8B2BC, (hf - 0.25F) / 0.75F);
-				FxDraw.ring(shade, m, c, x, z, r * 0.55, r, col, 0.0F, 0.6F * env, 0.0F, far ? 18 : 32);
-				FxDraw.ring(shade, m, c, x, z, r * 0.2, r * 0.6, Solids.scale(col, 0.6), 0.0F, 0.35F * env, 0.0F, far ? 12 : 20);
+				FxDraw.ring(shade, m, c, x, z, r * 0.2, r * 0.6, Solids.scale(col, 0.6), 0.0F, 0.2F * env, 0.0F, far ? 12 : 20);
 				for (int s = 0; s < strands; s++) {
 					double spin = a * (0.32 + h * 0.0016) + h * 0.05;
 					double ang = s * MathHelper.TAU / strands + spin;
@@ -112,8 +127,8 @@ public final class MegaEffects {
 					Vec3d q = c.add(Math.cos(ang + 0.9) * r * 0.62, 0, Math.sin(ang + 0.9) * r * 0.62);
 					if (prev[s] != null) {
 						int sc = Effects.fade(0x7A848E, 0xE4EAF0, hf);
-						FxDraw.ribbon(shade, m, prev[s], p, Vec3d.ZERO, r * 0.16, sc, 0.5F * env, 0.5F * env);
-						FxDraw.ribbon(shade, m, prevIn[s], q, Vec3d.ZERO, r * 0.1, Solids.scale(sc, 0.7), 0.35F * env, 0.35F * env);
+						FxDraw.ribbon(shade, m, prev[s], p, Vec3d.ZERO, r * 0.12, sc, 0.3F * env, 0.3F * env);
+						FxDraw.ribbon(shade, m, prevIn[s], q, Vec3d.ZERO, r * 0.08, Solids.scale(sc, 0.7), 0.22F * env, 0.22F * env);
 					}
 					prev[s] = p;
 					prevIn[s] = q;
@@ -141,16 +156,18 @@ public final class MegaEffects {
 			}
 			// Dust skirt rolling out around the base.
 			Vec3d g = base.subtract(cam);
-			for (int i = 0; i < 40; i++) {
-				double ang = i * MathHelper.TAU / 40 + a * 0.12;
-				double rr = radius * (0.9 + 0.5 * Solids.hash(i, 1)) + Math.sin(a * 0.1 + i) * 2;
-				Vec3d p = g.add(Math.cos(ang) * rr, 2 + Solids.hash(i, 2) * 6, Math.sin(ang) * rr);
-				Solids.dot(shade, m, p, cb, 4 + Solids.hash(i, 3) * 5, 0x7A6A54, 0.45F * env);
-			}
-			FxDraw.disc(shade, m, g.add(0, 1, 0), x, z, radius * 1.8, 0x6A5A48, 0.5F * env, 0.0F, 32);
-			// Wall cloud: a dark rotating shelf with spiral bands feeding the funnel.
+			java.util.List<Effects.Puff> skirt = FxKit.puffs();
+			FxKit.dustRing(m, cb, g, radius * 1.05 + Math.sin(a * 0.1) * 2, radius * 0.5, 0x9A8668, 0x4E4232, 0.6F * env, 3, skirt);
+			FxKit.dustRing(m, cb, g, radius * 1.6, radius * 0.35, 0x8A7860, 0x4A4030, 0.35F * env, 4, skirt);
+			// Wall cloud: a dark rotating shelf of billows with spiral bands feeding the funnel.
 			Vec3d top = center(H, a).subtract(cam);
-			FxDraw.disc(shade, m, top, x, z, radius * 3.2, 0x40464C, 0.55F * env, 0.0F, 40);
+			for (int i = 0; i < (far ? 14 : 26); i++) {
+				double ang = i * 2.39996 + a * 0.02;
+				double rr = radius * 3.0 * Math.sqrt((i + 0.5) / (far ? 14 : 26));
+				skirt.add(new Effects.Puff(top.add(Math.cos(ang) * rr, (Solids.hash(i, 71) - 0.5) * 6, Math.sin(ang) * rr), radius * 0.9,
+						0x6A7078, 0x26292E, 0.6F * env));
+			}
+			FxKit.flush(skirt, consumers, m, cb);
 			for (int arm = 0; arm < 4; arm++) {
 				Vec3d p0 = null;
 				for (int s2 = 0; s2 <= 16; s2++) {
@@ -290,6 +307,7 @@ public final class MegaEffects {
 				}
 			}
 			Solids.dot(glow, m, under, cb, R * 0.35, 0x40A0FF, 0.45F);
+			FxKit.halo(consumers, m, cb, under, R * 1.2, 0x2070E0, 0.25F);
 			FxDraw.disc(glow, m, under.add(0, -1, 0), x, z, R * 0.7, 0x2060C0, 0.25F, 0.0F, 32);
 			if (beamOn(a) && lastBeam != Vec3d.ZERO) {
 				Vec3d target = beamPoint(net.minecraft.client.MinecraftClient.getInstance().world, a).subtract(cam);
@@ -324,6 +342,11 @@ public final class MegaEffects {
 				FxDraw.disc(glow, m, target.add(0, 0.8, 0), x, z, R * 0.3, 0xBFE8FF, 0.8F * rmp, 0.0F, 32);
 				FxDraw.disc(glow, m, target.add(0, 0.6, 0), x, z, R * 0.55, 0xFF7A30, 0.3F * rmp, 0.0F, 32);
 				Solids.dot(glow, m, target.add(0, 3, 0), cb, R * 0.25, 0xE0F4FF, 0.6F * rmp);
+				FxKit.fire(consumers, m, cb, target.add(0, 2, 0), R * 0.18, 0xFFB070, (float) ((a * 0.05) % 1.0) * 0.6F, 0.8F * rmp, a, 81);
+				FxKit.groundShock(consumers, m, target, R * 0.2 + ((a * 2) % 30), 0x80C8FF, 0.6F * rmp);
+				java.util.List<Effects.Puff> burn = FxKit.puffs();
+				FxKit.column(target.add(0, 2, 0), R * 0.9, R * 0.16, a, 0x6A6460, 0x24201E, 0.5F * rmp, 82, burn);
+				FxKit.flush(burn, consumers, m, cb);
 			}
 		}
 	}
@@ -495,6 +518,10 @@ public final class MegaEffects {
 				Vec3d x0 = new Vec3d(1, 0, 0), z0 = new Vec3d(0, 0, 1);
 				FxDraw.ring(glow, m, gT.add(0, 220, 0), x0, z0, 50 + a * 0.3, 62 + a * 0.3, 0xFFF4D0, 0.0F, 0.5F * open, 0.0F, 64);
 				FxDraw.disc(glow, m, gT.add(0, 0.5, 0), x0, z0, 30 * (0.4 + 0.6 * a / THROW), 0xFFF0C0, 0.4F * open, 0.0F, 32);
+				for (int k = 0; k < 10; k++) {
+					FxKit.halo(consumers, m, cb, gT.add(0, 20 + k * 45, 0), 26 + k * 3, 0xFFF0C0, 0.14F * open);
+				}
+				FxKit.flare(consumers, m, cb, gT.add(0, 220, 0), 70, 0xFFF4D0, 0.6F * open, a * 0.003);
 				// In flight: a long shock trail and a glowing bow wave at the tip.
 				Vec3d tail = back.subtract(throwDir.multiply(length * 2.5));
 				FxDraw.beam(glow, m, back, tail, Vec3d.ZERO, radius * 1.4, 0xFFC070, 0.5F);
@@ -523,11 +550,20 @@ public final class MegaEffects {
 					Vec3d p1 = g.add(Math.cos(ang - 0.25) * rr * 0.92, (t - 0.04) * radius * 5, Math.sin(ang - 0.25) * rr * 0.92);
 					FxDraw.ribbon(glow, m, p1, p0, Vec3d.ZERO, radius * 0.12, i % 3 == 0 ? 0xFFFFFF : 0xFFA040, 0.0F, 0.9F * (float) (1 - t) * ramp);
 				}
-				for (int i = 0; i < 24; i++) {
-					double ang = i * MathHelper.TAU / 24 + a * 0.03;
-					double rr = radius * (5 + 1.5 * Solids.hash(i, 9)) + Math.sin(a * 0.07 + i) * radius;
-					Solids.dot(shade, m, g.add(Math.cos(ang) * rr, radius * (0.5 + Solids.hash(i, 4)), Math.sin(ang) * rr), cb, radius * (1.5 + Solids.hash(i, 5)), 0x8A7860, 0.35F * ramp);
+				double e = a - THROW;
+				// The landing: a fireball of gold, a spark shower and two textured shock fronts racing out.
+				if (e < 40) {
+					float k = (float) (e / 40.0);
+					FxKit.fire(consumers, m, cb, g.add(0, radius * 3, 0), radius * 9, 0xFFE0A0, k, 1.0F, a, 91);
+					FxKit.sparks(consumers, m, g.add(0, 2, 0), radius * 40, 90, 0xFFC070, k, 1.0F, 92);
+					FxKit.groundShock(consumers, m, g, radius * 4 + e * radius * 3.2, 0xFFE0B0, 1 - k);
+					FxKit.groundShock(consumers, m, g, radius * 2 + e * radius * 1.8, 0xFFFFFF, 0.8F * (1 - k));
 				}
+				// Dust rolling out from the bore, and smoke climbing off the molten collar while it drills.
+				java.util.List<Effects.Puff> dust = FxKit.puffs();
+				FxKit.dustRing(m, cb, g, radius * 6 + Math.min(e, 60) * radius * 0.25, radius * 2.2, 0xA89478, 0x4E4232, 0.55F * ramp, 93, dust);
+				FxKit.column(g.add(0, radius, 0), radius * 22, radius * 4, a, 0x8A7E70, 0x2C2420, 0.45F * ramp, 94, dust);
+				FxKit.flush(dust, consumers, m, cb);
 			}
 		}
 	}

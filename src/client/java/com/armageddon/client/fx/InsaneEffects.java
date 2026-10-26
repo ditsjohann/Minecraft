@@ -267,6 +267,11 @@ public final class InsaneEffects {
 			Vec3d b = base.subtract(cam);
 			FxDraw.beam(vc, m, b, b.add(0, 500, 0), Vec3d.ZERO, w, col, alpha);
 			FxDraw.beam(vc, m, b, b.add(0, 500, 0), Vec3d.ZERO, w * 0.3, 0xFFFFFF, alpha);
+			Vec3d[] pcb = FxDraw.cameraBasis(yaw, pitch);
+			for (int k = 0; k < 7; k++) {
+				FxKit.halo(consumers, m, pcb, b.add(0, 8 + k * k * 9, 0), w * (4 + k), col, alpha * 0.22F * (1 - k / 8.0F));
+			}
+			FxKit.flare(consumers, m, pcb, b.add(0, 2, 0), w * 14, col, alpha * 0.6F, a * 0.01);
 			for (int k = 0; k < 5; k++) {
 				double h = ((a * 1.5 + k * 30) % 150);
 				double r = w * (1.5 + h / 40.0);

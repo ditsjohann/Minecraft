@@ -96,16 +96,19 @@ public class CelestialSpearFx extends FxEffect {
 			int segs = Effects.lod(g, rad + 4, 24, 72);
 			FxDraw.ring(glow, m, g.add(0, 0.4, 0), x, z, Math.max(0, rad - (big ? 6 : 1.5)), rad + 0.6, 0xFFD070, 0.0F, 0.8F * al, 0.0F, segs);
 			Solids.dot(glow, m, g.add(0, 1, 0), cb, (big ? 14 : 4) * al + 0.5, 0xFFF4D0, al);
-			if (e < 30) {
-				java.util.List<Effects.Puff> puffs = new java.util.ArrayList<>();
-				int n = big ? 14 : 6;
-				for (int i = 0; i < n; i++) {
-					double ang = i * MathHelper.TAU / n + Solids.hash(i, 51) * 0.6;
-					double d = rad * (0.5 + 0.4 * Solids.hash(i, 52));
-					Vec3d p = g.add(Math.cos(ang) * d, 1 + e * 0.15 + Solids.hash(i, 53) * 2, Math.sin(ang) * d);
-					puffs.add(new Effects.Puff(p, (big ? 6 : 2) + e * 0.12, 0xE8D0A0, 0x8A7050, 0.45F * (float) (1 - e / 30.0)));
+			FxKit.groundShock(consumers, m, g, rad, 0xFFD070, 0.9F * al);
+			float fe = (float) Math.min(1.0, e / (big ? 26.0 : 14.0));
+			if (fe < 1) {
+				FxKit.fire(consumers, m, cb, g.add(0, big ? 5 : 1.5, 0), big ? 14 : 3.5, 0xFFE8A0, fe, 1.0F, a, 61);
+				FxKit.sparks(consumers, m, g.add(0, 1, 0), big ? 60 : 14, big ? 70 : 24, 0xFFD070, fe, 1.0F, 62);
+			}
+			if (e < 40) {
+				java.util.List<Effects.Puff> puffs = FxKit.puffs();
+				FxKit.dustRing(m, cb, g, rad * 0.85, (big ? 9 : 3) + e * 0.15, 0xE8D0A0, 0x7A6248, 0.6F * (float) (1 - e / 40.0), 51, puffs);
+				if (big) {
+					FxKit.column(g, 20 + e * 1.2, 10 + e * 0.2, a, 0xD8C8A8, 0x6A5844, 0.45F * (float) (1 - e / 40.0), 52, puffs);
 				}
-				Effects.drawPuffs(puffs, consumers.getBuffer(FxRenderLayers.SHADE), m, cb, 8);
+				FxKit.flush(puffs, consumers, m, cb);
 			}
 		}
 		float shaft = (float) Math.max(0, 1 - e / (big ? 80.0 : 30.0));

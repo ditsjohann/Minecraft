@@ -81,6 +81,9 @@ public class CelestialShatterFx extends FxEffect {
 					Vec3d p10 = cc.add(dome(e1, a0).multiply(radius));
 					FxDraw.ribbon(glow, m, p00, p01, Vec3d.ZERO, crackW, 0xFF60FF, al, al);
 					FxDraw.ribbon(glow, m, p00, p10, Vec3d.ZERO, crackW, 0xFF60FF, al, al);
+					if (t < 12) {
+						FxKit.halo(consumers, m, cb, p00, crackW * 10, 0xFF80FF, (float) (1 - t / 12.0) * 0.8F);
+					}
 					if (Solids.hash(i * 31 + j, 72) < 0.35) {
 						// A diagonal fracture across the pane.
 						Vec3d p11 = cc.add(dome(e1, a1).multiply(radius));
@@ -97,6 +100,12 @@ public class CelestialShatterFx extends FxEffect {
 		float cosmos = Effects.smooth((float) e / 40.0F) * out;
 		Solids.stars(glow, m, cb, a, cosmos);
 		Solids.nebula(glow, m, cb, 7, 0xFF40C0, 0x6040FF, cosmos);
+		if (e < 30) {
+			// The moment the sky gives: a flash at the zenith and a ring of light running down the dome.
+			float k = (float) (1 - e / 30.0);
+			FxKit.flare(consumers, m, cb, cc.add(0, radius, 0), radius * 0.6, 0xFFC0FF, k, e * 0.02);
+			FxKit.shock(consumers, m, cc.add(0, radius * 0.9, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), radius * (0.2 + e / 30.0), 0xFF80FF, k);
+		}
 
 		// The panes falling away, tumbling, their broken edges still glowing.
 		if (e < 150) {

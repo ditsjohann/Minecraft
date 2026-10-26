@@ -1435,6 +1435,10 @@ public final class ArsenalEffects {
 					FxDraw.ribbon(glow, m, edge, edge.add(0, radius * (2 + 3 * k), 0), Vec3d.ZERO, radius * 0.5, 0xFF6A20, 0.35F * k, 0.0F);
 				}
 				FxDraw.ribbon(glow, m, c, c.add(0, radius * (3 + 5 * k), 0), Vec3d.ZERO, radius * 1.6, 0xFF9040, 0.25F * k, 0.0F);
+				FxKit.fire(consumers, m, cb, under, radius * 0.8, 0xFFD080, 0.2F, 0.9F * k, a, 231);
+				java.util.List<Effects.Puff> wake = FxKit.puffs();
+				FxKit.column(c.add(0, radius * 0.6, 0), radius * (4 + 6 * k), radius * 1.3, a, 0x6A5A50, 0x241A16, 0.55F * k, 232, wake);
+				FxKit.flush(wake, consumers, m, cb);
 			}
 			if (t > SONIC - 0.02F) {
 				// Through the sound barrier: a vapour cone snaps around it, shock shells race out, and a Mach cone trails it.
@@ -1447,6 +1451,15 @@ public final class ArsenalEffects {
 					FxDraw.ring(glow, m, c.add(0, h, 0), x0, z0, rr * 0.86, rr, 0xFFFFFF, 0.0F, 0.6F * vapour * (1 - ring / 8.0F), 0.0F, 56);
 				}
 				FxDraw.disc(glow, m, c.add(0, radius * 0.2, 0), x0, z0, radius * 1.6, 0xFFFFFF, 0.0F, 0.5F * vapour, 48);
+				java.util.List<Effects.Puff> collar = FxKit.puffs();
+				FxKit.dustRing(m, cb, c.add(0, radius * 0.15, 0), radius * 1.35, radius * 0.45, 0xFFFFFF, 0xC8D0DC, 0.7F * vapour, 233, collar);
+				FxKit.flush(collar, consumers, m, cb);
+				for (int sh = 0; sh < 3; sh++) {
+					double rr = radius * 1.1 + Math.max(0, k - sh * 5) * 10;
+					if (k > sh * 5) {
+						FxKit.shock(consumers, m, c, cb[0], cb[1], rr, 0xE8F0FF, 0.7F * (float) Math.max(0, 1 - rr / (radius * 16)));
+					}
+				}
 				for (int sh = 0; sh < 3; sh++) {
 					double rr = radius * 1.1 + Math.max(0, k - sh * 5) * 10;
 					float fa = (float) Math.max(0, 1 - rr / (radius * 16));

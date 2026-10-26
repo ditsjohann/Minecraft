@@ -2,6 +2,7 @@ package com.armageddon.client.fx;
 
 import com.armageddon.client.render.FxDraw;
 import com.armageddon.client.render.FxRenderLayers;
+import com.armageddon.client.render.FxSprites;
 import com.armageddon.network.FxPayload;
 import com.armageddon.util.CityShapes;
 import net.minecraft.client.MinecraftClient;
@@ -111,6 +112,11 @@ public final class CityFx {
 			if (e < 64) {
 				// The moon settles into its crater while the real blocks build up behind it.
 				double sink = Cinematics.ease(e / 26.0);
+				// The landing: a cold blue-white flash, a spray of glowing rock, and the shock front.
+				float k = (float) clamp01(e / 40.0);
+				FxKit.fire(consumers, m, cb, g.add(0, r * 0.4, 0), r * 0.9, 0xD8E0FF, k, 0.9F * (1 - k), a, 111);
+				FxKit.sparks(consumers, m, g.add(0, r * 0.3, 0), r * 3.5, 80, 0xFFE0C0, k, 1.0F, 112);
+				FxKit.groundShock(consumers, m, g, r * (1.2 + e * 0.12), 0xD0D8FF, 1 - k);
 				Vec3d c = g.add(0, MathHelper.lerp(sink, r * 0.92, r * 0.45 + 1), 0);
 				VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 				double rr = r + 0.7;
@@ -173,6 +179,10 @@ public final class CityFx {
 			}
 			float e = a - bang;
 			renderVoid(consumers, m, c, cb, e);
+			if (e < 50) {
+				FxKit.flare(consumers, m, cb, c, scale * (0.8 + e * 0.05), 0xF4F0FF, (float) (1 - e / 50.0), e * 0.03);
+				FxKit.shock(consumers, m, c, cb[0], cb[1], scale * 3.0 * Cinematics.ease(e / 50.0), 0xE8E0FF, (float) (1 - e / 50.0));
+			}
 			// The inflating shell.
 			if (e < 40) {
 				double rad = scale * 2.6 * Cinematics.ease(e / 40.0);
@@ -385,6 +395,19 @@ public final class CityFx {
 			}
 			Solids.dot(glow, m, mouth.subtract(dir.multiply(R * 0.3)), cb, R * 0.35, 0xFFFFFF, 0.9F);
 			Solids.dot(glow, m, mouth, cb, R * 2.2, 0x8040FF, 0.25F);
+			FxKit.halo(consumers, m, cb, h, R * 4.0, 0x6020C0, 0.2F);
+			// Where it breaks the surface, the ground boils up around it.
+			Vec3d hw = at(a);
+			double gy = groundY(hw.x, hw.z, base.y);
+			if (Math.abs(hw.y - gy) < R * 2.5) {
+				float near = (float) (1 - Math.abs(hw.y - gy) / (R * 2.5));
+				java.util.List<Effects.Puff> dust = FxKit.puffs();
+				Vec3d breach = new Vec3d(hw.x, gy, hw.z).subtract(cam);
+				FxKit.dustRing(m, cb, breach, R * 1.6, R * 0.9, 0x8C7860, 0x3A3026, 0.6F * near, (int) (a / 10), dust);
+				FxKit.column(breach, R * 3, R * 1.2, a, 0x7A6A58, 0x2E2620, 0.4F * near, 121, dust);
+				FxKit.flush(dust, consumers, m, cb);
+				FxKit.groundShock(consumers, m, breach, R * (1.5 + (a % 20) * 0.15), 0xA060FF, 0.5F * near);
+			}
 			for (int k = 0; k < 6; k++) {
 				double ang = k * MathHelper.TAU / 6 + 0.3;
 				Vec3d out = hb[0].multiply(Math.cos(ang)).add(hb[1].multiply(Math.sin(ang)));
@@ -592,6 +615,10 @@ public final class CityFx {
 				Vec3d base = tip.add(up.multiply(blade * u)).add(side.multiply((Solids.hash(k, 5) - 0.5) * width));
 				Vec3d lick = base.add(side.multiply((Solids.hash(k, 6) - 0.5) * 20 * life)).add(0, 30 * life, 0);
 				FxDraw.ribbon(glow, m, base, lick, Vec3d.ZERO, 6 * (1 - life), life < 0.5 ? 0xFFA030 : 0xFF4010, 0.7F * (float) (1 - life) * alive, 0.0F);
+				if (k % 2 == 0) {
+					FxSprites.billboard(FxKit.glow(consumers), m, base.lerp(lick, 0.5), cb, 7 * (1 - life) + 2, Solids.hash(k, 7) * 6 + a * 0.05,
+							FxSprites.FIRE + (k & 1), life < 0.5 ? 0xFFB040 : 0xFF5010, 0.75F * (float) (1 - life) * alive, FxSprites.FULL_BRIGHT);
+				}
 			}
 			// Crossguard, grip and pommel.
 			Solids.tube(solid, m, guard.subtract(side.multiply(38)), guard.add(side.multiply(38)), 4.5, 4.5, 8, 0x3A1A0A, 1.0F, true);
@@ -626,6 +653,21 @@ public final class CityFx {
 				}
 				FxDraw.disc(glow, m, g.add(0, 0.6, 0), side, fwd, 40 + e * 0.5, 0xFF8030, 0.6F * open, 0.0F, 40);
 				Solids.dot(glow, m, g.add(0, 20, 0), cb, 60, 0xFF6020, 0.3F * open);
+				// The blow itself: a wall of fire, sparks raining out, and black smoke rolling up along the split.
+				if (e < 60) {
+					float k = e / 60.0F;
+					FxKit.fire(consumers, m, cb, g.add(0, 12, 0), 34, 0xFFC060, k, alive, a, 131);
+					FxKit.sparks(consumers, m, g.add(0, 4, 0), 160, 120, 0xFFA040, k, alive, 132);
+					FxKit.groundShock(consumers, m, g, 40 + e * 5, 0xFF8030, (1 - k) * alive);
+				}
+				java.util.List<Effects.Puff> smoke = FxKit.puffs();
+				for (int sgn = -1; sgn <= 1; sgn += 2) {
+					for (int i = 1; i <= 6; i++) {
+						Vec3d along = g.add(fwd.multiply(sgn * reach * Math.min(1, e / 20.0) * i / 6.0));
+						FxKit.column(along, 30 + Math.min(e, 120) * 0.6, 12, a, 0x5A4A44, 0x1E1614, 0.45F * open, 133 + i * 7 + sgn, smoke);
+					}
+				}
+				FxKit.flush(smoke, consumers, m, cb);
 			}
 		}
 	}

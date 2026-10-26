@@ -148,6 +148,14 @@ public final class WorldFx {
 				Solids.dot(glow, m, p, cb, R * 0.07, 0xD8A0FF, 0.45F * beat * fade);
 				Solids.dot(glow, m, p, cb, R * 0.025, 0xFFFFFF, 0.6F * beat * fade);
 			}
+			// Smoke still curling up out of each knuckle crater.
+			java.util.List<Effects.Puff> smoke = FxKit.puffs();
+			int ki = 0;
+			for (double[] k : WorldShapes.KNUCKLES) {
+				Vec3d p = local(k[0] * R, k[1] * R, base - WorldShapes.KNUCKLE_DEPTH * R + 1.5).subtract(cam);
+				FxKit.column(p, R * 0.5, R * 0.08, a, 0x6A6070, 0x1E1A24, 0.35F * fade * (float) Math.exp(-a / 900.0), 201 + ki++, smoke);
+			}
+			FxKit.flush(smoke, consumers, m, cb);
 			// Bell rings: a stroke every three seconds, rolling out over the ripples and dying away.
 			float ringing = (float) Math.exp(-a / 500.0) * fade;
 			if (ringing > 0.02F) {

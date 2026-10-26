@@ -378,6 +378,14 @@ public final class Effects {
 			float in = smooth((age + tickDelta) / 3.0F);
 			alpha *= in;
 			Vec3d c = center.subtract(cam).add(0, 0.3, 0);
+			FxKit.groundShock(consumers, m, c.add(0, -0.25, 0), r, color, alpha * 0.9F);
+			if (dust && t < 0.8F && r > 6) {
+				// A ring of real dust billows riding the front.
+				java.util.List<Puff> billows = FxKit.puffs();
+				Vec3d[] cbr = FxDraw.cameraBasis(yaw, pitch);
+				FxKit.dustRing(m, cbr, c, r * 0.97, Math.max(2.0, thickness * 2.5) * (0.6 + t), 0xB8A890, 0x5A4C40, 0.5F * (1 - t / 0.8F) * in, 221, billows);
+				FxKit.flush(billows, consumers, m, cbr);
+			}
 			Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
 			int segs = MathHelper.clamp((int) (r * 1.2), 32, 160);
 			segs = Math.min(segs, lod(c, r, 32, 160));

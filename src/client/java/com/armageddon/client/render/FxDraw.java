@@ -96,6 +96,22 @@ public final class FxDraw {
 	/** UV sphere. Alpha can fall off towards the silhouette for a soft "fresnel" glow. */
 	public static void sphere(VertexConsumer vc, Matrix4f m, Vec3d c, double radius, Vec3d eye, int rgb, float alphaFacing,
 			float alphaEdge, int lat, int lon) {
+		net.minecraft.client.render.RenderLayer layer = FxBuffers.current() != null ? FxBuffers.layerOf(vc) : null;
+		if (layer == FxRenderLayers.GLOW || layer == FxRenderLayers.GLOW_NO_DEPTH || layer == FxRenderLayers.SHADE) {
+			if (alphaFacing >= alphaEdge) {
+				// A glowing (or dark) ball reads better as one smooth sprite than as a faceted mesh.
+				net.minecraft.client.render.RenderLayer to = layer == FxRenderLayers.SHADE ? FxSprites.SMOKE_LAYER
+						: layer == FxRenderLayers.GLOW ? FxSprites.GLOW_LAYER : FxSprites.GLOW_TOP_LAYER;
+				Vec3d[] cb = sphereBasis(c);
+				int light = to == FxSprites.SMOKE_LAYER ? FxSprites.light(c, 0.0F) : FxSprites.FULL_BRIGHT;
+				FxSprites.sprite(FxBuffers.current().getBuffer(to), m, c, cb[0], cb[1], radius * 1.45, 0.0, FxSprites.GLOW, rgb, rgb,
+						Math.min(1.0F, alphaFacing * 1.1F + alphaEdge * 0.3F), light);
+				return;
+			}
+			// Rim-lit shells keep their geometry, with enough facets not to show them.
+			lat = Math.max(lat, 16);
+			lon = Math.max(lon, 24);
+		}
 		for (int i = 0; i < lat; i++) {
 			double t0 = Math.PI * i / lat - Math.PI / 2;
 			double t1 = Math.PI * (i + 1) / lat - Math.PI / 2;
@@ -122,6 +138,17 @@ public final class FxDraw {
 		double len = view.length();
 		float facing = len < 1.0E-4 ? 1.0F : (float) Math.abs(n.dotProduct(view.multiply(1.0 / len)));
 		vertex(vc, m, p.x, p.y, p.z, rgb, MathHelper.lerp(facing, aEdge, aFacing));
+	}
+
+	/** A basis facing the camera (at the origin) from a camera-relative point. */
+	static Vec3d[] sphereBasis(Vec3d c) {
+		Vec3d f = c.lengthSquared() < 1.0E-6 ? new Vec3d(0, 0, 1) : c.normalize();
+		Vec3d right = f.crossProduct(new Vec3d(0, 1, 0));
+		if (right.lengthSquared() < 1.0E-6) {
+			right = new Vec3d(1, 0, 0);
+		}
+		right = right.normalize();
+		return new Vec3d[]{right, right.crossProduct(f).normalize()};
 	}
 
 	/** Camera basis vectors from yaw/pitch (degrees). Returns {right, up}. */

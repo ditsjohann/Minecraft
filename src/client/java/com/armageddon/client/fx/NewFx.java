@@ -547,11 +547,14 @@ public final class NewFx {
 				Vec3d back = c.subtract(prev);
 				if (back.lengthSquared() > 1.0E-4) {
 					back = back.normalize();
-					for (int i = 0; i < 6; i++) {
-						Vec3d off = cb[0].multiply((NewBombShapes.hash(i, 3) - 0.5) * r).add(cb[1].multiply((NewBombShapes.hash(i, 4) - 0.5) * r));
-						FxDraw.ribbon(consumers.getBuffer(FxRenderLayers.SHADE), m, c.add(off), c.add(off).subtract(back.multiply(r * 5)), Vec3d.ZERO,
-								r * 0.6, 0x140806, 0.6F, 0.0F);
+					java.util.List<Effects.Puff> trail = FxKit.puffs();
+					for (int i = 0; i < 26; i++) {
+						double u = (i + 0.5) / 26;
+						Vec3d off = cb[0].multiply((NewBombShapes.hash(i, 3) - 0.5) * r * (0.6 + u)).add(cb[1].multiply((NewBombShapes.hash(i, 4) - 0.5) * r * (0.6 + u)));
+						trail.add(new Effects.Puff(c.add(off).subtract(back.multiply(r * (0.8 + u * 6))), r * (0.55 + u * 0.9), 0x5A3A30, 0x120806, 0.75F * (float) (1 - u)));
 					}
+					FxKit.flush(trail, consumers, m, cb);
+					FxKit.fire(consumers, m, cb, c, r * 1.2, 0xFF7030, 0.3F, 0.6F, t, 211);
 					FxDraw.ribbon(glow, m, c, c.subtract(back.multiply(r * 4)), Vec3d.ZERO, r * 1.2, 0xFF6020, 0.35F, 0.0F);
 				}
 			}

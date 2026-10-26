@@ -75,7 +75,8 @@ public class CelestialZeropointFx extends FxEffect {
 			double e = Math.max(0, a - snap);
 			double pull = Cinematics.ease(e / 12.0);
 			boolean rewind = a >= CelestialTimeline.ZP_REWIND;
-			// The skin of the stopped moment.
+			// The skin of the stopped moment, with a cold haze inside it.
+			FxKit.halo(consumers, m, cb, cc, radius * 1.3 * (1 - pull), 0x6FB8FF, 0.12F * appear);
 			FxDraw.sphere(glow, m, cc, radius * (1 - pull), Vec3d.ZERO, 0x9FEFFF, 0.0F, 0.22F * appear, 12, 24);
 			// Dust that stopped mid-air: perfectly still, a faint shiver when time twitches backwards.
 			for (int i = 0; i < count; i++) {
@@ -117,7 +118,8 @@ public class CelestialZeropointFx extends FxEffect {
 		if (e >= 10 && e < 18) {
 			// The zero point itself: one black pinhole with a hairline of light around it.
 			float k = (float) (1 - Math.abs(e - 14) / 4.0);
-			Solids.sphere(consumers.getBuffer(FxRenderLayers.SOLID), m, cc, 0.4 + 1.0 * k, 0x000000, 6, 10, false);
+			Solids.sphere(consumers.getBuffer(FxRenderLayers.SOLID), m, cc, 0.4 + 1.0 * k, 0x000000, 12, 20, false);
+			FxKit.flare(consumers, m, cb, cc, 6 + 10 * k, 0xC8F8FF, 0.9F * k, e * 0.05);
 			FxDraw.ring(glow, m, cc, cb[0], cb[1], 1.4 + k, 1.8 + k, 0xFFFFFF, 0.0F, 0.9F * k, 0.0F, 24);
 		}
 		if (e >= 12 && e < 72) {
@@ -126,6 +128,8 @@ public class CelestialZeropointFx extends FxEffect {
 			float al = (float) (1 - (e - 12) / 60.0);
 			FxDraw.ring(glow, m, cc, cb[0], cb[1], Math.max(0, rad - 1.5), rad, 0xC8F8FF, 0.0F, 0.8F * al, 0.0F, segs);
 			FxDraw.ring(glow, m, cc.add(0, 0.5, 0), X, Z, Math.max(0, rad * 0.8 - 1.0), rad * 0.8, 0x9FEFFF, 0.0F, 0.5F * al, 0.0F, segs);
+			FxKit.shock(consumers, m, cc, cb[0], cb[1], rad, 0xC8F8FF, 0.9F * al);
+			FxKit.groundShock(consumers, m, cc, rad * 0.8, 0x9FEFFF, 0.7F * al);
 		}
 		if (e >= 14) {
 			// Frost glinting on the polished hollow.

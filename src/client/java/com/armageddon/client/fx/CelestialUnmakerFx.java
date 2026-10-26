@@ -105,6 +105,9 @@ public class CelestialUnmakerFx extends FxEffect {
 		Vec3d l0 = pc.subtract(side.multiply(half)), l1 = pc.add(side.multiply(half));
 		Vec3d a0 = l0.add(0, yb, 0), a1 = l1.add(0, yb, 0), b0 = l0.add(0, yt, 0), b1 = l1.add(0, yt, 0);
 		Solids.quad(glow, m, a0, a1, b1, b0, 0xFF40FF, 0.05F);
+		FxKit.halo(consumers, m, cb, pc.add(0, (yb + yt) * 0.5, 0), Math.max(half, (yt - yb) * 0.5) * 1.3, 0xFF40FF, 0.18F);
+		FxKit.halo(consumers, m, cb, l0.add(0, sl0(a, yb, yt), 0), 4, 0xFFFFFF, 0.7F);
+		FxKit.halo(consumers, m, cb, l1.add(0, sl0(a, yb, yt), 0), 4, 0xFFFFFF, 0.7F);
 		// Grid on the plane, one line per lattice cell.
 		int cell = CelestialTimeline.UM_CELL;
 		for (double v = -half + ((half) % cell); v <= half; v += cell) {
@@ -144,5 +147,9 @@ public class CelestialUnmakerFx extends FxEffect {
 				pixel(shade, m, p, cb, h, 0x000000, 0.75F * al);
 			}
 		}
+	}
+
+	private static double sl0(float a, double yb, double yt) {
+		return yb + (yt - yb) * ((a * 0.08) % 1.0);
 	}
 }
