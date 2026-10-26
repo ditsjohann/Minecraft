@@ -542,8 +542,9 @@ public final class MegaEffects {
 					Vec3d dir = wingSide.multiply(side * Math.cos(th)).add(ax.multiply(-Math.sin(th))).normalize();
 					double fl = length * (0.42 - f * 0.025);
 					Vec3d tipF = wingRoot.add(dir.multiply(fl));
-					FxDraw.ribbon(glow, m, wingRoot, tipF, Vec3d.ZERO, radius * (1.3 - f * 0.08), f % 2 == 0 ? 0xFFF6E0 : 0xFFE0A0, 0.55F, 0.15F);
-					FxDraw.ribbon(glow, m, wingRoot, tipF, Vec3d.ZERO, radius * 0.25, 0xFFFFFF, 0.8F, 0.3F);
+					// Soft feathers of light rather than hard strokes.
+					com.armageddon.client.render.FxSprites.streak(FxKit.glow(consumers), m, wingRoot.add(dir.multiply(fl * 0.1)), tipF, radius * (2.6 - f * 0.15),
+							com.armageddon.client.render.FxSprites.STREAK, f % 2 == 0 ? 0xFFF6E0 : 0xFFE0A0, 0.45F, com.armageddon.client.render.FxSprites.FULL_BRIGHT);
 				}
 			}
 			Vec3d haloC = back.subtract(ax.multiply(radius * 3));

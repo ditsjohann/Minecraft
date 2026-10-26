@@ -397,6 +397,16 @@ public final class NewFx {
 					x = g.x + Math.cos(a) * r;
 					z = g.z + Math.sin(a) * r;
 					y = ground(x, z);
+				} else if (t >= Termite.FLIGHT && h1 > 0.3) {
+					// The nuptial flight: up off the hill in a spiralling column, then out with the swarm front.
+					double k = MathHelper.clamp((t - Termite.FLIGHT - h3 * 60) / 70.0, 0.0, 1.0);
+					double front = Termite.flightFront(t) * (0.75 + 0.25 * h2) * Math.min(1.0, (t - Termite.FLIGHT) / 120.0);
+					double aa = a + t * (0.03 + h3 * 0.02);
+					double r = MathHelper.lerp(k, 3 + h2 * 6, Math.max(8, front));
+					double alt = MathHelper.lerp(k, Termite.HILL_H * Termite.built(t) + 4 + h3 * 30, 6 + h3 * 22) + Math.sin(t * 0.2 + i) * 1.5;
+					x = g.x + Math.cos(aa) * r;
+					z = g.z + Math.sin(aa) * r;
+					y = (k < 1 ? g.y - 1 : ground(x, z)) + alt;
 				} else {
 					// Climbing the hill in spirals, up to the current top, then back down.
 					double cyc = (t * (0.004 + h3 * 0.004) + h2) % 2.0;
@@ -435,7 +445,7 @@ public final class NewFx {
 				}
 				double x = MathHelper.lerp(tickDelta, ox[i], px[i]), y = MathHelper.lerp(tickDelta, oy[i], py[i]), z = MathHelper.lerp(tickDelta, oz[i], pz[i]);
 				double dx = x - cam.x, dy = y - cam.y, dz = z - cam.z;
-				if (dx * dx + dy * dy + dz * dz > 110 * 110) {
+				if (dx * dx + dy * dy + dz * dz > 180 * 180) {
 					continue;
 				}
 				Vec3d head = new Vec3d(px[i] - ox[i], py[i] - oy[i], pz[i] - oz[i]);

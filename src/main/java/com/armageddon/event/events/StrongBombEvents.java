@@ -601,7 +601,7 @@ public final class StrongBombEvents {
 	 * tall, buttressed, vented, ringed with spires. Then the guards come out.
 	 */
 	public static class TermiteDomain extends Base {
-		private RingSweep eat;
+		private RingSweep eat, flight;
 		private double builtH;
 
 		@Override
@@ -639,8 +639,42 @@ public final class StrongBombEvents {
 					Kit.sound(world, g.add(Math.cos(a) * front, 0, Math.sin(a) * front), SoundEvents.ENTITY_SILVERFISH_AMBIENT, 24.0F, 0.6F + world.random.nextFloat() * 0.6F);
 				}
 			}
+			if (t >= Termite.EMERGE + 40 && t < Termite.EAT_END && t % 14 == 0 && Destruction.enabled(world)) {
+				sinkhole(g, Termite.front(t) * (0.3 + world.random.nextDouble() * 0.6));
+			}
 			if (t == Termite.BUILD) {
 				title(Text.literal("THEY ARE BUILDING").formatted(Formatting.GOLD), Text.empty());
+				// The mound bursts up out of the ground.
+				Kit.boom(world, g.add(0, 2, 0), 9.0F, 0x7A5A38, owner(), true);
+				Vfx.ring(world, g.add(0, 1, 0), 120.0F, 5.0F, 0x8A6A44, true, 50);
+				Kit.lift(world, g, Termite.HILL_R, 60, true, true).forEach(fb -> Kit.velocity(fb,
+						new Vec3d(fb.getX() - g.x, 0, fb.getZ() - g.z).normalize().multiply(0.8).add(0, 1.2 + world.random.nextDouble(), 0)));
+			}
+			if (t == Termite.FLIGHT) {
+				title(Text.literal("THE NUPTIAL FLIGHT").formatted(Formatting.GOLD, Formatting.BOLD), Text.literal("the swarm takes to the air").formatted(Formatting.YELLOW));
+				Kit.sound(world, g, SoundEvents.ENTITY_BEE_LOOP_AGGRESSIVE, 64.0F, 0.5F);
+				Kit.sound(world, g, SoundEvents.ENTITY_PHANTOM_FLAP, 64.0F, 0.4F);
+				flight = new RingSweep((int) Termite.FLIGHT_R);
+			}
+			if (t >= Termite.FLIGHT && t <= Termite.FLIGHT_END + 4) {
+				double front = Termite.flightFront(t);
+				if (Destruction.enabled(world)) {
+					flight.advance(front, 1200, (dx, dz, d) -> {
+						if (d > Termite.RADIUS - 2) {
+							eatColumn(g, dx, dz);
+						}
+					});
+					if (t % 12 == 0) {
+						sinkhole(g, front - 6);
+					}
+				}
+				if (t % 5 == 0) {
+					bite(g, front);
+				}
+				if (t % 8 == 0) {
+					double a = world.random.nextDouble() * MathHelper.TAU;
+					Kit.sound(world, g.add(Math.cos(a) * front, 6, Math.sin(a) * front), SoundEvents.ENTITY_BEE_LOOP_AGGRESSIVE, 32.0F, 0.6F);
+				}
 			}
 			if (t >= Termite.BUILD && t <= Termite.BUILD_END) {
 				build(g, Termite.built(t) * Termite.HILL_H);
@@ -668,8 +702,12 @@ public final class StrongBombEvents {
 				if (s.isAir()) {
 					continue;
 				}
-				if (living(s)) {
+				if (living(s) || edible(s)) {
 					q().add(p.toImmutable(), Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
+					continue;
+				}
+				if (!com.armageddon.destruction.world.Devastation.natural(s)) {
+					// Stone walls and the like: they stand, hollowed out, while the wood inside is eaten.
 					continue;
 				}
 				if (s.isOf(Blocks.GRASS_BLOCK) || s.isOf(Blocks.PODZOL) || s.isOf(Blocks.MYCELIUM) || s.isOf(Blocks.MOSS_BLOCK) || s.isOf(Blocks.FARMLAND)) {
@@ -677,6 +715,48 @@ public final class StrongBombEvents {
 					q().add(p.toImmutable(), k < 0.5 ? Blocks.COARSE_DIRT.getDefaultState() : k < 0.85 ? Blocks.DIRT.getDefaultState() : Blocks.ROOTED_DIRT.getDefaultState(), BlockQueue.ANY);
 				}
 				break;
+			}
+		}
+
+		/** Wood and fibre: everything a termite eats. Houses are eaten down to their stone shells. */
+		static boolean edible(BlockState s) {
+			return s.isIn(BlockTags.PLANKS) || s.isIn(BlockTags.WOODEN_STAIRS) || s.isIn(BlockTags.WOODEN_SLABS) || s.isIn(BlockTags.WOODEN_FENCES)
+					|| s.isIn(BlockTags.FENCE_GATES) || s.isIn(BlockTags.WOODEN_DOORS) || s.isIn(BlockTags.WOODEN_TRAPDOORS) || s.isIn(BlockTags.WOOL)
+					|| s.isIn(BlockTags.WOOL_CARPETS) || s.isIn(BlockTags.WOODEN_BUTTONS) || s.isIn(BlockTags.WOODEN_PRESSURE_PLATES)
+					|| s.isOf(Blocks.LADDER) || s.isOf(Blocks.SCAFFOLDING) || s.isOf(Blocks.BOOKSHELF) || s.isOf(Blocks.CRAFTING_TABLE)
+					|| s.isOf(Blocks.COMPOSTER) || s.isOf(Blocks.TARGET) || s.isOf(Blocks.BEEHIVE) || s.isOf(Blocks.BEE_NEST) || s.isOf(Blocks.TORCH)
+					|| s.isOf(Blocks.WALL_TORCH) || s.isIn(BlockTags.LOGS);
+		}
+
+		/** The tunnels under the land give way: a pit opens and swallows what stands over it. */
+		private void sinkhole(Vec3d g, double dist) {
+			double a = world.random.nextDouble() * MathHelper.TAU;
+			int cx = MathHelper.floor(g.x + Math.cos(a) * dist), cz = MathHelper.floor(g.z + Math.sin(a) * dist);
+			if (!world.isChunkLoaded(cx >> 4, cz >> 4)) {
+				return;
+			}
+			int r = 3 + world.random.nextInt(5), depth = 7 + world.random.nextInt(8);
+			int top = world.getTopY(Heightmap.Type.MOTION_BLOCKING, cx, cz);
+			for (int x = -r; x <= r; x++) {
+				for (int z = -r; z <= r; z++) {
+					double d = Math.sqrt(x * x + z * z);
+					if (d > r) {
+						continue;
+					}
+					int floor = top - 1 - (int) (depth * (1 - d / r));
+					for (int y = top + 14; y > floor; y--) {
+						q().add(cx + x, y, cz + z, Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
+					}
+					q().add(cx + x, floor, cz + z, (x + z) % 3 == 0 ? Blocks.ROOTED_DIRT.getDefaultState() : Blocks.COARSE_DIRT.getDefaultState(), BlockQueue.ANY);
+				}
+			}
+			Vec3d c = new Vec3d(cx + 0.5, top, cz + 0.5);
+			world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.DIRT.getDefaultState()), c.x, c.y, c.z, 80, r * 0.6, 1.5, r * 0.6, 0.2);
+			Kit.sound(world, c, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 32.0F, 0.4F);
+			Kit.sound(world, c, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 16.0F, 0.5F);
+			Vfx.shake(world, c, 60, 0.8F);
+			for (LivingEntity e : Kit.living(world, c, r + 1)) {
+				Kit.push(e, new Vec3d(0, -0.6, 0));
 			}
 		}
 
@@ -786,6 +866,7 @@ public final class StrongBombEvents {
 		private long day;
 		private Vec3d heading;
 		private RingSweep cold;
+		private com.armageddon.destruction.world.TerrainJob devastation;
 
 		@Override
 		public boolean tick() {
@@ -845,8 +926,17 @@ public final class StrongBombEvents {
 			if (t == Sun.IMPACT + 60) {
 				dawn(g);
 			}
+			if (devastation != null && t > Sun.IMPACT) {
+				// The corpse's blast wave: everything standing for four hundred blocks is torn down and set burning.
+				int k = t - Sun.IMPACT;
+				devastation.limit = 7.0 * k;
+				devastation.step(4000);
+				if (devastation.limit < 420 && k % 2 == 0) {
+					WorldCutsceneEvents.shockFront(world, g, devastation.limit, 12, 60.0F, owner());
+				}
+			}
 			drain();
-			return t >= Sun.END;
+			return t >= Sun.END && (devastation == null || devastation.isDone()) || t >= Sun.END + 1200;
 		}
 
 		private void everyone(Text msg) {
@@ -970,6 +1060,9 @@ public final class StrongBombEvents {
 			Detonations.ignite(world, g, 90, 0.08F);
 			if (Destruction.enabled(world)) {
 				DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 70.0F), CraterJob.Mode.NUKE));
+				devastation = com.armageddon.destruction.world.Devastation.of(world, g, 0, Destruction.radius(world, 420.0F), MathHelper.floor(g.y) - 1,
+						com.armageddon.destruction.world.Devastation.FIRE);
+				devastation.limit = 0;
 			}
 			for (int i = 0; i < 14; i++) {
 				final int k = i;

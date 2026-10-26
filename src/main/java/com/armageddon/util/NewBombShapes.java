@@ -128,8 +128,8 @@ public final class NewBombShapes {
 
 	public static final class Termite {
 		/** The swarm emerges, eats outwards, turns home and builds. */
-		public static final int EMERGE = 30, EAT_END = 330, BUILD = 340, BUILD_END = 700, END = 820;
-		public static final double RADIUS = 90, HILL_R = 24, HILL_H = 72;
+		public static final int EMERGE = 30, EAT_END = 330, BUILD = 340, BUILD_END = 700, FLIGHT = 720, FLIGHT_END = 1020, END = 1080;
+		public static final double RADIUS = 90, FLIGHT_R = 175, HILL_R = 24, HILL_H = 72;
 		public static final int SPIRES = 6;
 
 		private Termite() {
@@ -138,6 +138,11 @@ public final class NewBombShapes {
 		/** The eating front's radius at tick {@code t}. */
 		public static double front(double t) {
 			return MathHelper.clamp((t - EMERGE) / (EAT_END - EMERGE), 0.0, 1.0) * RADIUS;
+		}
+
+		/** The flying swarm's front during the nuptial flight. */
+		public static double flightFront(double t) {
+			return RADIUS + MathHelper.clamp((t - FLIGHT) / (FLIGHT_END - FLIGHT), 0.0, 1.0) * (FLIGHT_R - RADIUS);
 		}
 
 		/** How much of the hill (0..1 of its height) stands at tick {@code t}. */
