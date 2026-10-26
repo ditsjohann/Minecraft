@@ -128,7 +128,20 @@ public final class CelestialEvents {
 							1, 0.2, 0.2, 0.2, 0.01);
 				}
 			}
-			return t > CelestialTimeline.LL_END;
+			if (t == CelestialTimeline.LL_END) {
+				// The dead star goes out with one last detonation in the sky.
+				Vfx.custom(world, FxType.SUPERNOVA, star, star, (float) (r * 0.45), 0xFFF0C0, 0, 0, 0, 0, Vfx.FAR);
+				Kit.boom(world, star, 12.0F, 0xFFF4E0, owner(), false);
+				Vfx.ring(world, g.add(0, 1, 0), (float) (r * 1.6), 4.0F, 0xFFF4E0, true, 50);
+				Vfx.flash(world, star, 1.0F, 3000, 0xFFFFFF);
+				Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.5F);
+				Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 1.5F);
+				for (LivingEntity e : Kit.living(world, g, r)) {
+					Vec3d away = e.getPos().subtract(star).normalize();
+					Kit.velocity(e, away.multiply(1.6).add(0, 0.5, 0));
+				}
+			}
+			return t > CelestialTimeline.LL_END + 70;
 		}
 
 		private void beat(Vec3d g, int k) {
@@ -334,6 +347,12 @@ public final class CelestialEvents {
 			}
 			if (t == CelestialTimeline.ZP_SNAP) {
 				snap(cc);
+			}
+			if (t == CelestialTimeline.ZP_SNAP + 3) {
+				// Time restarts with a slight, icy burst out of the pinhole.
+				Kit.boom(world, cc, 4.5F, 0x9FEFFF, owner(), false);
+				Vfx.ring(world, cc, r * 1.4F, 2.0F, 0xCFF8FF, true, 30);
+				world.spawnParticles(ParticleTypes.SNOWFLAKE, cc.x, cc.y, cc.z, 200, 1, 1, 1, 0.8);
 			}
 			if (t > CelestialTimeline.ZP_SNAP && t < CelestialTimeline.ZP_SNAP + 120 && t % 8 == 0) {
 				world.spawnParticles(ParticleTypes.SNOWFLAKE, cc.x, cc.y, cc.z, 40, r * 0.5, r * 0.5, r * 0.5, 0.01);
@@ -699,11 +718,16 @@ public final class CelestialEvents {
 			Kit.sound(world, at, SoundEvents.BLOCK_ANVIL_LAND, sp.big() ? 48.0F : 12.0F, 0.6F);
 			if (sp.big()) {
 				// The great spear's blocks go up once the temple has been pressed around it.
+				Kit.boom(world, at.add(0, 2, 0), 11.0F, 0xFFD060, owner(), false);
+				Vfx.pillar(world, at, 9.0F, 0xFFE8A0, false, 70);
+				Vfx.ring(world, at.add(0, 1, 0), r * 2.2F, 4.0F, 0xFFE8A0, true, 45);
 				return;
 			}
-			Destruction.explode(world, null, at.x, at.y, at.z, 2.5F, false);
-			Kit.damage(world, at, 5, 30.0F, ModDamageTypes.PLASMA, null, owner());
-			Vfx.shake(world, at, 64, 0.4F);
+			// Every spear lands as a holy shell: a golden blast, a scorched hole and a ring of light.
+			Kit.boom(world, at, 3.2F, 0xFFD060, owner(), true);
+			Kit.damage(world, at, 7, 30.0F, ModDamageTypes.PLASMA, null, owner());
+			Vfx.ring(world, at.add(0, 0.5, 0), 14.0F, 1.5F, 0xFFE8A0, true, 22);
+			world.spawnParticles(ParticleTypes.END_ROD, at.x, at.y + 1, at.z, 30, 1.5, 1.5, 1.5, 0.35);
 			if (queue == null) {
 				return;
 			}
@@ -873,17 +897,58 @@ public final class CelestialEvents {
 			if (t == 150 && queue != null) {
 				snapshotIslands();
 			}
-			if (t >= 100 && t < 260 && t % 20 == 0) {
-				rising.addAll(Kit.lift(world, g, r * 0.6, 500 - rising.size() > 0 ? Math.min(80, 500 - rising.size()) : 0, true, true));
-				Vfx.shake(world, g, 2048, 0.8F + (t - 100) * 0.005F);
-				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 32.0F, 0.4F);
+			if (t == 80) {
+				// The dark sphere becomes a black hole: an accretion disc spins up around it.
+				Vfx.spiral(world, sphere, 70.0F, 14.0F, 0xFF60FF, CelestialTimeline.FE_BREAK - 80);
+				Vfx.ring(world, sphere, 55.0F, 6.0F, 0xFFB0FF, false, CelestialTimeline.FE_BREAK - 80);
 			}
-			if (t >= 100 && t < CelestialTimeline.FE_BREAK) {
-				for (FallingBlockEntity fb : rising) {
-					if (fb.isAlive()) {
-						Vec3d to = sphere.subtract(fb.getPos());
-						Kit.velocity(fb, new Vec3d(to.x * 0.004, 0.25 + MathHelper.sin(fb.getId()) * 0.05, to.z * 0.004));
+			if (t >= 80 && t < CelestialTimeline.FE_BREAK) {
+				if (t % 6 == 0) {
+					// The ground is torn up over a wide field, ever faster, and swallowed.
+					double reach = r * Math.min(1.0, 0.35 + (t - 80) / 300.0);
+					int n = Math.min(160, 60 + (t - 80) / 2);
+					rising.addAll(Kit.lift(world, g, reach, n, true, true));
+					if (t % 12 == 0) {
+						rising.addAll(Kit.lift(world, new Vec3d(g.x, gy - 4, g.z), pit * 0.8, 40, false, true));
 					}
+				}
+				if (t % 20 == 0) {
+					Vfx.shake(world, g, 2048, 0.8F + (t - 80) * 0.004F);
+					Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 48.0F, 0.4F);
+				}
+				if (t % 40 == 0) {
+					Kit.sound(world, sphere, ModSounds.BLACK_HOLE, 64.0F, 0.4F + (t - 80) * 0.002F);
+				}
+				double pull = 0.04 + (t - 80) * 0.0004;
+				for (Entity e : Kit.entities(world, sphere, r, x -> !(x instanceof EventEntity) && !(x instanceof FallingBlockEntity) && !Kit.creativeOrSpectator(x))) {
+					Vec3d to = sphere.subtract(e.getPos());
+					double d = to.length();
+					if (d < 7 && e instanceof LivingEntity l) {
+						l.timeUntilRegen = 0;
+						l.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 2.0F);
+					}
+					Kit.push(e, to.normalize().multiply(pull * Math.max(0.3, 1 - d / r)));
+					e.fallDistance = 0;
+				}
+				Iterator<FallingBlockEntity> fit = rising.iterator();
+				while (fit.hasNext()) {
+					FallingBlockEntity fb = fit.next();
+					if (!fb.isAlive()) {
+						fit.remove();
+						continue;
+					}
+					Vec3d to = sphere.subtract(fb.getPos());
+					double d = to.length();
+					if (d < 6) {
+						fb.discard();
+						fit.remove();
+						continue;
+					}
+					// Spiral in: mostly straight down the well, with a swirl that tightens near the horizon.
+					Vec3d in = to.multiply(1 / d);
+					Vec3d swirl = new Vec3d(-in.z, 0, in.x);
+					double speed = 0.5 + 2.2 * Math.max(0, 1 - d / 220.0);
+					Kit.velocity(fb, in.multiply(speed).add(swirl.multiply(0.5 * Math.min(1, 40 / d))).add(0, 0.08, 0));
 				}
 			}
 			if (t == CelestialTimeline.FE_CRACK) {
@@ -891,9 +956,28 @@ public final class CelestialEvents {
 						CelestialTimeline.FE_BREAK - CelestialTimeline.FE_CRACK, 0, CelestialTimeline.FE_END - CelestialTimeline.FE_CRACK, Vfx.FAR);
 				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.2F);
 			}
+			if (t == CelestialTimeline.FE_BREAK + 24) {
+				// Overfed, the black hole combusts into a cosmic beam of light that drives into the world.
+				Vec3d floor = new Vec3d(cx + 0.5, gy + 1, cz + 0.5);
+				Vfx.custom(world, FxType.SUPERNOVA, sphere, sphere, 70.0F, 0xF0E0FF, 0, 0, 0, 0, Vfx.FAR);
+				Kit.boom(world, sphere, 16.0F, 0xE0C0FF, owner(), false);
+				Vfx.beam(world, floor, sphere.add(0, 900, 0), 26.0F, 0xF4E8FF, 200);
+				Vfx.pillar(world, floor, pit * 0.8F, 0xE8D8FF, true, 200);
+				Vfx.ring(world, floor, r * 1.2F, 6.0F, 0xFFFFFF, true, 70);
+				Vfx.flash(world, sphere, 1.0F, 6000, 0xFFFFFF);
+				Vfx.screen(world, g, 100000, 1, 0.6F, 18);
+				Vfx.skyTint(world, g, 100000, 0x6040A0, 0.7F);
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.3F);
+				Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.4F);
+				Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.5F);
+			}
+			if (t > CelestialTimeline.FE_BREAK + 24 && t < CelestialTimeline.FE_BREAK + 200 && t % 10 == 0) {
+				Kit.damage(world, new Vec3d(cx + 0.5, gy + 1, cz + 0.5), pit * 0.8, 12.0F, ModDamageTypes.ANNIHILATION, null, owner());
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_AMBIENT, 64.0F, 0.5F);
+			}
 			if (t == CelestialTimeline.FE_BREAK) {
 				Kit.vanish(rising);
-				Vfx.orb(world, sphere, 40.0F, 0.1F, 0x100008, 2, 60);
+				Vfx.orb(world, sphere, 40.0F, 0.1F, 0x100008, 2, 24);
 				Kit.sound(world, g, ModSounds.BLACK_HOLE_COLLAPSE, 64.0F, 0.3F);
 				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
 				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 64.0F, 0.3F);

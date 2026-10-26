@@ -282,6 +282,22 @@ public final class Kit {
 		projectile(w, com.armageddon.entity.ProjectileKind.METEOR, target.subtract(drift.multiply(40)).add(0, 100, 0), drift.add(0, -2.6, 0), owner);
 	}
 
+	/**
+	 * A proper explosion: fireball, shock rings and dome, a boom that carries, shake, damage with knockback,
+	 * and (if {@code blocks}, the block-damage rule and protected regions allow) a vanilla-style blast hole.
+	 * {@code size} is roughly the fireball radius in blocks / 5.
+	 */
+	public static void boom(ServerWorld w, Vec3d c, float size, int color, @Nullable Entity owner, boolean blocks) {
+		com.armageddon.network.Vfx.layeredBlast(w, c, size, color);
+		com.armageddon.network.Vfx.shake(w, c, size * 16, Math.min(1.6F, 0.16F * size));
+		sound(w, c, com.armageddon.registry.ModSounds.NUKE_DETONATE, 12.0F + size * 3, 0.9F - Math.min(0.4F, size * 0.02F));
+		sound(w, c, net.minecraft.sound.SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 8.0F + size * 2, 0.6F);
+		com.armageddon.detonation.Detonations.blast(w, c, size * 4.0, 6.0F + size * 4.0F, ModDamageTypes.ANNIHILATION, owner, size * 1.5, 0.6 + size * 0.12);
+		if (blocks) {
+			Destruction.explode(w, owner, c.x, c.y, c.z, Math.min(14.0F, 2.0F + size * 1.2F), false);
+		}
+	}
+
 	public static Vec3d dir(float yawDeg) {
 		return Vec3d.fromPolar(0, yawDeg);
 	}
