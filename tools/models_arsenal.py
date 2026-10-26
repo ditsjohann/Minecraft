@@ -926,3 +926,201 @@ BOMBS.update({
     "zombie_apocalypse": zombie_apocalypse, "ufo_invasion": ufo_invasion, "galactic_smash": galactic_smash,
     "booming_tick": booming_tick, "alien_death_ray": alien_death_ray,
 })
+
+
+# =========================================================================== upgraded models (round shapes from voxel shells)
+
+import math as _m
+
+
+def vsphere(cx, cy, cz, r, step=1.0, mat="chrome", pick=None, shell=1.1):
+    """A sphere built from small cubes on its surface (reads round, unlike a cross of boxes). pick(x, y, z) -> mat."""
+    out = []
+    n = int(_m.ceil(r / step))
+    for i in range(-n, n + 1):
+        for j in range(-n, n + 1):
+            for k in range(-n, n + 1):
+                x, y, z = i * step, j * step, k * step
+                d = _m.sqrt(x * x + y * y + z * z)
+                if r - shell * step <= d <= r:
+                    h = step / 2
+                    out.append(B(cx + x - h, cy + y - h, cz + z - h, cx + x + h, cy + y + h, cz + z + h, pick(i, j, k) if pick else mat))
+    if r > step * 1.5:
+        c = r * 0.62
+        out.append(B(cx - c, cy - c, cz - c, cx + c, cy + c, cz + c, mat if not pick else pick(0, 0, 0)))
+    return out
+
+
+def ring_y(cx, cy, cz, r, mat, t=0.5, segs=16):
+    """A thin horizontal ring of 16 bars. Block models only rotate by -45..45 in 22.5 steps, so each bar is laid
+    along x or z (a bar looks the same turned 180 degrees) and tilted by at most 45."""
+    out = []
+    L = 2 * _m.pi * r / 16 * 1.1
+    for s in range(16):
+        a = s * 22.5
+        x, z = cx + _m.cos(_m.radians(a)) * r, cz + _m.sin(_m.radians(a)) * r
+        phi = (a + 90) % 180  # direction of the tangent, folded to 0..180
+        if phi <= 45 or phi >= 135:
+            tilt = phi if phi <= 45 else phi - 180
+            out.append(B(x - L / 2, cy - t / 2, z - t / 2, x + L / 2, cy + t / 2, z + t / 2, mat, ("y", -tilt, [x, cy, z])))
+        else:
+            tilt = phi - 90
+            out.append(B(x - t / 2, cy - t / 2, z - L / 2, x + t / 2, cy + t / 2, z + L / 2, mat, ("y", -tilt, [x, cy, z])))
+    return out
+
+
+def disco_ball_v2():
+    m = [B(0, 0, 0, 16, 1.5, 16, "black")]
+    floor = ["glow_magenta", "glow_cyan", "glow_gold", "glow_lime", "glow_purple", "glow_pink"]
+    for i in range(4):
+        for j in range(4):
+            m += [B(1 + i * 3.5, 1.5, 1 + j * 3.5, 4.3 + i * 3.5, 1.9, 4.3 + j * 3.5, floor[(i + j * 2) % len(floor)] if (i + j) % 2 == 0 else "black")]
+    m += [B(7.6, 13.2, 7.6, 8.4, 16, 8.4, "steel"), B(6.5, 15.4, 6.5, 9.5, 16, 9.5, "steel")]
+    m += vsphere(8, 8.8, 8, 4.6, 0.92, pick=lambda i, j, k: "glow_white" if (i * 7 + j * 3 + k * 5) % 11 == 0 else ("pearl" if (i + j + k) % 2 else "chrome"))
+    for (x, z, c) in ((1.5, 1.5, "glow_magenta"), (13.5, 1.5, "glow_cyan"), (1.5, 13.5, "glow_gold"), (13.5, 13.5, "glow_lime")):
+        m += [B(x - 0.8, 1.9, z - 0.8, x + 0.8, 4.4, z + 0.8, "black"), B(x - 0.6, 4.4, z - 0.6, x + 0.6, 5, z + 0.6, c)]
+    return m
+
+
+def main_stage():
+    m = [B(0, 0, 0, 16, 1, 16, "black")]
+    m += [B(1, 1, 3, 15, 4, 15, "copper"), B(1, 1, 3, 15, 4, 3.4, "black")]
+    for x in (3, 6, 9, 12):
+        m += [B(x, 3.2, 2.9, x + 1, 3.8, 3.0, "glow_gold")]
+    m += [B(5.5, 1, 1, 10.5, 2, 3, "copper"), B(6, 2, 1.5, 10, 3, 3, "copper")]
+    m += [B(1, 4, 13.5, 15, 13, 15, "crimson")]
+    for x, w in ((1, 3.5), (11.5, 3.5)):
+        m += [B(x, 4, 4, x + w, 12, 5.5, "red"), B(x + 0.6, 4, 5.5, x + w - 0.6, 12, 7, "red")]
+    m += [B(0.5, 4, 3.5, 1.5, 14.5, 4.5, "black"), B(14.5, 4, 3.5, 15.5, 14.5, 4.5, "black"),
+          B(0.5, 12.5, 3.5, 15.5, 14.5, 4.5, "black"), B(0.6, 12.2, 3.4, 15.4, 12.5, 4.6, "gold")]
+    m += [B(3, 14.5, 3.6, 13, 16.5, 4.4, "black")]
+    for x in range(4, 13, 2):
+        m += [B(x, 15, 3.4, x + 1, 16, 3.6, "glow_gold")]
+    m += [B(7, 4, 9, 9, 5, 11, "glow_white"), B(7.5, 5, 9.5, 8.5, 7.5, 10.5, "white")]
+    return m
+
+
+def alien_death_ray_v2():
+    m = [B(0, 0, 0, 16, 2, 16, "obsidian"), B(1, 2, 1, 15, 2.6, 15, "glow_void")]
+    m += cyl_y(8, 8, 2.6, 5, 6.0, "obsidian") + vsphere(8, 6.4, 8, 3.8, 0.95, "titanium")
+    m += [B(3.5, 4.6, 3.5, 12.5, 5.2, 12.5, "glow_lime")]
+    # The barrel, raised 45 degrees, with coils and a three-prong emitter.
+    rot = ("x", -45, [8, 7, 8])
+    m += [B(6.6, 7, 6.6, 9.4, 18, 9.4, "obsidian", rot)]
+    for y in (9.5, 12, 14.5):
+        m += [B(6.1, y, 6.1, 9.9, y + 1, 9.9, "glow_lime", rot)]
+    for (x, z) in ((6.0, 8), (10.0, 8), (8, 6.0)):
+        m += [B(x - 0.4, 17.5, z - 0.4, x + 0.4, 20.5, z + 0.4, "titanium", rot)]
+    m += [B(7.4, 19, 7.4, 8.6, 20.2, 8.6, "glow_white", rot)]
+    for (x, z) in ((1.2, 1.2), (13.6, 1.2), (1.2, 13.6), (13.6, 13.6)):
+        m += [B(x, 2.6, z, x + 1.2, 6.5, z + 1.2, "obsidian"), B(x + 0.3, 6.5, z + 0.3, x + 0.9, 7.2, z + 0.9, "glow_lime")]
+    return m
+
+
+def galactic_smash_v2():
+    m = [B(0, 0, 0, 16, 2, 16, "rock"), B(1, 2, 1, 15, 2.6, 15, "obsidian")]
+    for (x0, z0, x1, z1, rot) in ((2, 7.6, 14, 8.4, 0), (2, 7.6, 14, 8.4, 45), (2, 7.6, 14, 8.4, -45), (7.6, 2, 8.4, 14, 0)):
+        m += [B(x0, 2.6, z0, x1, 2.8, z1, "glow_orange", ("y", rot, [8, 2.7, 8]))]
+    # A void gauntlet slamming down: knuckles, fingers, cracked starlight plates, a burning wrist band.
+    m += [B(3.5, 3, 4.5, 12.5, 7.5, 11.5, "black")]
+    for x in (3.6, 5.9, 8.2, 10.5):
+        m += [B(x, 2.6, 3.8, x + 2.0, 4.6, 6.0, "gunmetal"), B(x + 0.2, 2.8, 3.6, x + 1.8, 4.4, 3.8, "black")]
+    m += [B(2.6, 3.5, 6, 3.6, 6.5, 10, "gunmetal")]
+    m += [B(4.5, 7.5, 5.5, 11.5, 15, 10.5, "black"), B(4.2, 9.5, 5.2, 11.8, 11, 10.8, "glow_orange"), B(4.2, 13, 5.2, 11.8, 13.6, 10.8, "gold")]
+    for (x, y, z, h) in ((5, 4, 4.4, 2.6), (9, 5, 4.4, 2), (6.5, 8, 5.4, 4), (10.4, 12, 5.4, 2.5), (4.4, 6, 8, 3)):
+        m += [B(x, y, z - 0.08, x + 0.35, y + h, z, "glow_ice")]
+    m += [B(5.5, 15, 6.5, 10.5, 16, 9.5, "obsidian")]
+    return m
+
+
+def big_bang_v2():
+    m = [B(0, 0, 0, 16, 1.5, 16, "black"), B(1, 1.5, 1, 15, 2, 15, "celestial")]
+    m += [B(7.6, 2, 7.6, 8.4, 4, 8.4, "steel")]
+    m += vsphere(8, 9, 8, 2.0, 0.8, "glow_white")
+    for r, y, c in ((3.6, 9, "glow_cyan"), (5.4, 9.4, "glow_purple"), (7.0, 8.6, "glow_gold")):
+        m += ring_y(8, y, 8, r, c, 0.25, 20)
+    for (a, r, y, rad, mat) in ((0.4, 3.6, 9, 0.8, "glow_blue"), (2.6, 5.4, 9.4, 1.1, "rock"), (4.4, 7.0, 8.6, 1.4, "glow_orange"), (1.6, 7.0, 8.6, 0.7, "pearl")):
+        x, z = 8 + _m.cos(a) * r, 8 + _m.sin(a) * r
+        m += vsphere(x, y, z, rad, rad * 0.7, mat)
+    for (x, y, z) in ((2, 13, 3), (13, 14, 12), (4, 5, 13), (12, 4, 2.5), (14, 11, 6)):
+        m += [B(x - 0.25, y - 0.25, z - 0.25, x + 0.25, y + 0.25, z + 0.25, "glow_white")]
+    return m
+
+
+def chrono_break_v2():
+    m = [B(1, 0, 1, 15, 1.5, 15, "gold"), B(1, 14.5, 1, 15, 16, 15, "gold")]
+    for (x, z) in ((1.5, 1.5), (13.3, 1.5), (1.5, 13.3), (13.3, 13.3)):
+        m += [B(x, 1.5, z, x + 1.2, 14.5, z + 1.2, "copper")]
+    # The hourglass: two glass cones meeting at a waist, glowing sand running through.
+    for k in range(6):
+        s = 5.6 - k * 0.9
+        m += [B(8 - s, 1.5 + k, 8 - s, 8 + s, 2.5 + k, 8 + s, "glass_ice"), B(8 - s, 13.5 - k, 8 - s, 8 + s, 14.5 - k, 8 + s, "glass_ice")]
+    m += [B(4.6, 1.5, 4.6, 11.4, 3.5, 11.4, "glow_gold"), B(6.5, 3.5, 6.5, 9.5, 4.5, 9.5, "glow_gold")]
+    m += [B(7.6, 4.5, 7.6, 8.4, 11, 8.4, "glow_gold"), B(5.6, 11.5, 5.6, 10.4, 12.5, 10.4, "glow_gold")]
+    m += ring_y(8, 8, 8, 6.6, "glow_ice", 0.4, 20)
+    return m
+
+
+def zeropoint_v2():
+    m = [B(1, 0, 1, 15, 1.5, 15, "chrome"), B(2, 1.5, 2, 14, 2, 14, "glow_ice")]
+    m += vsphere(8, 8.5, 8, 1.4, 0.7, "black")
+    m += ring_y(8, 8.5, 8, 3.0, "glow_white", 0.35, 16) + ring_y(8, 8.5, 8, 5.6, "glow_ice", 0.3, 20)
+    for (x, y, z, h, rot) in ((3, 2, 4, 7, ("z", 22.5, [3.5, 2, 4.5])), (12, 2, 3.5, 6, ("z", -22.5, [12.5, 2, 4])),
+                              (4, 2, 12, 5, ("x", 22.5, [4.5, 2, 12.5])), (11.5, 2, 12, 8, ("x", -22.5, [12, 2, 12.5])), (8, 2, 2.4, 4, None)):
+        m += [B(x, y, z, x + 1.2, y + h, z + 1.2, "glass_ice", rot), B(x + 0.35, y + h, z + 0.35, x + 0.85, y + h + 1.2, z + 0.85, "glow_ice", rot)]
+    m += [B(7.7, 1.5, 7.7, 8.3, 15.5, 8.3, "glow_ice")]
+    return m
+
+
+def last_light_v2():
+    m = [B(0, 0, 0, 16, 1.5, 16, "pearl"), B(2, 1.5, 2, 14, 2.5, 14, "celestial")]
+    for (x, z) in ((2.5, 2.5), (12.5, 2.5), (2.5, 12.5), (12.5, 12.5)):
+        m += [B(x, 2.5, z, x + 1, 7, z + 1, "pearl", ("y", 45, [x + 0.5, 4, z + 0.5])), B(x + 0.2, 7, z + 0.2, x + 0.8, 8, z + 0.8, "glow_white")]
+    m += vsphere(8, 8.5, 8, 4.0, 0.9, "glow_white")
+    # Corona spikes in every direction.
+    for ang in (0, 45, -45, 90):
+        m += [B(7.7, 8.2, 2.2, 8.3, 8.8, 13.8, "glow_gold", ("y", ang, [8, 8.5, 8]))]
+    for ang in (45, -45):
+        m += [B(7.7, 2.6, 7.7, 8.3, 14.4, 8.3, "glow_gold", ("z", ang, [8, 8.5, 8])), B(7.7, 2.6, 7.7, 8.3, 14.4, 8.3, "glow_gold", ("x", ang, [8, 8.5, 8]))]
+    m += [B(7.7, 2.6, 7.7, 8.3, 14.4, 8.3, "glow_gold")]
+    m += ring_y(8, 8.5, 8, 6.2, "glow_white", 0.3, 20)
+    return m
+
+
+def dawnstar_v2():
+    m = [B(0, 0, 0, 16, 1.5, 16, "white"), B(1, 1.5, 1, 15, 3, 15, "gold")]
+    m += vsphere(8, 3.5, 8, 5.5, 1.0, "glow_gold")
+    m += [B(1.5, 3, 1.5, 14.5, 4, 14.5, "gold")]
+    for a in (-45, -22.5, 0, 22.5, 45):
+        m += [B(7.6, 4, 7.6, 8.4, 15, 8.4, "glow_white", ("z", a, [8, 4, 8]))]
+    m += [B(2, 3, 2, 3.2, 6, 3.2, "gold"), B(12.8, 3, 12.8, 14, 6, 14, "gold"), B(2, 3, 12.8, 3.2, 6, 14, "gold"), B(12.8, 3, 2, 14, 6, 3.2, "gold")]
+    return m
+
+
+def antimatter_v2():
+    m = [B(1, 0, 1, 15, 2, 15, "gunmetal"), B(1.5, 2, 1.5, 14.5, 2.4, 14.5, "hazard")]
+    for (x, z) in ((2, 7.2), (12.4, 7.2)):
+        m += [B(x, 2.4, z, x + 1.6, 14, z + 1.6, "chrome")]
+    for y in (5, 11.5):
+        m += ring_y(8, y, 8, 4.4, "glow_magenta", 0.7, 18) + ring_y(8, y, 8, 5.2, "gunmetal", 0.5, 18)
+    m += vsphere(8, 8.3, 8, 2.4, 0.8, "glow_magenta")
+    m += [B(3, 13.6, 7.2, 13, 14.6, 8.8, "gunmetal"), B(7, 14.6, 7, 9, 15.6, 9, "glow_white")]
+    return m
+
+
+def nova_v2():
+    m = [B(1, 0, 1, 15, 2, 15, "gunmetal"), B(1.5, 2, 1.5, 14.5, 2.6, 14.5, "fatman")]
+    m += vsphere(8, 8.5, 8, 4.2, 0.9, pick=lambda i, j, k: "glow_white" if abs(i) + abs(j) + abs(k) <= 2 else ("glow_orange" if (i + j * 2 + k) % 3 else "glow_gold"))
+    for rot in (0, 45, -45):
+        m += [B(7.7, 8.2, 1.5, 8.3, 8.8, 14.5, "glow_gold", ("y", rot, [8, 8.5, 8]))]
+    for (x, z) in ((2, 2), (12.8, 2), (2, 12.8), (12.8, 12.8)):
+        m += [B(x, 2.6, z, x + 1.2, 14, z + 1.2, "fatman", ("y", 45, [x + 0.6, 8, z + 0.6]))]
+    m += ring_y(8, 14, 8, 6.0, "gunmetal", 0.6, 16) + [B(7, 14, 7, 9, 15.5, 9, "glow_orange")]
+    return m
+
+
+BOMBS.update({
+    "disco_ball": disco_ball_v2, "truman_show": main_stage, "alien_death_ray": alien_death_ray_v2, "galactic_smash": galactic_smash_v2,
+    "big_bang": big_bang_v2, "chrono_break": chrono_break_v2, "zeropoint": zeropoint_v2, "last_light": last_light_v2,
+    "dawnstar_payload": dawnstar_v2,
+})

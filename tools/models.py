@@ -941,6 +941,8 @@ GUNS.update(_ARSENAL.GUNS)
 MELEE.update(_ARSENAL.MELEE)
 SMALL.update(_ARSENAL.SMALL)
 BOMBS.update(_ARSENAL.BOMBS)
+BOMBS["antimatter_bomb"] = _ARSENAL.antimatter_v2
+BOMBS["nova_bomb"] = _ARSENAL.nova_v2
 
 
 # =========================================================================== detailing passes

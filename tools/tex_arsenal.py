@@ -61,16 +61,16 @@ def celestial(n=12):
 
 
 def rainbow_glow(n=16):
+    """Tileable rainbow: hue runs once across the tile on a whole-period diagonal (so edges meet), drifting in time."""
     frames = []
     yy, xx = np.mgrid[0:16, 0:16]
     for k in range(n):
         rgb = np.zeros((16, 16, 3))
         for y in range(16):
             for x in range(16):
-                rgb[y, x] = np.array(hsv(((x + y) / 40.0 + k / n) % 1.0, 0.8, 1.0)) / 255.0
-        d = np.hypot(xx - 7.5, yy - 7.5) / 8.0
-        hot = np.clip(1 - d * 1.1, 0, 1) ** 2 * 0.6
-        rgb = rgb * (1 - hot[..., None]) + hot[..., None]
+                rgb[y, x] = np.array(hsv(((x + y) / 16.0 + k / n) % 1.0, 0.78, 1.0)) / 255.0
+        sheen = (K.tnoise(707, 4) - 0.5) * 0.2
+        rgb = np.minimum(1, rgb * (1 + sheen)[..., None] + 0.08)
         frames.append(K.to_img(rgb))
     return strip(frames)
 

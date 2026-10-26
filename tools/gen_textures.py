@@ -212,10 +212,13 @@ def mat_rock(seed=77):
 
 
 def mat_rubber():
+    """Diamond-knurled grip rubber: raised pyramids lit from the top-left, slightly blue-black."""
     yy, xx = np.mgrid[0:16, 0:16]
-    knurl = ((xx + yy) % 3 == 0) | ((xx - yy) % 3 == 0)
-    v = 0.12 + 0.03 * (K.fbm(12) - 0.5) + np.where(knurl, 0.035, -0.01)
-    return K.to_img(np.dstack([v, v, v * 1.05]))
+    u, v = (xx + yy) % 4, (xx - yy) % 4
+    h = (np.minimum(u, 4 - u) + np.minimum(v, 4 - v)) / 4.0
+    f = K.lit(h, 1.6)
+    val = (0.13 + 0.03 * (K.fbm(12) - 0.5)) * f
+    return K.to_img(np.dstack([val, val * 1.02, val * 1.1]))
 
 
 def mat_c4():
@@ -237,7 +240,7 @@ def material_tiles():
     t["red"] = mat_metal(0xB3241E, 8, finish="painted")
     t["yellow"] = mat_metal(0xE6B800, 9, rivets=True, finish="painted")
     t["copper"] = mat_metal(0xC5743A, 10, finish="polished", wear=0.6)
-    t["black"] = mat_metal(0x16171A, 11, finish="anodised", wear=0.2)
+    t["black"] = mat_metal(0x1C1E23, 11, finish="cast", wear=0.15)
     t["rubber"] = mat_rubber()
     t["tsar"] = mat_metal(0xC9CCC4, 13, rivets=True, panel=True, finish="painted")
     t["fatman"] = mat_metal(0xD9B23A, 14, rivets=True, finish="painted", wear=0.6)

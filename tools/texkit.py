@@ -82,11 +82,12 @@ def metal(base, seed, finish="brushed", panel=False, rivets=False, wear=0.5, scr
         f += streak
     if finish == "cast":
         f += (tnoise(seed + 9, 16, size) - 0.5) * 0.18
-    # Broad sheen: a soft diagonal highlight band gives every face a little specular life.
+    # Broad, non-directional mottling instead of a diagonal sheen: tiles sit side by side on big faces, and
+    # any directional band in one tile repeats into stripes across the whole face.
     yy, xx = np.mgrid[0:size, 0:size]
     diag = (xx + yy) / (2.0 * (size - 1))
-    sheen = np.exp(-((diag - 0.32) / 0.16) ** 2) * (0.22 if finish in ("polished", "anodised") else 0.12)
-    f += sheen - diag * 0.12
+    mottle = tnoise(seed + 3, 2, size) - 0.5
+    f += mottle * (0.16 if finish in ("polished", "anodised") else 0.1)
     height = grain * 0.6
     if panel:
         for k in (0, size // 2):
@@ -104,15 +105,12 @@ def metal(base, seed, finish="brushed", panel=False, rivets=False, wear=0.5, scr
     if finish == "anodised":
         hue = np.dstack([np.full((size, size), 1.0), 1.0 + diag * 0.08, 1.0 + (1 - diag) * 0.08])
         rgb *= hue
-    # Scratches: thin bright lines with a dark lip.
-    for _ in range(scratches):
+    # A couple of faint, short, horizontal scratches (never diagonal, which tiles into stripes).
+    for _ in range(min(scratches, 2)):
         x0, y0 = rng.integers(0, size), rng.integers(0, size)
-        dx, dy = (1, rng.choice([-1, 0, 1]))
-        ln = rng.integers(2, 5)
-        for k in range(ln):
-            x, y = (x0 + dx * k) % size, (y0 + dy * k) % size
-            rgb[y, x] = rgb[y, x] * 0.7 + 0.3 * np.minimum(1, c * 1.6 + 0.15)
-            rgb[(y + 1) % size, x] *= 0.86
+        for k in range(rng.integers(2, 4)):
+            x, y = (x0 + k) % size, y0
+            rgb[y, x] = rgb[y, x] * 0.82 + 0.18 * np.minimum(1, c * 1.5 + 0.12)
     # Wear: chipped paint or burnished spots where a noise threshold crosses.
     if wear > 0:
         w = tnoise(seed + 77, 8, size) * 0.6 + tnoise(seed + 78, 16, size) * 0.4
@@ -122,7 +120,7 @@ def metal(base, seed, finish="brushed", panel=False, rivets=False, wear=0.5, scr
         # A bright lip on the lower-right of each chip sells the depth.
         lip = (~chip) & np.roll(chip, 1, 0)
         rgb[lip] = np.minimum(1, rgb[lip] * 1.15)
-        grime = np.clip((yy / (size - 1)) - 0.55, 0, 1) * 0.18 * wear
+        grime = (tnoise(seed + 79, 4, size) - 0.5) * 0.12 * wear
         rgb *= (1 - grime)[..., None]
     return to_img(rgb)
 
@@ -137,8 +135,9 @@ def glow_frame(base, seed, phase, size=16, core=0.62):
     veins = np.abs(np.sin((n * 3.0 + phase) * math.pi))
     veins = np.clip(1 - veins * 5.0, 0, 1)
     pulse = 0.95 + 0.05 * math.sin(phase * math.tau)
-    hot = np.clip(1.0 - d * 1.05, 0, 1) ** 2.0 * core
-    body = 0.78 + 0.3 * np.clip(1 - d, 0, 1) ** 1.5 + 0.08 * flow
+    # A soft, low core only: a bright blob per tile reads as a grid of dots on big faces.
+    hot = np.clip(1.0 - d * 1.05, 0, 1) ** 2.0 * core * 0.35
+    body = 0.9 + 0.1 * np.clip(1 - d, 0, 1) ** 1.5 + 0.1 * flow + (n - 0.5) * 0.12
     rgb = tint(c, body * pulse)
     # Saturate the body, then let the core blow out toward white-hot.
     rgb = np.minimum(1, rgb * 1.1)
@@ -148,22 +147,19 @@ def glow_frame(base, seed, phase, size=16, core=0.62):
 
 
 def glass(base, seed, alpha=150, size=16):
+    """Tinted glass: a soft body with gentle internal variation, a faint rim and two small glints, no streaks."""
     c = rgbf(base)
     yy, xx = np.mgrid[0:size, 0:size]
-    diag = (xx + yy) / (2.0 * (size - 1))
-    body = 0.78 + 0.32 * (1 - diag) + (fbm(seed, size) - 0.5) * 0.08
+    body = 0.86 + (fbm(seed, size) - 0.5) * 0.14 + (tnoise(seed + 2, 2, size) - 0.5) * 0.12
     rgb = tint(c, body)
-    a = np.full((size, size), alpha / 255.0) + (1 - diag) * 0.08
-    # Two crisp reflection streaks and a soft sky reflection in the top-left.
-    for off, w, k in ((5, 1.1, 0.75), (8, 0.6, 0.45), (21, 0.8, 0.35)):
-        s = np.exp(-(((xx + yy) - off) / w) ** 2) * k
-        rgb = rgb * (1 - s[..., None]) + s[..., None]
-        a = np.maximum(a, s * 0.95)
-    sky = np.clip(1 - np.hypot(xx - 3, yy - 3) / 6.0, 0, 1) * 0.25
-    rgb = screen_blend(rgb, sky[..., None])
+    a = np.full((size, size), alpha / 255.0) + (tnoise(seed + 4, 4, size) - 0.5) * 0.08
+    for (gx, gy, r, k) in ((3.5, 3.0, 1.6, 0.55), (11.5, 10.0, 1.0, 0.3)):
+        s = np.clip(1 - np.hypot(xx - gx, yy - gy) / r, 0, 1) * k
+        rgb = screen_blend(rgb, s[..., None])
+        a = np.maximum(a, s * 1.2)
     edge = (xx == 0) | (yy == 0)
-    rgb[edge] = np.minimum(1, rgb[edge] * 1.12)
-    a[edge] = np.maximum(a[edge], 0.8)
+    rgb[edge] = np.minimum(1, rgb[edge] * 1.05 + 0.03)
+    a[edge] = np.maximum(a[edge], alpha / 255.0 + 0.12)
     return to_img(rgb, a)
 
 
