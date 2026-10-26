@@ -40,7 +40,7 @@ public final class CityFx {
 	}
 
 	static double groundY(double x, double z, double fallback) {
-		ClientWorld world = MinecraftClient.getInstance().world;
+		ClientWorld world = com.armageddon.client.render.FxDraw.world();
 		return world == null ? fallback : MegaEffects.ground(world, x, z);
 	}
 

@@ -163,6 +163,13 @@ public final class FxDraw {
 		return new Vec3d[]{right, up};
 	}
 
+	/** The client world, or null outside a running game (the offline preview renderer). */
+	@org.jetbrains.annotations.Nullable
+	public static net.minecraft.client.world.ClientWorld world() {
+		net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+		return mc == null ? null : mc.world;
+	}
+
 	private FxDraw() {
 	}
 }

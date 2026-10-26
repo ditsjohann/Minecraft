@@ -158,7 +158,7 @@ public class EternalTreeFx extends FxEffect {
 			}
 		}
 		// Each root, as it lands, sends a pulse of light racing down its length.
-		ClientWorld cw = MinecraftClient.getInstance().world;
+		ClientWorld cw = com.armageddon.client.render.FxDraw.world();
 		for (int i = 0; i < EternalTree.ROOTS; i++) {
 			float u = (a - EternalTree.rootLaunch(i)) / (EternalTree.ROOT_GROW + 14.0F);
 			if (u <= 0 || u >= 1) {

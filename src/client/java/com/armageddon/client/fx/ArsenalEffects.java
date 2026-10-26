@@ -692,7 +692,7 @@ public final class ArsenalEffects {
 			super(Math.max(2, life));
 			this.color = color;
 			Random rnd = Random.create(seed);
-			ClientWorld world = MinecraftClient.getInstance().world;
+			ClientWorld world = com.armageddon.client.render.FxDraw.world();
 			for (int i = 0; i < 7; i++) {
 				double ang = rnd.nextDouble() * MathHelper.TAU;
 				double d = 1.5 + rnd.nextDouble() * r;

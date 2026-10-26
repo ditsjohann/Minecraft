@@ -100,7 +100,7 @@ public final class Effects {
 		if (alpha <= 0.004F || r <= 0.01) {
 			return;
 		}
-		com.armageddon.client.render.FxBuffers fb = com.armageddon.client.render.FxBuffers.current();
+		net.minecraft.client.render.VertexConsumerProvider fb = com.armageddon.client.render.FxBuffers.current();
 		if (fb != null) {
 			VertexConsumer smoke = fb.getBuffer(com.armageddon.client.render.FxSprites.SMOKE_LAYER);
 			int br = (bottom >> 16) & 0xFF, bb = bottom & 0xFF;

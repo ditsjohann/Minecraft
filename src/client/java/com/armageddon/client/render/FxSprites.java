@@ -119,7 +119,7 @@ public final class FxSprites {
 
 	/** How bright a packed light value looks right now: block light, or sky light dimmed by the time of day. */
 	static float brightness(int packed) {
-		ClientWorld w = MinecraftClient.getInstance().world;
+		ClientWorld w = com.armageddon.client.render.FxDraw.world();
 		float day = w == null ? 1.0F : 1.0F - w.getAmbientDarkness() / 11.0F * 0.88F;
 		float block = LightmapTextureManager.getBlockLightCoordinates(packed) / 15.0F;
 		float sky = LightmapTextureManager.getSkyLightCoordinates(packed) / 15.0F * day;
@@ -133,7 +133,7 @@ public final class FxSprites {
 	 */
 	public static int light(Vec3d rel, float glow) {
 		MinecraftClient mc = MinecraftClient.getInstance();
-		ClientWorld w = mc.world;
+		ClientWorld w = mc == null ? null : mc.world;
 		if (w == null) {
 			return FULL_BRIGHT;
 		}

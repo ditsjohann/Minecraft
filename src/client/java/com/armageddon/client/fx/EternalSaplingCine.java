@@ -51,7 +51,7 @@ public class EternalSaplingCine extends Cinematics.Cine {
 	}
 
 	private double rootGround(int i) {
-		return tree != null ? tree.rootGround(net.minecraft.client.MinecraftClient.getInstance().world, i) : base.y;
+		return tree != null ? tree.rootGround(com.armageddon.client.render.FxDraw.world(), i) : base.y;
 	}
 
 	@Override

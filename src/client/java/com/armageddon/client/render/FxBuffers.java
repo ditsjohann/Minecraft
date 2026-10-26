@@ -106,14 +106,26 @@ public final class FxBuffers implements VertexConsumerProvider {
 	}
 
 	@Nullable
-	public static FxBuffers current() {
-		return current;
+	public static VertexConsumerProvider current() {
+		return override != null ? override : current;
 	}
 
 	/** Which effect layer a consumer handed out this frame draws into (null if it is not one of ours). */
 	@Nullable
 	public static RenderLayer layerOf(VertexConsumer vc) {
+		if (override != null) {
+			return overrideOwner.apply(vc);
+		}
 		return current == null ? null : current.owners.get(vc);
+	}
+
+	private static VertexConsumerProvider override;
+	private static java.util.function.Function<VertexConsumer, RenderLayer> overrideOwner;
+
+	/** For the offline preview renderer: route effects into its own provider instead of the game's buffers. */
+	public static void install(VertexConsumerProvider provider, java.util.function.Function<VertexConsumer, RenderLayer> owner) {
+		override = provider;
+		overrideOwner = owner;
 	}
 
 	public boolean shaderPackActive() {

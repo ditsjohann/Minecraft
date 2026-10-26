@@ -24,3 +24,6 @@ jobs:
         with:
           name: Armageddon-Arsenal
           path: build/libs/
+      - name: effect preview frames
+        continue-on-error: true
+        run: ./gradlew fxPreview --stacktrace

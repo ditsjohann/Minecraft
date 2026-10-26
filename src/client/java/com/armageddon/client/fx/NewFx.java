@@ -46,7 +46,7 @@ public final class NewFx {
 
 	/** Ground height at a column, from the client's own world. */
 	static double groundY(double x, double z, double fallback) {
-		ClientWorld w = MinecraftClient.getInstance().world;
+		ClientWorld w = com.armageddon.client.render.FxDraw.world();
 		if (w == null) {
 			return fallback;
 		}
@@ -470,7 +470,7 @@ public final class NewFx {
 
 		/** Where the sun hangs right now (the sky's rotation, as the vanilla sky draws it). */
 		private static Vec3d sunDir(float tickDelta) {
-			ClientWorld w = MinecraftClient.getInstance().world;
+			ClientWorld w = com.armageddon.client.render.FxDraw.world();
 			float ang = w == null ? 0 : w.getSkyAngle(tickDelta) * MathHelper.TAU;
 			return new Vec3d(-Math.sin(ang), Math.cos(ang), 0).normalize();
 		}

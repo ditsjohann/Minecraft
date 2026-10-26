@@ -179,7 +179,7 @@ public class DiscoBallFx extends FxEffect {
 
 	@Override
 	public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
-		ClientWorld world = MinecraftClient.getInstance().world;
+		ClientWorld world = com.armageddon.client.render.FxDraw.world();
 		if (world == null) {
 			return;
 		}

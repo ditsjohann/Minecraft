@@ -310,7 +310,7 @@ public final class MegaEffects {
 			FxKit.halo(consumers, m, cb, under, R * 1.2, 0x2070E0, 0.25F);
 			FxDraw.disc(glow, m, under.add(0, -1, 0), x, z, R * 0.7, 0x2060C0, 0.25F, 0.0F, 32);
 			if (beamOn(a) && lastBeam != Vec3d.ZERO) {
-				Vec3d target = beamPoint(net.minecraft.client.MinecraftClient.getInstance().world, a).subtract(cam);
+				Vec3d target = beamPoint(com.armageddon.client.render.FxDraw.world(), a).subtract(cam);
 				double ramp = Math.min(1.0, Math.min((a - lifetime * 0.12) / 14.0, (lifetime * 0.88 - a) / 14.0));
 				float rmp = (float) ramp;
 				// Volumetric tractor beam: nested cones from wide and faint to a white-hot core.

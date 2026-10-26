@@ -42,7 +42,7 @@ public final class CelestialIIFx {
 	}
 
 	static double groundY(double x, double z) {
-		ClientWorld w = MinecraftClient.getInstance().world;
+		ClientWorld w = com.armageddon.client.render.FxDraw.world();
 		return w == null ? 64 : w.getTopY(Heightmap.Type.MOTION_BLOCKING, MathHelper.floor(x), MathHelper.floor(z));
 	}
 
