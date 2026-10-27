@@ -64,7 +64,6 @@ public final class OddBombEvents {
 	abstract static class Base extends StrongBombEvents.Base {
 		void name(String id, Formatting color) {
 			Vfx.warning(world, center(), 1);
-			Kit.title(world, center(), 160, Text.translatable("block.armageddon." + id).formatted(color, Formatting.BOLD), Text.empty());
 		}
 
 		/** Every column's top solid block. */
@@ -632,9 +631,6 @@ public final class OddBombEvents {
 			if (ph != phase && ph >= 0) {
 				phase = ph;
 				sweep = new RingSweep(R);
-				String[] names = {"SPRING", "SUMMER", "AUTUMN", "WINTER"};
-				Formatting[] cols = {Formatting.LIGHT_PURPLE, Formatting.GREEN, Formatting.GOLD, Formatting.AQUA};
-				Kit.title(world, g, 160, Text.literal(names[ph]).formatted(cols[ph], Formatting.BOLD), Text.empty());
 				Kit.sound(world, g, SoundEvents.BLOCK_BELL_USE, 48.0F, 0.7F + ph * 0.15F);
 			}
 			if (phase >= 0 && t < AGES && sweep != null && Destruction.enabled(world)) {

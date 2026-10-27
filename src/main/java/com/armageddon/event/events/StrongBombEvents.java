@@ -185,7 +185,6 @@ public final class StrongBombEvents {
 			}
 			if (t == Lidar.OVERLOAD - 30) {
 				Kit.sound(world, g, ModSounds.ORBITAL_CHARGE, 64.0F, 1.4F);
-				title(Text.literal("OVERLOAD").formatted(Formatting.AQUA, Formatting.BOLD), Text.empty());
 			}
 			if (t == Lidar.OVERLOAD) {
 				Vfx.vision(world, g, 1, Lidar.RANGE * 1.5F, 7.0F, 0, 0, 0, 0xFFFFFF, 80, Lidar.RANGE + 200);
@@ -211,15 +210,12 @@ public final class StrongBombEvents {
 				e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, Lidar.STRIKES - age() + 80, 0, false, false));
 				contacts++;
 			}
-			title(Text.literal("SCAN " + n + "/" + Lidar.PULSES).formatted(Formatting.AQUA),
-					Text.literal(contacts + " contacts").formatted(Formatting.DARK_AQUA));
 		}
 
 		/** Marks every living thing still in range, then fills the map with terrain marks on a sunflower spiral. */
 		private void lock(Vec3d g) {
 			Kit.sound(world, g, ModSounds.ORBITAL_CHARGE, 64.0F, 0.8F);
 			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.6F);
-			title(Text.literal("TARGETS LOCKED").formatted(Formatting.RED, Formatting.BOLD), Text.empty());
 			for (LivingEntity e : Kit.living(world, g, Lidar.RANGE)) {
 				if (!Kit.creativeOrSpectator(e) && marks.size() < 24 && e.getPos().distanceTo(g) > 8) {
 					marks.add(e.getPos());
@@ -280,7 +276,6 @@ public final class StrongBombEvents {
 			if (t == INHALE) {
 				Vfx.vision(world, orb, 2, MAX_R, -MAX_R / 40.0F, CORE, 0, MAX_R, 0x9040FF, 55, 600);
 				Kit.sound(world, orb, ModSounds.BLACK_HOLE_COLLAPSE, 64.0F, 0.5F);
-				title(Text.literal("...").formatted(Formatting.DARK_PURPLE), Text.empty());
 			}
 			if (t > INHALE && t < EXHALE) {
 				for (FallingBlockEntity fb : drawn) {
@@ -624,7 +619,6 @@ public final class StrongBombEvents {
 			}
 			if (t == Termite.EMERGE + 60) {
 				Vfx.vision(world, g, 7, 400, 0, 26, 0, 400, 0xFFFFFF, 110, Termite.RADIUS + 40);
-				title(Text.literal("THE SWARM").formatted(Formatting.GOLD, Formatting.BOLD), Text.literal("you see as they see").formatted(Formatting.YELLOW));
 			}
 			if (t >= Termite.EMERGE && t <= Termite.EAT_END + 4) {
 				double front = Termite.front(t);
@@ -643,7 +637,6 @@ public final class StrongBombEvents {
 				sinkhole(g, Termite.front(t) * (0.3 + world.random.nextDouble() * 0.6));
 			}
 			if (t == Termite.BUILD) {
-				title(Text.literal("THEY ARE BUILDING").formatted(Formatting.GOLD), Text.empty());
 				// The mound bursts up out of the ground.
 				Kit.boom(world, g.add(0, 2, 0), 9.0F, 0x7A5A38, owner(), true);
 				Vfx.ring(world, g.add(0, 1, 0), 120.0F, 5.0F, 0x8A6A44, true, 50);
@@ -651,7 +644,6 @@ public final class StrongBombEvents {
 						new Vec3d(fb.getX() - g.x, 0, fb.getZ() - g.z).normalize().multiply(0.8).add(0, 1.2 + world.random.nextDouble(), 0)));
 			}
 			if (t == Termite.FLIGHT) {
-				title(Text.literal("THE NUPTIAL FLIGHT").formatted(Formatting.GOLD, Formatting.BOLD), Text.literal("the swarm takes to the air").formatted(Formatting.YELLOW));
 				Kit.sound(world, g, SoundEvents.ENTITY_BEE_LOOP_AGGRESSIVE, 64.0F, 0.5F);
 				Kit.sound(world, g, SoundEvents.ENTITY_PHANTOM_FLAP, 64.0F, 0.4F);
 				flight = new RingSweep((int) Termite.FLIGHT_R);
@@ -837,7 +829,6 @@ public final class StrongBombEvents {
 		}
 
 		private void guards(Vec3d g) {
-			title(Text.literal("THE DOMAIN IS THEIRS").formatted(Formatting.GOLD, Formatting.BOLD), Text.empty());
 			Kit.sound(world, g, SoundEvents.ENTITY_SILVERFISH_AMBIENT, 64.0F, 0.3F);
 			for (int i = 0; i < 12; i++) {
 				SilverfishEntity s = EntityType.SILVERFISH.create(world);

@@ -199,7 +199,6 @@ public final class LegendaryEvents {
 			if (t == 0) {
 				Vfx.warning(world, c, 0);
 				Vfx.skyTint(world, c, 320, 0xFFD080, 0.6F);
-				Kit.broadcast(world, c, 256, Text.translatable("message.armageddon.solar_verdict").formatted(Formatting.GOLD));
 			}
 			if (t < 100 && t % 20 == 0) {
 				int n = 5 - t / 20;

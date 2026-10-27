@@ -192,7 +192,6 @@ public class SixteenChunksEvent extends WorldEvent {
 		Vfx.shake(world, cc, 120, 0.6F);
 		Kit.sound(world, cc, SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 24.0F, 0.5F + world.random.nextFloat());
 		Kit.sound(world, cc, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 24.0F, 0.6F);
-		Kit.broadcast(world, cc, 200, Text.literal("[32 CHUNKS] #" + (cell + 1) + ": " + roll.label()).withColor(kind.color));
 		if (kind.destructive && !Destruction.enabled(world)) {
 			return;
 		}

@@ -54,11 +54,8 @@ public final class CelestialEvents {
 	}
 
 	static void announce(ServerWorld world, Vec3d c, String key) {
+		// No title or chat spam: the warning siren and the sky say it well enough.
 		Vfx.warning(world, c, 2);
-		Text name = Text.translatable(key).formatted(Formatting.WHITE, Formatting.BOLD);
-		Kit.title(world, c, 100000, name, Text.translatable("message.armageddon.world_event").formatted(Formatting.GRAY, Formatting.ITALIC));
-		Kit.broadcast(world, c, 100000, Text.translatable("message.armageddon.world_event_at", name,
-				(int) c.x, (int) c.y, (int) c.z).formatted(Formatting.LIGHT_PURPLE));
 	}
 
 	static int maxRadius(ServerWorld world, int wanted) {

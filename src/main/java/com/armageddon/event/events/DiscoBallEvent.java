@@ -75,9 +75,6 @@ public class DiscoBallEvent extends WorldEvent {
 		if (t >= DiscoBeams.SPIN_START && t < DiscoBeams.STOP && t % 20 == 0) {
 			Kit.sound(world, g, ModSounds.DUBSTEP_WUB, 32.0F, (float) (0.7 + 0.5 * w));
 		}
-		if (t == DiscoBeams.SPIN_FULL - 60) {
-			Kit.title(world, g, 100000, Text.literal("FASTER").formatted(Formatting.LIGHT_PURPLE, Formatting.BOLD), Text.empty());
-		}
 		if (DiscoBeams.hot(t)) {
 			burn(g, t);
 		}
@@ -148,7 +145,6 @@ public class DiscoBallEvent extends WorldEvent {
 		Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.6F);
 		// And the music starts: Pigstep, on the records channel, loud enough to cover the whole dance floor.
 		world.playSound(null, g.x, g.y + 2, g.z, SoundEvents.MUSIC_DISC_PIGSTEP.value(), net.minecraft.sound.SoundCategory.RECORDS, 12.0F, 1.0F);
-		Kit.broadcast(world, g, 400, Text.literal("\u266B Now playing: Lena Raine - Pigstep").formatted(Formatting.LIGHT_PURPLE));
 		Vfx.skyTint(world, g, 100000, 0x501070, 0.9F);
 		Vfx.shake(world, g, 100000, 3.0F);
 		Vfx.fov(world, g, 20.0F, 24);

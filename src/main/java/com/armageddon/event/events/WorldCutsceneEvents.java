@@ -349,8 +349,6 @@ public final class WorldCutsceneEvents {
 				Detonations.debris(world, g, Math.max(6, r * 0.6), (int) Math.min(120, 10 + r));
 				Vfx.ring(world, g, (float) r + 4, 2.0F, color, true, 40);
 				addBand(g, i, t);
-				Kit.title(world, g, 200, Text.literal("BOOM " + (i + 1) + " / 12").formatted(Formatting.RED, Formatting.BOLD),
-						Text.literal(((T0 - t) / 20) + " s").formatted(Formatting.GRAY));
 			}
 			if (t == T0) {
 				Vfx.cutscene(world, g, CINE);

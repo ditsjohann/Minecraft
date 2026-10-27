@@ -113,8 +113,6 @@ public class MainStageEvent extends WorldEvent {
 		if (t == MainStageSet.CURTAIN_CALL) {
 			// Showtime: a drum roll, a fanfare, fireworks over the stage.
 			Vec3d st = g.add(fwd.multiply(MainStageSet.STAGE_AT)).add(0, MainStageSet.ARCH_H, 0);
-			Kit.title(world, g, 400, net.minecraft.text.Text.literal("MAIN STAGE").formatted(net.minecraft.util.Formatting.GOLD, net.minecraft.util.Formatting.BOLD),
-					net.minecraft.text.Text.literal("you're on.").formatted(net.minecraft.util.Formatting.GRAY));
 			Kit.sound(world, g, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 64.0F, 1.0F);
 			Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_LEVELUP, 64.0F, 0.8F);
 			for (int i = 0; i < 8; i++) {
@@ -149,7 +147,7 @@ public class MainStageEvent extends WorldEvent {
 	private void wrap(Vec3d g, int t) {
 		if (t == MainStageSet.WRAP) {
 			Kit.title(world, g, 400, net.minecraft.text.Text.literal("THAT'S A WRAP!").formatted(net.minecraft.util.Formatting.RED, net.minecraft.util.Formatting.BOLD),
-					net.minecraft.text.Text.literal("strike the set").formatted(net.minecraft.util.Formatting.GRAY));
+					net.minecraft.text.Text.empty());
 			Kit.sound(world, g, SoundEvents.BLOCK_CHAIN_BREAK, 64.0F, 0.5F);
 			Kit.sound(world, g, SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, 64.0F, 0.4F);
 		}
@@ -234,8 +232,6 @@ public class MainStageEvent extends WorldEvent {
 							com.armageddon.destruction.world.Devastation.FIRE);
 					devastation.limit = 0;
 				}
-				Kit.title(world, g, 600, net.minecraft.text.Text.literal("THANK YOU, GOODNIGHT!").formatted(net.minecraft.util.Formatting.GOLD, net.minecraft.util.Formatting.BOLD),
-						net.minecraft.text.Text.empty());
 			});
 		}
 		if (devastation != null) {
