@@ -487,7 +487,7 @@ public final class CityDestructionEvents {
 				phase = Math.atan2(Kit.dir(data.getFloat("Yaw")).z, Kit.dir(data.getFloat("Yaw")).x);
 				open(world, g, "block.armageddon.world_eater", END);
 				Vfx.skyTint(world, g, 100000, 0x14061E, 0.85F);
-				Vfx.custom(world, FxType.CITY_FX, Vec3d.ofBottomCenter(ground), g, (float) reach, 0xA060FF, FX_WORM, (float) phase, 0, END, Vfx.FAR);
+				Vfx.custom(world, FxType.CITY_FX, Vec3d.ofBottomCenter(ground), g, (float) reach, 0xA060FF, FX_WORM, (float) phase, 0, DIVE + 60, Vfx.FAR);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_EMERGE, 64.0F, 0.5F);
 			}
 			if (t < CityShapes.WORM_START && t % 20 == 0) {
