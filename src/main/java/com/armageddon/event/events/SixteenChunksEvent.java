@@ -160,7 +160,8 @@ public class SixteenChunksEvent extends WorldEvent {
 			int delay = cell % ChunkRolls.W * 2 + cell / ChunkRolls.W * 3;
 			com.armageddon.detonation.DetonationManager.schedule(world, delay, () -> {
 				Vfx.pillar(world, corner, 3.0F, col, true, 60);
-				Kit.boom(world, corner, 4.0F, col, owner(), false);
+				// The corners glitch out of existence rather than blowing up.
+				com.armageddon.event.Ruin.disintegrate(world, corner, 4.0, Blocks.PEARLESCENT_FROGLIGHT.getDefaultState(), net.minecraft.particle.ParticleTypes.END_ROD, 14);
 			});
 		}
 	}

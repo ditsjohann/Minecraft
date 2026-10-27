@@ -213,7 +213,7 @@ public final class ClientFx {
 	}
 
 	/** Comfort limits: raw shake/flash values come from many effects, these keep the screen readable. */
-	public static final float SHAKE_SCALE = 0.35F, SHAKE_MAX = 1.1F, FLASH_MAX = 0.55F;
+	public static final float SHAKE_SCALE = 0.35F, SHAKE_MAX = 1.1F, FLASH_MAX = 0.38F;
 
 	/** The camera wobble actually applied (degrees): scaled down and soft-capped so big blasts never get violent. */
 	public static float shakeView() {

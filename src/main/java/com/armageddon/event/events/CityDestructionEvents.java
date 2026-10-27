@@ -23,6 +23,7 @@ import com.armageddon.registry.ModBlocks;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.CityShapes;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.FallingBlockEntity;
@@ -169,9 +170,21 @@ public final class CityDestructionEvents {
 			}
 			if (t >= ROCHE && t < FALL + 70 && t % 3 == 0) {
 				// The shed crust comes down ahead of it and after it: a storm of moon rock over the whole region.
+				// Cold rock, not fire: each one punches a dusty pock and stays there as a boulder.
 				Vec3d hit = com.armageddon.event.Climax.around(world, g, r * 1.4, Math.min(260, r * 5.5));
-				float size = 2.5F + world.random.nextFloat() * 3.5F;
-				com.armageddon.event.Climax.strike(world, hit, 220, 0xC8CCD8, size, size * 0.9F + 1, CraterJob.Mode.NUKE, 10, owner());
+				int size = 2 + world.random.nextInt(4);
+				com.armageddon.event.Climax.fall(world, hit, 220, 0xC8CCD8, 1.4F, 10, () -> {
+					Vfx.ring(world, hit.add(0, 0.4, 0), size * 5.0F, 1.5F, 0xA8A8B0, true, 30);
+					Kit.sound(world, hit, SoundEvents.BLOCK_GRAVEL_BREAK, 24.0F, 0.4F);
+					Kit.sound(world, hit, SoundEvents.BLOCK_ANVIL_LAND, 16.0F, 0.3F);
+					Vfx.shake(world, hit, 60, 0.6F);
+					Kit.damage(world, hit, size * 2.5, 30.0F, ModDamageTypes.SHRAPNEL, null, owner());
+					if (Destruction.enabled(world)) {
+						BlockPos hp = BlockPos.ofFloored(hit);
+						MoonTerrain.pock(world, queue, hp.getX(), hp.getZ(), size + 2, seed + hp.asLong());
+						Kit.sphere(world, hp.down(size - 1), size * 0.75, (size % 2 == 0 ? Blocks.TUFF : Blocks.SMOOTH_BASALT).getDefaultState());
+					}
+				});
 			}
 			// The tide: loose ground drifts up toward the approaching moon.
 			if (t >= 140 && t < FALL - 10 && t % 5 == 0 && tide.size() < 160) {
@@ -290,13 +303,13 @@ public final class CityDestructionEvents {
 			Vfx.ring(world, g.add(0, 0.5, 0), (float) (r * 6), 5.0F, 0xB080FF, true, 70);
 			Vfx.shake(world, g, 100000, 2.6F);
 			Vfx.fov(world, g, 16.0F, 30);
-			Kit.boom(world, core.add(0, r * 0.5, 0), 18.0F, 0xB070FF, owner(), true);
 			Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, 64.0F, 0.3F);
 			Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.4F);
 			Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.35F);
 			Detonations.blast(world, g, r * 4, 600.0F, ModDamageTypes.ANNIHILATION, owner(), r, 4.0);
 			if (Destruction.enabled(world)) {
-				DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(core.add(0, r * 0.55, 0)), (float) (r * 0.6), CraterJob.Mode.ANTIMATTER));
+				// The heart turns wholly to crystal, rings, and shatters, leaving the moon a hollow broken shell.
+				com.armageddon.event.Ruin.crystallize(world, core.add(0, r * 0.3, 0), r * 0.62, com.armageddon.event.Ruin.AMETHYST, 30, 45);
 				List<FallingBlockEntity> shards = Kit.lift(world, core, r * 1.05, 120, false, false);
 				for (FallingBlockEntity fb : shards) {
 					Vec3d out = fb.getPos().subtract(core).normalize();
@@ -943,10 +956,12 @@ public final class CityDestructionEvents {
 				double along = (t - SURTR) / 60.0 * reach * 1.1;
 				for (int sgn = -1; sgn <= 1; sgn += 2) {
 					Vec3d at = Kit.ground(world, g.x + fwd.x * along * sgn, g.z + fwd.z * along * sgn);
-					Kit.boom(world, at.add(0, 1, 0), 7.0F, 0xFF5010, owner(), true);
+					// Fire, not blast: the ground along the wound melts and runs.
 					Vfx.pillar(world, at, 5.0F, 0xFF4010, false, 60);
+					Kit.damage(world, at, 9, 30.0F, ModDamageTypes.NUCLEAR_BLAST, null, owner());
+					com.armageddon.event.Ruin.melt(world, at, 9, 1.5);
 					if (Destruction.enabled(world)) {
-						Detonations.ignite(world, at, 10, 0.5F);
+						Detonations.ignite(world, at, 12, 0.4F);
 					}
 				}
 				Kit.sound(world, g.add(fwd.multiply(along)), SoundEvents.ENTITY_BLAZE_SHOOT, 64.0F, 0.4F);
@@ -964,7 +979,13 @@ public final class CityDestructionEvents {
 			if (t > TWILIGHT && t < END && t % 4 == 0) {
 				// In the dark, the last of the sky falls: burning stars across the whole land.
 				Vec3d hit = com.armageddon.event.Climax.around(world, g, 20, reach * 1.6);
-				com.armageddon.event.Climax.strike(world, hit, 240, 0xFF7030, 4.0F + world.random.nextFloat() * 3.0F, 5.0F, CraterJob.Mode.NUKE, 9, owner());
+				double size = 4 + world.random.nextDouble() * 3;
+				com.armageddon.event.Climax.fall(world, hit, 240, 0xFF7030, 2.0F, 9, () -> {
+					Vfx.ring(world, hit.add(0, 0.4, 0), (float) size * 3, 1.5F, 0xFF6020, false, 26);
+					Kit.sound(world, hit, SoundEvents.ENTITY_GENERIC_BURN, 24.0F, 0.5F);
+					Kit.damage(world, hit, size * 2, 30.0F, ModDamageTypes.NUCLEAR_BLAST, null, owner());
+					com.armageddon.event.Ruin.melt(world, hit, size, 1.2);
+				});
 			}
 			// Fire on one side, frost on the other, spreading out from the chasm.
 			if (columns != null && t > STRIKE && Destruction.enabled(world)) {
@@ -1094,6 +1115,19 @@ public final class CityDestructionEvents {
 			planColumns();
 		}
 
+		private static BlockState[] glass(int col) {
+			net.minecraft.block.Block b = switch (col) {
+				case 0xFF2020 -> Blocks.RED_STAINED_GLASS;
+				case 0xFF8A10 -> Blocks.ORANGE_STAINED_GLASS;
+				case 0xFFE020 -> Blocks.YELLOW_STAINED_GLASS;
+				case 0x30E030 -> Blocks.LIME_STAINED_GLASS;
+				case 0x20A0FF -> Blocks.LIGHT_BLUE_STAINED_GLASS;
+				case 0x3040FF -> Blocks.BLUE_STAINED_GLASS;
+				default -> Blocks.PURPLE_STAINED_GLASS;
+			};
+			return new BlockState[]{b.getDefaultState(), Blocks.GLASS.getDefaultState()};
+		}
+
 		/** The sword breaks the bridge: its bands come down in burning colour all along the arch. */
 		private void shatterBridge(Vec3d g) {
 			Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
@@ -1105,8 +1139,10 @@ public final class CityDestructionEvents {
 				DetonationManager.schedule(world, 2 + i % 6 * 3, () -> {
 					Vfx.streak(world, top, hit, 2.0F, col, 12);
 					DetonationManager.schedule(world, 12, () -> {
-						Kit.boom(world, hit.add(0, 0.5, 0), 5.0F, col, owner(), true);
+						// Each piece of the bridge lands as a cluster of its own colour, rings, and shatters.
 						Vfx.ring(world, hit.add(0, 0.4, 0), 18.0F, 2.0F, col, false, 30);
+						Kit.damage(world, hit, 6, 24.0F, ModDamageTypes.SHRAPNEL, null, owner());
+						com.armageddon.event.Ruin.crystallize(world, hit.add(0, 1, 0), 3.5, glass(col), 10, 40);
 					});
 				});
 			}

@@ -111,6 +111,11 @@ public final class FxDraw {
 			// Rim-lit shells keep their geometry, with enough facets not to show them.
 			lat = Math.max(lat, 16);
 			lon = Math.max(lon, 24);
+			if (layer != FxRenderLayers.SHADE && c.length() < radius * 1.1) {
+				// From inside a glowing shell the whole view is tinted by it: keep that a wash, not a white-out.
+				alphaFacing *= 0.3F;
+				alphaEdge *= 0.3F;
+			}
 		}
 		for (int i = 0; i < lat; i++) {
 			double t0 = Math.PI * i / lat - Math.PI / 2;

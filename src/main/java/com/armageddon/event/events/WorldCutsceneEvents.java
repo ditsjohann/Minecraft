@@ -5,6 +5,8 @@ import com.armageddon.destruction.world.TerrainJob;
 import com.armageddon.destruction.world.VoxelQueue;
 import com.armageddon.destruction.world.WorldScars;
 import com.armageddon.detonation.CraterJob;
+import net.minecraft.block.Blocks;
+import net.minecraft.particle.ParticleTypes;
 import com.armageddon.detonation.DetonationManager;
 import com.armageddon.detonation.Detonations;
 import com.armageddon.event.EventEntity;
@@ -230,10 +232,14 @@ public final class WorldCutsceneEvents {
 				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.4F);
 			}
 			if (t > STARFALL && t < HEART && t % 3 == 0) {
+				// Each star is a collapsed thing: where it lands the ground is pulled into it and crushed, not blown out.
 				Vec3d hit = com.armageddon.event.Climax.around(world, g, R * 0.6, Math.max(R * 1.5, blast * 0.95));
-				float size = 3.5F + world.random.nextFloat() * 4.5F;
-				com.armageddon.event.Climax.strike(world, hit, 300, world.random.nextBoolean() ? 0xC8B0FF : 0x80A0FF, size, size,
-						CraterJob.Mode.ANTIMATTER, 10, owner());
+				double size = 4.0 + world.random.nextDouble() * 4.0;
+				com.armageddon.event.Climax.fall(world, hit, 300, world.random.nextBoolean() ? 0xC8B0FF : 0x80A0FF, 2.4F, 10, () -> {
+					Vfx.ring(world, hit.add(0, 0.5, 0), (float) size * 3, 1.5F, 0xB090FF, false, 30);
+					Vfx.light(world, hit.add(0, 2, 0), 0.5F, 0xB090FF);
+					com.armageddon.event.Ruin.implode(world, hit.add(0, size * 0.3, 0), size, 26);
+				});
 			}
 			if (t == HEART) {
 				// Last of all its heart, white-hot, straight down onto ground zero.
@@ -693,10 +699,10 @@ public final class WorldCutsceneEvents {
 				for (int i = 0; i < beamAt.size(); i++) {
 					Vec3d p = beamAt.get(i);
 					lifts.get(i).release();
-					Kit.boom(world, p.add(0, 1, 0), 9.0F, 0x60FFA0, owner(), true);
-					if (Destruction.enabled(world)) {
-						DetonationManager.add(new CraterJob(world, net.minecraft.util.math.BlockPos.ofFloored(p), 9.0F, CraterJob.Mode.SHAFT));
-					}
+					// Whatever the beam was holding is taken apart where it stood: a clean, glowing-edged shaft into the ground.
+					Vfx.flash(world, p, 0.25F, 300, 0x80FFB0);
+					Kit.damage(world, p, 12, 40.0F, ModDamageTypes.ANNIHILATION, null, owner());
+					com.armageddon.event.Ruin.disintegrate(world, p.add(0, -2, 0), 10, Blocks.VERDANT_FROGLIGHT.getDefaultState(), ParticleTypes.HAPPY_VILLAGER, 30);
 				}
 				lifts.clear();
 			}

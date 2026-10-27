@@ -61,6 +61,13 @@ public final class Climax {
 		});
 	}
 
+	/** Something falls out of the sky onto {@code hit} and {@code land} runs when it arrives (no explosion of its own). */
+	public static void fall(ServerWorld w, Vec3d hit, double height, int color, float width, int delay, Runnable land) {
+		Vec3d from = hit.add(w.random.nextGaussian() * height * 0.25, height, w.random.nextGaussian() * height * 0.25);
+		Vfx.streak(w, from, hit, width, color, delay + 2);
+		DetonationManager.schedule(w, delay, land);
+	}
+
 	/** Surface blocks in the ring {@code r0..r1}, turned into flying blocks (that land back as blocks unless {@code vanish}). */
 	public static List<FallingBlockEntity> liftRing(ServerWorld w, Vec3d c, double r0, double r1, int max, boolean vanish) {
 		List<FallingBlockEntity> out = new ArrayList<>();

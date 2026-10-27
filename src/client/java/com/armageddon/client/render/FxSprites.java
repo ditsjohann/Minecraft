@@ -73,6 +73,9 @@ public final class FxSprites {
 	 */
 	public static void sprite(VertexConsumer vc, Matrix4f m, Vec3d c, Vec3d right, Vec3d up, double half, double rot, int cell,
 			int top, int bottom, float alpha, int light) {
+		if (cell >= FIRE) {
+			alpha *= glare(c, half);
+		}
 		if (alpha <= 0.003F || half <= 0.0) {
 			return;
 		}
@@ -89,6 +92,16 @@ public final class FxSprites {
 	}
 
 	/** A camera-facing sprite with one colour. */
+	/**
+	 * Glare limiter for additive light: a glow that fills the view (a flare hundreds of blocks wide, a fireball the
+	 * camera is inside) fades the more of the screen it covers, so a blast never turns everything into flat white.
+	 * {@code c} is camera-relative, so its length is the distance to the eye.
+	 */
+	static float glare(Vec3d c, double half) {
+		double cover = half / Math.max(1.0, c.length());
+		return (float) MathHelper.clamp(1.25 - 0.75 * cover, 0.16, 1.0);
+	}
+
 	public static void billboard(VertexConsumer vc, Matrix4f m, Vec3d c, Vec3d[] cb, double half, double rot, int cell, int rgb, float alpha, int light) {
 		sprite(vc, m, c, cb[0], cb[1], half, rot, cell, rgb, rgb, alpha, light);
 	}
