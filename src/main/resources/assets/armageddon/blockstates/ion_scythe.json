@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/ion_scythe"
+    },
+    "facing=east": {
+      "model": "armageddon:block/ion_scythe",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/ion_scythe",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/ion_scythe",
+      "y": 270
+    }
+  }
+}

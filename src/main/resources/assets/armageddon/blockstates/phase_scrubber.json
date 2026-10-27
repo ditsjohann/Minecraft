@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/phase_scrubber"
+    },
+    "facing=east": {
+      "model": "armageddon:block/phase_scrubber",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/phase_scrubber",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/phase_scrubber",
+      "y": 270
+    }
+  }
+}

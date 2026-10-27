@@ -40,7 +40,7 @@ public final class NewFx {
 			case 3 -> new IcePyramid(a, p.duration());
 			case 4 -> new Termites(a, p.duration());
 			case 5 -> new SunDeath(a, b, p.duration());
-			default -> OddFx.create(p.seed(), a, b, p);
+			default -> p.seed() >= 40 ? SciFx.create(p.seed(), a, b, p) : OddFx.create(p.seed(), a, b, p);
 		};
 	}
 

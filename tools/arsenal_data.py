@@ -106,10 +106,18 @@ NEW_BOMBS.update({
     "sonar_bomb": "Sonar Bomb", "pixel_bomb": "8-Bit Bomb", "magnetar": "Magnetar", "ink_bomb": "KA-BOOM!",
     "aurora_bomb": "Aurora Bomb", "seasons_bomb": "Century Bomb", "prism_bomb": "Prism Bomb", "geode_bomb": "Geode Bomb",
     "fossil_bomb": "Fossil Bomb", "lava_lamp": "Lava Lamp Bomb",
+    "ion_scythe": "ION SCYTHE", "phase_scrubber": "PHASE SCRUBBER", "tesla_dominion": "TESLA DOMINION",
+    "event_horizon": "EVENT HORIZON ENGINE", "nanite_bloom": "NANITE BLOOM", "inversion_engine": "INVERSION ENGINE",
 })
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
+    "ion_scythe": "CELESTIAL. An orbital ion cannon cuts a spiral trench of molten glass through everything, charges it, then ignites the whole spiral at once. Light twice.",
+    "phase_scrubber": "CITY DESTRUCTION. A hex force field drops over the town and a plane of light descends through it, erasing everything it passes. Then it prints a clean floor. Light twice.",
+    "tesla_dominion": "CITY DESTRUCTION. A tesla tower rises and arcs at everything tall. Every strike burns a branching fulgurite of glass into the ground. Then the ball lightning goes. Light twice.",
+    "event_horizon": "WORLD DESTRUCTION. Three rings open a singularity in the sky. The land is torn up into its accretion disk, spun, and swallowed. Camera cutscene. Light twice.",
+    "nanite_bloom": "WORLD DESTRUCTION. Grey goo: branching fingers turn everything to metal in its own shape, then the region melts into a silver hex plain. Camera cutscene. Light twice.",
+    "inversion_engine": "WORLD DESTRUCTION. A sphere of the world is flipped upside down into the sky above its own pit, hangs there, and shatters back down. Camera cutscene. Light twice.",
     "lidar_bomb": "CELESTIAL. The world becomes a lidar point cloud. Four scan pulses tag every living thing, then TARGETS LOCKED: strikes walk the map and the mast overloads. Light twice.",
     "shadow_void": "CELESTIAL. A black orb drinks the light: a growing void of darkness swallows the ground shell by shell, inhales... and exhales a shockwave of shadow. Light twice.",
     "spectral_ice": "CELESTIAL. Ice spikes erupt into a pyramid with one point. The apex lights blue, the spikes glow, and the white apex sprays a storm of ice shards. Light twice.",
@@ -266,7 +274,8 @@ def anim(write_json, path, frametime):
 
 def bomb_recipes2(shaped):
     cat = "redstone"
-    X = {"exploding_cows": ("minecraft:cow_spawn_egg", "minecraft:milk_bucket"),
+    X = {"ion_scythe": ("minecraft:beacon", "minecraft:lightning_rod"),
+         "exploding_cows": ("minecraft:cow_spawn_egg", "minecraft:milk_bucket"),
          "deadly_twister": ("minecraft:elytra", "minecraft:wind_charge"),
          "colossal_spear": ("minecraft:trident", "minecraft:netherite_block"),
          "zombie_apocalypse": ("minecraft:zombie_head", "minecraft:rotten_flesh"),
@@ -276,7 +285,9 @@ def bomb_recipes2(shaped):
     W = {"galactic_smash": "big_bang", "booming_tick": "chrono_break", "alien_death_ray": "moonfall",
          "eternal_sapling": "world_eater", "sixteen_chunks": "ragnarok", "truman_show": "chrono_break", "disco_ball": "disco_bomb",
          "lidar_bomb": "orbital_designator", "shadow_void": "singularity_bomb", "spectral_ice": "ice_age_bomb",
-         "termite_domain": "world_eater", "sun_disappears": "galactic_smash"}
+         "termite_domain": "world_eater", "sun_disappears": "galactic_smash",
+         "phase_scrubber": "chrono_break", "tesla_dominion": "tesla_bomb", "event_horizon": "singularity_bomb",
+         "nanite_bloom": "termite_domain", "inversion_engine": "chrono_break"}
     O = {"sonar_bomb": "minecraft:sculk_shrieker", "pixel_bomb": "minecraft:note_block", "magnetar": "minecraft:lodestone",
          "ink_bomb": "minecraft:ink_sac", "aurora_bomb": "minecraft:prismarine_crystals", "seasons_bomb": "minecraft:clock",
          "prism_bomb": "minecraft:glass", "geode_bomb": "minecraft:amethyst_block", "fossil_bomb": "minecraft:bone_block",

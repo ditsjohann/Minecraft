@@ -135,6 +135,14 @@ public final class ModBlocks {
 	public static final BombBlock FOSSIL_BOMB = tiered(bomb("fossil_bomb", BombType.FOSSIL_BOMB, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock LAVA_LAMP = tiered(bomb("lava_lamp", BombType.LAVA_LAMP, Rarity.EPIC), Tier.LEGENDARY);
 
+	// ---------------------------------------------------------------- plasma and sci-fi
+	public static final BombBlock ION_SCYTHE = tiered(bomb("ion_scythe", BombType.ION_SCYTHE, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock PHASE_SCRUBBER = tiered(bomb("phase_scrubber", BombType.PHASE_SCRUBBER, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock TESLA_DOMINION = tiered(bomb("tesla_dominion", BombType.TESLA_DOMINION, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock EVENT_HORIZON = tiered(bomb("event_horizon", BombType.EVENT_HORIZON, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock NANITE_BLOOM = tiered(bomb("nanite_bloom", BombType.NANITE_BLOOM, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock INVERSION_ENGINE = tiered(bomb("inversion_engine", BombType.INVERSION_ENGINE, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks
 	public static final Block ENERGY_CRYSTAL = register("energy_crystal", new TransparentBlock(AbstractBlock.Settings.create()
 			.mapColor(MapColor.PURPLE).strength(1.5F).luminance(s -> 12).nonOpaque().sounds(BlockSoundGroup.AMETHYST_BLOCK)

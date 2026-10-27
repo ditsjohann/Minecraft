@@ -35,7 +35,7 @@ public final class Cinematics {
 	}
 
 	public static final int GALACTIC_SMASH = 1, BOOM_SURVEY = 2, ALIEN_LAUNCH = 3,
-			ETERNAL_SAPLING = 4, SIXTEEN_CHUNKS = 5, DISCO_BALL = 7;
+			ETERNAL_SAPLING = 4, SIXTEEN_CHUNKS = 5, DISCO_BALL = 7, SCI_HORIZON = 8, SCI_NANITE = 9, SCI_INVERSION = 10;
 
 	public static Cine create(int scene, Vec3d anchor, Vec3d heading, int life) {
 		return switch (scene) {
@@ -44,8 +44,76 @@ public final class Cinematics {
 			case ETERNAL_SAPLING -> new EternalSaplingCine(anchor, heading, life);
 			case SIXTEEN_CHUNKS -> new SixteenChunksCine(anchor, heading, life);
 			case DISCO_BALL -> new DiscoBallCine(anchor, heading, life);
+			case SCI_HORIZON, SCI_NANITE, SCI_INVERSION -> new SciCine(scene, anchor, heading, life);
 			default -> new AlienLaunch(anchor, heading, life);
 		};
+	}
+
+	// ======================================================================== the sci-fi world enders
+
+	/**
+	 * Camera work for the plasma world enders. The scenery is all real (the world and the bomb's own effect), so
+	 * the scene is just shots: dollies (type 0: from, to, look-from, look-to, all as right/up/forward offsets from
+	 * the anchor) and orbits (type 1: angle from, angle to, radius, height from, height to, look-at).
+	 */
+	public static class SciCine extends Cine {
+		private final double[][] shots;
+
+		SciCine(int scene, Vec3d anchor, Vec3d heading, int life) {
+			super(anchor, heading, life);
+			double alt = com.armageddon.util.SciShapes.Horizon.ALT, h = com.armageddon.util.SciShapes.Inversion.HEIGHT;
+			this.shots = switch (scene) {
+				case SCI_HORIZON -> new double[][]{
+						{0, 0, 150, -90, 10, -150, -60, 22, -115, 0, alt * 0.8, 0, 0, alt, 0, 70},
+						{1, 150, 330, -2.2, -0.6, 150, 40, 70, 0, alt, 0, 62},
+						{0, 330, 520, 45, alt - 14, -75, 22, alt + 8, -55, 0, alt, 0, 0, alt, 0, 66},
+						{0, 520, 640, 0, 150, -210, 0, 230, -280, 0, alt * 0.6, 0, 0, 10, 0, 72}};
+				case SCI_NANITE -> new double[][]{
+						{0, 0, 110, 7, 2.5, -10, 10, 4, -13, 0, 1, 0, 0, 1.5, 0, 60},
+						{0, 110, 360, 18, 16, -36, 50, 130, -130, 0, 2, 0, 0, 0, 0, 70},
+						{1, 360, 640, -1.4, 1.2, 170, 140, 160, 0, 0, 0, 66},
+						{0, 640, 780, -110, 7, -130, -50, 7, -70, 0, 2, 40, 0, 2, 80, 80}};
+				default -> new double[][]{
+						{0, 0, 90, 40, 8, -60, 32, 10, -52, 0, 12, 0, 0, 20, 0, 66},
+						{0, 90, 260, 70, 20, -90, 95, h + 10, -120, 0, 10, 0, 0, h * 0.8, 0, 70},
+						{1, 260, 470, -0.9, 1.4, 125, h * 0.55, h * 0.75, 0, h * 0.75, 0, 62},
+						{0, 470, 560, 55, 14, -60, 62, 12, -70, 0, h, 0, 0, h * 0.4, 0, 84}};
+			};
+		}
+
+		private Vec3d rel(double r, double u, double f) {
+			return anchor.add(right.multiply(r)).add(0, u, 0).add(fwd.multiply(f));
+		}
+
+		@Override
+		protected void direct(float a, State s) {
+			double[] shot = shots[shots.length - 1];
+			for (double[] sh : shots) {
+				if (a < sh[2]) {
+					shot = sh;
+					break;
+				}
+			}
+			double u = ease(clamp01((a - shot[1]) / (shot[2] - shot[1])));
+			if (shot[0] == 0) {
+				Vec3d p = lerp(rel(shot[3], shot[4], shot[5]), rel(shot[6], shot[7], shot[8]), u);
+				Vec3d t = lerp(rel(shot[9], shot[10], shot[11]), rel(shot[12], shot[13], shot[14]), u);
+				aim(s, p, t, (float) shot[15], false);
+			} else {
+				double ang = lerp(shot[3], shot[4], u);
+				Vec3d p = rel(Math.cos(ang) * shot[5], lerp(shot[6], shot[7], u), Math.sin(ang) * shot[5]);
+				aim(s, p, rel(shot[8], shot[9], shot[10]), (float) shot[11], false);
+			}
+		}
+
+		@Override
+		protected float handheld(float a) {
+			return 0.25F;
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+		}
 	}
 
 	// ======================================================================== base

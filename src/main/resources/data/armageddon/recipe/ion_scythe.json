@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CSC",
+    "SKS",
+    "CSC"
+  ],
+  "key": {
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "S": {
+      "item": "minecraft:lightning_rod"
+    },
+    "K": {
+      "item": "minecraft:beacon"
+    }
+  },
+  "result": {
+    "id": "armageddon:ion_scythe",
+    "count": 1
+  }
+}

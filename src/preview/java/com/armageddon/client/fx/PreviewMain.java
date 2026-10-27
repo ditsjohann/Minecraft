@@ -97,6 +97,12 @@ public final class PreviewMain {
 			case "sun" -> NewFx.create(payload(FxType.NEW_FX, a, h, 64, 0xFFE0A0, 5, 0, 0, 1500));
 			case "ice" -> NewFx.create(payload(FxType.NEW_FX, a, a, 24, 0x60C0FF, 3, 0, 0, 520));
 			case "void" -> NewFx.create(payload(FxType.NEW_FX, a.add(0, 22, 0), a, 46, 0x9040FF, 2, 15, 0, 620));
+			case "ion" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(0.3, 0, 0), 64, 0x80E0FF, 40, 0, 0, com.armageddon.util.SciShapes.Ion.END));
+			case "phase" -> NewFx.create(payload(FxType.NEW_FX, a, a, 72, 0x60C8FF, 41, 0, 0, com.armageddon.util.SciShapes.Phase.END));
+			case "tesla" -> NewFx.create(payload(FxType.NEW_FX, a, a, 115, 0x90D8FF, 42, 0, 0, com.armageddon.util.SciShapes.Tesla.END));
+			case "horizon" -> NewFx.create(payload(FxType.NEW_FX, a.add(0, com.armageddon.util.SciShapes.Horizon.ALT, 0), a, 34, 0xFFB060, 43, 0, 0, com.armageddon.util.SciShapes.Horizon.END));
+			case "nanite" -> NewFx.create(payload(FxType.NEW_FX, a, a, 190, 0x70E0FF, 44, 0, 0, com.armageddon.util.SciShapes.Nanite.END));
+			case "inversion" -> NewFx.create(payload(FxType.NEW_FX, a, a, 34, 0xC0A0FF, 45, 0, 0, com.armageddon.util.SciShapes.Inversion.END));
 			case "twister" -> new MegaEffects.Twister(a, h, 26, 0.35, 600);
 			case "ufo" -> new MegaEffects.Ufo(a.add(-200, 70, 0), a.add(200, 70, 0), 60, 600);
 			case "moon" -> new ArsenalEffects.Moon(a, 40, 500, 0xC8C8D0, 400);

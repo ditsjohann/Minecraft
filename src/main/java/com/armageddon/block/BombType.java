@@ -90,7 +90,14 @@ public enum BombType {
 	PRISM_BOMB(200, 0xFFFFFF),
 	GEODE_BOMB(120, 0xC080FF),
 	FOSSIL_BOMB(200, 0xE8E0C8),
-	LAVA_LAMP(120, 0xFF6020);
+	LAVA_LAMP(120, 0xFF6020),
+	// plasma and sci-fi
+	ION_SCYTHE(200, 0x80E0FF),
+	PHASE_SCRUBBER(300, 0x60C8FF),
+	TESLA_DOMINION(300, 0x90D8FF),
+	EVENT_HORIZON(400, 0xFFB060),
+	NANITE_BLOOM(400, 0x70E0FF),
+	INVERSION_ENGINE(400, 0xC0A0FF);
 
 	public final int fuse;
 	public final int color;
@@ -119,7 +126,7 @@ public enum BombType {
 	public boolean isCelestial() {
 		return switch (this) {
 			case LAST_LIGHT, ZEROPOINT, UNMAKER, GODFALL, FINAL_EXISTENCE, BIG_BANG, CHRONO_BREAK, LIDAR_BOMB, SHADOW_VOID, SPECTRAL_ICE,
-					EXPLODING_COWS, DEADLY_TWISTER, COLOSSAL_SPEAR, ZOMBIE_APOCALYPSE, UFO_INVASION -> true;
+					EXPLODING_COWS, DEADLY_TWISTER, COLOSSAL_SPEAR, ZOMBIE_APOCALYPSE, UFO_INVASION, ION_SCYTHE -> true;
 			default -> isCityDestruction() || isWorldDestruction();
 		};
 	}
@@ -127,7 +134,7 @@ public enum BombType {
 	/** The CITY DESTRUCTION tier: the end of the map (a city-sized area or more is remade). */
 	public boolean isCityDestruction() {
 		return switch (this) {
-			case MOONFALL, WORLD_EATER, RAGNAROK, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW, TERMITE_DOMAIN -> true;
+			case MOONFALL, WORLD_EATER, RAGNAROK, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW, TERMITE_DOMAIN, PHASE_SCRUBBER, TESLA_DOMINION -> true;
 			default -> false;
 		};
 	}
@@ -135,7 +142,7 @@ public enum BombType {
 	/** The true WORLD DESTRUCTION tier: the world enders, with scripted camera cutscenes. */
 	public boolean isWorldDestruction() {
 		return switch (this) {
-			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY, SUN_DISAPPEARS -> true;
+			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY, SUN_DISAPPEARS, EVENT_HORIZON, NANITE_BLOOM, INVERSION_ENGINE -> true;
 			default -> false;
 		};
 	}

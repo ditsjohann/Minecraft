@@ -1309,6 +1309,88 @@ def lava_lamp():
     return m
 
 
+def ion_scythe():
+    # A ground beacon for the orbital cannon: a steel plinth, a ring of capacitors and a lens that points up.
+    m = [B(1, 0, 1, 15, 1.5, 15, "gunmetal"), B(2, 1.5, 2, 14, 2.2, 14, "steel")]
+    for (x, z) in ((2, 2), (12, 2), (2, 12), (12, 12)):
+        m += cyl_y(x + 1, z + 1, 2.2, 7, 0.9, "titanium") + [B(x + 0.4, 7, z + 0.4, x + 1.6, 7.6, z + 1.6, "glow_cyan")]
+    m += cyl_y(8, 8, 2.2, 9, 3.2, "steel") + cyl_y(8, 8, 9, 10, 4.2, "gunmetal")
+    m += ring_y(8, 10.3, 8, 4.0, "glow_cyan", 0.4) + ring_y(8, 11.6, 8, 2.8, "glow_blue", 0.35)
+    m += cyl_y(8, 8, 10, 13.5, 1.4, "chrome") + [B(7.2, 13.5, 7.2, 8.8, 16, 8.8, "glow_white")]
+    m += [B(7.6, 2.2, 1.2, 8.4, 9, 1.8, "glow_cyan"), B(1.2, 2.2, 7.6, 1.8, 9, 8.4, "glow_cyan")]
+    return m
+
+
+def phase_scrubber():
+    # A field projector: a hex base, a dome of light ribs and a scan ring halfway up.
+    m = [B(0.5, 0, 0.5, 15.5, 1.5, 15.5, "white"), B(1.5, 1.5, 1.5, 14.5, 2, 14.5, "screen")]
+    m += vsphere(8, 2, 8, 6.2, 1.0, "glass_cyan", shell=0.9)
+    m += ring_y(8, 5.0, 8, 5.6, "glow_cyan", 0.4) + ring_y(8, 2.4, 8, 6.4, "glow_white", 0.3)
+    m += cyl_y(8, 8, 2, 6, 1.2, "chrome") + [B(7.3, 6, 7.3, 8.7, 7.4, 8.7, "glow_blue")]
+    for i in range(6):
+        x = 8 + 6.6 * _m.cos(i * _m.pi / 3)
+        z = 8 + 6.6 * _m.sin(i * _m.pi / 3)
+        m += [B(x - 0.6, 1.5, z - 0.6, x + 0.6, 3, z + 0.6, "titanium")]
+    return m
+
+
+def tesla_dominion():
+    # A small tesla tower: braced copper core, coils, and a fat torus crown.
+    m = [B(1, 0, 1, 15, 1.2, 15, "gunmetal")]
+    for (x, z) in ((2, 2), (12.6, 2), (2, 12.6), (12.6, 12.6)):
+        m += [B(x, 1.2, z, x + 1.4, 3, z + 1.4, "steel")]
+    m += cyl_y(8, 8, 1.2, 12.5, 1.5, "copper")
+    for y in (3.5, 5.5, 7.5, 9.5):
+        m += cyl_y(8, 8, y, y + 0.8, 2.3 - y * 0.06, "copper")
+    m += ring_y(8, 13.6, 8, 4.2, "steel", 0.9, segs=20) + ring_y(8, 13.6, 8, 3.4, "glow_cyan", 0.3)
+    m += [B(7.2, 12.5, 7.2, 8.8, 14.5, 8.8, "chrome"), B(7.5, 14.5, 7.5, 8.5, 16, 8.5, "glow_white")]
+    return m
+
+
+def event_horizon():
+    # The ring machine in miniature: three tilted rings around a black core in a glowing disk.
+    m = [B(1, 0, 1, 15, 1.2, 15, "obsidian"), B(2, 1.2, 2, 14, 1.6, 14, "gunmetal")]
+    m += cyl_y(8, 8, 1.6, 4, 1.0, "steel")
+    m += ring_y(8, 8.5, 8, 6.4, "steel", 0.6, segs=24)
+    m += [B(1.4, 8.2, 7.6, 14.6, 8.8, 8.4, "steel", ("x", 45, [8, 8.5, 8])), B(7.6, 8.2, 1.4, 8.4, 8.8, 14.6, "steel", ("z", 45, [8, 8.5, 8]))]
+    m += ring_y(8, 8.5, 8, 4.4, "glow_orange", 0.5) + ring_y(8, 8.5, 8, 3.0, "glow_gold", 0.4)
+    m += vsphere(8, 8.5, 8, 2.0, 0.9, "black")
+    m += [B(7.6, 4, 7.6, 8.4, 6.6, 8.4, "glow_white")]
+    return m
+
+
+def nanite_bloom():
+    # A pressure canister of grey goo: steel cylinder, lit bands, and a burst of silver fingers around its base.
+    m = [B(2, 0, 2, 14, 1, 14, "gunmetal")]
+    m += cyl_y(8, 8, 1, 13, 3.6, "chrome")
+    for y in (3, 6.5, 10):
+        m += cyl_y(8, 8, y, y + 0.6, 3.8, "glow_cyan")
+    m += cyl_y(8, 8, 13, 14.5, 2.4, "steel") + [B(7.3, 14.5, 7.3, 8.7, 16, 8.7, "glow_white")]
+    for i in range(8):
+        a = i * _m.pi / 4
+        x, z = 8 + 4.6 * _m.cos(a), 8 + 4.6 * _m.sin(a)
+        x2, z2 = 8 + 7 * _m.cos(a + 0.3), 8 + 7 * _m.sin(a + 0.3)
+        m += [B(x - 0.7, 1, z - 0.7, x + 0.7, 2.2, z + 0.7, "titanium"), B(x2 - 0.5, 1, z2 - 0.5, x2 + 0.5, 1.6, z2 + 0.5, "titanium")]
+    return m
+
+
+def inversion_engine():
+    # A gyroscope over a mirror: a pedestal, a reflective disc, two crossed rings and a hanging inverted block.
+    m = [B(2, 0, 2, 14, 1.4, 14, "gunmetal"), B(1, 1.4, 1, 15, 1.8, 15, "chrome")]
+    m += cyl_y(8, 8, 1.8, 6, 0.8, "steel")
+    m += ring_y(8, 9, 8, 5.2, "steel", 0.6, segs=22)
+    m += [B(2.6, 8.6, 7.6, 13.4, 9.4, 8.4, "glow_purple", ("x", 60, [8, 9, 8])), B(7.6, 8.6, 2.6, 8.4, 9.4, 13.4, "glow_blue", ("z", 60, [8, 9, 8]))]
+    m += vsphere(8, 9, 8, 1.6, 0.8, "glow_white")
+    m += [B(5.5, 12.5, 5.5, 10.5, 14, 10.5, "rock"), B(6.2, 14, 6.2, 9.8, 15.4, 9.8, "olive"), B(7, 11.4, 7, 9, 12.5, 9, "rock")]
+    return m
+
+
+BOMBS.update({
+    "ion_scythe": ion_scythe, "phase_scrubber": phase_scrubber, "tesla_dominion": tesla_dominion,
+    "event_horizon": event_horizon, "nanite_bloom": nanite_bloom, "inversion_engine": inversion_engine,
+})
+
+
 BOMBS.update({
     "lidar_bomb": lidar_bomb, "shadow_void": shadow_void, "spectral_ice": spectral_ice, "termite_domain": termite_domain,
     "sun_disappears": sun_disappears, "sonar_bomb": sonar_bomb, "pixel_bomb": pixel_bomb, "magnetar": magnetar,
