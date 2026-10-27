@@ -63,7 +63,7 @@ final class SciFx {
 				FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, thick * 0.5, light, lightA * 0.6F, lightA * 0.6F);
 			}
 			if (i % 4 == 0 && i < segs) {
-				Solids.sphere(solid, m, p, thick * 1.6, Solids.scale(metal, 0.6), 6, 8, true);
+				Solids.sphere(solid, m, p, thick * 1.2, Solids.scale(metal, 0.75), 6, 8, true);
 			}
 			prev = p;
 		}
@@ -580,7 +580,7 @@ final class SciFx {
 			if (a >= Inversion.SHATTER && a < Inversion.SHATTER + 50) {
 				float e = a - Inversion.SHATTER;
 				Vec3d isl = g.add(0, Inversion.HEIGHT, 0).subtract(cam);
-				FxKit.shock(consumers, m, isl, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 20 + e * 6, 0xD0C0FF, fadeOut(e, 0, 50));
+				FxKit.shock(consumers, m, isl, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 20 + e * 6, 0xD0C0FF, 0.5F * fadeOut(e, 0, 50));
 				FxKit.sparks(consumers, m, isl, 60, 120, 0xC0B0FF, e / 50.0F, fadeOut(e, 10, 40), 403);
 			}
 		}
