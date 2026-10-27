@@ -4,6 +4,7 @@ import com.armageddon.destruction.Destruction;
 import com.armageddon.destruction.world.TerrainJob;
 import com.armageddon.destruction.world.VoxelQueue;
 import com.armageddon.destruction.world.WorldScars;
+import com.armageddon.detonation.CraterJob;
 import com.armageddon.detonation.DetonationManager;
 import com.armageddon.detonation.Detonations;
 import com.armageddon.event.EventEntity;
@@ -132,7 +133,8 @@ public final class WorldCutsceneEvents {
 	 * concentric bell ripples. Palette: violet, magenta, gold. Sound: a struck bell that rings out.
 	 */
 	public static class GalacticSmash extends WorldEvent {
-		private static final int CINE = 760, SMASH = 460;
+		/** STARFALL: the spent giant breaks up into its stars and they come down; HEART: its core falls last. */
+		private static final int CINE = 760, SMASH = 460, STARFALL = 690, HEART = STARFALL + 150;
 		private Vec3d fwd;
 		private double R;
 		private final List<TerrainJob> jobs = new ArrayList<>();
@@ -220,7 +222,34 @@ public final class WorldCutsceneEvents {
 			if (t == SMASH + 60) {
 				Vfx.skyTint(world, g, 100000, 0x2A1010, 0.8F);
 			}
-			return t > SMASH + 300 && (jobs.isEmpty() || allDone(jobs)) && (devastation == null || devastation.isDone()) || t > SMASH + 1500;
+			if (t == STARFALL) {
+				// The giant comes apart into the stars it was made of, and they fall.
+				Vfx.skyTint(world, g, 100000, 0x100830, 0.9F);
+				Vfx.skyCrack(world, g, 0.7F, 0xC0A0FF, 2, HEART - STARFALL + 40);
+				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 64.0F, 0.4F);
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.4F);
+			}
+			if (t > STARFALL && t < HEART && t % 3 == 0) {
+				Vec3d hit = com.armageddon.event.Climax.around(world, g, R * 0.6, Math.max(R * 1.5, blast * 0.95));
+				float size = 3.5F + world.random.nextFloat() * 4.5F;
+				com.armageddon.event.Climax.strike(world, hit, 300, world.random.nextBoolean() ? 0xC8B0FF : 0x80A0FF, size, size,
+						CraterJob.Mode.ANTIMATTER, 10, owner());
+			}
+			if (t == HEART) {
+				// Last of all its heart, white-hot, straight down onto ground zero.
+				Vfx.flash(world, g.add(0, 300, 0), 0.6F, 100000, 0xFFFFFF);
+				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.3F);
+				com.armageddon.event.Climax.strike(world, g, 500, 0xFFFFFF, 24.0F, (float) Math.min(46, R * 0.5), CraterJob.Mode.ANTIMATTER, 20, owner());
+				DetonationManager.schedule(world, 20, () -> {
+					CityDestructionEvents.frames(world, g, 3, 1, 3);
+					Vfx.pillar(world, g, 20.0F, 0xD0C0FF, false, 120);
+					Vfx.ring(world, g.add(0, 1, 0), (float) blast, 8.0F, 0xC0A0FF, true, 80);
+					Vfx.shake(world, g, 100000, 3.0F);
+					Vfx.fov(world, g, 22.0F, 40);
+					Detonations.blast(world, g, R * 2, 3000.0F, ModDamageTypes.ANNIHILATION, owner(), R, 8.0);
+				});
+			}
+			return t > HEART + 60 && (jobs.isEmpty() || allDone(jobs)) && (devastation == null || devastation.isDone()) || t > SMASH + 1800;
 		}
 
 		private void smash(Vec3d g) {
@@ -280,6 +309,8 @@ public final class WorldCutsceneEvents {
 	 */
 	public static class BoomingTick extends WorldEvent {
 		private static final int BOOMS = 12, GAP = 100, LEAD = 60, T0 = LEAD + BOOMS * GAP, CINE = 400, FINAL = T0 + CINE - 4;
+		/** After the twelfth chime the clock stops, and with it everything; when it starts again, every bomb at once. */
+		private static final int STOP = FINAL + 12 * 16 + 12, GO = STOP + 70;
 		private Vec3d clock;
 		private Vec3d fwd;
 		private double R;
@@ -418,7 +449,44 @@ public final class WorldCutsceneEvents {
 					shockFront(world, g, devastation.limit, 8, 30.0F, owner());
 				}
 			}
-			return t > FINAL + 220 && !handsPending && allDone(jobs) && (devastation == null || devastation.isDone()) || t > FINAL + 1400;
+			if (t >= STOP && t < GO) {
+				int k = t - STOP;
+				if (k == 0) {
+					// Time stops: the world goes grey and silent, nothing can move.
+					Vfx.skyTint(world, g, 100000, 0x505058, 1.0F);
+					Vfx.screen(world, g, 100000, 0, 0.95F, GO - STOP);
+					Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.3F);
+				}
+				if (k % 4 == 0) {
+					com.armageddon.event.Climax.freeze(world, g, 600, 10);
+				}
+				if (k % 20 == 10) {
+					// The one thing still moving: a tick, slower each time.
+					Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 64.0F, 0.6F - k * 0.004F);
+				}
+			}
+			if (t == GO) {
+				// ...and it all goes off at once: every street, every field, the whole map in one beat.
+				CityDestructionEvents.frames(world, g, 3, 2, 3, 0);
+				Vfx.flash(world, g, 1.0F, 100000, 0xFFE0B0);
+				Vfx.shake(world, g, 100000, 3.0F);
+				Vfx.skyTint(world, g, 100000, 0x401808, 0.95F);
+				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.25F);
+				Kit.sound(world, g, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 64.0F, 0.4F);
+				double reach = Destruction.radius(world, 330.0F);
+				for (int i = 0; i < 70; i++) {
+					Vec3d p = com.armageddon.event.Climax.around(world, g, R * 0.5, reach);
+					float size = 4.0F + world.random.nextFloat() * 5.0F;
+					int color = WorldShapes.bandColor(world.random.nextInt(BOOMS));
+					DetonationManager.schedule(world, world.random.nextInt(8), () -> {
+						Kit.boom(world, p.add(0, 0.5, 0), size, color, owner(), true);
+						if (Destruction.enabled(world)) {
+							DetonationManager.add(new CraterJob(world, net.minecraft.util.math.BlockPos.ofFloored(p), size + 2, CraterJob.Mode.NUKE));
+						}
+					});
+				}
+			}
+			return t > GO + 60 && !handsPending && allDone(jobs) && (devastation == null || devastation.isDone()) || t > FINAL + 1600;
 		}
 	}
 
@@ -433,6 +501,10 @@ public final class WorldCutsceneEvents {
 	 */
 	public static class AlienDeathRay extends WorldEvent {
 		private static final int CINE = 480, ARRIVE = 350;
+		/** After the ray, the harvest: tractor beams come down around the town and lift what is left of it away. */
+		private static final int HARVEST = 200, HARVEST_END = HARVEST + 190, BEAMS = 6;
+		private final List<Vec3d> beamAt = new ArrayList<>();
+		private final List<com.armageddon.event.Climax.Vortex> lifts = new ArrayList<>();
 		private Vec3d fwd;
 		private double reach;
 		private int base;
@@ -557,6 +629,7 @@ public final class WorldCutsceneEvents {
 					Kit.sound(world, g, SoundEvents.BLOCK_CHORUS_FLOWER_GROW, 48.0F, 0.5F);
 					Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 48.0F, 0.6F);
 				}
+				harvest(g, f);
 				if (spires == null && terraform != null && terraform.isDone()) {
 					spires = WorldScars.spires(world, g, reach);
 					Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.5F);
@@ -569,7 +642,72 @@ public final class WorldCutsceneEvents {
 			}
 			stepJobs(jobs, budget);
 			boolean built = allDone(jobs) && (terraform == null || spires != null && spires.isDone());
-			return finalAt >= 0 && (t > finalAt + 260 && built && (devastation == null || devastation.isDone()) || t > finalAt + 1500);
+			return finalAt >= 0 && (t > finalAt + HARVEST_END + 20 && built && (devastation == null || devastation.isDone()) || t > finalAt + 1700);
+		}
+
+		/**
+		 * The harvest: six tractor beams drop out of the dark around the ruins. Each one pulls up the ground and the
+		 * buildings under it, spinning, into the sky, and lifts anyone caught in it; then the beams cut out together
+		 * and leave a glassed shaft where each one stood.
+		 */
+		private void harvest(Vec3d g, int f) {
+			if (f == HARVEST) {
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.6F);
+				Kit.sound(world, g, ModSounds.DEATH_RAY, 64.0F, 0.8F);
+				for (int i = 0; i < BEAMS; i++) {
+					double a = i * Math.PI * 2 / BEAMS + world.random.nextDouble() * 0.5;
+					double d = reach * (0.35 + 0.45 * world.random.nextDouble());
+					Vec3d p = Kit.ground(world, g.x + Math.cos(a) * d, g.z + Math.sin(a) * d);
+					beamAt.add(p);
+					lifts.add(new com.armageddon.event.Climax.Vortex(p, 0.45, 0.18, 0.55, 140));
+					Vfx.beam(world, p, p.add(0, 600, 0), 7.0F, 0x80FFB0, HARVEST_END - HARVEST);
+					Vfx.pillar(world, p, 12.0F, 0x60FFA0, false, HARVEST_END - HARVEST);
+					Vfx.ring(world, p.add(0, 0.4, 0), 16.0F, 1.5F, 0x80FFB0, false, HARVEST_END - HARVEST);
+				}
+			}
+			if (f > HARVEST && f < HARVEST_END) {
+				for (int i = 0; i < beamAt.size(); i++) {
+					Vec3d p = beamAt.get(i);
+					double r = Math.min(16, 6 + (f - HARVEST) * 0.08);
+					if (f % 3 == i % 3) {
+						lifts.get(i).feed(Kit.lift(world, p, r, 5, true, true));
+					}
+					if (f % 10 == 0) {
+						for (LivingEntity e : Kit.living(world, p, r + 2)) {
+							if (!Kit.creativeOrSpectator(e)) {
+								e.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.LEVITATION, 16, 3, false, false));
+							}
+						}
+					}
+					if (f % 30 == i * 5) {
+						Kit.sound(world, p, SoundEvents.BLOCK_BEACON_AMBIENT, 48.0F, 0.6F);
+					}
+				}
+			}
+			for (com.armageddon.event.Climax.Vortex v : lifts) {
+				v.tick();
+			}
+			if (f == HARVEST_END) {
+				CityDestructionEvents.frames(world, g, 1, 0);
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.4F);
+				for (int i = 0; i < beamAt.size(); i++) {
+					Vec3d p = beamAt.get(i);
+					lifts.get(i).release();
+					Kit.boom(world, p.add(0, 1, 0), 9.0F, 0x60FFA0, owner(), true);
+					if (Destruction.enabled(world)) {
+						DetonationManager.add(new CraterJob(world, net.minecraft.util.math.BlockPos.ofFloored(p), 9.0F, CraterJob.Mode.SHAFT));
+					}
+				}
+				lifts.clear();
+			}
+		}
+
+		@Override
+		public void finish() {
+			for (com.armageddon.event.Climax.Vortex v : lifts) {
+				v.release();
+			}
+			super.finish();
 		}
 
 		/** The cinematic's sound track, on the same ticks as Cinematics.AlienLaunch. */

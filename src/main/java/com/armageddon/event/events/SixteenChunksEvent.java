@@ -111,8 +111,58 @@ public class SixteenChunksEvent extends WorldEvent {
 			Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_LEVELUP, 48.0F, 0.5F);
 			Kit.sound(world, g, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 48.0F, 1.0F);
 		}
+		int crack = ChunkRolls.rollTick(ChunkRolls.CELLS - 1) + 50;
+		if (t == crack - 16) {
+			// The machine overloads: the reel noise comes back all at once, too fast.
+			Vfx.glitch(world, g, 140.0F, 0xFF40FF, 30);
+			Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 48.0F, 2.0F);
+			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 48.0F, 1.4F);
+		}
+		if (t == crack) {
+			crackGrid(g);
+		}
 		flush();
-		return (t > CINE + 40 && queue.isEmpty()) || t > CINE + 2400;
+		return (t > CINE + 40 && t > crack + 10 && queue.isEmpty()) || t > CINE + 2400;
+	}
+
+	/**
+	 * The finale: the world gives up pretending it is one piece. Every chunk border splits open into a deep trench,
+	 * so the 32 rolled chunks stand apart like tiles, and glitch pillars blow out of every corner where they meet.
+	 */
+	private void crackGrid(Vec3d g) {
+		CityDestructionEvents.frames(world, g, 3, 1, 3);
+		Vfx.flash(world, g, 0.6F, 100000, 0xFF60FF);
+		Vfx.shake(world, g, 100000, 2.2F);
+		Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.5F);
+		Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
+		Kit.sound(world, g, com.armageddon.registry.ModSounds.NUKE_RUMBLE, 64.0F, 0.4F);
+		for (int cell = 0; cell < ChunkRolls.CELLS; cell++) {
+			if (base[cell] == Integer.MIN_VALUE || !loaded(cell)) {
+				continue;
+			}
+			int x0 = minX(cell), z0 = minZ(cell), lo = Math.max(world.getBottomY() + 1, base[cell] - 24), hi = hi(cell) + 10;
+			boolean east = cell % ChunkRolls.W == ChunkRolls.W - 1, south = cell / ChunkRolls.W == ChunkRolls.H - 1;
+			for (int i = 0; i < 16; i++) {
+				for (int y = hi; y >= lo; y--) {
+					queue.add(new Op(new BlockPos(x0, y, z0 + i), AIR));
+					queue.add(new Op(new BlockPos(x0 + i, y, z0), AIR));
+					if (east) {
+						queue.add(new Op(new BlockPos(x0 + 15, y, z0 + i), AIR));
+					}
+					if (south) {
+						queue.add(new Op(new BlockPos(x0 + i, y, z0 + 15), AIR));
+					}
+				}
+			}
+			// A glitch pillar out of this tile's corner, colour by colour around the grid.
+			Vec3d corner = new Vec3d(x0, base[cell] + 1, z0);
+			int col = net.minecraft.util.math.MathHelper.hsvToRgb(cell / (float) ChunkRolls.CELLS, 0.7F, 1.0F);
+			int delay = cell % ChunkRolls.W * 2 + cell / ChunkRolls.W * 3;
+			com.armageddon.detonation.DetonationManager.schedule(world, delay, () -> {
+				Vfx.pillar(world, corner, 3.0F, col, true, 60);
+				Kit.boom(world, corner, 4.0F, col, owner(), false);
+			});
+		}
 	}
 
 	// --- grid ------------------------------------------------------------------------

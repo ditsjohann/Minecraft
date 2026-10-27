@@ -677,8 +677,55 @@ public final class StrongBombEvents {
 			if (t == Termite.BUILD_END + 10) {
 				guards(g);
 			}
+			collapse(g, t);
 			drain();
-			return t >= Termite.END;
+			return t >= Termite.END && (cave == null || cave.isDone()) || t >= Termite.END + 900;
+		}
+
+		private com.armageddon.destruction.world.TerrainJob cave;
+
+		/**
+		 * The end of the domain: the colony has hollowed out everything under the town, and once the swarm is gone
+		 * it gives way. The ground groans and splits in rings, the mound drops out of sight, and the whole heart of
+		 * the domain caves in to a deep muddy pit.
+		 */
+		private void collapse(Vec3d g, int t) {
+			if (t >= Termite.COLLAPSE && t < Termite.CAVE) {
+				int k = t - Termite.COLLAPSE;
+				if (k % 12 == 0) {
+					Vfx.shake(world, g, 100000, 0.5F + k * 0.03F);
+					Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F);
+					Kit.sound(world, g, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 64.0F, 0.4F);
+				}
+				if (k % 20 == 0 && Destruction.enabled(world)) {
+					Kit.ringCrack(world, g, 18 + k * 0.9, 6, null, 0.5F);
+					Vfx.ring(world, g.add(0, 0.5, 0), (float) (18 + k * 0.9), 2.0F, 0x7A5A38, true, 30);
+				}
+			}
+			if (t == Termite.CAVE) {
+				CityDestructionEvents.frames(world, g, 0, 2);
+				Kit.boom(world, g.add(0, 1, 0), 10.0F, 0x6A4A2A, owner(), false);
+				Vfx.ring(world, g.add(0, 0.5, 0), (float) Termite.RADIUS * 1.6F, 5.0F, 0x8A6A44, true, 70);
+				Vfx.shake(world, g, 100000, 2.4F);
+				Vfx.fov(world, g, 14.0F, 30);
+				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.3F);
+				Kit.sound(world, g, SoundEvents.BLOCK_MUD_BREAK, 64.0F, 0.3F);
+				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.2F);
+				if (Destruction.enabled(world)) {
+					cave = com.armageddon.event.Climax.sinkhole(world, g, Destruction.radius(world, (float) (Termite.RADIUS * 0.72)), MathHelper.floor(g.y) - 1);
+				}
+			}
+			if (cave != null && !cave.isDone()) {
+				int k = t - Termite.CAVE;
+				cave.limit = 4 + k * 1.8;
+				cave.step(3500);
+				if (k % 6 == 0) {
+					com.armageddon.event.Climax.groundWave(world, g, cave.limit + 4, 3, 14, 0.35);
+				}
+				if (k % 10 == 0) {
+					Kit.sound(world, g, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 48.0F, 0.5F);
+				}
+			}
 		}
 
 		/** The swarm strips a column: everything alive goes, the ground turns to bare, chewed dirt. */

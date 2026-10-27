@@ -128,7 +128,7 @@ public final class NewBombShapes {
 
 	public static final class Termite {
 		/** The swarm emerges, eats outwards, turns home and builds. */
-		public static final int EMERGE = 30, EAT_END = 330, BUILD = 340, BUILD_END = 700, FLIGHT = 720, FLIGHT_END = 1020, END = 1080;
+		public static final int EMERGE = 30, EAT_END = 330, BUILD = 340, BUILD_END = 700, FLIGHT = 720, FLIGHT_END = 1020, COLLAPSE = FLIGHT_END + 20, CAVE = COLLAPSE + 60, END = CAVE + 150;
 		public static final double RADIUS = 90, FLIGHT_R = 175, HILL_R = 24, HILL_H = 72;
 		public static final int SPIRES = 6;
 

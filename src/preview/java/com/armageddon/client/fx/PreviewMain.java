@@ -93,7 +93,7 @@ public final class PreviewMain {
 			case "sapling" -> Cinematics.create(Cinematics.ETERNAL_SAPLING, a, h, 900);
 			case "chunks" -> Cinematics.create(Cinematics.SIXTEEN_CHUNKS, a, h, 700);
 			case "stage" -> new MainStageFx(payload(FxType.STAGE_SET, a, h, 0, 0, 0, 0, 0, 1400));
-			case "termites" -> NewFx.create(payload(FxType.NEW_FX, a, a, 90, 0x6A4020, 4, 0, 0, 1080));
+			case "termites" -> NewFx.create(payload(FxType.NEW_FX, a, a, 90, 0x6A4020, 4, 0, 0, com.armageddon.util.NewBombShapes.Termite.END));
 			case "sun" -> NewFx.create(payload(FxType.NEW_FX, a, h, 64, 0xFFE0A0, 5, 0, 0, 1500));
 			case "ice" -> NewFx.create(payload(FxType.NEW_FX, a, a, 24, 0x60C0FF, 3, 0, 0, 520));
 			case "void" -> NewFx.create(payload(FxType.NEW_FX, a.add(0, 22, 0), a, 46, 0x9040FF, 2, 15, 0, 620));

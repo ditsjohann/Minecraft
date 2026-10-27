@@ -35,6 +35,9 @@ import java.util.Map;
  */
 public class EternalSaplingEvent extends WorldEvent {
 	private static final int BUDGET = 2500;
+	/** The finished tree blooms and sows the land; nature takes the city back from the trunk outward. */
+	private static final int BLOOM = EternalTree.WORLD_END + 30, SOWING = 210;
+	private com.armageddon.destruction.world.TerrainJob overgrowth;
 
 	private record Put(BlockPos pos, BlockState state, boolean force) {
 	}
@@ -118,12 +121,14 @@ public class EternalSaplingEvent extends WorldEvent {
 		for (int i = 0; i < EternalTree.ROOTS; i++) {
 			root(i, t);
 		}
+		bloom(t);
 		while (greenHead < greens.size() && budget > 0) {
 			place(greens.get(greenHead++));
 			budget--;
 		}
-		boolean built = head >= queue.size() && slams >= EternalTree.ROOTS && greenHead >= greens.size();
-		return (t > EternalTree.LIFE && built) || t > EternalTree.LIFE + 200;
+		boolean built = head >= queue.size() && slams >= EternalTree.ROOTS && greenHead >= greens.size()
+				&& (overgrowth == null || overgrowth.isDone()) && t > BLOOM + SOWING;
+		return (t > EternalTree.LIFE && built) || t > EternalTree.LIFE + 600;
 	}
 
 	@Override
@@ -608,6 +613,58 @@ public class EternalSaplingEvent extends WorldEvent {
 					greens.add(new Put(up, ground.isOf(Blocks.MOSS_BLOCK) && u < 0.15 ? Blocks.MOSS_CARPET.getDefaultState()
 							: plants[(int) (u * 1000) % plants.length], false));
 				}
+			}
+		}
+	}
+
+	/**
+	 * The climax: the crown flowers all at once in a pulse of light, glowing seeds rain off it across the whole
+	 * region and each one bursts into a patch of forest where it lands, while the overgrowth rolls out from the
+	 * trunk: moss over the stone, vines up the walls, the glass gone, trees pushing up between the houses.
+	 */
+	private void bloom(int t) {
+		if (t < BLOOM) {
+			return;
+		}
+		double h = EternalTree.height(s);
+		Vec3d crown = baseV.add(0, h * 0.85, 0);
+		double reach = Destruction.radius(world, (float) (190 * Math.max(0.6, s)));
+		if (t == BLOOM) {
+			Vfx.flash(world, crown, 0.7F, 100000, 0xD0FFB0);
+			Vfx.light(world, crown, 1.4F, 0xC0FF90);
+			Vfx.ring(world, baseV.add(0, 0.5, 0), (float) reach, 4.0F, 0x90FF70, true, 80);
+			Vfx.skyTint(world, baseV, 100000, 0x3A8A4A, 0.55F);
+			Vfx.shake(world, baseV, 100000, 1.2F);
+			Kit.sound(world, crown, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.5F);
+			Kit.sound(world, crown, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 64.0F, 0.6F);
+			Kit.sound(world, baseV, SoundEvents.BLOCK_AZALEA_LEAVES_PLACE, 64.0F, 0.4F);
+			if (Destruction.enabled(world)) {
+				overgrowth = com.armageddon.event.Climax.overgrow(world, baseV, reach);
+			}
+		}
+		int k = t - BLOOM;
+		if (k < SOWING && k % 4 == 0) {
+			double a = world.random.nextDouble() * MathHelper.TAU;
+			Vec3d from = crown.add(Math.cos(a) * h * 0.45, (world.random.nextDouble() - 0.5) * h * 0.2, Math.sin(a) * h * 0.45);
+			Vec3d hit = com.armageddon.event.Climax.around(world, baseV, 24, reach * 0.95);
+			Vfx.streak(world, from, hit, 1.4F, 0xC8FF90, 16);
+			com.armageddon.detonation.DetonationManager.schedule(world, 16, () -> {
+				Vfx.ring(world, hit.add(0, 0.4, 0), 12.0F, 1.2F, 0x90FF70, false, 26);
+				Vfx.light(world, hit.add(0, 2, 0), 0.4F, 0xA0FF80);
+				Kit.sound(world, hit, SoundEvents.BLOCK_AZALEA_LEAVES_PLACE, 16.0F, 0.6F);
+				Kit.sound(world, hit, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 16.0F, 0.9F);
+				world.spawnParticles(ParticleTypes.HAPPY_VILLAGER, hit.x, hit.y + 1, hit.z, 30, 3, 1, 3, 0.05);
+				if (Destruction.enabled(world)) {
+					forest(hit, 6 + world.random.nextInt(6), 700 + world.random.nextInt(1000));
+				}
+			});
+		}
+		if (overgrowth != null && !overgrowth.isDone()) {
+			overgrowth.limit = 12 + k * 1.2;
+			overgrowth.step(1800);
+			if (k % 12 == 0 && overgrowth.limit < reach) {
+				Vfx.ring(world, baseV.add(0, 0.4, 0), (float) overgrowth.limit, 2.0F, 0x70D060, true, 24);
+				Kit.sound(world, baseV, SoundEvents.BLOCK_ROOTED_DIRT_PLACE, 48.0F, 0.5F);
 			}
 		}
 	}
