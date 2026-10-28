@@ -884,9 +884,9 @@ public final class Cinematics {
 				Vec3d dir = flat.multiply(Math.cos(ang)).add(new Vec3d(-flat.z, 0, flat.x).multiply(Math.sin(ang)));
 				Vec3d p = H.add(dir.multiply(42.5)).add(0, 8 + hd.y * 10, 0);
 				if (prevV != null) {
-					float edge = 1.0F - Math.abs(k) / 8.0F;
-					FxDraw.ribbon(glow, m, prevV, p, Vec3d.ZERO, slitW, visor, (0.55F + 0.4F * lock) * env * edge, (0.55F + 0.4F * lock) * env * edge);
-					FxDraw.ribbon(glow, m, prevV, p, Vec3d.ZERO, slitW * 3.5, 0x6A88FF, 0.12F * env * edge, 0.12F * env * edge);
+					float slitFade = 1.0F - Math.abs(k) / 8.0F;
+					FxDraw.ribbon(glow, m, prevV, p, Vec3d.ZERO, slitW, visor, (0.55F + 0.4F * lock) * env * slitFade, (0.55F + 0.4F * lock) * env * slitFade);
+					FxDraw.ribbon(glow, m, prevV, p, Vec3d.ZERO, slitW * 3.5, 0x6A88FF, 0.12F * env * slitFade, 0.12F * env * slitFade);
 				}
 				prevV = p;
 			}

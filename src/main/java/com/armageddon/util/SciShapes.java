@@ -43,29 +43,24 @@ public final class SciShapes {
 		}
 	}
 
-	// ====================================================================== PHASE SCRUBBER
+	// ====================================================================== RESONANCE CASCADE
 
-	/** A hex force-field dome drops; a scan plane descends through it erasing everything; the floor is printed. */
-	public static final class Phase {
-		public static final int DOME = 30, DOME_UP = 90, SCAN = 110, SCAN_END = 400, PRINT = 410, SHATTER = 440, END = 540;
-		public static final double R = 72, H = 74, BELOW = 1;
+	/** A tuning-fork emitter hums; the resonance spreads; every structure behind its front shakes apart and falls. */
+	public static final class Resonance {
+		public static final int EMIT = 20, HUM = 40, CASCADE = 160, CASCADE_END = 400, SHATTER = 410, END = 480;
+		public static final double R = 95, FORK_H = 24;
 
-		private Phase() {
+		private Resonance() {
 		}
 
-		/** Height of the scan plane above the anchor at tick {@code t}. */
-		public static double plane(double t) {
-			double u = MathHelper.clamp((t - SCAN) / (SCAN_END - SCAN), 0.0, 1.0);
-			return MathHelper.lerp(u * u * (3 - 2 * u) * 0.35 + u * 0.65, H, -BELOW);
+		/** Radius the collapse has reached at tick {@code t}. */
+		public static double front(double t) {
+			return MathHelper.clamp((t - CASCADE) / (CASCADE_END - CASCADE) * R, 0, R);
 		}
 
-		/** Radius of the dome's footprint at height {@code y} above the anchor. */
-		public static double radiusAt(double y) {
-			if (y <= 0) {
-				return R;
-			}
-			double k = Math.min(1.0, y / H);
-			return R * Math.sqrt(Math.max(0.0, 1 - k * k));
+		/** How hard everything is shaking (0..1). */
+		public static double hum(double t) {
+			return MathHelper.clamp((t - HUM) / (CASCADE - HUM), 0.0, 1.0);
 		}
 	}
 
@@ -90,62 +85,80 @@ public final class SciShapes {
 		}
 	}
 
-	// ====================================================================== EVENT HORIZON ENGINE
+	// ====================================================================== DYSON LANCE
 
-	/** The ring machine assembles, the singularity opens, the land is torn up into its disk, then it all goes in. */
-	public static final class Horizon {
-		public static final int ASSEMBLE = 30, OPEN = 150, FEED = 170, FEED_END = 520, COLLAPSE = 520, GONE = 580, END = 700, CINE = 640;
-		public static final double ALT = 70, RING_R = 34;
+	/** A swarm of orbital mirrors focuses the sun into one beam that cuts three canyons across the map, then drills. */
+	public static final class Dyson {
+		public static final int SWARM = 20, FOCUS = 170, CUT = 200, CUT_LEN = 130, CUT_GAP = 20, DRILL = 200 + 3 * 150, END = DRILL + 140, CINE = DRILL + 100;
+		public static final double L = 300, HALF_W = 6, DEPTH = 34, MIRROR_ALT = 320;
 
-		private Horizon() {
+		private Dyson() {
 		}
 
-		/** Radius the disk is being fed from at tick {@code t}. */
-		public static double feedRadius(double t) {
-			return MathHelper.clamp(16 + (t - FEED) * 0.32, 16, 130);
+		/** Start tick of cut {@code k} (0..2). */
+		public static int cutStart(int k) {
+			return CUT + k * (CUT_LEN + CUT_GAP);
 		}
 
-		/** The engine's spin: rings and disk speed up toward the collapse. */
-		public static double spin(double t) {
-			double u = MathHelper.clamp((t - OPEN) / (COLLAPSE - OPEN), 0.0, 1.0);
-			return 0.02 + 0.16 * u * u;
-		}
-	}
-
-	// ====================================================================== NANITE BLOOM
-
-	/** Grey goo: fingers of nanite matter reach out, fill in, and the whole region resolves into a silver hex plain. */
-	public static final class Nanite {
-		public static final int RELEASE = 30, GROW = 40, GROW_END = 620, FILL = 360, PLAIN = 640, PULSE = 700, END = 820, CINE = 780;
-		public static final double R = 190;
-
-		private Nanite() {
+		/** Direction of cut {@code k}: three lines through the centre, sixty degrees apart. */
+		public static Vec3d axis(int k, double yaw) {
+			double a = yaw + k * Math.PI / 3;
+			return new Vec3d(Math.cos(a), 0, Math.sin(a));
 		}
 
-		/** The fill front (behind the fingers) at tick {@code t}. */
-		public static double fill(double t) {
-			return MathHelper.clamp((t - FILL) * 0.75, 0, R);
+		/** Where along cut {@code k} the beam is at tick {@code t} (-L..L), or NaN when it is not cutting. */
+		public static double along(int k, double t) {
+			double u = (t - cutStart(k)) / CUT_LEN;
+			return u < 0 || u > 1 ? Double.NaN : -L + 2 * L * u;
 		}
 	}
 
-	// ====================================================================== INVERSION ENGINE
+	// ====================================================================== GRAVITY KILLSWITCH
 
-	/** A sphere of the world is flipped upside down into the sky, hangs there, and shatters back onto the land. */
-	public static final class Inversion {
-		public static final int CHARGE = 20, LIFT = 90, LIFT_END = 260, HANG_END = 470, SHATTER = 470, END = 620, CINE = 560;
-		public static final double R = 34, HEIGHT = 100;
+	/** Gravity switches off: the town floats up and tumbles; then it comes back many times over and slams it all down. */
+	public static final class Gravity {
+		public static final int HUM = 20, OFF = 90, RISE_END = 330, SLAM = 340, END = 460, CINE = 420;
+		public static final double R = 130, CEIL = 70;
 
-		private Inversion() {
+		private Gravity() {
 		}
 
-		/** How much of the sphere has gone up (0..1). */
-		public static double lifted(double t) {
-			return MathHelper.clamp((t - LIFT) / (double) (LIFT_END - LIFT), 0.0, 1.0);
+		/** How far things have floated up (0..1) at tick {@code t}. */
+		public static double rise(double t) {
+			double u = MathHelper.clamp((t - OFF) / (RISE_END - OFF), 0.0, 1.0);
+			return u * (2 - u);
 		}
 
-		/** Where a block at height {@code y} (relative to the anchor) ends up: mirrored about the half-way plane. */
-		public static int mirror(int y) {
-			return (int) HEIGHT - y;
+		/** The fall after the slam (0..1): fast, accelerating. */
+		public static double fall(double t) {
+			double u = MathHelper.clamp((t - SLAM) / 14.0, 0.0, 1.0);
+			return u * u;
+		}
+	}
+
+	// ====================================================================== SEISMIC TSUNAMI
+
+	/** A piston hammer drives a wave of rock out through the land, scraping it down to bare stone. */
+	public static final class Wave {
+		public static final int HAMMER = 20, SLAMS = 4, WAVE = 140, END = 560, CINE = 520;
+		public static final double R = 320, CREST = 22, SCRAPE = 6;
+
+		private Wave() {
+		}
+
+		/** Tick of hammer blow {@code i}. */
+		public static int slam(int i) {
+			return HAMMER + 20 + i * 26;
+		}
+
+		/** Radius of the crest at tick {@code t}. */
+		public static double front(double t) {
+			return MathHelper.clamp((t - WAVE) * 0.85 + 8, 0, R);
+		}
+
+		/** Height of the crest at radius {@code r}: it builds up, then dies away near the end of its run. */
+		public static double height(double r) {
+			return CREST * MathHelper.clamp(r / 40.0, 0.2, 1.0) * MathHelper.clamp((R - r) / 50.0, 0.0, 1.0);
 		}
 	}
 }
