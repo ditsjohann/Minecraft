@@ -16,6 +16,9 @@ import java.util.List;
 public final class DetonationManager {
 	private static final List<WorldJob> JOBS = new ArrayList<>();
 	private static final List<Delayed> DELAYED = new ArrayList<>();
+	/** Jobs added while the job list is being stepped (a job that starts another job); merged in after the loop. */
+	private static final List<WorldJob> PENDING = new ArrayList<>();
+	private static boolean stepping;
 
 	private record Delayed(ServerWorld world, long at, Runnable action) {
 	}
@@ -25,11 +28,13 @@ public final class DetonationManager {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			JOBS.clear();
 			DELAYED.clear();
+			PENDING.clear();
 		});
 	}
 
 	public static void add(WorldJob job) {
-		JOBS.add(job);
+		// Adding straight to JOBS from inside a job's step would break the iteration and crash the server.
+		(stepping ? PENDING : JOBS).add(job);
 	}
 
 	public static void schedule(ServerWorld world, int delayTicks, Runnable action) {
@@ -42,9 +47,10 @@ public final class DetonationManager {
 
 	/** Cancels every pending crater/city job and delayed action. */
 	public static int clear() {
-		int n = JOBS.size() + DELAYED.size();
+		int n = JOBS.size() + DELAYED.size() + PENDING.size();
 		JOBS.clear();
 		DELAYED.clear();
+		PENDING.clear();
 		return n;
 	}
 
@@ -59,23 +65,43 @@ public final class DetonationManager {
 					it.remove();
 				}
 			}
-			due.forEach(d -> d.action.run());
+			for (Delayed d : due) {
+				try {
+					d.action.run();
+				} catch (RuntimeException ex) {
+					com.armageddon.Armageddon.LOGGER.error("Armageddon delayed action failed", ex);
+				}
+			}
 		}
 
 		if (JOBS.isEmpty()) {
 			return;
 		}
 		int budget = world.getGameRules().getInt(ModGameRules.CRATER_SPEED);
-		Iterator<WorldJob> it = JOBS.iterator();
-		while (it.hasNext() && budget > 0) {
-			WorldJob job = it.next();
-			if (job.world() != world) {
-				continue;
+		stepping = true;
+		try {
+			Iterator<WorldJob> it = JOBS.iterator();
+			while (it.hasNext() && budget > 0) {
+				WorldJob job = it.next();
+				if (job.world() != world) {
+					continue;
+				}
+				try {
+					budget = job.step(budget);
+				} catch (RuntimeException ex) {
+					// A broken job is dropped, never allowed to take the server down with it.
+					com.armageddon.Armageddon.LOGGER.error("Armageddon world job {} failed; dropping it", job.getClass().getSimpleName(), ex);
+					it.remove();
+					continue;
+				}
+				if (job.isDone()) {
+					it.remove();
+				}
 			}
-			budget = job.step(budget);
-			if (job.isDone()) {
-				it.remove();
-			}
+		} finally {
+			stepping = false;
+			JOBS.addAll(PENDING);
+			PENDING.clear();
 		}
 	}
 
