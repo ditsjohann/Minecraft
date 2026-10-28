@@ -168,6 +168,13 @@ public final class ModItems {
 
 	// ---------------------------------------------------------------- legendary: superweapons
 	public static final Item SOLSTICE_SUNLANCE = tier(register("solstice_sunlance", new SunlanceItem(new Item.Settings().fireproof())), Tier.LEGENDARY);
+
+	// Plasma and sci-fi: the first hand-held weapons in the cataclysm tiers.
+	public static final Item HELIX_DISRUPTOR = tier(register("helix_disruptor", new com.armageddon.item.SciWeapons.HelixDisruptor(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.CELESTIAL);
+	public static final Item GRAVITON_LANCE = tier(register("graviton_lance", new com.armageddon.item.SciWeapons.GravitonLance(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.CITY_DESTRUCTION);
+	public static final Item SUNFALL_MORTAR = tier(register("sunfall_mortar", new com.armageddon.item.SciWeapons.SunfallMortar(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.CITY_DESTRUCTION);
+	public static final Item HALO_CUTTER = tier(register("halo_cutter", new com.armageddon.item.SciWeapons.HaloCutter(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.WORLD_DESTRUCTION);
+	public static final Item OBLITERATOR = tier(register("obliterator", new com.armageddon.item.SciWeapons.Obliterator(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.WORLD_DESTRUCTION);
 	public static final Item WORLDSPLITTER_HAMMER = tier(register("worldsplitter_hammer", new WorldsplitterItem(ModMaterials.PLASMA,
 			new Item.Settings().fireproof().attributeModifiers(SwordItem.createAttributeModifiers(ModMaterials.PLASMA, 14, -3.3F)))), Tier.LEGENDARY);
 	public static final Item SOLAR_VERDICT_BEACON = tier(register("solar_verdict_beacon", new CallerItem(new Item.Settings().maxDamage(8).fireproof(),

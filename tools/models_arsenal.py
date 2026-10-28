@@ -123,10 +123,69 @@ def reality_shear_projector():
     return m, (8, 3, 16)
 
 
+def helix_disruptor():
+    # Twin barrels wound round each other, cyan and violet coils, a lens at the muzzle.
+    m = cyl_z(8, 10, -10, 16, 1.6, "gunmetal")
+    for i in range(7):
+        z = -9 + i * 3
+        a = i * 0.9
+        x, y = 8 + 2.2 * _m.cos(a), 10 + 2.2 * _m.sin(a)
+        x2, y2 = 8 - 2.2 * _m.cos(a), 10 - 2.2 * _m.sin(a)
+        m += [B(x - 0.7, y - 0.7, z, x + 0.7, y + 0.7, z + 2, "glow_cyan"), B(x2 - 0.7, y2 - 0.7, z, x2 + 0.7, y2 + 0.7, z + 2, "glow_purple")]
+    m += ring_y_frame(8, 10, -11, 3.0, "chrome", 0.6) + [B(7.2, 9.2, -12, 8.8, 10.8, -11, "glow_white")]
+    m += [B(5.5, 7, 4, 10.5, 12.5, 16, "titanium"), B(6, 12.5, 6, 10, 14, 12, "screen")]
+    m += [B(6.5, 7, 16, 9.5, 11, 23, "gunmetal"), grip(8, 8, 13)]
+    return m, (8, 4, 13)
+
+
+def graviton_lance():
+    # A long dark lance with a caged black core near the tip.
+    m = cyl_z(8, 10, -14, 18, 1.0, "obsidian")
+    m += [B(6, 8, -12, 10, 12, -8, "steel")]
+    m += ring_y_frame(8, 10, -10, 3.2, "glow_purple", 0.5) + ring_y_frame(8, 10, -7, 2.6, "glow_purple", 0.5)
+    m += [B(7, 9, -11, 9, 11, -9, "black")]
+    m += [B(5.8, 7.5, 0, 10.2, 12.5, 12, "gunmetal"), B(5.6, 9.5, 2, 5.8, 10.5, 10, "glow_purple"), B(10.2, 9.5, 2, 10.4, 10.5, 10, "glow_purple")]
+    m += [B(6.5, 7, 12, 9.5, 11, 22, "obsidian"), grip(8, 8, 11)]
+    return m, (8, 4, 11)
+
+
+def sunfall_mortar():
+    # A stubby wide mortar tube with a glowing sun-orb loaded in the muzzle.
+    m = cyl_z(8, 11, -6, 10, 3.4, "gold")
+    m += cyl_z(8, 11, -7, -5, 3.9, "gunmetal")
+    m += [B(5.6, 8.6, -8, 10.4, 13.4, -6.5, "glow_orange"), B(6.6, 9.6, -8.6, 9.4, 12.4, -8, "glow_gold")]
+    m += [B(5, 7, 4, 11, 9, 14, "gunmetal"), B(6, 6, 9, 10, 7, 16, "steel")]
+    m += [B(6.5, 7, 14, 9.5, 10.5, 20, "gunmetal"), grip(8, 7, 13)]
+    return m, (8, 3, 13)
+
+
+def halo_cutter():
+    # A targeting designator crowned with a ring: a heavy body, a ring emitter and a red lens.
+    m = [B(5.5, 7, -4, 10.5, 13, 14, "white"), B(5.3, 9.5, -2, 5.5, 10.5, 12, "glow_red"), B(10.5, 9.5, -2, 10.7, 10.5, 12, "glow_red")]
+    m += ring_y_frame(8, 10, -6, 4.4, "chrome", 0.7) + ring_y_frame(8, 10, -6, 3.4, "glow_red", 0.4)
+    m += cyl_z(8, 10, -9, -4, 1.0, "gunmetal") + [B(7.3, 9.3, -10, 8.7, 10.7, -9, "glow_white")]
+    m += [B(6, 13, 0, 10, 15, 8, "gunmetal"), B(6.5, 15, 2, 9.5, 15.5, 6, "screen_red")]
+    m += [B(6.5, 7, 14, 9.5, 11, 22, "white"), grip(8, 8, 12)]
+    return m, (8, 4, 12)
+
+
+def obliterator():
+    # A heavy beam projector: a prism core between cooling fins, magenta emitter.
+    m = [B(5, 7, -2, 11, 13.5, 16, "gunmetal")]
+    for z in (0, 3, 6, 9, 12):
+        m += [B(4, 8, z, 12, 12.5, z + 1, "steel")]
+    m += cyl_z(8, 10.2, -10, -2, 1.8, "chrome") + ring_y_frame(8, 10.2, -9, 2.6, "glow_magenta", 0.5)
+    m += [B(7.2, 9.4, -11, 8.8, 11, -10, "glow_white"), B(7, 13.5, 2, 9, 15, 12, "glow_magenta")]
+    m += [B(6.5, 7, 16, 9.5, 11, 23, "gunmetal"), grip(8, 7, 13), grip(8, 7, 3, length=4)]
+    return m, (8, 3, 13)
+
+
 GUNS = {"party_popper": party_popper, "airhorn_cannon": airhorn_cannon, "gravity_tether_gun": gravity_tether_gun,
         "antimatter_lance": antimatter_lance, "cataclysm_mortar": cataclysm_mortar, "rift_borer": rift_borer,
         "resonance_cannon": resonance_cannon, "solstice_sunlance": solstice_sunlance, "midas_cascade": midas_cascade,
-        "judgment_engine": judgment_engine, "reality_shear_projector": reality_shear_projector}
+        "judgment_engine": judgment_engine, "reality_shear_projector": reality_shear_projector,
+        "helix_disruptor": helix_disruptor, "graviton_lance": graviton_lance, "sunfall_mortar": sunfall_mortar,
+        "halo_cutter": halo_cutter, "obliterator": obliterator}
 
 
 # =========================================================================== melee (+Y)

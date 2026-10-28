@@ -28,6 +28,9 @@ NAMES = {
     # mythic
     "riftfall_engine": "Riftfall Engine", "apocalypse_spindle": "Apocalypse Spindle", "devourer_core": "Devourer Core",
     "extinction_choir": "Extinction Choir",
+    # plasma and sci-fi (cataclysm tiers)
+    "helix_disruptor": "Helix Disruptor", "graviton_lance": "Graviton Lance", "sunfall_mortar": "Sunfall Mortar",
+    "halo_cutter": "Halo Cutter", "obliterator": "Obliterator",
 }
 
 BLOCKS = {
@@ -74,6 +77,11 @@ DESC = {
     "resonance_cannon": ["Shatters glass and ice, sets off explosives at range.", "Ammo: amethyst shards."],
     "mirror_dimension_bomb": ["Half the area phases into the mirror world for a minute. Creatures swap sides."],
     "solstice_sunlance": ["Three seconds of gathered sunlight, then a molten line through the world."],
+    "helix_disruptor": ["CELESTIAL. Charge, release: two plasma bolts corkscrew around each other,", "boring a spiral tunnel through anything for 140 blocks, then implode."],
+    "graviton_lance": ["CITY DESTRUCTION. Plants a gravity anchor where you aim.", "Everything around it is dragged in and crushed into a crying-obsidian core."],
+    "sunfall_mortar": ["CITY DESTRUCTION. Lobs a small plasma sun in a high arc.", "Where it lands, the ground melts into a pool of lava."],
+    "halo_cutter": ["WORLD DESTRUCTION. Charge to paint a target: an orbital beam draws a ring canyon round it,", "then the whole disc inside drops out of the world."],
+    "obliterator": ["WORLD DESTRUCTION. Hold: a beam that takes apart everything it touches and keeps going.", "Ammo: antimatter cells."],
     "worldsplitter_hammer": ["Right-click the ground: eight fissures, lifted earth, a second crushing wave."],
     "solar_verdict_beacon": ["A public five-second countdown. Then nine beams of judgement."],
     "titanfall_warhead": ["Calls a heavy warhead from orbit along your line of sight.", "Delayed secondary detonation."],
@@ -362,6 +370,12 @@ def recipes(shaped, shapeless):
     shaped("titanfall_warhead", ["NNN", "CFC", "PUP"], {"N": "mini_nuke", "C": C, "F": F, "P": P, "U": "minecraft:netherite_ingot"})
     shaped("midas_cascade", ["GGG", "PFP", "T  "], {"G": "minecraft:gold_block", "P": P, "F": F, "T": Ti})
     shaped("reality_shear_projector", ["RGR", "CSC", "PTP"], {"R": "rift_shard", "G": "minecraft:glass", "C": C, "S": "singularity_core", "P": P, "T": Ti})
+    # Plasma and sci-fi
+    shaped("helix_disruptor", ["PPC", "RFR", "T  "], {"P": "plasma_cell", "C": "celestial_core", "R": "rift_shard", "F": F, "T": Ti})
+    shaped("graviton_lance", ["AAS", "CFC", "T  "], {"A": "antimatter_cell", "S": "singularity_core", "C": "celestial_core", "F": F, "T": Ti})
+    shaped("sunfall_mortar", ["SSS", "CFC", "OOO"], {"S": "solar_cell", "C": "celestial_core", "F": F, "O": "minecraft:obsidian"})
+    shaped("halo_cutter", ["NAN", "CFC", "SAS"], {"N": "minecraft:nether_star", "A": "antimatter_cell", "C": "celestial_core", "F": F, "S": "singularity_core"})
+    shaped("obliterator", ["AAA", "NFC", "S  "], {"A": "antimatter_cell", "N": "minecraft:nether_star", "F": F, "C": "celestial_core", "S": "singularity_core"})
     shaped("judgment_engine", ["SSG", "MFC", " PP"], {"S": "solar_cell", "G": "minecraft:gold_block", "M": "minigun", "F": F, "C": C, "P": P})
     shaped("helios_crown_bomb", ["SGS", "GFG", "SGS"], {"S": "solar_cell", "G": "minecraft:gold_block", "F": F}, category="redstone")
     shaped("continental_pulse", ["TGT", "GBG", "TGT"], {"T": "tectonic_bomb", "G": "minecraft:gold_block", "B": "atomic_bomb"}, category="redstone")

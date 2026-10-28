@@ -82,6 +82,14 @@ hill with spires, vents and tunnel mouths. THE SUN DISAPPEARS (World Destruction
 out for the whole world: endless night, a starless sky, fog, frost on the lens, frozen water, dying plants, and
 freezing for anyone not standing by a fire; then the sun's corpse falls, and the light comes back in the blast.
 
+**Plasma weapons (Celestial, City and World Destruction tiers)** — the first hand-held guns in the cataclysm tiers.
+HELIX DISRUPTOR (Celestial): charge and release, two plasma bolts corkscrew around each other and bore a spiral tunnel
+140 blocks long, then implode. GRAVITON LANCE (City Destruction): plants a gravity anchor that drags everything around
+it inward and crushes it into a crying-obsidian core. SUNFALL MORTAR (City Destruction): lobs a small plasma sun on a
+high arc; where it lands the ground melts into a lava pool. HALO CUTTER (World Destruction): charge to paint a target,
+an orbital beam draws a thirty-block-deep ring canyon round it, then the disc inside drops out. OBLITERATOR (World
+Destruction): hold to fire a beam that takes apart everything it touches and keeps going.
+
 **Plasma and sci-fi** — none of these is an explosion. ION SCYTHE (Celestial): an orbital ion beam carves a spiral
 trench of molten glass outward, charges it, then the whole spiral ignites as a curtain of light that disintegrates
 the land. RESONANCE CASCADE (City Destruction): a tuning fork hums until it finds the town's frequency, then every

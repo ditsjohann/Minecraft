@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "AAA",
+    "NFC",
+    "S  "
+  ],
+  "key": {
+    "A": {
+      "item": "armageddon:antimatter_cell"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "S": {
+      "item": "armageddon:singularity_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:obliterator",
+    "count": 1
+  }
+}

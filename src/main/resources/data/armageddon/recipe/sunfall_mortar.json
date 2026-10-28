@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "SSS",
+    "CFC",
+    "OOO"
+  ],
+  "key": {
+    "S": {
+      "item": "armageddon:solar_cell"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "result": {
+    "id": "armageddon:sunfall_mortar",
+    "count": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "AAS",
+    "CFC",
+    "T  "
+  ],
+  "key": {
+    "A": {
+      "item": "armageddon:antimatter_cell"
+    },
+    "S": {
+      "item": "armageddon:singularity_core"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:graviton_lance",
+    "count": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PPC",
+    "RFR",
+    "T  "
+  ],
+  "key": {
+    "P": {
+      "item": "armageddon:plasma_cell"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "R": {
+      "item": "armageddon:rift_shard"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:helix_disruptor",
+    "count": 1
+  }
+}

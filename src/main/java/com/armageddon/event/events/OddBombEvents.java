@@ -354,7 +354,7 @@ public final class OddBombEvents {
 				fb.setNoGravity(true);
 				fb.setDestroyedOnLanding();
 				orbit.add(fb);
-				world.spawnParticles(ParticleTypes.ELECTRIC_SPARK, x + 0.5, y + 0.5, z + 0.5, 8, 0.4, 0.4, 0.4, 0.2);
+				world.spawnParticles(ParticleTypes.ELECTRIC_SPARK, x + 0.5, p.getY() + 0.5, z + 0.5, 8, 0.4, 0.4, 0.4, 0.2);
 				if (orbit.size() >= 260) {
 					return;
 				}

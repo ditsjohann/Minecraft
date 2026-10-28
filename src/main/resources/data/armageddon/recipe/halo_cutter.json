@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "NAN",
+    "CFC",
+    "SAS"
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "A": {
+      "item": "armageddon:antimatter_cell"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "S": {
+      "item": "armageddon:singularity_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:halo_cutter",
+    "count": 1
+  }
+}

@@ -103,6 +103,10 @@ public final class PreviewMain {
 			case "dyson" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(0.4, 0, 0), 300, 0xFFE0A0, 43, 0, 0, com.armageddon.util.SciShapes.Dyson.END));
 			case "gravity" -> NewFx.create(payload(FxType.NEW_FX, a, a, 130, 0xB0A0FF, 44, 0, 0, com.armageddon.util.SciShapes.Gravity.END));
 			case "wave" -> NewFx.create(payload(FxType.NEW_FX, a, a, 320, 0x8A7A60, 45, 0, 0, com.armageddon.util.SciShapes.Wave.END));
+			case "helix" -> NewFx.create(payload(FxType.NEW_FX, a.add(0, 8, 0), new Vec3d(1, -0.05, 0.2), 140, 0x80F0FF, 46, 2.6F, 0, 100));
+			case "graviton" -> NewFx.create(payload(FxType.NEW_FX, a.add(0, 3, 0), a, 18, 0xB080FF, 47, 0, 0, 110));
+			case "sunfall" -> NewFx.create(payload(FxType.NEW_FX, a.add(-80, 4, 0), a, 18, 0xFFB040, 48, 40, 0, 130));
+			case "halo" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(0.3, 0, 0), 34, 0xFF5030, 49, 0, 0, 260));
 			case "twister" -> new MegaEffects.Twister(a, h, 26, 0.35, 600);
 			case "ufo" -> new MegaEffects.Ufo(a.add(-200, 70, 0), a.add(200, 70, 0), 60, 600);
 			case "moon" -> new ArsenalEffects.Moon(a, 40, 500, 0xC8C8D0, 400);

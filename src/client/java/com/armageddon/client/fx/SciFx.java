@@ -35,6 +35,10 @@ final class SciFx {
 			case 43 -> new DysonFx(a, b.x, p.duration());
 			case 44 -> new GravityFx(a, p.duration());
 			case 45 -> new WaveFx(a, p.duration());
+			case 46 -> new HelixFx(a, b, p.scale(), p.p1(), p.duration());
+			case 47 -> new GravitonFx(a, p.duration());
+			case 48 -> new SunfallFx(a, b, (int) p.p1(), p.duration());
+			case 49 -> new HaloFx(a, b.x, p.duration());
 			default -> null;
 		};
 	}
@@ -641,6 +645,210 @@ final class SciFx {
 			}
 			FxKit.dustRing(m, cb, c, Math.max(2, front - 6), 8, 0x9A8E7A, 0x3A3428, 0.45F, 801, spray);
 			FxKit.flush(spray, consumers, m, cb);
+		}
+	}
+
+	// ====================================================================== WEAPONS
+
+	/** Helix Disruptor: two bolts corkscrewing down the line with fading spiral trails behind them. */
+	static final class HelixFx extends FxEffect {
+		private final Vec3d start, dir, u, v;
+		private final double len, speed;
+
+		HelixFx(Vec3d start, Vec3d dir, double len, double speed, int life) {
+			super(Math.max(20, life));
+			this.start = start;
+			this.dir = dir.normalize();
+			this.len = len;
+			this.speed = speed;
+			Vec3d up = Math.abs(this.dir.y) > 0.95 ? new Vec3d(1, 0, 0) : new Vec3d(0, 1, 0);
+			this.u = this.dir.crossProduct(up).normalize();
+			this.v = u.crossProduct(this.dir).normalize();
+		}
+
+		private Vec3d at(double s, int k) {
+			double th = s * 0.32 + k * Math.PI;
+			return start.add(dir.multiply(s)).add(u.multiply(Math.cos(th) * 2.4)).add(v.multiply(Math.sin(th) * 2.4));
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			double head = Math.min(len, a * speed);
+			float gone = head >= len ? fadeOut(a, (float) (len / speed), 30) : 1.0F;
+			for (int k = 0; k < 2; k++) {
+				Vec3d prev = null;
+				for (double s = Math.max(0, head - 40); s <= head; s += 0.6) {
+					Vec3d p = at(s, k).subtract(cam);
+					if (prev != null) {
+						float f = (float) (1 - (head - s) / 40.0) * gone;
+						FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 0.5 + f * 0.4, k == 0 ? 0x90F0FF : 0xC0A0FF, 0.8F * f, 0.8F * f);
+					}
+					prev = p;
+				}
+				if (head < len) {
+					Vec3d h = at(head, k).subtract(cam);
+					FxKit.halo(consumers, m, cb, h, 2.2, k == 0 ? 0x80E8FF : 0xB090FF, 0.7F);
+					Solids.dot(glow, m, h, cb, 0.6, 0xFFFFFF, 0.9F);
+				}
+			}
+			if (head < len) {
+				FxDraw.beam(glow, m, start.add(dir.multiply(Math.max(0, head - 30))).subtract(cam), start.add(dir.multiply(head)).subtract(cam), Vec3d.ZERO, 0.3, 0xE0F8FF, 0.4F);
+			}
+		}
+	}
+
+	/** Graviton anchor: a black core in turning rings, the light bending into it in streaks. */
+	static final class GravitonFx extends FxEffect {
+		private final Vec3d c;
+
+		GravitonFx(Vec3d c, int life) {
+			super(Math.max(20, life));
+			this.c = c;
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			Vec3d p = c.subtract(cam);
+			float on = fadeIn(a, 0, 8) * fadeOut(a, 92, 12);
+			double r = 1.2 + 1.8 * MathHelper.clamp(a / 90.0, 0.0, 1.0);
+			Solids.sphere(solid, m, p, r, 0x050208, 10, 14, false);
+			FxDraw.ring(glow, m, p, cb[0], cb[1], r * 1.05, r * 1.4, 0xD0B0FF, 0.0F, 0.8F * on, 0.0F, 40);
+			FxDraw.ring(shade, m, p, cb[0], cb[1], r * 1.4, r * 4.0, 0x000000, 0.45F * on, 0.2F * on, 0.0F, 40);
+			double sp = a * 0.15;
+			ring(solid, glow, m, p, new Vec3d(Math.cos(sp), 0, Math.sin(sp)), new Vec3d(0, 1, 0), r * 3, 0.25, 18, 0x3A3448, 0xB090FF, 0.5F * on, sp);
+			ring(solid, glow, m, p, new Vec3d(1, 0, 0), new Vec3d(0, Math.cos(-sp * 0.7), Math.sin(-sp * 0.7)), r * 3.8, 0.25, 22, 0x3A3448, 0x9070FF, 0.5F * on, -sp);
+			for (int i = 0; i < 30; i++) {
+				double life = (a * 0.05 + SciShapes.hash(i, 1)) % 1.0;
+				Vec3d d = Cinematics.sphereDir(i, 91);
+				double far = 18 * (1 - life);
+				Vec3d q0 = p.add(d.multiply(far + 2)), q1 = p.add(d.multiply(far));
+				FxDraw.ribbon(glow, m, q0, q1, Vec3d.ZERO, 0.2, 0xC8B0FF, 0.0F, 0.6F * on * (float) life);
+			}
+		}
+	}
+
+	/** Sunfall Mortar: a little sun on a high arc, trailing fire, and the heat of the pool where it lands. */
+	static final class SunfallFx extends FxEffect {
+		private final Vec3d from, to;
+		private final int flight;
+
+		SunfallFx(Vec3d from, Vec3d to, int flight, int life) {
+			super(Math.max(20, life));
+			this.from = from;
+			this.to = to;
+			this.flight = Math.max(10, flight);
+		}
+
+		private Vec3d arc(double t) {
+			double u = MathHelper.clamp(t / flight, 0.0, 1.0);
+			double h = Math.max(20, from.distanceTo(to) * 0.45);
+			return from.lerp(to, u).add(0, Math.sin(u * Math.PI) * h, 0);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			if (a < flight) {
+				Vec3d p = arc(a).subtract(cam);
+				FxDraw.sphere(glow, m, p, 1.4, Vec3d.ZERO, 0xFFF0C0, 0.9F, 0.4F, 10, 14);
+				FxKit.halo(consumers, m, cb, p, 4.5, 0xFFA040, 0.6F);
+				FxKit.fire(consumers, m, cb, p, 1.8, 0xFFD080, (a * 0.1F) % 1.0F, 0.8F, a, 901);
+				Vec3d prev = null;
+				for (double t = Math.max(0, a - 12); t <= a; t += 1) {
+					Vec3d q = arc(t).subtract(cam);
+					if (prev != null) {
+						float f = (float) (1 - (a - t) / 12.0);
+						FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 0.9 * f, 0xFF8030, 0.6F * f, 0.6F * f);
+					}
+					prev = q;
+				}
+			} else {
+				float e = a - flight;
+				Vec3d g = to.subtract(cam);
+				float k = fadeOut(e, 20, 70);
+				FxKit.groundShock(consumers, m, g.add(0, 0.4, 0), 4 + e * 1.4, 0xFFB050, fadeOut(e, 0, 20));
+				FxKit.halo(consumers, m, cb, g.add(0, 1, 0), 18, 0xFF6020, 0.35F * k);
+				java.util.List<Effects.Puff> smoke = FxKit.puffs();
+				FxKit.column(g, 10 + Math.min(e, 60) * 0.5, 4 + Math.min(e, 60) * 0.1, a, 0x6A5E56, 0x1C1816, 0.5F * k, 902, smoke);
+				FxKit.flush(smoke, consumers, m, cb);
+			}
+		}
+	}
+
+	/** Halo Cutter: the target circle, the orbital beam drawing the ring, and the glowing cut it leaves. */
+	static final class HaloFx extends FxEffect {
+		private final Vec3d g;
+		private final double yaw;
+		private static final int CUT = 50, CUT_LEN = 120, DROP = 185;
+		private static final double R = 34;
+
+		HaloFx(Vec3d g, double yaw, int life) {
+			super(Math.max(20, life));
+			this.g = g;
+			this.yaw = yaw;
+		}
+
+		private Vec3d onRing(double ang) {
+			double x = g.x + Math.cos(ang) * R, z = g.z + Math.sin(ang) * R;
+			return new Vec3d(x, ground(x, z, g.y) + 0.3, z);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw0, float pitch) {
+			float a = age + td;
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw0, pitch);
+			float mark = fadeIn(a, 0, 10) * fadeOut(a, CUT + CUT_LEN, 20);
+			// The painted target: a red ring with ticks crawling round it.
+			Vec3d prev = null;
+			for (int i = 0; i <= 96; i++) {
+				Vec3d p = onRing(i * MathHelper.TAU / 96).subtract(cam);
+				if (prev != null) {
+					FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 0.35, 0xFF4030, 0.7F * mark, 0.7F * mark);
+				}
+				prev = p;
+			}
+			for (int i = 0; i < 12; i++) {
+				double ang = i * MathHelper.TAU / 12 + a * 0.02;
+				Vec3d p0 = onRing(ang).subtract(cam);
+				Vec3d p1 = g.add(Math.cos(ang) * (R - 4), 0, Math.sin(ang) * (R - 4));
+				p1 = new Vec3d(p1.x, ground(p1.x, p1.z, g.y) + 0.3, p1.z).subtract(cam);
+				FxDraw.ribbon(glow, m, p0, p1, Vec3d.ZERO, 0.3, 0xFF6040, 0.6F * mark, 0.0F);
+			}
+			if (a < CUT || a > DROP + 40) {
+				return;
+			}
+			double u = MathHelper.clamp((a - CUT) / CUT_LEN, 0.0, 1.0);
+			double ang = yaw + u * MathHelper.TAU;
+			// The cut so far, cooling from white to deep red behind the beam.
+			prev = null;
+			for (double s = 0; s <= u * MathHelper.TAU; s += 0.04) {
+				Vec3d p = onRing(yaw + s).subtract(cam);
+				if (prev != null) {
+					float cool = (float) MathHelper.clamp((u * MathHelper.TAU - s) / 2.5, 0.0, 1.0);
+					float al = (0.85F - 0.6F * cool) * fadeOut(a, DROP, 40);
+					FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 2.4 - cool, cool < 0.3F ? 0xFFF0D0 : 0xFF6020, al, al);
+				}
+				prev = p;
+			}
+			if (u < 1) {
+				Vec3d hit = onRing(ang).subtract(cam);
+				Vec3d sky = g.add(0, 400, 0).subtract(cam);
+				FxDraw.beam(glow, m, sky, hit, Vec3d.ZERO, 1.4, 0xFFFFFF, 0.85F);
+				FxDraw.beam(glow, m, sky, hit, Vec3d.ZERO, 4.5, 0xFF7040, 0.25F);
+				FxKit.flare(consumers, m, cb, hit.add(0, 1.5, 0), 14, 0xFFD0A0, 0.6F, a * 0.03);
+				FxKit.sparks(consumers, m, hit.add(0, 1, 0), 16, 40, 0xFFA040, (a * 0.06F) % 1.0F, 0.8F, 911);
+			}
 		}
 	}
 }
