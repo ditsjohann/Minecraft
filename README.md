@@ -44,6 +44,24 @@ Beacon (bomber carpet-bombs your aim line), Nuclear Football (8-nuke barrage), T
 landings), Overdrive Stim. Bombs: Tectonic Earthquake Bomb, Bass Drop Bomb, Cluster Nuke, Nova Bomb (mini sun →
 supernova) and the OMEGA Planet Cracker (78-block crater, blood-red sky).
 
+**Categories** — every bomb and weapon is placed by what it actually does: how far its destruction reaches and how
+deadly it is.
+
+| Tier | Reach | Examples |
+| --- | --- | --- |
+| Fun | harmless or temporary | Disco Ball, Balloon, Party Popper |
+| Uncommon | under 5 blocks | Frag, Incendiary, Gravity Grenade, Flamethrower |
+| Rare | 5 to 12 blocks, gadgets | Thermobaric, Thermite, Sinkhole, Pocket Nuke, Rocket Launcher, Plasma Rifle |
+| Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher |
+| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar |
+| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator |
+| Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch |
+| City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence |
+| World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami |
+
+Bombs of Mythic tier and up must be lit twice; Celestial and up are gated by `armageddonAllowCelestial` and live in
+the Cataclysms tab.
+
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-4]`, to build a city of
 skyscrapers, roads, street lights and parks (with villagers) to destroy. `/armageddon purge` clears fallout,
 black holes, stars, pending strikes and crater jobs.
@@ -57,12 +75,12 @@ city-wide mothership with a blue beam of death, flanked by scout saucers leaving
 **CITY DESTRUCTION tier** — a city-sized area or more is remade: MOONFALL (a cratered moon breaks the sound
 barrier and lands), WORLD EATER (a gigantic cosmic worm tunnels through the land), RAGNAROK (lightning, meteors,
 quakes and volcanoes, then Surtr's burning sword splits the world into fire and frost), ETERNAL SAPLING (a sapling
-climbs eight ever-bigger trees to a world tree whose roots slam down, then blooms and the forest takes the city back), 16 CHUNKS (the
+climbs eight ever-bigger trees to a world tree whose roots slam down, then blooms and the forest takes the city back), 16 CHUNKS (Mythic: the
 sixteen chunks around it each roll: most turn into one random block all the way through, the rest get floods, flips,
 swaps, x-ray, the floor is lava, voids or mob parties) and MAIN STAGE
 (studio rigging comes down, the land is struck into a studio floor with a real stage, and a painted-sky wall with an
-EXIT door goes up around you). Celestial also gains BIG BANG (a new solar system, alone in a void) and CHRONO BREAK
-(a sphere of world is erased, then rewound).
+EXIT door goes up around you). Also BIG BANG (Mythic: a new solar system, alone in a void) and CHRONO BREAK
+(Legendary: a sphere of world is erased, then rewound).
 
 **WORLD DESTRUCTION tier (the real one)** — the world enders, with camera cutscenes. GALACTIC SMASH: a faceless void
 titan tears the sky open, hunts the city with burning eyes, winds up and punches the ground, and the ejecta rains
@@ -72,33 +90,31 @@ a cutscene to an alien world where a colossal ray cannon rises, charges and fire
 and the ray itself coming down.
 
 **The strong five** — seen through a new depth-aware vision pass that rebuilds the world from the depth buffer.
-LIDAR STRIKE (Celestial): the world turns into a lidar point cloud, four scan pulses tag everything alive, then the
-strikes walk the scanned map and the mast overloads. SHADOW VOID (Celestial): a volumetric sphere of darkness with
+LIDAR STRIKE (Mythic): the world turns into a lidar point cloud, four scan pulses tag everything alive, then the
+strikes walk the scanned map and the mast overloads. SHADOW VOID (Mythic): a volumetric sphere of darkness with
 an event core swallows the ground shell by shell, inhales, and exhales a shockwave of shadow. SPECTRAL ICE
-(Celestial): ice spikes erupt into a pyramid with one point, the apex lights blue, the spikes glow harder and harder,
+(Mythic): ice spikes erupt into a pyramid with one point, the apex lights blue, the spikes glow harder and harder,
 and the white apex sprays a storm of ice shards that each leave a small crater and a fresh spike. TERMITE DOMAIN
 (City Destruction): thousands of ants eat every living thing out to 90 blocks, then raise a seventy-block termite
 hill with spires, vents and tunnel mouths. THE SUN DISAPPEARS (World Destruction, the strongest yet): the sun goes
 out for the whole world: endless night, a starless sky, fog, frost on the lens, frozen water, dying plants, and
 freezing for anyone not standing by a fire; then the sun's corpse falls, and the light comes back in the blast.
 
-**Plasma weapons (Celestial, City and World Destruction tiers)** — the first hand-held guns in the cataclysm tiers.
-HELIX DISRUPTOR (Celestial): charge and release, two plasma bolts corkscrew around each other and bore a spiral tunnel
-140 blocks long, then implode. GRAVITON LANCE (City Destruction): plants a gravity anchor that drags everything around
-it inward and crushes it into a crying-obsidian core. SUNFALL MORTAR (City Destruction): lobs a small plasma sun on a
-high arc; where it lands the ground melts into a lava pool. HALO CUTTER (World Destruction): charge to paint a target,
-an orbital beam draws a thirty-block-deep ring canyon round it, then the disc inside drops out. OBLITERATOR (World
-Destruction): hold to fire a beam that takes apart everything it touches and keeps going.
+**Plasma weapons (Legendary and Mythic)**
+HELIX DISRUPTOR (Legendary): charge and release, two plasma bolts corkscrew around each other and bore a spiral tunnel
+140 blocks long, then implode. GRAVITON LANCE (Legendary): plants a gravity anchor that drags everything around
+it inward and crushes it into a crying-obsidian core. SUNFALL MORTAR (Legendary): lobs a small plasma sun on a
+high arc; where it lands the ground melts into a lava pool. HALO CUTTER (Mythic): charge to paint a target,
+an orbital beam draws a thirty-block-deep ring canyon round it, then the disc inside drops out. OBLITERATOR (Mythic): hold to fire a beam that takes apart everything it touches and keeps going.
 
-**Plasma and sci-fi** — none of these is an explosion. ION SCYTHE (Celestial): an orbital ion beam carves a spiral
+**Plasma and sci-fi** — none of these is an explosion. ION SCYTHE (Mythic): an orbital ion beam carves a spiral
 trench of molten glass outward, charges it, then the whole spiral ignites as a curtain of light that disintegrates
-the land. RESONANCE CASCADE (City Destruction): a tuning fork hums until it finds the town's frequency, then every
+the land. RESONANCE CASCADE (Celestial): a tuning fork hums until it finds the town's frequency, then every
 building, wall and tree behind the spreading front shakes apart into heaps of rubble and the soil goes to mud. TESLA
-DOMINION (City Destruction): a tesla tower arcs at the tallest things around; the lightning chains through buildings
+DOMINION (Celestial): a tesla tower arcs at the tallest things around; the lightning chains through buildings
 blowing them apart and ploughs smoking furrows where it earths, then the ball lightning discharges everywhere and
 the tower topples. DYSON LANCE (World Destruction): an orbital mirror swarm focuses the sun into a beam that cuts
-three 600-block canyons through the world into a six-pointed star, then drills the centre. GRAVITY KILLSWITCH (World
-Destruction): gravity switches off and the town floats up and tumbles, then it comes back many times over and slams
+three 600-block canyons through the world into a six-pointed star, then drills the centre. GRAVITY KILLSWITCH (Celestial): gravity switches off and the town floats up and tumbles, then it comes back many times over and slams
 everything down. SEISMIC TSUNAMI (World Destruction): a piston hammer slams the ground until the land becomes a wave
 of rock rolling out three hundred blocks, scraping everything behind it down to bare stone.
 

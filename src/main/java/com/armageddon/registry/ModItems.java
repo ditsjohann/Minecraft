@@ -76,7 +76,7 @@ public final class ModItems {
 	public static final Item GRAVITY_HAMMER = tier(register("gravity_hammer", new GravityHammerItem(ModMaterials.TITANIUM,
 			new Item.Settings().rarity(Rarity.EPIC).attributeModifiers(SwordItem.createAttributeModifiers(ModMaterials.TITANIUM, 10, -3.2F)))), Tier.RARE);
 	public static final Item PLASMA_BLADE = tier(register("plasma_blade", new PlasmaBladeItem(ModMaterials.PLASMA,
-			new Item.Settings().rarity(Rarity.EPIC).fireproof().attributeModifiers(SwordItem.createAttributeModifiers(ModMaterials.PLASMA, 6, -2.2F)))), Tier.EPIC);
+			new Item.Settings().rarity(Rarity.EPIC).fireproof().attributeModifiers(SwordItem.createAttributeModifiers(ModMaterials.PLASMA, 6, -2.2F)))), Tier.RARE);
 
 	// ---------------------------------------------------------------- insane tier
 	public static final Item DUBSTEP_GUN = tier(register("dubstep_gun", new DubstepGunItem(new Item.Settings().rarity(Rarity.EPIC))), Tier.EPIC);
@@ -91,7 +91,7 @@ public final class ModItems {
 	public static final Item AIRSTRIKE_BEACON = tier(register("airstrike_beacon", new TargetingItem(new Item.Settings().rarity(Rarity.RARE).maxDamage(16),
 			StrikeMarkerEntity.AIRSTRIKE, 256, 300)), Tier.EPIC);
 	public static final Item NUKE_BARRAGE = tier(register("nuke_barrage", new TargetingItem(new Item.Settings().rarity(Rarity.EPIC).maxDamage(8).fireproof(),
-			StrikeMarkerEntity.BARRAGE, 384, 600)), Tier.MYTHIC);
+			StrikeMarkerEntity.BARRAGE, 384, 600)), Tier.LEGENDARY);
 	public static final Item CITY_CAPSULE = register("city_capsule", new CityCapsuleItem(new Item.Settings().rarity(Rarity.EPIC)));
 	public static final Item OVERDRIVE_STIM = register("overdrive_stim", new ConsumableItem(new Item.Settings().rarity(Rarity.RARE), ConsumableItem.Kind.OVERDRIVE));
 
@@ -100,9 +100,9 @@ public final class ModItems {
 	public static final Item PLASMA_GRENADE = tier(register("plasma_grenade", new GrenadeItem(new Item.Settings().rarity(Rarity.UNCOMMON), ProjectileKind.PLASMA_GRENADE)), Tier.RARE);
 	public static final Item CRYO_GRENADE = tier(register("cryo_grenade", new GrenadeItem(new Item.Settings().rarity(Rarity.UNCOMMON), ProjectileKind.CRYO_GRENADE)), Tier.UNCOMMON);
 	public static final Item INCENDIARY_GRENADE = tier(register("incendiary_grenade", new GrenadeItem(new Item.Settings(), ProjectileKind.INCENDIARY)), Tier.UNCOMMON);
-	public static final Item GRAVITY_GRENADE = tier(register("gravity_grenade", new GrenadeItem(new Item.Settings().rarity(Rarity.RARE), ProjectileKind.GRAVITY)), Tier.RARE);
+	public static final Item GRAVITY_GRENADE = tier(register("gravity_grenade", new GrenadeItem(new Item.Settings().rarity(Rarity.RARE), ProjectileKind.GRAVITY)), Tier.UNCOMMON);
 	public static final Item TOXIC_GRENADE = tier(register("toxic_grenade", new GrenadeItem(new Item.Settings().rarity(Rarity.UNCOMMON), ProjectileKind.TOXIC)), Tier.RARE);
-	public static final Item POCKET_NUKE = tier(register("pocket_nuke", new GrenadeItem(new Item.Settings().rarity(Rarity.EPIC), ProjectileKind.POCKET_NUKE)), Tier.EPIC);
+	public static final Item POCKET_NUKE = tier(register("pocket_nuke", new GrenadeItem(new Item.Settings().rarity(Rarity.EPIC), ProjectileKind.POCKET_NUKE)), Tier.RARE);
 
 	// ---------------------------------------------------------------- tools & gadgets
 	public static final Item ATOMIC_PICKAXE = register("atomic_pickaxe", new AreaToolItem(ModMaterials.TITANIUM, MINEABLE_PICKAXE,
@@ -163,18 +163,18 @@ public final class ModItems {
 	public static final Item SIEGEBREAKER_ARRAY = tier(register("siegebreaker_array", new CallerItem(new Item.Settings().maxDamage(24).fireproof(),
 			192, 160, false, Strikes::siegebreaker)), Tier.EPIC);
 	public static final Item MICRO_EVENT_HORIZON = tier(register("micro_event_horizon", new GrenadeItem(new Item.Settings(), ProjectileKind.MICRO_HORIZON)), Tier.EPIC);
-	public static final Item RESONANCE_CANNON = tier(register("resonance_cannon", new ResonanceCannonItem(new Item.Settings())), Tier.EPIC);
-	public static final Item MIRROR_DIMENSION_BOMB = tier(register("mirror_dimension_bomb", new GrenadeItem(new Item.Settings(), ProjectileKind.MIRROR)), Tier.EPIC);
+	public static final Item RESONANCE_CANNON = tier(register("resonance_cannon", new ResonanceCannonItem(new Item.Settings())), Tier.RARE);
+	public static final Item MIRROR_DIMENSION_BOMB = tier(register("mirror_dimension_bomb", new GrenadeItem(new Item.Settings(), ProjectileKind.MIRROR)), Tier.RARE);
 
 	// ---------------------------------------------------------------- legendary: superweapons
 	public static final Item SOLSTICE_SUNLANCE = tier(register("solstice_sunlance", new SunlanceItem(new Item.Settings().fireproof())), Tier.LEGENDARY);
 
 	// Plasma and sci-fi: the first hand-held weapons in the cataclysm tiers.
-	public static final Item HELIX_DISRUPTOR = tier(register("helix_disruptor", new com.armageddon.item.SciWeapons.HelixDisruptor(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.CELESTIAL);
-	public static final Item GRAVITON_LANCE = tier(register("graviton_lance", new com.armageddon.item.SciWeapons.GravitonLance(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.CITY_DESTRUCTION);
-	public static final Item SUNFALL_MORTAR = tier(register("sunfall_mortar", new com.armageddon.item.SciWeapons.SunfallMortar(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.CITY_DESTRUCTION);
-	public static final Item HALO_CUTTER = tier(register("halo_cutter", new com.armageddon.item.SciWeapons.HaloCutter(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.WORLD_DESTRUCTION);
-	public static final Item OBLITERATOR = tier(register("obliterator", new com.armageddon.item.SciWeapons.Obliterator(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.WORLD_DESTRUCTION);
+	public static final Item HELIX_DISRUPTOR = tier(register("helix_disruptor", new com.armageddon.item.SciWeapons.HelixDisruptor(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.LEGENDARY);
+	public static final Item GRAVITON_LANCE = tier(register("graviton_lance", new com.armageddon.item.SciWeapons.GravitonLance(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.LEGENDARY);
+	public static final Item SUNFALL_MORTAR = tier(register("sunfall_mortar", new com.armageddon.item.SciWeapons.SunfallMortar(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.LEGENDARY);
+	public static final Item HALO_CUTTER = tier(register("halo_cutter", new com.armageddon.item.SciWeapons.HaloCutter(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.MYTHIC);
+	public static final Item OBLITERATOR = tier(register("obliterator", new com.armageddon.item.SciWeapons.Obliterator(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.MYTHIC);
 	public static final Item WORLDSPLITTER_HAMMER = tier(register("worldsplitter_hammer", new WorldsplitterItem(ModMaterials.PLASMA,
 			new Item.Settings().fireproof().attributeModifiers(SwordItem.createAttributeModifiers(ModMaterials.PLASMA, 14, -3.3F)))), Tier.LEGENDARY);
 	public static final Item SOLAR_VERDICT_BEACON = tier(register("solar_verdict_beacon", new CallerItem(new Item.Settings().maxDamage(8).fireproof(),

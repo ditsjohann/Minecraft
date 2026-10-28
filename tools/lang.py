@@ -107,7 +107,7 @@ BLOCK_DESC = {
     "neutron_bomb": "Kills all life. Leaves buildings standing.",
     "atomic_bomb": "26-block crater. Fallout zone. Mushroom cloud.",
     "antimatter_bomb": "Perfect sphere of annihilation. No fallout.",
-    "hydrogen_bomb": "52-block crater. Visible from very far away. Good luck.",
+    "hydrogen_bomb": "52-block crater. Visible from very far away. Good luck. Light twice.",
     "trinitite": "Glassified sand from a nuclear blast. Mildly radioactive.",
     "uranium_block": "Glows. Warm to the touch. Do not stand on it.",
     "reinforced_concrete": "Survives the outer blast zone of a nuke.",
@@ -115,7 +115,7 @@ BLOCK_DESC = {
     "bass_drop_bomb": "Builds up for 5 seconds. Then the bass drops.",
     "cluster_nuke": "Flings eight tactical nukes in a ring.",
     "nova_bomb": "Ignites a miniature star that scorches the land, then goes supernova.",
-    "omega_bomb": "5-second charge-up. 78-block crater. Red skies. Run.",
+    "omega_bomb": "5-second charge-up. 78-block crater. Red skies. Run. Light twice.",
 }
 
 EXTRA = {

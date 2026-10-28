@@ -111,48 +111,46 @@ public enum BombType {
 		return this.ordinal() >= NEUTRON.ordinal();
 	}
 
+	/** Each bomb's tier, set when its block is registered; everything below is derived from it. */
+	private static final java.util.EnumMap<BombType, com.armageddon.tier.Tier> TIERS = new java.util.EnumMap<>(BombType.class);
+
+	public static void assign(BombType type, com.armageddon.tier.Tier tier) {
+		TIERS.put(type, tier);
+	}
+
+	public com.armageddon.tier.Tier tier() {
+		return TIERS.getOrDefault(this, com.armageddon.tier.Tier.EPIC);
+	}
+
 	/**
 	 * The FUN tier: toys. Harmless, or only temporary (the Disco Ball's dance floor reverts), so they are never
 	 * gated by the celestial game rule and sit with the ordinary bombs.
 	 */
 	public boolean isFun() {
-		return switch (this) {
-			case DISCO, GLITTER, PUMPKIN_PATCH, COBWEB, BALLOON, SPRINKLER, DISCO_BALL -> true;
-			default -> false;
-		};
+		return tier() == com.armageddon.tier.Tier.FUN;
 	}
 
-	/** Celestial warheads are world events. */
+	/** Celestial and above: the cataclysms, gated by the celestial game rule and kept in their own tab. */
 	public boolean isCelestial() {
-		return switch (this) {
-			case LAST_LIGHT, ZEROPOINT, UNMAKER, GODFALL, FINAL_EXISTENCE, BIG_BANG, CHRONO_BREAK, LIDAR_BOMB, SHADOW_VOID, SPECTRAL_ICE,
-					EXPLODING_COWS, DEADLY_TWISTER, COLOSSAL_SPEAR, ZOMBIE_APOCALYPSE, UFO_INVASION, ION_SCYTHE -> true;
-			default -> isCityDestruction() || isWorldDestruction();
-		};
+		return tier().ordinal() >= com.armageddon.tier.Tier.CELESTIAL.ordinal();
 	}
 
-	/** The CITY DESTRUCTION tier: the end of the map (a city-sized area or more is remade). */
+	/** The CITY DESTRUCTION tier: a city-sized area or more is remade. */
 	public boolean isCityDestruction() {
-		return switch (this) {
-			case MOONFALL, WORLD_EATER, RAGNAROK, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW, TERMITE_DOMAIN, RESONANCE_CASCADE, TESLA_DOMINION -> true;
-			default -> false;
-		};
+		return tier() == com.armageddon.tier.Tier.CITY_DESTRUCTION;
 	}
 
-	/** The true WORLD DESTRUCTION tier: the world enders, with scripted camera cutscenes. */
+	/** The true WORLD DESTRUCTION tier: the world enders. */
 	public boolean isWorldDestruction() {
-		return switch (this) {
-			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY, SUN_DISAPPEARS, DYSON_LANCE, GRAVITY_KILLSWITCH, SEISMIC_TSUNAMI -> true;
-			default -> false;
-		};
+		return tier() == com.armageddon.tier.Tier.WORLD_DESTRUCTION;
 	}
 
-	/** Must be lit twice (and are immune to redstone and chain detonation). The Disco Ball because it takes the camera. */
+	/**
+	 * Must be lit twice (and are immune to redstone and chain detonation): everything Mythic and above, and the Disco
+	 * Ball because it takes the camera.
+	 */
 	public boolean needsConfirmation() {
-		return switch (this) {
-			case BLOODSTAR, HELLMOUTH, CYCLONE, DOOMSDAY_CLOCK, DISCO_BALL, MAGNETAR, SEASONS_BOMB, PRISM_BOMB, FOSSIL_BOMB -> true;
-			default -> isCelestial();
-		};
+		return this == DISCO_BALL || tier().ordinal() >= com.armageddon.tier.Tier.MYTHIC.ordinal();
 	}
 
 	public void detonate(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
