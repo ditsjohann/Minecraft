@@ -102,6 +102,10 @@ public final class OddBombEvents {
 				rings(g, front);
 				if (front < RANGE && Destruction.enabled(world)) {
 					shatter(g, front);
+					if (t % 3 == 0) {
+						// Each echo is a pressure wave you can see in the ground: it heaves and throws the surface.
+						com.armageddon.event.Climax.groundWave(world, g, front, 2.5, 8, 0.45);
+					}
 				}
 			}
 			if (t == CONVERGE) {
@@ -114,10 +118,20 @@ public final class OddBombEvents {
 				}
 			}
 			if (t == BOOM) {
+				// The converged boom: not fire, sound. A circle of land around the bomb is shaken to pieces and everything
+				// brittle for a hundred blocks bursts at once.
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.7F);
-				Kit.boom(world, g.add(0, 1, 0), 6.0F, 0x40FF80, owner(), true);
+				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.5F);
 				Vfx.ring(world, g.add(0, 1, 0), 140.0F, 4.0F, 0x40FF80, true, 40);
+				Vfx.shake(world, g, 400, 2.0F);
 				Detonations.blast(world, g, 40, 22.0F, ModDamageTypes.ANNIHILATION, owner(), 3.0, 1.0);
+				for (int k = 0; k < 8; k++) {
+					double a = k * MathHelper.TAU / 8;
+					com.armageddon.event.Ruin.cone(world, g, new Vec3d(Math.cos(a), 0, Math.sin(a)), 34, 24, 4, 2.2);
+				}
+				for (double r = 6; r < RANGE; r += 6) {
+					shatter(g, r);
+				}
 			}
 			drain();
 			return t >= END;
@@ -297,9 +311,10 @@ public final class OddBombEvents {
 				if (t % 20 == 0) {
 					Kit.sound(world, star, SoundEvents.BLOCK_BEACON_AMBIENT, 48.0F, 0.5F + (t % 60) / 120.0F);
 				}
-				if (Destruction.enabled(world) && orbit.size() < 220) {
-					rip(g);
+				if (Destruction.enabled(world) && orbit.size() < 260) {
+					rip(g, t);
 				}
+				grind(star);
 				steer(star, t);
 				drag(star);
 				jets(star, t);
@@ -311,29 +326,47 @@ public final class OddBombEvents {
 			return t >= END;
 		}
 
-		/** Tears ferrous blocks out of the world within reach, ore included. */
-		private void rip(Vec3d g) {
+		/**
+		 * The field is strong enough to tear anything loose, not just iron: the top of the land within a reach that
+		 * grows as the star spins up is ripped up into orbit, iron first and hardest.
+		 */
+		private void rip(Vec3d g, int t) {
+			double reach = REACH * Math.min(1.0, 0.25 + (t - PULL) / 260.0);
 			BlockPos.Mutable p = new BlockPos.Mutable();
-			for (int i = 0; i < 400; i++) {
-				int x = MathHelper.floor(g.x + (world.random.nextDouble() * 2 - 1) * REACH);
-				int y = MathHelper.floor(g.y + (world.random.nextDouble() * 2 - 1.2) * REACH * 0.55);
-				int z = MathHelper.floor(g.z + (world.random.nextDouble() * 2 - 1) * REACH);
-				p.set(x, y, z);
-				if (!world.isChunkLoaded(x >> 4, z >> 4) || Destruction.isProtected(world, p)) {
+			int took = 0;
+			for (int i = 0; i < 60 && took < 6; i++) {
+				double a = world.random.nextDouble() * MathHelper.TAU, dd = Math.sqrt(world.random.nextDouble()) * reach;
+				int x = MathHelper.floor(g.x + Math.cos(a) * dd), z = MathHelper.floor(g.z + Math.sin(a) * dd);
+				if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+					continue;
+				}
+				p.set(x, world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, x, z) - 1, z);
+				if (Destruction.isProtected(world, p)) {
 					continue;
 				}
 				BlockState s = world.getBlockState(p);
-				if (!ferrous(s) || s.hasBlockEntity()) {
+				if (s.isAir() || s.hasBlockEntity() || !s.getFluidState().isEmpty() || s.getHardness(world, p) < 0 || s.getHardness(world, p) > 30) {
 					continue;
 				}
+				took++;
 				Destruction.record(world, p.toImmutable(), s);
 				FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, p.toImmutable(), s);
 				fb.setNoGravity(true);
 				fb.setDestroyedOnLanding();
 				orbit.add(fb);
 				world.spawnParticles(ParticleTypes.ELECTRIC_SPARK, x + 0.5, y + 0.5, z + 0.5, 8, 0.4, 0.4, 0.4, 0.2);
-				if (orbit.size() >= 220) {
+				if (orbit.size() >= 260) {
 					return;
+				}
+			}
+		}
+
+		/** Blocks in orbit grind against each other and turn to dust, so the field keeps eating more of the land. */
+		private void grind(Vec3d star) {
+			for (FallingBlockEntity fb : orbit) {
+				if (fb.isAlive() && world.random.nextFloat() < 0.012F) {
+					world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, fb.getBlockState()), fb.getX(), fb.getY(), fb.getZ(), 10, 0.3, 0.3, 0.3, 0.1);
+					fb.discard();
 				}
 			}
 		}
@@ -393,12 +426,9 @@ public final class OddBombEvents {
 			double k = H / -down.y;
 			Vec3d hit = Kit.ground(world, star.x + down.x * k, star.z + down.z * k);
 			Kit.damage(world, hit, 3.5, 6.0F, ModDamageTypes.PLASMA, null, owner());
-			if (t % 2 == 0 && Destruction.enabled(world)) {
-				BlockPos b = BlockPos.ofFloored(hit).down();
-				q().add(b, world.random.nextBoolean() ? Blocks.MAGMA_BLOCK.getDefaultState() : Blocks.BLACKSTONE.getDefaultState(), BlockQueue.SOLID_ONLY);
-				if (world.random.nextInt(4) == 0) {
-					q().add(b.up(), Blocks.FIRE.getDefaultState(), BlockQueue.AIR_ONLY);
-				}
+			if (t % 4 == 0) {
+				// The jet cuts: a sweeping trench of land taken apart into light.
+				com.armageddon.event.Ruin.disintegrate(world, hit, 2.6, Blocks.SEA_LANTERN.getDefaultState(), ParticleTypes.END_ROD, 4);
 			}
 			if (t % 5 == 0) {
 				world.spawnParticles(ParticleTypes.FLASH, hit.x, hit.y + 0.5, hit.z, 1, 0, 0, 0, 0);
@@ -409,13 +439,15 @@ public final class OddBombEvents {
 		private void collapse(Vec3d star) {
 			Kit.sound(world, star, ModSounds.BLACK_HOLE_COLLAPSE, 64.0F, 0.8F);
 			Vfx.screen(world, star, 200, 3, 0.6F, 24);
-			Kit.boom(world, star, 8.0F, 0x80B0FF, owner(), true);
+			// It collapses into a point and the orbit is fired off as a storm of debris; where the star was is a hole.
+			com.armageddon.event.Ruin.implode(world, star, 7, 18);
+			Vfx.ring(world, star, 90.0F, 3.0F, 0x80B0FF, false, 40);
 			for (FallingBlockEntity fb : orbit) {
 				if (fb.isAlive()) {
 					fb.setNoGravity(false);
 					Vec3d out = fb.getPos().subtract(star);
 					out = out.lengthSquared() < 0.01 ? new Vec3d(0, 1, 0) : out.normalize();
-					Kit.velocity(fb, out.multiply(1.8).add(0, 0.6, 0));
+					Kit.velocity(fb, out.multiply(2.6).add(0, 0.5, 0));
 				}
 			}
 			orbit.clear();
@@ -540,7 +572,7 @@ public final class OddBombEvents {
 	public static class Aurora extends Base {
 		static final int STRIKES = 120, STRIKES_END = 420, FINALE = 460, END = 600;
 		static final int[] COLORS = {0x40FF90, 0x30E0FF, 0xB040FF, 0x80FF40, 0xFF40C0};
-		static final Block[] GLASS = {Blocks.LIME_STAINED_GLASS, Blocks.CYAN_STAINED_GLASS, Blocks.PURPLE_STAINED_GLASS, Blocks.GREEN_STAINED_GLASS, Blocks.MAGENTA_STAINED_GLASS};
+		static final Block[] GLOW = {Blocks.VERDANT_FROGLIGHT, Blocks.SEA_LANTERN, Blocks.PEARLESCENT_FROGLIGHT, Blocks.VERDANT_FROGLIGHT, Blocks.PEARLESCENT_FROGLIGHT};
 
 		@Override
 		public boolean tick() {
@@ -566,7 +598,8 @@ public final class OddBombEvents {
 				Vfx.pillar(world, g, 14.0F, 0x60FFB0, true, 120);
 				Vfx.beam(world, g.add(0, 160, 0), g, 8.0F, 0x80FFC0, 40);
 				Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.8F);
-				Kit.boom(world, g.add(0, 1, 0), 6.5F, 0x60FFB0, owner(), true);
+				Kit.damage(world, g, 14, 40.0F, ModDamageTypes.PLASMA, null, owner());
+				com.armageddon.event.Ruin.disintegrate(world, g, 11, Blocks.SEA_LANTERN.getDefaultState(), ParticleTypes.END_ROD, 40);
 				for (int i = 0; i < 5; i++) {
 					final int c = COLORS[i];
 					final int k = i;
@@ -580,7 +613,6 @@ public final class OddBombEvents {
 		private void strike(Vec3d p, int color, int k) {
 			Vfx.beam(world, p.add(0, 140, 0), p, 3.0F, color, 14);
 			Vfx.pillar(world, p, 4.0F, color, false, 40);
-			Kit.boom(world, p, 2.6F, color, owner(), true);
 			Kit.sound(world, p, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 24.0F, 1.6F);
 			for (LivingEntity e : Kit.living(world, p, 8)) {
 				if (!Kit.creativeOrSpectator(e)) {
@@ -591,15 +623,11 @@ public final class OddBombEvents {
 			if (!Destruction.enabled(world)) {
 				return;
 			}
-			BlockState glass = GLASS[k % GLASS.length].getDefaultState();
-			int R = 5;
-			for (int x = -R; x <= R; x++) {
-				for (int z = -R; z <= R; z++) {
-					if (x * x + z * z <= R * R && world.random.nextFloat() < 0.75F) {
-						BlockPos b = surface(MathHelper.floor(p.x) + x, MathHelper.floor(p.z) + z);
-						q().add(b, glass, BlockQueue.SOLID_ONLY);
-					}
-				}
+			// The ray takes the land apart in its own colour: a deep round shaft of light where it touched.
+			Kit.damage(world, p, 6, 16.0F, ModDamageTypes.PLASMA, null, owner());
+			BlockState light = GLOW[k % GLOW.length].getDefaultState();
+			for (int i = 0; i < 3; i++) {
+				com.armageddon.event.Ruin.disintegrate(world, p.add(0, -i * 3.5, 0), 4.2 - i * 0.6, light, ParticleTypes.END_ROD, 10 + i * 4);
 			}
 		}
 	}
@@ -862,23 +890,19 @@ public final class OddBombEvents {
 				Vfx.newFx(world, FX_GEODE, g, g, (float) Geode.R, 0xC080FF, 0, 0, Geode.END);
 				Kit.ringCrack(world, g, Geode.R + 3, 6, Blocks.SMOOTH_BASALT.getDefaultState(), 0.8F);
 				Kit.sound(world, g, SoundEvents.BLOCK_DEEPSLATE_BREAK, 48.0F, 0.4F);
-				plan(g);
+			}
+			if (t == Geode.RISE) {
+				// Not a geode built on the land: the land itself turns to crystal, rings, and shatters into a hollow.
+				com.armageddon.event.Ruin.crystallize(world, Geode.centre(g).add(0, -2, 0), Geode.R + 1, com.armageddon.event.Ruin.AMETHYST,
+						Geode.RISEN - Geode.RISE, Geode.SHATTER - Geode.RISEN);
 			}
 			if (t >= Geode.RISE && t <= Geode.RISEN) {
-				int to = (int) ((t - Geode.RISE) / (double) (Geode.RISEN - Geode.RISE) * shell.size());
-				for (; placed < Math.min(to, shell.size()); placed++) {
-					int[] b = shell.get(placed);
-					q().add(b[0], b[1], b[2], state(b[3], b[4]), BlockQueue.ANY);
-				}
 				if (t % 5 == 0) {
 					Vfx.shake(world, g, 80, 0.5F);
 					Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_PLACE, 32.0F, 0.5F + (t - Geode.RISE) / 200.0F);
 				}
 			}
-			if (t == Geode.RISEN + 2) {
-				Vec3d c = Geode.centre(g);
-				TemporaryBlocks.place(world, BlockPos.ofFloored(c), Blocks.LIGHT.getDefaultState(), 6000);
-			}
+
 			if (t >= Geode.RESONATE && t < Geode.SPRAY && t % 6 == 0) {
 				Kit.sound(world, Geode.centre(g), SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 48.0F, 0.6F + (t - Geode.RESONATE) / 50.0F);
 			}
@@ -891,8 +915,8 @@ public final class OddBombEvents {
 				}
 			}
 			if (t == Geode.SHATTER) {
-				Kit.boom(world, Geode.centre(g).add(0, Geode.R * 0.7, 0), 5.0F, 0xC080FF, owner(), true);
 				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, 64.0F, 0.5F);
+				Kit.damage(world, Geode.centre(g), Geode.R + 6, 30.0F, ModDamageTypes.SHRAPNEL, null, owner());
 			}
 			drain();
 			return t >= Geode.END;
@@ -943,11 +967,7 @@ public final class OddBombEvents {
 			if (!Destruction.enabled(world)) {
 				return;
 			}
-			Destruction.explode(world, owner(), p.x, p.y, p.z, 2.2F, false);
-			BlockPos b = BlockPos.ofFloored(p).down(2);
-			q().add(b, Blocks.AMETHYST_BLOCK.getDefaultState(), BlockQueue.ANY);
-			q().add(b.up(), Blocks.BUDDING_AMETHYST.getDefaultState(), BlockQueue.ANY);
-			q().add(b.up(2), Blocks.AMETHYST_CLUSTER.getDefaultState(), BlockQueue.ANY);
+			com.armageddon.event.Ruin.crystallize(world, p.add(0, -1, 0), 2.6, com.armageddon.event.Ruin.AMETHYST, 5, 30);
 		}
 	}
 
@@ -1109,13 +1129,8 @@ public final class OddBombEvents {
 				Kit.push(e, heading.multiply(2.6 * k * power).add(0, 0.9 * k, 0));
 				e.damage(world.getDamageSources().sonicBoom(host), (float) (14 * k * power));
 			}
-			if (Destruction.enabled(world)) {
-				for (int k = 1; k <= 5; k++) {
-					Vec3d p = Kit.ground(world, mouth.x + heading.x * k * 11, mouth.z + heading.z * k * 11);
-					final Vec3d at = p;
-					DetonationManager.schedule(world, k * 2, () -> Destruction.explode(world, owner(), at.x, at.y, at.z, (float) (3.5 * power), false));
-				}
-			}
+			// The roar tears a widening cone out of the land in front of it, the ground flung away down its length.
+			com.armageddon.event.Ruin.cone(world, Kit.ground(world, mouth.x, mouth.z), heading, 60 * power, 26, (int) (5 * power), 3.0);
 		}
 	}
 

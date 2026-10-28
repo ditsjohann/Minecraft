@@ -94,12 +94,14 @@ Destruction): gravity switches off and the town floats up and tumbles, then it c
 everything down. SEISMIC TSUNAMI (World Destruction): a piston hammer slams the ground until the land becomes a wave
 of rock rolling out three hundred blocks, scraping everything behind it down to bare stone.
 
-**Oddities (Legendary and Mythic)** — Sonar (green echo vision, shoving rings that shatter glass, a sonic boom),
-8-Bit (the world goes low-res on screen and in the blocks, then GAME OVER), Magnetar (iron, ore included, ripped into
-orbit, pulsar jets), KA-BOOM! (comic ink vision, giant block letters, POW), Aurora (curtains overhead, then strikes
-that glaze the ground in coloured glass), Century (a year in forty seconds, then a hundred years of decay), Prism
-(seven rainbow beams burning coloured trenches), Geode (a giant amethyst geode that sprays crystal shards), Fossil (a
-colossal skeleton rises and roars) and Lava Lamp (heats, cracks and bursts into molten splats).
+**Oddities (Legendary and Mythic)** — Sonar (green echo vision; every echo heaves the ground, then the converged
+boom shakes the land around it to pieces), 8-Bit (the world goes low-res on screen and in the blocks, then GAME OVER),
+Magnetar (the land torn up into orbit and ground to dust, pulsar jets cutting trenches, then the star collapses into
+a hole), KA-BOOM! (comic ink vision, giant block letters, POW), Aurora (curtains overhead, then rays that take the
+land apart into coloured light), Century (a year in forty seconds, then a hundred years of decay), Prism (seven
+rainbow beams burning coloured trenches), Geode (the ground turns to amethyst crystal and shatters into a hollow),
+Fossil (a colossal skeleton rises and its roar tears a cone out of the land) and Lava Lamp (heats, cracks and bursts
+into molten splats).
 
 **FUN tier** — toys, harmless or temporary: DISCO BALL (a giant disco ball dazzles everyone, stops, then drops the
 bass, starts Pigstep and turns the land into a dance floor for five minutes), plus the Disco, Glitter, Pumpkin

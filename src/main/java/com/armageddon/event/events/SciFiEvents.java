@@ -64,6 +64,10 @@ public final class SciFiEvents {
 		final List<TerrainJob> jobs = new ArrayList<>();
 		ProtectedRegions regions;
 
+		net.minecraft.server.world.ServerWorld w() {
+			return world;
+		}
+
 		boolean put(BlockPos p, BlockState s) {
 			return Destruction.set(world, p, s, FLAGS);
 		}
@@ -220,18 +224,18 @@ public final class SciFiEvents {
 
 	/** Turns the blocks of a structure into falling rubble (up to the debris budget); the rest are simply gone. */
 	static int collapse(Base e, List<BlockPos> blocks, Vec3d kick, double spread) {
-		int budget = Kit.debrisBudget(e.world, Vec3d.ofCenter(blocks.isEmpty() ? BlockPos.ORIGIN : blocks.get(0)));
+		int budget = Kit.debrisBudget(e.w(), Vec3d.ofCenter(blocks.isEmpty() ? BlockPos.ORIGIN : blocks.get(0)));
 		int thrown = 0;
 		for (BlockPos p : blocks) {
-			BlockState s = e.world.getBlockState(p);
+			BlockState s = e.w().getBlockState(p);
 			if (!e.breakable(p, s)) {
 				continue;
 			}
 			if (thrown < budget && (p.getX() + p.getY() * 3 + p.getZ() * 7) % 3 == 0) {
-				Destruction.record(e.world, p, s);
-				FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(e.world, p, s);
-				Kit.velocity(fb, kick.add((e.world.random.nextDouble() - 0.5) * spread, e.world.random.nextDouble() * spread * 0.5,
-						(e.world.random.nextDouble() - 0.5) * spread));
+				Destruction.record(e.w(), p, s);
+				FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(e.w(), p, s);
+				Kit.velocity(fb, kick.add((e.w().random.nextDouble() - 0.5) * spread, e.w().random.nextDouble() * spread * 0.5,
+						(e.w().random.nextDouble() - 0.5) * spread));
 				thrown++;
 			} else {
 				e.put(p, AIR);

@@ -427,6 +427,62 @@ public final class Ruin {
 		});
 	}
 
+	/**
+	 * A cone of force out of {@code from} along {@code dir}: the ground in it is torn up and thrown forward, deepest
+	 * at the mouth and shallower toward the end, everything standing in it ripped away. Runs out at {@code speed}.
+	 */
+	public static void cone(ServerWorld w, Vec3d from, Vec3d dir, double length, double halfAngleDeg, int depth, double speed) {
+		if (!Destruction.enabled(w)) {
+			return;
+		}
+		Vec3d d = new Vec3d(dir.x, 0, dir.z).normalize();
+		double cos = Math.cos(Math.toRadians(halfAngleDeg));
+		int r = MathHelper.ceil(length);
+		List<Long> cols = new ArrayList<>();
+		List<Float> keys = new ArrayList<>();
+		for (int dx = -r; dx <= r; dx++) {
+			for (int dz = -r; dz <= r; dz++) {
+				double dist = Math.sqrt(dx * dx + dz * dz);
+				if (dist > length || dist < 1 || (dx * d.x + dz * d.z) / dist < cos) {
+					continue;
+				}
+				cols.add(BlockPos.asLong(MathHelper.floor(from.x) + dx, 0, MathHelper.floor(from.z) + dz));
+				keys.add((float) dist);
+			}
+		}
+		long[] c = new long[cols.size()];
+		float[] k = new float[cols.size()];
+		for (int i = 0; i < c.length; i++) {
+			c[i] = cols.get(i);
+			k[i] = keys.get(i);
+		}
+		int[] thrown = {0};
+		int budget = Kit.debrisBudget(w, from);
+		TerrainJob job = new TerrainJob(w, c, k, col -> {
+			double dist = Math.hypot(col.x + 0.5 - from.x, col.z + 0.5 - from.z);
+			double s = 1 - dist / length;
+			int surf = col.surface(), top = Math.min(col.top(), surf + 30);
+			int dig = (int) Math.round(depth * s * (0.7 + col.noise(1) * 0.6));
+			for (int y = top; y > surf - dig; y--) {
+				BlockState st = col.get(y);
+				if (st.isAir()) {
+					continue;
+				}
+				if (thrown[0] < budget && col.noise(y * 3 + 7) < 0.12) {
+					BlockPos p = new BlockPos(col.x, y, col.z);
+					Destruction.record(w, p, st);
+					FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(w, p, st);
+					fb.setDestroyedOnLanding();
+					Kit.velocity(fb, d.multiply(1.2 + s * 1.5).add(0, 0.5 + s * 0.6, 0));
+					thrown[0]++;
+				} else {
+					col.set(y, Blocks.AIR.getDefaultState());
+				}
+			}
+		});
+		DetonationManager.add(new Front(w, job, speed));
+	}
+
 	public static void melt(ServerWorld w, Vec3d c, double r, double speed) {
 		if (Destruction.enabled(w)) {
 			DetonationManager.add(new Front(w, meltJob(w, c, r), speed));
