@@ -424,16 +424,38 @@ public final class Cinematics {
 			return ease((a - 30) / 110.0);
 		}
 
-		private double twist(float a) {
-			double w = ease((a - 330) / 100.0);
+		/** Wind-up 0..1: the arm draws back, the body twists away and crouches. */
+		private double windUp(float a) {
+			return ease((a - 330) / 90.0);
+		}
+
+		/** The strike 0..1, accelerating all the way into the ground. */
+		private double strike(float a) {
 			double p = clamp01((a - PUNCH_START) / (double) (IMPACT - PUNCH_START));
-			return -0.42 * w + 0.7 * p * p;
+			return p * p;
+		}
+
+		/** Follow-through after contact: the body overshoots into the blow, then settles back. */
+		private double follow(float a) {
+			if (a < IMPACT) {
+				return 0;
+			}
+			double u = clamp01((a - IMPACT) / 50.0);
+			return Math.sin(u * Math.PI * 0.5) * (1 - 0.6 * ease((a - IMPACT - 30) / 90.0));
+		}
+
+		private double twist(float a) {
+			double w = windUp(a), p = strike(a);
+			return -0.7 * w * (1 - p) + 0.8 * p + 0.15 * follow(a);
 		}
 
 		private Vec3d shoulderMid(float a) {
 			double back = (1 - emerge(a)) * 200;
-			double lean = clamp01((a - PUNCH_START) / (double) (IMPACT - PUNCH_START));
-			return base.add(fwd.multiply(back - lean * lean * 45)).add(0, -lean * 25, 0);
+			double w = windUp(a), p = strike(a), f = follow(a);
+			// Crouch into the wind-up, then lunge down and forward with the whole body behind the fist.
+			double lunge = p * 70 + f * 25;
+			double drop = 16 * w * (1 - p) + p * 40 + f * 14;
+			return base.add(fwd.multiply(back - lunge)).add(0, -drop, 0);
 		}
 
 		private Vec3d rightT(float a) {
@@ -456,19 +478,24 @@ public final class Cinematics {
 		private Vec3d hand(float a) {
 			Vec3d sh = rs(a);
 			Vec3d idle = sh.add(rightT(a).multiply(40)).add(fwd.multiply(-35)).add(0, -250 + Math.sin(a * 0.05) * 8, 0);
-			Vec3d wind = sh.add(fwd.multiply(175)).add(rightT(a).multiply(60)).add(0, 165, 0);
+			// Drawn right back over the shoulder, high, elbow cocked.
+			Vec3d wind = sh.add(fwd.multiply(150)).add(rightT(a).multiply(70)).add(0, 150, 0);
 			Vec3d tgt = anchor.add(0, 2, 0);
 			if (a < 330) {
 				return idle;
 			}
 			if (a < PUNCH_START) {
-				double w = ease((a - 330) / 100.0);
-				double tremble = w * 6;
+				double w = windUp(a);
+				// The last moments before it lets go: the whole arm trembles with the strain.
+				double tremble = 7 * ease((a - 400) / 40.0);
 				return lerp(idle, wind, w).add(Math.sin(a * 1.9) * tremble, Math.cos(a * 2.3) * tremble, Math.sin(a * 1.3) * tremble);
 			}
 			if (a < IMPACT) {
-				double p = (a - PUNCH_START) / (double) (IMPACT - PUNCH_START);
-				return lerp(wind, tgt, p * p * p);
+				// Not a straight line: up and over in an arc, then down onto the city.
+				double p = strike(a);
+				Vec3d over = lerp(wind, tgt, 0.4).add(0, 190, 0);
+				Vec3d ab = lerp(wind, over, p), bc = lerp(over, tgt, p);
+				return lerp(ab, bc, p);
 			}
 			// Fist drives on into the crust and stays buried, then slowly pulls free as the giant dissolves.
 			return tgt.add(0, -26 * ease((a - IMPACT) / 14.0) + ease((a - 600) / 100.0) * 140, 0);
@@ -504,8 +531,10 @@ public final class Cinematics {
 				Vec3d p = anchor.add(right.multiply(lerp(120, 85, u))).add(fwd.multiply(lerp(-50, -20, u))).add(0, lerp(4, 18, u), 0);
 				aim(s, p, head.add(0, -60, 0), (float) lerp(74, 64, u), false);
 			} else if (a < 330) {
-				double d = lerp(140, 88, ease((a - 270) / 60.0));
-				aim(s, head.add(headDir(a).multiply(d)).add(right.multiply(26)).add(0, 4, 0), head, 42, false);
+				// Down in the street as it finds the city: its head turns and the visor comes round onto the camera.
+				double u = ease((a - 270) / 60.0);
+				Vec3d p = anchor.add(right.multiply(lerp(-40, -30, u))).add(fwd.multiply(lerp(-60, -48, u))).add(0, 3, 0);
+				aim(s, p, head.add(0, lerp(-90, -20, u), 0), (float) lerp(64, 54, u), false);
 			} else if (a < PUNCH_START) {
 				// From behind the city: the fist rises over the giant's shoulder and the camera slowly pushes in.
 				double u = (a - 330) / (double) (PUNCH_START - 330);
@@ -749,7 +778,11 @@ public final class Cinematics {
 			Vec3d P = S.add(0, -240, 0), N = S.add(0, 40, 0);
 			Vec3d handR = hand(a).add(off);
 			Vec3d elbowR = elbow(RS, handR, BONE, BONE, fwd.multiply(0.7).add(rt.multiply(0.9)).add(0, 0.2, 0));
-			Vec3d handL = LS.add(rt.multiply(-40)).add(fwd.multiply(-35)).add(0, -250 + Math.sin(a * 0.04) * 8, 0);
+			// The other arm balances the blow: it reaches toward the city in the wind-up and swings back in the strike.
+			Vec3d idleL = LS.add(rt.multiply(-40)).add(fwd.multiply(-35)).add(0, -250 + Math.sin(a * 0.04) * 8, 0);
+			Vec3d reachL = LS.add(rt.multiply(-55)).add(fwd.multiply(-150)).add(0, -70, 0);
+			Vec3d backL = LS.add(rt.multiply(-70)).add(fwd.multiply(120)).add(0, -160, 0);
+			Vec3d handL = lerp(lerp(idleL, reachL, windUp(a)), backL, Math.min(1.0, strike(a) + follow(a) * 0.4));
 			Vec3d elbowL = elbow(LS, handL, BONE, BONE, rt.multiply(-1).add(fwd.multiply(0.4)));
 			Vec3d hd = headDir(a);
 			Vec3d punchDir = handR.subtract(elbowR).normalize();
@@ -839,34 +872,23 @@ public final class Cinematics {
 			Solids.dot(glow, m, core, cb, 18, 0xFFFFFF, pulse * env);
 			Solids.dot(glow, m, core, cb, 70, 0x80B0FF, 0.35F * pulse * env);
 			Solids.dot(glow, m, handR, cb, 120, a > 400 ? 0xFF8040 : 0x6A8CFF, (0.2F + 0.6F * (float) clamp01((a - 330) / 100.0)) * env);
-			// Burning eyes in a faceless head: flames streaming up off them, searchlights, then the lock-on.
-			Vec3d sideDir = new Vec3d(-hd.z, 0, hd.x).normalize();
-			int eyeCol = a > 270 ? 0xFFD0A0 : 0xFF7020;
-			for (int e = -1; e <= 1; e += 2) {
-				Vec3d eye = H.add(hd.multiply(40)).add(sideDir.multiply(e * 15)).add(0, 8, 0);
-				Solids.dot(glow, m, eye, cb, 8, 0xFFFFFF, env);
-				Solids.dot(glow, m, eye, cb, 24, eyeCol, 0.85F * env);
-				Solids.dot(glow, m, eye, cb, 60, 0xFF3010, 0.3F * env);
-				for (int f = 0; f < 7; f++) {
-					double life = (a * 0.04 + f / 7.0) % 1.0;
-					Vec3d base = eye.add(sideDir.multiply((Solids.hash(f, e + 3) - 0.5) * 10));
-					Vec3d lick = base.add(fwd.multiply(life * 30)).add(sideDir.multiply(e * life * 12)).add(0, 24 + life * 60, 0);
-					FxDraw.ribbon(glow, m, base, lick, Vec3d.ZERO, 10 * (1 - life), life < 0.4 ? 0xFFB040 : 0xFF4010, 0.8F * (float) (1 - life) * env, 0.0F);
+			// No eyes: one cold visor slit across the faceless head. It brightens as it finds the city and narrows to a
+			// hot white line when it locks on.
+			float lock = (float) clamp01((a - 280) / 25.0);
+			int visor = lock > 0.5F ? 0xFFE8D0 : 0xC8E0FF;
+			double slitW = 3.2 - 1.6 * lock;
+			Vec3d flat = new Vec3d(hd.x, 0, hd.z).normalize();
+			Vec3d prevV = null;
+			for (int k = -7; k <= 7; k++) {
+				double ang = k * 0.1;
+				Vec3d dir = flat.multiply(Math.cos(ang)).add(new Vec3d(-flat.z, 0, flat.x).multiply(Math.sin(ang)));
+				Vec3d p = H.add(dir.multiply(42.5)).add(0, 8 + hd.y * 10, 0);
+				if (prevV != null) {
+					float edge = 1.0F - Math.abs(k) / 8.0F;
+					FxDraw.ribbon(glow, m, prevV, p, Vec3d.ZERO, slitW, visor, (0.55F + 0.4F * lock) * env * edge, (0.55F + 0.4F * lock) * env * edge);
+					FxDraw.ribbon(glow, m, prevV, p, Vec3d.ZERO, slitW * 3.5, 0x6A88FF, 0.12F * env * edge, 0.12F * env * edge);
 				}
-				float flareK = a > 270 && a < IMPACT ? 1.0F : 0.5F;
-				Solids.flare(glow, m, eye, cb, 26 * flareK + 10, eyeCol, 0.7F * env * flareK);
-				FxKit.fire(consumers, m, cb, eye.add(0, 20, 0), 18, 0xFFB040, (float) ((a * 0.02) % 0.5), env, a, 160 + e);
-				if (a > 130 && a < 270 && hd.y < -0.05) {
-					double t = (anchor.y - cam.y - eye.y) / hd.y;
-					Vec3d spot = eye.add(hd.multiply(Math.max(0, t)));
-					float k = (float) (ease((a - 130) / 15.0) * (1 - ease((a - 255) / 15.0)));
-					Solids.tube(glow, m, eye, spot, 3, 28, 12, 0xFF6030, 0.16F * k * env, false);
-					FxDraw.disc(glow, m, spot.add(0, 0.6, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 32, 0xFFA060, 0.7F * k, 0.0F, 24);
-				}
-				if (a > 285 && a < IMPACT) {
-					float f = (float) clamp01((a - 285) / 30.0);
-					FxDraw.ribbon(glow, m, eye, anchor.subtract(cam).add(0, 5, 0), Vec3d.ZERO, 1.6, 0xFF3010, 0.0F, 0.7F * f);
-				}
+				prevV = p;
 			}
 			// A broken halo of embers: a ring with pieces missing, turning slowly behind the head.
 			float spin = a * 0.02F;

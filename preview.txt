@@ -1,22 +1,12 @@
 # Offline effect preview: name tick [dx dy dz [tx ty tz]] (camera offset / target from the anchor)
-ion 50 -60 40 -60 0 30 0
-ion 200 -90 70 -90 0 0 0
-ion 360 -90 90 -90 0 0 0
-ion 405 -100 60 -100 0 10 0
-phase 80 -120 60 -120 0 40 0
-phase 250 -110 50 -110 0 30 0
-phase 420 -100 40 -100 0 0 0
-phase 460 -110 50 -110 0 30 0
-tesla 200 -50 30 -50 0 40 0
-tesla 480 -60 40 -60 0 60 0
-tesla 505 -70 40 -70 0 30 0
-horizon 120 -90 60 -90 0 70 0
-horizon 300 -80 70 -80 0 70 0
-horizon 300 -30 68 -30 0 70 0
-horizon 550 -100 80 -100 0 70 0
-nanite 20 -8 4 -8 0 1 0
-nanite 300 -60 40 -60 0 0 0
-nanite 720 -90 40 -90 0 0 0
-inversion 60 -50 50 -50 0 50 0
-inversion 180 -90 50 -90 0 50 0
-inversion 480 -90 60 -90 0 90 0
+galactic 300
+galactic 300 -350 250 -350 0 200 230
+galactic 380 -350 250 -350 0 200 230
+galactic 430 -350 250 -350 0 200 230
+galactic 446 -350 250 -350 0 200 230
+galactic 452 -350 250 -350 0 200 230
+galactic 457 -350 250 -350 0 200 230
+galactic 470 -350 250 -350 0 200 230
+galactic 500 -350 250 -350 0 200 230
+galactic 400
+galactic 450
