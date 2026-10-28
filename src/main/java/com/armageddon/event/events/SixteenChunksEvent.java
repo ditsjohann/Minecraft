@@ -247,6 +247,7 @@ public class SixteenChunksEvent extends WorldEvent {
 			return;
 		}
 		switch (kind) {
+			case BLOCK -> fillBlock(cell, lo, hi, ChunkRolls.block(roll.variant()).getDefaultState());
 			case FLOOD -> flood(cell, ChunkRolls.Flood.values()[roll.variant()]);
 			case UPSIDE_DOWN -> upsideDown(cell, lo, hi);
 			case SKY_ISLAND -> skyIsland(cell, lo, hi);
@@ -413,6 +414,11 @@ public class SixteenChunksEvent extends WorldEvent {
 				}
 			}
 		}
+	}
+
+	/** The common roll: the whole chunk, every solid block of it, becomes one block. */
+	private void fillBlock(int cell, int lo, int hi, BlockState to) {
+		forSolid(cell, lo, hi, (x, y, z, s) -> to);
 	}
 
 	private void randomize(int cell, int lo, int hi) {

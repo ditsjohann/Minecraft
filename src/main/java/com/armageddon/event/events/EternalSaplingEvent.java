@@ -70,7 +70,9 @@ public class EternalSaplingEvent extends WorldEvent {
 			s = MathHelper.clamp(Destruction.radius(world, 140.0F) / 140.0, 0.3, 1.0);
 			// The aura first, so the cutscene can read the tree's scale from it.
 			Vfx.custom(world, FxType.ETERNAL_TREE, baseV, baseV, (float) s, 0x60FF90, 0, 0, 0, EternalTree.LIFE + 600, Vfx.FAR);
-			WorldCutsceneEvents.begin(this, world, g, "block.armageddon.eternal_sapling", 4, fwd, EternalTree.CINE);
+			// No camera takeover: you watch it grow yourself, with only the cinematic bars.
+			CelestialEvents.announce(world, g, "block.armageddon.eternal_sapling");
+			Vfx.cutscene(world, g, EternalTree.WORLD_END + 60);
 			place(new Put(base, Blocks.OAK_SAPLING.getDefaultState(), false));
 			Kit.sound(world, baseV, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 4.0F, 0.6F);
 			Vfx.light(world, baseV.add(0, 1, 0), 0.8F, 0x80FF90);

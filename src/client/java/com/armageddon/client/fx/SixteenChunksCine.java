@@ -10,7 +10,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 /**
- * 32 CHUNKS cutscene: rise from the bomb to a top-down view of the 8x4 grid, a slot-machine roll for
+ * 16 CHUNKS cutscene: rise from the bomb to a top-down view of the 4x4 grid, a slot-machine roll for
  * every chunk (with swoops down into a few of them), then a long pull up and away over the results.
  * The schedule and results come from {@link ChunkRolls}, the same table the server rolls from.
  */
@@ -19,7 +19,7 @@ public class SixteenChunksCine extends Cinematics.Cine {
 	private static final int[] SWOOPS = {3, 9, 16, 23, 29};
 	/** When the last roll has landed and the camera pulls away. */
 	private static final int DONE = ChunkRolls.rollTick(ChunkRolls.CELLS - 1) + 24;
-	private static final double HIGH = 140, ORBIT = 30;
+	private static final double HIGH = 100, ORBIT = 24;
 	private final long seed;
 	private final int[] order;
 	private final Vec3d grid;
@@ -63,7 +63,7 @@ public class SixteenChunksCine extends Cinematics.Cine {
 			return;
 		}
 		if (a >= DONE) {
-			// All 32 rolled: a long, slow pull up and away over the patchwork.
+			// All 16 rolled: a long, slow pull up and away over the patchwork.
 			double k = ease((a - DONE) / (double) Math.max(1, lifetime - DONE));
 			double ang = spin + k * 0.6;
 			aim(s, grid.add(Math.cos(ang) * lerp(ORBIT, 70, k), lerp(HIGH, 190, k), Math.sin(ang) * lerp(ORBIT, 70, k)), grid, (float) lerp(70, 76, k), false);
@@ -160,7 +160,7 @@ public class SixteenChunksCine extends Cinematics.Cine {
 		int alpha = (int) (230 * in);
 		ctx.fillGradient(mx - 6, my - 20, mx + gw + 6, my + gh + 18, argb((int) (200 * in), 0x140A1E), argb((int) (200 * in), 0x05030A));
 		frame(ctx, mx - 6, my - 20, mx + gw + 6, my + gh + 18, 0xFF60FF, (int) (160 * in), 3);
-		ctx.drawTextWithShadow(f, Text.literal("32 CHUNKS"), mx, my - 14, argb(alpha, 0xFF80FF));
+		ctx.drawTextWithShadow(f, Text.literal("16 CHUNKS"), mx, my - 14, argb(alpha, 0xFF80FF));
 		int done = 0;
 		int frameIdx = (int) (a * 1.5F);
 		for (int cell = 0; cell < ChunkRolls.CELLS; cell++) {

@@ -57,8 +57,9 @@ city-wide mothership with a blue beam of death, flanked by scout saucers leaving
 **CITY DESTRUCTION tier** — a city-sized area or more is remade: MOONFALL (a cratered moon breaks the sound
 barrier and lands), WORLD EATER (a gigantic cosmic worm tunnels through the land), RAGNAROK (lightning, meteors,
 quakes and volcanoes, then Surtr's burning sword splits the world into fire and frost), ETERNAL SAPLING (a sapling
-climbs eight ever-bigger trees to a world tree whose roots slam down and turn the land to forest), 32 CHUNKS (the
-thirty-two chunks around it each roll a random mutation: floods, flips, swaps, voids, mob parties) and MAIN STAGE
+climbs eight ever-bigger trees to a world tree whose roots slam down, then blooms and the forest takes the city back), 16 CHUNKS (the
+sixteen chunks around it each roll: most turn into one random block all the way through, the rest get floods, flips,
+swaps, x-ray, the floor is lava, voids or mob parties) and MAIN STAGE
 (studio rigging comes down, the land is struck into a studio floor with a real stage, and a painted-sky wall with an
 EXIT door goes up around you). Celestial also gains BIG BANG (a new solar system, alone in a void) and CHRONO BREAK
 (a sphere of world is erased, then rewound).

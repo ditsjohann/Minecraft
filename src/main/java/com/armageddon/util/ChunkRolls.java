@@ -6,16 +6,18 @@ import net.minecraft.util.math.Vec3d;
 import java.util.Random;
 
 /**
- * The 32 CHUNKS dice table: an 8 x 4 grid of chunks around the bomb, each rolled once. Server and client derive
+ * The 16 CHUNKS dice table: a 4 x 4 grid of chunks around the bomb, each rolled once. Most chunks (60%) simply
+ * turn into one random Minecraft block, all the way through; the rest get one of the special mutations. Server and client derive
  * the same seed from the bomb's position and heading, so the cutscene can name every roll before the blocks arrive.
  */
 public final class ChunkRolls {
 	/** Grid width and depth in chunks, and the number of chunks. Cell index = x + z * W. */
-	public static final int W = 8, H = 4, CELLS = W * H;
+	public static final int W = 4, H = 4, CELLS = W * H;
 	/** First roll, ticks between rolls, and the cutscene length. */
-	public static final int ROLL_START = 90, GAP = 16, CINE = ROLL_START + CELLS * GAP + 70;
+	public static final int ROLL_START = 90, GAP = 24, CINE = ROLL_START + CELLS * GAP + 70;
 
 	public enum Kind {
+		BLOCK("BLOCK", 0xFFD060, true),
 		FLOOD("FLOOD", 0x40C0FF, true),
 		UPSIDE_DOWN("UPSIDE DOWN", 0xFFB040, true),
 		SKY_ISLAND("SKY ISLAND", 0x80FFE0, true),
@@ -62,6 +64,9 @@ public final class ChunkRolls {
 	/** One chunk's result: the mutation, and a variant (flood type, or the partner chunk of a swap). */
 	public record Roll(Kind kind, int variant) {
 		public String label() {
+			if (kind == Kind.BLOCK) {
+				return "ALL " + block(variant).getName().getString().toUpperCase(java.util.Locale.ROOT);
+			}
 			return kind == Kind.FLOOD ? "FLOOD: " + Flood.values()[variant].label : kind == Kind.SWAP ? "SWAP WITH #" + (variant + 1) : kind.label;
 		}
 	}
@@ -97,11 +102,44 @@ public final class ChunkRolls {
 		return o;
 	}
 
+	private static java.util.List<net.minecraft.block.Block> pool;
+
+	/**
+	 * Every plain vanilla block a chunk can be turned into: solid full cubes without block entities that can be
+	 * broken. Built in registry order, which the client and server share, so both pick the same block.
+	 */
+	public static java.util.List<net.minecraft.block.Block> blocks() {
+		if (pool == null) {
+			java.util.List<net.minecraft.block.Block> list = new java.util.ArrayList<>();
+			for (net.minecraft.block.Block b : net.minecraft.registry.Registries.BLOCK) {
+				net.minecraft.util.Identifier id = net.minecraft.registry.Registries.BLOCK.getId(b);
+				net.minecraft.block.BlockState s = b.getDefaultState();
+				if (!"minecraft".equals(id.getNamespace()) || s.isAir() || !s.getFluidState().isEmpty() || s.hasBlockEntity()
+						|| s.getHardness(net.minecraft.world.EmptyBlockView.INSTANCE, net.minecraft.util.math.BlockPos.ORIGIN) < 0
+						|| !s.isOpaqueFullCube(net.minecraft.world.EmptyBlockView.INSTANCE, net.minecraft.util.math.BlockPos.ORIGIN)
+						|| id.getPath().startsWith("infested_")) {
+					continue;
+				}
+				list.add(b);
+			}
+			pool = list;
+		}
+		return pool;
+	}
+
+	public static net.minecraft.block.Block block(int variant) {
+		java.util.List<net.minecraft.block.Block> b = blocks();
+		return b.isEmpty() ? net.minecraft.block.Blocks.STONE : b.get(Math.floorMod(variant, b.size()));
+	}
+
 	/** What chunk {@code cell} rolls. */
 	public static Roll roll(long seed, int cell) {
 		Random r = new Random(seed * 31 + cell * 7717L);
+		if (r.nextFloat() < 0.6F) {
+			return new Roll(Kind.BLOCK, r.nextInt(1 << 20));
+		}
 		Kind[] kinds = Kind.values();
-		Kind k = r.nextInt(4) == 0 ? Kind.FLOOD : kinds[1 + r.nextInt(kinds.length - 1)];
+		Kind k = r.nextInt(4) == 0 ? Kind.FLOOD : kinds[2 + r.nextInt(kinds.length - 2)];
 		int variant = 0;
 		if (k == Kind.FLOOD) {
 			variant = r.nextInt(Flood.values().length);
