@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/resonance_cascade"
+    },
+    "facing=east": {
+      "model": "armageddon:block/resonance_cascade",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/resonance_cascade",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/resonance_cascade",
+      "y": 270
+    }
+  }
+}

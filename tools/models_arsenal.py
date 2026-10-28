@@ -1321,16 +1321,15 @@ def ion_scythe():
     return m
 
 
-def phase_scrubber():
-    # A field projector: a hex base, a dome of light ribs and a scan ring halfway up.
-    m = [B(0.5, 0, 0.5, 15.5, 1.5, 15.5, "white"), B(1.5, 1.5, 1.5, 14.5, 2, 14.5, "screen")]
-    m += vsphere(8, 2, 8, 6.2, 1.0, "glass_cyan", shell=0.9)
-    m += ring_y(8, 5.0, 8, 5.6, "glow_cyan", 0.4) + ring_y(8, 2.4, 8, 6.4, "glow_white", 0.3)
-    m += cyl_y(8, 8, 2, 6, 1.2, "chrome") + [B(7.3, 6, 7.3, 8.7, 7.4, 8.7, "glow_blue")]
-    for i in range(6):
-        x = 8 + 6.6 * _m.cos(i * _m.pi / 3)
-        z = 8 + 6.6 * _m.sin(i * _m.pi / 3)
-        m += [B(x - 0.6, 1.5, z - 0.6, x + 0.6, 3, z + 0.6, "titanium")]
+def resonance_cascade():
+    # A tuning fork on a resonator: two tall tines on a chrome block, rings of light round the stem.
+    m = [B(1, 0, 1, 15, 1.4, 15, "gunmetal"), B(2, 1.4, 2, 14, 2, 14, "steel")]
+    m += cyl_y(8, 8, 2, 5, 3.2, "chrome") + ring_y(8, 4.2, 8, 3.6, "glow_cyan", 0.35)
+    m += [B(7, 5, 6, 9, 7, 10, "steel")]
+    m += [B(7.2, 7, 5.6, 8.8, 15.6, 6.8, "chrome"), B(7.2, 7, 9.2, 8.8, 15.6, 10.4, "chrome")]
+    m += [B(7.4, 15.6, 5.8, 8.6, 16, 6.6, "glow_cyan"), B(7.4, 15.6, 9.4, 8.6, 16, 10.2, "glow_cyan")]
+    for y in (9, 12):
+        m += ring_y(8, y, 8, 3.0, "glow_white", 0.25)
     return m
 
 
@@ -1347,47 +1346,44 @@ def tesla_dominion():
     return m
 
 
-def event_horizon():
-    # The ring machine in miniature: three tilted rings around a black core in a glowing disk.
-    m = [B(1, 0, 1, 15, 1.2, 15, "obsidian"), B(2, 1.2, 2, 14, 1.6, 14, "gunmetal")]
-    m += cyl_y(8, 8, 1.6, 4, 1.0, "steel")
-    m += ring_y(8, 8.5, 8, 6.4, "steel", 0.6, segs=24)
-    m += [B(1.4, 8.2, 7.6, 14.6, 8.8, 8.4, "steel", ("x", 45, [8, 8.5, 8])), B(7.6, 8.2, 1.4, 8.4, 8.8, 14.6, "steel", ("z", 45, [8, 8.5, 8]))]
-    m += ring_y(8, 8.5, 8, 4.4, "glow_orange", 0.5) + ring_y(8, 8.5, 8, 3.0, "glow_gold", 0.4)
-    m += vsphere(8, 8.5, 8, 2.0, 0.9, "black")
-    m += [B(7.6, 4, 7.6, 8.4, 6.6, 8.4, "glow_white")]
-    return m
-
-
-def nanite_bloom():
-    # A pressure canister of grey goo: steel cylinder, lit bands, and a burst of silver fingers around its base.
-    m = [B(2, 0, 2, 14, 1, 14, "gunmetal")]
-    m += cyl_y(8, 8, 1, 13, 3.6, "chrome")
-    for y in (3, 6.5, 10):
-        m += cyl_y(8, 8, y, y + 0.6, 3.8, "glow_cyan")
-    m += cyl_y(8, 8, 13, 14.5, 2.4, "steel") + [B(7.3, 14.5, 7.3, 8.7, 16, 8.7, "glow_white")]
+def dyson_lance():
+    # A focusing mirror array: a ring of angled gold panels around a lens, aimed at the sky.
+    m = [B(1, 0, 1, 15, 1.2, 15, "gunmetal")]
+    m += cyl_y(8, 8, 1.2, 7, 1.0, "steel")
     for i in range(8):
         a = i * _m.pi / 4
-        x, z = 8 + 4.6 * _m.cos(a), 8 + 4.6 * _m.sin(a)
-        x2, z2 = 8 + 7 * _m.cos(a + 0.3), 8 + 7 * _m.sin(a + 0.3)
-        m += [B(x - 0.7, 1, z - 0.7, x + 0.7, 2.2, z + 0.7, "titanium"), B(x2 - 0.5, 1, z2 - 0.5, x2 + 0.5, 1.6, z2 + 0.5, "titanium")]
+        x, z = 8 + 5.2 * _m.cos(a), 8 + 5.2 * _m.sin(a)
+        m += [B(x - 1.4, 6.5, z - 1.4, x + 1.4, 7.2, z + 1.4, "gold", ("y", -i * 45, [x, 6.8, z]))]
+        m += [B(x - 0.3, 1.2, z - 0.3, x + 0.3, 6.5, z + 0.3, "titanium")]
+    m += vsphere(8, 9, 8, 2.0, 0.9, "glass_gold")
+    m += [B(7.5, 11, 7.5, 8.5, 16, 8.5, "glow_gold")]
     return m
 
 
-def inversion_engine():
-    # A gyroscope over a mirror: a pedestal, a reflective disc, two crossed rings and a hanging inverted block.
-    m = [B(2, 0, 2, 14, 1.4, 14, "gunmetal"), B(1, 1.4, 1, 15, 1.8, 15, "chrome")]
-    m += cyl_y(8, 8, 1.8, 6, 0.8, "steel")
-    m += ring_y(8, 9, 8, 5.2, "steel", 0.6, segs=22)
-    m += [B(2.6, 8.6, 7.6, 13.4, 9.4, 8.4, "glow_purple", ("x", 60, [8, 9, 8])), B(7.6, 8.6, 2.6, 8.4, 9.4, 13.4, "glow_blue", ("z", 60, [8, 9, 8]))]
-    m += vsphere(8, 9, 8, 1.6, 0.8, "glow_white")
-    m += [B(5.5, 12.5, 5.5, 10.5, 14, 10.5, "rock"), B(6.2, 14, 6.2, 9.8, 15.4, 9.8, "olive"), B(7, 11.4, 7, 9, 12.5, 9, "rock")]
+def gravity_killswitch():
+    # A gravity generator: a heavy base, a floating cracked rock held in a cage of rings, off its pedestal.
+    m = [B(1, 0, 1, 15, 2, 15, "obsidian"), B(2, 2, 2, 14, 2.4, 14, "glow_purple")]
+    m += ring_y(8, 6, 8, 5.4, "steel", 0.6, segs=22) + ring_y(8, 11, 8, 5.0, "steel", 0.6, segs=22)
+    m += [B(5.2, 6.6, 5.2, 10.8, 10.6, 10.8, "rock"), B(6, 10.6, 6.4, 9.4, 12, 9.6, "rock"), B(9, 5.4, 9, 11, 6.6, 11, "rock")]
+    for (x, z) in ((2, 2), (12.6, 2), (2, 12.6), (12.6, 12.6)):
+        m += [B(x, 2.4, z, x + 1.4, 14, z + 1.4, "gunmetal"), B(x + 0.2, 14, z + 0.2, x + 1.2, 14.8, z + 1.2, "glow_purple")]
+    return m
+
+
+def seismic_tsunami():
+    # A piston hammer: a frame, a thick ram and a cracked anvil plate under it.
+    m = [B(0, 0, 0, 16, 1.6, 16, "rock"), B(2, 1.6, 2, 14, 2.4, 14, "steel")]
+    for (x, z) in ((1.5, 1.5), (12.5, 1.5), (1.5, 12.5), (12.5, 12.5)):
+        m += [B(x, 2.4, z, x + 2, 14, z + 2, "gunmetal")]
+    m += [B(1.5, 14, 1.5, 14.5, 16, 14.5, "gunmetal")]
+    m += cyl_y(8, 8, 6, 14, 3.4, "chrome") + cyl_y(8, 8, 4, 6, 4.4, "steel")
+    m += [B(3, 2.4, 7.6, 13, 2.6, 8.4, "glow_orange"), B(7.6, 2.4, 3, 8.4, 2.6, 13, "glow_orange")]
     return m
 
 
 BOMBS.update({
-    "ion_scythe": ion_scythe, "phase_scrubber": phase_scrubber, "tesla_dominion": tesla_dominion,
-    "event_horizon": event_horizon, "nanite_bloom": nanite_bloom, "inversion_engine": inversion_engine,
+    "ion_scythe": ion_scythe, "resonance_cascade": resonance_cascade, "tesla_dominion": tesla_dominion,
+    "dyson_lance": dyson_lance, "gravity_killswitch": gravity_killswitch, "seismic_tsunami": seismic_tsunami,
 })
 
 

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/dyson_lance"
+    },
+    "facing=east": {
+      "model": "armageddon:block/dyson_lance",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/dyson_lance",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/dyson_lance",
+      "y": 270
+    }
+  }
+}

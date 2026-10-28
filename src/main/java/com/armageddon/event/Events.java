@@ -119,11 +119,11 @@ public final class Events {
 		EVENTS.put("fossil_bomb", OddBombEvents.Fossil::new);
 		EVENTS.put("lava_lamp", OddBombEvents.LavaLamp::new);
 		EVENTS.put("ion_scythe", com.armageddon.event.events.SciFiEvents.IonScythe::new);
-		EVENTS.put("phase_scrubber", com.armageddon.event.events.SciFiEvents.PhaseScrubber::new);
+		EVENTS.put("resonance_cascade", com.armageddon.event.events.SciFiEvents.ResonanceCascade::new);
 		EVENTS.put("tesla_dominion", com.armageddon.event.events.SciFiEvents.TeslaDominion::new);
-		EVENTS.put("event_horizon", com.armageddon.event.events.SciFiEvents.EventHorizon::new);
-		EVENTS.put("nanite_bloom", com.armageddon.event.events.SciFiEvents.NaniteBloom::new);
-		EVENTS.put("inversion_engine", com.armageddon.event.events.SciFiEvents.InversionEngine::new);
+		EVENTS.put("dyson_lance", com.armageddon.event.events.SciFiEvents.DysonLance::new);
+		EVENTS.put("gravity_killswitch", com.armageddon.event.events.SciFiEvents.GravityKillswitch::new);
+		EVENTS.put("seismic_tsunami", com.armageddon.event.events.SciFiEvents.SeismicTsunami::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);
 		EVENTS.put("zeropoint", CelestialEvents.Zeropoint::new);

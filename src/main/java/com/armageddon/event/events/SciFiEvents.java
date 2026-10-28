@@ -13,12 +13,12 @@ import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.SciShapes;
-import com.armageddon.util.SciShapes.Horizon;
-import com.armageddon.util.SciShapes.Inversion;
+import com.armageddon.util.SciShapes.Dyson;
+import com.armageddon.util.SciShapes.Gravity;
 import com.armageddon.util.SciShapes.Ion;
-import com.armageddon.util.SciShapes.Nanite;
-import com.armageddon.util.SciShapes.Phase;
+import com.armageddon.util.SciShapes.Resonance;
 import com.armageddon.util.SciShapes.Tesla;
+import com.armageddon.util.SciShapes.Wave;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -44,17 +44,18 @@ import java.util.List;
 
 /**
  * The plasma and sci-fi weapons. None of them is an explosion: an orbital ion beam that cuts and then vaporises, a
- * force field that scans a town out of existence, a tesla tower that burns lightning into the ground as glass, a
- * singularity that spins the land into an accretion disk, grey goo, and an engine that turns the world upside down.
+ * resonance that shakes every building apart, a tesla tower whose lightning tears structures to pieces, a mirror
+ * swarm that cuts canyons across the map, gravity switched off and back on too hard, and a wave of rock that
+ * scrapes the land down to stone.
  */
 public final class SciFiEvents {
 	private SciFiEvents() {
 	}
 
 	/** Effect ids for {@link com.armageddon.network.FxType#NEW_FX} (client: SciFx). */
-	public static final int FX_ION = 40, FX_PHASE = 41, FX_TESLA = 42, FX_HORIZON = 43, FX_NANITE = 44, FX_INVERSION = 45;
+	public static final int FX_ION = 40, FX_RESONANCE = 41, FX_TESLA = 42, FX_DYSON = 43, FX_GRAVITY = 44, FX_WAVE = 45;
 	/** Cinematic scene ids (client: Cinematics.SciCine). */
-	public static final int CINE_HORIZON = 8, CINE_NANITE = 9, CINE_INVERSION = 10;
+	public static final int CINE_DYSON = 8, CINE_GRAVITY = 9, CINE_WAVE = 10;
 
 	private static final int FLAGS = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
 	private static final BlockState AIR = Blocks.AIR.getDefaultState();
@@ -217,141 +218,140 @@ public final class SciFiEvents {
 		}
 	}
 
-	// ====================================================================== PHASE SCRUBBER
+	/** Turns the blocks of a structure into falling rubble (up to the debris budget); the rest are simply gone. */
+	static int collapse(Base e, List<BlockPos> blocks, Vec3d kick, double spread) {
+		int budget = Kit.debrisBudget(e.world, Vec3d.ofCenter(blocks.isEmpty() ? BlockPos.ORIGIN : blocks.get(0)));
+		int thrown = 0;
+		for (BlockPos p : blocks) {
+			BlockState s = e.world.getBlockState(p);
+			if (!e.breakable(p, s)) {
+				continue;
+			}
+			if (thrown < budget && (p.getX() + p.getY() * 3 + p.getZ() * 7) % 3 == 0) {
+				Destruction.record(e.world, p, s);
+				FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(e.world, p, s);
+				Kit.velocity(fb, kick.add((e.world.random.nextDouble() - 0.5) * spread, e.world.random.nextDouble() * spread * 0.5,
+						(e.world.random.nextDouble() - 0.5) * spread));
+				thrown++;
+			} else {
+				e.put(p, AIR);
+			}
+		}
+		return thrown;
+	}
+
+	// ====================================================================== RESONANCE CASCADE
 
 	/**
-	 * PHASE SCRUBBER (city destruction). A hexagonal force field drops over the town and a plane of blue light
-	 * descends through it from the crown to the ground. Whatever it passes through is phased out of existence,
-	 * hills included. When it reaches the bottom it prints a clean, lit test-chamber floor across the whole dome,
-	 * and the field shatters.
+	 * RESONANCE CASCADE (city destruction). A tuning fork the height of a house rises and starts to hum. The hum
+	 * climbs until it finds the frequency of the town, and then everything built shakes itself apart: behind a
+	 * spreading front, walls, roofs and trees come down in heaps of rubble, glass bursts and the ground turns to mud.
 	 */
-	public static class PhaseScrubber extends Base {
-		private int nextLayer = Integer.MAX_VALUE, ox, oz, y0;
-		private final java.util.ArrayDeque<int[]> layers = new java.util.ArrayDeque<>();
-		private int cursor;
+	public static class ResonanceCascade extends Base {
+		private StrongBombEvents.RingSweep sweep;
 
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d g = center();
 			if (t == 0) {
-				ox = MathHelper.floor(g.x);
-				oz = MathHelper.floor(g.z);
-				y0 = MathHelper.floor(g.y);
-				CelestialEvents.announce(world, g, "block.armageddon.phase_scrubber");
-				Vfx.newFx(world, FX_PHASE, g, g, (float) Phase.R, 0x60C8FF, 0, 0, Phase.END);
-				Vfx.cutscene(world, g, 60);
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.6F);
+				CelestialEvents.announce(world, g, "block.armageddon.resonance_cascade");
+				Vfx.newFx(world, FX_RESONANCE, g, g, (float) Resonance.R, 0xA0F0FF, 0, 0, Resonance.END);
+				Vfx.cutscene(world, g, 80);
+				Kit.sound(world, g, SoundEvents.BLOCK_PISTON_EXTEND, 64.0F, 0.5F);
 			}
-			if (t == Phase.DOME_UP) {
-				Vfx.shake(world, g, 400, 1.2F);
-				Kit.sound(world, g, SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, 64.0F, 0.5F);
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.8F);
+			double hum = Resonance.hum(t);
+			if (t >= Resonance.HUM && t < Resonance.CASCADE_END && t % 6 == 0) {
+				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 64.0F, 0.5F + (float) hum * 1.4F);
+				Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.4F + (float) hum);
+				Vfx.shake(world, g, 300, 0.3F + (float) hum * 1.2F);
 			}
-			if (t >= Phase.SCAN && t <= Phase.SCAN_END) {
-				int layer = MathHelper.floor(g.y + Phase.plane(t));
-				if (nextLayer == Integer.MAX_VALUE) {
-					nextLayer = MathHelper.floor(g.y + Phase.H);
-				}
-				while (nextLayer >= layer) {
-					layers.addLast(new int[]{nextLayer});
-					nextLayer--;
-				}
-				double py = g.y + Phase.plane(t);
-				for (LivingEntity e : Kit.living(world, g, Phase.R)) {
-					if (!Kit.creativeOrSpectator(e) && Math.abs(e.getY() + e.getHeight() * 0.5 - py) < e.getHeight() * 0.5 + 1.2
-							&& Math.hypot(e.getX() - g.x, e.getZ() - g.z) < Phase.radiusAt(py - g.y)) {
-						e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 14.0F);
-						world.spawnParticles(ParticleTypes.END_ROD, e.getX(), e.getY() + 1, e.getZ(), 8, 0.3, 0.6, 0.3, 0.05);
+			if (t >= Resonance.HUM && t < Resonance.CASCADE && t % 4 == 0 && Destruction.enabled(world)) {
+				// Before the cascade: dust and loose pieces shaken off the buildings.
+				for (int i = 0; i < 1 + (int) (hum * 6); i++) {
+					Vec3d p = com.armageddon.event.Climax.around(world, g, 6, Resonance.R * hum + 8);
+					int x = MathHelper.floor(p.x), z = MathHelper.floor(p.z);
+					BlockPos top = new BlockPos(x, top(x, z), z);
+					BlockState s = world.getBlockState(top);
+					if (!Devastation.natural(s) && breakable(top, s)) {
+						collapse(this, List.of(top), Vec3d.ZERO, 0.2);
 					}
 				}
-				if (t % 6 == 0) {
-					Kit.sound(world, new Vec3d(g.x, py, g.z), SoundEvents.BLOCK_BEACON_AMBIENT, 64.0F, 1.6F);
+			}
+			if (t == Resonance.CASCADE) {
+				CityDestructionEvents.frames(world, g, 0);
+				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 1.2F);
+				sweep = new StrongBombEvents.RingSweep((int) Resonance.R);
+			}
+			if (sweep != null && t <= Resonance.CASCADE_END + 4) {
+				double front = Resonance.front(t);
+				if (Destruction.enabled(world)) {
+					sweep.advance(front, 260, (dx, dz, d) -> shake(MathHelper.floor(g.x) + dx, MathHelper.floor(g.z) + dz));
 				}
-			}
-			scrub(4500);
-			if (t == Phase.PRINT && Destruction.enabled(world)) {
-				TerrainJob floor = TerrainJob.disc(world, g, Phase.R - 0.5, c -> c.set(y0 - 1, floorAt(c.x - ox, c.z - oz)));
-				floor.limit = 0;
-				jobs.add(floor);
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 1.2F);
-			}
-			for (TerrainJob j : jobs) {
-				j.limit = Math.max(j.limit, (t - Phase.PRINT) * 2.5);
-			}
-			stepJobs(3000);
-			if (t == Phase.SHATTER) {
-				CityDestructionEvents.frames(world, g, 3);
-				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
-				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 64.0F, 0.6F);
-				Vfx.shake(world, g, 400, 1.0F);
-			}
-			if (t > Phase.SHATTER && t < Phase.SHATTER + 40 && t % 4 == 0) {
-				Kit.sound(world, g.add((world.random.nextDouble() - 0.5) * 100, 30, (world.random.nextDouble() - 0.5) * 100),
-						SoundEvents.BLOCK_GLASS_BREAK, 48.0F, 0.6F + world.random.nextFloat() * 0.6F);
-			}
-			return t >= Phase.END && layers.isEmpty() && jobs.isEmpty() || t > Phase.END + 1200;
-		}
-
-		/** Erases queued layers, a slice at a time, within the dome's footprint at that height. */
-		private void scrub(int budget) {
-			if (!Destruction.enabled(world)) {
-				layers.clear();
-				return;
-			}
-			BlockPos.Mutable p = new BlockPos.Mutable();
-			while (budget > 0 && !layers.isEmpty()) {
-				int y = layers.peekFirst()[0];
-				double rr = Phase.radiusAt(y - y0 + 0.5);
-				int ri = MathHelper.ceil(rr);
-				int side = 2 * ri + 1, total = side * side;
-				while (cursor < total && budget > 0) {
-					int dx = cursor % side - ri, dz = cursor / side - ri;
-					cursor++;
-					if (dx * dx + dz * dz > rr * rr) {
-						continue;
-					}
-					budget--;
-					p.set(ox + dx, y, oz + dz);
-					BlockState s = world.getBlockState(p);
-					if (breakable(p, s) || !s.getFluidState().isEmpty() && !s.isAir()) {
-						put(p.toImmutable(), AIR);
-						budget -= 2;
-						if ((dx * 7 + dz * 13 + y) % 97 == 0) {
-							world.spawnParticles(ParticleTypes.END_ROD, p.getX() + 0.5, y + 0.5, p.getZ() + 0.5, 1, 0.2, 0.2, 0.2, 0.01);
+				if (t % 3 == 0) {
+					for (LivingEntity e : Kit.living(world, g, front + 4)) {
+						if (!Kit.creativeOrSpectator(e)) {
+							e.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 120, 0, false, false));
+							e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 20, 2, false, false));
+							e.damage(ModDamageTypes.source(world, ModDamageTypes.SHRAPNEL, null, owner()), 1.5F);
 						}
 					}
-				}
-				if (cursor >= total) {
-					layers.pollFirst();
-					cursor = 0;
+					Kit.sound(world, g, SoundEvents.BLOCK_STONE_BREAK, 64.0F, 0.5F);
+					Kit.sound(world, g, SoundEvents.BLOCK_GRAVEL_BREAK, 64.0F, 0.6F);
 				}
 			}
+			if (t == Resonance.SHATTER) {
+				CityDestructionEvents.frames(world, g, 3);
+				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
+				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 64.0F, 0.5F);
+				Vfx.shake(world, g, 400, 1.6F);
+			}
+			return t >= Resonance.END;
 		}
 
-		/** The printed floor: white panels, a light-blue grid, a lamp at every crossing and a ring at the centre. */
-		private static BlockState floorAt(int dx, int dz) {
-			boolean gx = Math.floorMod(dx, 9) == 0, gz = Math.floorMod(dz, 9) == 0;
-			double d = Math.sqrt(dx * dx + dz * dz);
-			if (gx && gz) {
-				return Blocks.SEA_LANTERN.getDefaultState();
+		/** One column of the town shakes apart: everything built or grown on it comes down; the soil goes to mud. */
+		private void shake(int x, int z) {
+			if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+				return;
 			}
-			if (Math.abs(d - 12) < 0.7 || Math.abs(d - Phase.R + 2) < 0.7) {
-				return Blocks.CYAN_CONCRETE.getDefaultState();
+			int surf = surface(x, z), top = Math.min(top(x, z), surf + 50);
+			List<BlockPos> built = new ArrayList<>();
+			BlockPos.Mutable p = new BlockPos.Mutable();
+			for (int y = surf + 1; y <= top; y++) {
+				BlockState s = world.getBlockState(p.set(x, y, z));
+				if (s.isIn(BlockTags.IMPERMEABLE) || s.isOf(Blocks.GLASS_PANE) || s.getBlock() instanceof net.minecraft.block.StainedGlassPaneBlock) {
+					put(p.toImmutable(), AIR);
+					if (y % 3 == 0) {
+						world.spawnParticles(new net.minecraft.particle.BlockStateParticleEffect(ParticleTypes.BLOCK, s), x + 0.5, y + 0.5, z + 0.5, 4, 0.3, 0.3, 0.3, 0.1);
+					}
+				} else if (!s.isAir()) {
+					built.add(p.toImmutable());
+				}
 			}
-			if (gx || gz) {
-				return Blocks.LIGHT_BLUE_CONCRETE.getDefaultState();
+			// The surface block itself counts if it is built (a floor, a road, a wall's footing).
+			BlockState ground = world.getBlockState(p.set(x, surf, z));
+			if (!Devastation.natural(ground)) {
+				built.add(p.toImmutable());
 			}
-			return SciShapes.hash(dx, dz) < 0.08 ? Blocks.LIGHT_GRAY_CONCRETE.getDefaultState() : Blocks.WHITE_CONCRETE.getDefaultState();
+			if (!built.isEmpty()) {
+				collapse(this, built, new Vec3d(0, 0.05, 0), 0.25);
+			}
+			// Soil liquefies: the top settles a block into mud.
+			if ((ground.isOf(Blocks.GRASS_BLOCK) || ground.isOf(Blocks.DIRT) || ground.isOf(Blocks.SAND) || ground.isOf(Blocks.COARSE_DIRT)
+					|| ground.isOf(Blocks.PODZOL)) && SciShapes.hash(x, z) < 0.55) {
+				put(new BlockPos(x, surf, z), AIR);
+				put(new BlockPos(x, surf - 1, z), Blocks.MUD.getDefaultState());
+			}
 		}
 	}
 
 	// ====================================================================== TESLA DOMINION
 
 	/**
-	 * TESLA DOMINION (city destruction). A lattice tower rises out of the ground and the storm starts: arcs jump
-	 * from its crown to the highest things around, and every strike burns a branching fulgurite of glass into
-	 * the ground. Ball lightning grows on the crown and discharges everywhere at once.
+	 * TESLA DOMINION (city destruction). A lattice tower rises and the storm starts: arcs jump from its crown to the
+	 * tallest things around. Lightning goes through buildings, not around them: each strike chains from block to
+	 * block, blowing the pieces off as it goes, and ploughs a smoking furrow through the ground where it earths.
+	 * Then ball lightning grows on the crown and discharges everywhere at once, and the tower comes down.
 	 */
 	public static class TeslaDominion extends Base {
 		@Override
@@ -361,7 +361,7 @@ public final class SciFiEvents {
 			Vec3d crown = Tesla.crown(g, t);
 			if (t == 0) {
 				CelestialEvents.announce(world, g, "block.armageddon.tesla_dominion");
-				Vfx.newFx(world, FX_TESLA, g, g, (float) Tesla.REACH, 0x90D8FF, 0, 0, Tesla.END);
+				Vfx.newFx(world, FX_TESLA, g, new Vec3d(yaw(), 0, 0), (float) Tesla.REACH, 0x90D8FF, 0, 0, Tesla.END);
 				Vfx.skyTint(world, g, 100000, 0x101830, 0.75F);
 				world.setWeather(0, 1600, true, true);
 				Kit.sound(world, g, SoundEvents.BLOCK_PISTON_EXTEND, 64.0F, 0.4F);
@@ -374,7 +374,7 @@ public final class SciFiEvents {
 			if (t >= Tesla.STORM && t < Tesla.DISCHARGE) {
 				int every = Math.max(2, 9 - (t - Tesla.STORM) / 50);
 				if (t % every == 0) {
-					strike(g, crown, Tesla.REACH, 10 + world.random.nextInt(14));
+					strike(g, crown, Tesla.REACH, 8 + world.random.nextInt(10));
 				}
 			}
 			if (t >= Tesla.ORB && t < Tesla.DISCHARGE) {
@@ -382,22 +382,21 @@ public final class SciFiEvents {
 					Kit.sound(world, crown, SoundEvents.BLOCK_BEACON_AMBIENT, 64.0F, 0.5F + (t - Tesla.ORB) * 0.02F);
 					Vfx.shake(world, g, 400, 0.4F + (t - Tesla.ORB) * 0.015F);
 				}
-				// It pulls: everything loose leans toward the tower.
 				if (t % 5 == 0) {
 					com.armageddon.detonation.Detonations.pull(world, g, 60, 0.06);
 				}
 			}
 			if (t == Tesla.DISCHARGE) {
 				CityDestructionEvents.frames(world, g, 3, 1, 3);
-				Vfx.flash(world, crown, 0.5F, 100000, 0xC0E8FF);
+				Vfx.flash(world, crown, 0.4F, 100000, 0xC0E8FF);
 				Vfx.shake(world, g, 100000, 2.6F);
 				Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.5F);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.8F);
-				for (int i = 0; i < 40; i++) {
-					double a = i * MathHelper.TAU / 40 + world.random.nextDouble() * 0.15;
+				for (int i = 0; i < 36; i++) {
+					double a = i * MathHelper.TAU / 36 + world.random.nextDouble() * 0.15;
 					double d = 25 + world.random.nextDouble() * (Tesla.REACH - 25);
 					Vec3d hit = Kit.ground(world, g.x + Math.cos(a) * d, g.z + Math.sin(a) * d);
-					DetonationManager.schedule(world, i % 4, () -> strikeAt(g, crown, hit, 24 + world.random.nextInt(26)));
+					DetonationManager.schedule(world, i % 5, () -> strikeAt(g, crown, hit, 20 + world.random.nextInt(18)));
 				}
 				for (LivingEntity e : Kit.living(world, g, Tesla.REACH)) {
 					if (!Kit.creativeOrSpectator(e)) {
@@ -406,8 +405,26 @@ public final class SciFiEvents {
 				}
 			}
 			if (t == Tesla.FALL) {
+				// The tower comes down: it falls along a line and smashes whatever it lands on.
 				Kit.sound(world, g, SoundEvents.BLOCK_CHAIN_BREAK, 64.0F, 0.4F);
 				Kit.sound(world, g, SoundEvents.BLOCK_ANVIL_LAND, 64.0F, 0.4F);
+			}
+			if (t == Tesla.FALL + 30) {
+				Vec3d dir = Kit.dir(yaw());
+				Kit.sound(world, g, SoundEvents.ENTITY_IRON_GOLEM_DEATH, 64.0F, 0.3F);
+				Vfx.shake(world, g, 400, 2.0F);
+				for (int i = 4; i < (int) Tesla.TOWER_H; i += 3) {
+					Vec3d at = Kit.ground(world, g.x + dir.x * i, g.z + dir.z * i);
+					int d = i;
+					DetonationManager.schedule(world, i / 12, () -> {
+						Vfx.ring(world, at.add(0, 0.4, 0), 8.0F, 1.0F, 0x6A6E78, true, 20);
+						if (Destruction.enabled(world)) {
+							plough(at.x, at.z, Math.atan2(dir.z, dir.x) + Math.PI / 2, 4, 0);
+							plough(at.x, at.z, Math.atan2(dir.z, dir.x) - Math.PI / 2, 4, 0);
+						}
+						Kit.damage(world, at, 5, 30.0F, ModDamageTypes.SHRAPNEL, null, owner());
+					});
+				}
 			}
 			return t >= Tesla.END;
 		}
@@ -443,531 +460,416 @@ public final class SciFiEvents {
 			}
 			world.spawnParticles(ParticleTypes.ELECTRIC_SPARK, hit.x, hit.y, hit.z, 40, 1.5, 1.0, 1.5, 0.4);
 			if (Destruction.enabled(world)) {
+				chain(BlockPos.ofFloored(hit).down(), 6);
 				Vec3d out = new Vec3d(hit.x - g.x, 0, hit.z - g.z);
 				double heading = Math.atan2(out.z, out.x);
-				fulgurite(hit.x, hit.z, heading, length, 2);
-				fulgurite(hit.x, hit.z, heading + Math.PI * (0.6 + world.random.nextDouble() * 0.8), length / 2, 1);
+				plough(hit.x, hit.z, heading, length, 1);
 			}
 		}
 
 		/**
-		 * Lightning frozen in the ground: a forking channel burnt through whatever stands in its way, its floor
-		 * fused to glass and lit here and there where the charge pooled.
+		 * The bolt goes through what it hit: it jumps from block to built block, and each one it passes through bursts
+		 * apart with the blocks around it thrown off.
 		 */
-		private void fulgurite(double x, double z, double heading, int length, int forks) {
+		private void chain(BlockPos from, int hops) {
+			BlockPos at = from;
+			for (int h = 0; h < hops; h++) {
+				BlockPos next = null;
+				for (int tries = 0; tries < 14 && next == null; tries++) {
+					BlockPos c = at.add(world.random.nextInt(11) - 5, -world.random.nextInt(6), world.random.nextInt(11) - 5);
+					BlockState s = world.getBlockState(c);
+					if (!s.isAir() && !Devastation.natural(s) && breakable(c, s)) {
+						next = c;
+					}
+				}
+				if (next == null) {
+					return;
+				}
+				Vfx.arc(world, Vec3d.ofCenter(at), Vec3d.ofCenter(next), 0.9F, 0xC8ECFF);
+				List<BlockPos> burst = new ArrayList<>();
+				for (BlockPos q : BlockPos.iterate(next.add(-1, -1, -1), next.add(1, 1, 1))) {
+					burst.add(q.toImmutable());
+				}
+				Vec3d kick = Vec3d.ofCenter(next).subtract(Vec3d.ofCenter(at)).normalize().multiply(0.5).add(0, 0.4, 0);
+				collapse(this, burst, kick, 0.6);
+				world.spawnParticles(ParticleTypes.ELECTRIC_SPARK, next.getX() + 0.5, next.getY() + 0.5, next.getZ() + 0.5, 12, 0.5, 0.5, 0.5, 0.3);
+				at = next;
+			}
+		}
+
+		/**
+		 * Where the charge earths it ploughs: a forking furrow torn through the ground and whatever stands on it,
+		 * the clods thrown up on either side, the bottom charred and smoking.
+		 */
+		private void plough(double x, double z, double heading, int length, int forks) {
 			BlockPos.Mutable p = new BlockPos.Mutable();
 			for (int i = 0; i < length; i++) {
-				heading += world.random.nextGaussian() * 0.45;
+				heading += world.random.nextGaussian() * 0.4;
 				x += Math.cos(heading);
 				z += Math.sin(heading);
 				int bx = MathHelper.floor(x), bz = MathHelper.floor(z);
 				if (!world.isChunkLoaded(bx >> 4, bz >> 4)) {
 					return;
 				}
-				int surf = surface(bx, bz), top = Math.min(top(bx, bz), surf + 12);
-				double fade = 1 - i / (double) length;
-				int depth = fade > 0.5 ? 2 : 1;
+				int surf = surface(bx, bz), top = Math.min(top(bx, bz), surf + 14);
+				int depth = i < length / 2 ? 3 : 2;
+				List<BlockPos> torn = new ArrayList<>();
 				for (int y = top; y > surf - depth; y--) {
-					BlockState s = world.getBlockState(p.set(bx, y, bz));
-					if (breakable(p, s)) {
-						put(p.toImmutable(), AIR);
-					}
+					torn.add(new BlockPos(bx, y, bz));
 				}
-				BlockState floor = i % 7 == 3 ? Blocks.SEA_LANTERN.getDefaultState()
-						: SciShapes.hash(bx, bz) < 0.5 ? Blocks.TINTED_GLASS.getDefaultState() : Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState();
-				BlockState s = world.getBlockState(p.set(bx, surf - depth, bz));
-				if (breakable(p, s)) {
-					put(p.toImmutable(), floor);
+				Vec3d side = new Vec3d(-Math.sin(heading), 0, Math.cos(heading)).multiply(world.random.nextBoolean() ? 0.35 : -0.35);
+				collapse(this, torn, side.add(0, 0.55, 0), 0.3);
+				BlockState floor = world.getBlockState(p.set(bx, surf - depth, bz));
+				if (breakable(p, floor) && Devastation.natural(floor)) {
+					put(p.toImmutable(), SciShapes.hash(bx, bz) < 0.4 ? Blocks.BLACKSTONE.getDefaultState() : Blocks.COARSE_DIRT.getDefaultState());
 				}
-				if (forks > 0 && world.random.nextFloat() < 0.13F) {
-					fulgurite(x, z, heading + (world.random.nextBoolean() ? 0.8 : -0.8), (int) ((length - i) * 0.6), forks - 1);
+				if (i % 4 == 0) {
+					world.spawnParticles(ParticleTypes.LARGE_SMOKE, bx + 0.5, surf - depth + 1.5, bz + 0.5, 2, 0.3, 0.2, 0.3, 0.02);
+				}
+				if (forks > 0 && world.random.nextFloat() < 0.12F) {
+					plough(x, z, heading + (world.random.nextBoolean() ? 0.8 : -0.8), (int) ((length - i) * 0.6), forks - 1);
 				}
 			}
 		}
 	}
 
-	// ====================================================================== EVENT HORIZON ENGINE
+	// ====================================================================== DYSON LANCE
 
 	/**
-	 * EVENT HORIZON ENGINE (world destruction). Three rings assemble in the sky and spin up; a singularity opens
-	 * between them. The ground below is torn up into an accretion disk that spins faster and faster and falls
-	 * inward; then the rings collapse into it, the disk goes in all at once, and the hole closes on a flash that
-	 * leaves a void-scarred bowl hundreds of blocks across.
+	 * DYSON LANCE (world destruction). A swarm of orbital mirrors turns and focuses the sun into one beam. It comes
+	 * down at the edge of the map and draws a straight line through the world: a canyon thirty blocks deep and three
+	 * hundred long either side, floored with magma. Then a second, and a third, crossing at the bomb, until the land
+	 * is cut into a six-pointed star. Last, it holds on the crossing and drills straight down.
 	 */
-	public static class EventHorizon extends Base {
-		private final List<FallingBlockEntity> disk = new ArrayList<>();
-		private Vec3d s;
-		private TerrainJob scar;
-		private int scarAt;
+	public static class DysonLance extends Base {
+		private double yaw;
+		private final TerrainJob[] cuts = new TerrainJob[3];
+		private TerrainJob drill;
 
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d g = center();
 			if (t == 0) {
-				s = g.add(0, Horizon.ALT, 0);
-				WorldCutsceneEvents.begin(this, world, g, "block.armageddon.event_horizon", CINE_HORIZON, Kit.dir(yaw()), Horizon.CINE);
-				Vfx.newFx(world, FX_HORIZON, s, g, (float) Horizon.RING_R, 0xFFB060, 0, 0, Horizon.END);
-				Vfx.skyTint(world, g, 100000, 0x0A0614, 0.8F);
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.4F);
+				yaw = Math.toRadians(yaw());
+				WorldCutsceneEvents.begin(this, world, g, "block.armageddon.dyson_lance", CINE_DYSON, Kit.dir(yaw()), Dyson.CINE);
+				Vfx.newFx(world, FX_DYSON, g, new Vec3d(yaw, 0, 0), (float) Dyson.L, 0xFFE0A0, 0, 0, Dyson.END);
+				Vfx.skyTint(world, g, 100000, 0x201008, 0.55F);
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.5F);
 			}
-			if (t > Horizon.ASSEMBLE && t < Horizon.OPEN && t % 12 == 0) {
-				Kit.sound(world, s, SoundEvents.BLOCK_PISTON_EXTEND, 64.0F, 0.3F + t * 0.003F);
-				Kit.sound(world, s, SoundEvents.BLOCK_IRON_DOOR_CLOSE, 64.0F, 0.4F);
+			if (t > Dyson.SWARM && t < Dyson.FOCUS && t % 15 == 0) {
+				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 64.0F, 0.6F + t * 0.005F);
 			}
-			if (t == Horizon.OPEN) {
-				CityDestructionEvents.frames(world, g, 0, 1);
-				Vfx.flash(world, s, 0.4F, 100000, 0xFFD0A0);
-				Vfx.shake(world, g, 100000, 1.8F);
-				Kit.sound(world, s, SoundEvents.BLOCK_END_PORTAL_SPAWN, 64.0F, 0.5F);
-				Kit.sound(world, s, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.3F);
+			if (t == Dyson.FOCUS) {
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.6F);
+				Vfx.shake(world, g, 100000, 1.0F);
 			}
-			double spin = Horizon.spin(t);
-			if (t >= Horizon.FEED && t < Horizon.FEED_END) {
-				double fr = Horizon.feedRadius(t);
-				for (FallingBlockEntity fb : Kit.lift(world, g, fr, 10, true, true)) {
-					fb.setNoGravity(true);
-					Kit.velocity(fb, new Vec3d(0, 0.4, 0));
-					disk.add(fb);
+			for (int k = 0; k < 3; k++) {
+				double along = Dyson.along(k, t);
+				if (t == Dyson.cutStart(k)) {
+					Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.6F);
+					Kit.sound(world, g, ModSounds.DEATH_RAY, 64.0F, 0.4F);
+					if (Destruction.enabled(world)) {
+						cuts[k] = canyon(g, Dyson.axis(k, yaw));
+					}
+				}
+				if (!Double.isNaN(along)) {
+					Vec3d ax = Dyson.axis(k, yaw);
+					Vec3d at = Kit.ground(world, g.x + ax.x * along, g.z + ax.z * along);
+					Kit.damage(world, at, Dyson.HALF_W + 4, 200.0F, ModDamageTypes.ANNIHILATION, null, owner());
+					world.spawnParticles(ParticleTypes.LAVA, at.x, at.y, at.z, 8, 3, 1, 3, 0.2);
+					if (t % 4 == 0) {
+						Kit.sound(world, at, SoundEvents.BLOCK_FIRE_EXTINGUISH, 64.0F, 0.5F);
+						Vfx.shake(world, at, 200, 1.4F);
+					}
+					if (cuts[k] != null) {
+						cuts[k].limit = along + Dyson.L;
+					}
+				}
+				if (cuts[k] != null) {
+					cuts[k].step(4500);
+				}
+			}
+			if (t == Dyson.DRILL) {
+				CityDestructionEvents.frames(world, g, 3, 1);
+				Vfx.flash(world, g, 0.4F, 100000, 0xFFF0C0);
+				Vfx.shake(world, g, 100000, 2.4F);
+				Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.4F);
+				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.4F);
+				if (Destruction.enabled(world)) {
+					drill = TerrainJob.disc(world, g, Destruction.radius(world, 22.0F), c -> {
+						double d = Math.hypot(c.x + 0.5 - g.x, c.z + 0.5 - g.z);
+						int floor = Math.max(c.bottomY() + 6, MathHelper.floor(g.y) - 90 + (int) (d * 1.5));
+						c.clear(floor, Math.min(c.top(), MathHelper.floor(g.y) + 40));
+						c.set(floor - 1, Blocks.MAGMA_BLOCK.getDefaultState());
+					});
+					drill.limit = 0;
+				}
+			}
+			if (drill != null) {
+				drill.limit = (t - Dyson.DRILL) * 0.4;
+				drill.step(3000);
+				if (t % 5 == 0 && t < Dyson.END) {
+					Kit.damage(world, g, 24, 200.0F, ModDamageTypes.ANNIHILATION, null, owner());
+				}
+			}
+			boolean done = drill == null || drill.isDone();
+			for (TerrainJob c : cuts) {
+				done &= c == null || c.isDone();
+			}
+			return t >= Dyson.END && done || t > Dyson.END + 1500;
+		}
+
+		/** The columns of one cut, keyed by distance along it, carved into a V-floored canyon with a magma bed. */
+		private TerrainJob canyon(Vec3d g, Vec3d ax) {
+			Vec3d side = new Vec3d(-ax.z, 0, ax.x);
+			int n = (int) (2 * Dyson.L + 1), w = (int) Math.ceil(Dyson.HALF_W) + 1;
+			long[] cols = new long[n * (2 * w + 1)];
+			float[] keys = new float[cols.length];
+			int i = 0;
+			for (int a = 0; a < n; a++) {
+				double along = -Dyson.L + a;
+				for (int s2 = -w; s2 <= w; s2++) {
+					cols[i] = BlockPos.asLong(MathHelper.floor(g.x + ax.x * along + side.x * s2), 0, MathHelper.floor(g.z + ax.z * along + side.z * s2));
+					keys[i] = (float) a;
+					i++;
+				}
+			}
+			int base = MathHelper.floor(g.y);
+			return new TerrainJob(world, cols, keys, c -> {
+				Vec3d rel = new Vec3d(c.x + 0.5 - g.x, 0, c.z + 0.5 - g.z);
+				double across = Math.abs(rel.dotProduct(side)) / Dyson.HALF_W;
+				if (across > 1.15) {
+					return;
+				}
+				double end = Math.abs(rel.dotProduct(ax)) / Dyson.L;
+				double depth = Dyson.DEPTH * (1 - Math.pow(Math.min(1, across), 4)) * (1 - Math.pow(end, 6));
+				int floor = base - (int) depth;
+				int top = Math.min(c.top(), base + 60);
+				if (across > 1.0) {
+					// The lip: scorched and slumped one block.
+					if (c.get(c.surface()).isOpaque()) {
+						c.set(c.surface(), Blocks.BLACKSTONE.getDefaultState());
+					}
+					return;
+				}
+				c.clear(floor + 1, top);
+				c.set(floor, c.noise(4) < 0.6 ? Blocks.MAGMA_BLOCK.getDefaultState() : Blocks.LAVA.getDefaultState());
+				c.set(floor - 1, Blocks.MAGMA_BLOCK.getDefaultState());
+			});
+		}
+	}
+
+	// ====================================================================== GRAVITY KILLSWITCH
+
+	/**
+	 * GRAVITY KILLSWITCH (world destruction). A generator hums, and then gravity simply stops. The town floats up off
+	 * the ground: houses coming apart, trees, the topsoil, people, all tumbling slowly upward. It hangs there. Then
+	 * gravity comes back many times over and everything is slammed down at once, and the ground under it is crushed.
+	 */
+	public static class GravityKillswitch extends Base {
+		private final List<FallingBlockEntity> floating = new ArrayList<>();
+		private StrongBombEvents.RingSweep sweep;
+		private TerrainJob crush;
+
+		@Override
+		public boolean tick() {
+			int t = age();
+			Vec3d g = center();
+			if (t == 0) {
+				WorldCutsceneEvents.begin(this, world, g, "block.armageddon.gravity_killswitch", CINE_GRAVITY, Kit.dir(yaw()), Gravity.CINE);
+				Vfx.newFx(world, FX_GRAVITY, g, g, (float) Gravity.R, 0xB0A0FF, 0, 0, Gravity.END);
+				Kit.sound(world, g, SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, 64.0F, 0.5F);
+			}
+			if (t > Gravity.HUM && t < Gravity.OFF && t % 10 == 0) {
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_AMBIENT, 64.0F, 0.5F + t * 0.01F);
+				Vfx.shake(world, g, 300, 0.2F + t * 0.01F);
+			}
+			if (t == Gravity.OFF) {
+				CityDestructionEvents.frames(world, g, 1);
+				Vfx.screen(world, g, 100000, 0, 0.4F, Gravity.SLAM - Gravity.OFF);
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.4F);
+				Kit.sound(world, g, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 64.0F, 0.4F);
+				sweep = new StrongBombEvents.RingSweep((int) Gravity.R);
+			}
+			if (t > Gravity.OFF && t < Gravity.SLAM) {
+				double front = Gravity.R * Math.min(1.0, (t - Gravity.OFF) / 90.0);
+				if (sweep != null && Destruction.enabled(world)) {
+					sweep.advance(front, 400, (dx, dz, d) -> float_(MathHelper.floor(g.x) + dx, MathHelper.floor(g.z) + dz));
 				}
 				if (t % 6 == 0) {
-					for (LivingEntity e : Kit.living(world, g, fr + 10)) {
-						if (!Kit.creativeOrSpectator(e) && e.getY() < s.y - 6) {
-							e.addStatusEffect(new StatusEffectInstance(StatusEffects.LEVITATION, 10, 2, false, false));
+					for (LivingEntity e : Kit.living(world, g, front)) {
+						if (!Kit.creativeOrSpectator(e)) {
+							e.addStatusEffect(new StatusEffectInstance(StatusEffects.LEVITATION, 10, 0, false, false));
 						}
 					}
 				}
-				if (t % 20 == 0) {
-					Kit.sound(world, s, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F + (float) spin);
-					Vfx.shake(world, g, 100000, 0.5F + (float) spin * 6);
+				for (FallingBlockEntity fb : floating) {
+					if (fb.isAlive() && fb.getY() > g.y + Gravity.CEIL) {
+						Kit.velocity(fb, fb.getVelocity().multiply(0.5, 0.0, 0.5));
+					}
 				}
 			}
-			orbit(t, spin);
-			if (t == Horizon.COLLAPSE) {
-				Kit.sound(world, s, SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE.value(), 64.0F, 0.3F);
-				Kit.sound(world, s, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 64.0F, 0.3F);
-				Vfx.shake(world, g, 100000, 2.4F);
-			}
-			if (t == Horizon.GONE) {
-				Kit.vanish(disk);
-				CityDestructionEvents.frames(world, g, 3, 1, 3, 0);
-				Vfx.flash(world, s, 0.6F, 100000, 0xFFFFFF);
-				Vfx.ring(world, g.add(0, 1, 0), 520.0F, 10.0F, 0xFFC080, true, 90);
+			if (t == Gravity.SLAM) {
+				CityDestructionEvents.frames(world, g, 0, 2, 0);
+				Vfx.screen(world, g, 100000, 0, 0.0F, 1);
 				Vfx.shake(world, g, 100000, 3.0F);
-				Vfx.fov(world, g, 20.0F, 40);
-				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.25F);
-				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.25F);
-				com.armageddon.detonation.Detonations.blast(world, g, 200, 4000.0F, ModDamageTypes.ANNIHILATION, owner(), 120, 6.0);
+				Vfx.fov(world, g, 18.0F, 30);
+				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.3F);
+				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.2F);
+				for (FallingBlockEntity fb : floating) {
+					if (fb.isAlive()) {
+						fb.setNoGravity(false);
+						Kit.velocity(fb, new Vec3d(0, -3.5, 0));
+					}
+				}
+				for (LivingEntity e : Kit.living(world, g, Gravity.R + 10)) {
+					if (!Kit.creativeOrSpectator(e)) {
+						e.removeStatusEffect(StatusEffects.LEVITATION);
+						Kit.push(e, new Vec3d(0, -4.0, 0));
+						e.damage(ModDamageTypes.source(world, ModDamageTypes.NUCLEAR_BLAST, null, owner()), 30.0F);
+					}
+				}
 				if (Destruction.enabled(world)) {
-					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 40.0F), CraterJob.Mode.ANTIMATTER));
-					scar = Devastation.of(world, g, Destruction.radius(world, 60.0F), Destruction.radius(world, 270.0F), MathHelper.floor(g.y) - 1, Devastation.VOID);
-					scar.limit = 0;
-					scarAt = t;
+					crush = TerrainJob.disc(world, g, Gravity.R, c -> {
+						int surf = c.surface();
+						int sink = 1 + (int) (c.noise(2) * 3);
+						for (int y = surf; y > surf - sink; y--) {
+							c.set(y, AIR);
+						}
+						double n = c.noise(3);
+						c.set(surf - sink, n < 0.3 ? Blocks.COBBLED_DEEPSLATE.getDefaultState() : n < 0.65 ? Blocks.GRAVEL.getDefaultState()
+								: Blocks.COBBLESTONE.getDefaultState());
+					});
+					crush.limit = 0;
 				}
 			}
-			if (scar != null) {
-				CityDestructionEvents.devastate(world, scar, g, t - scarAt, 30, 5.0, 270, owner());
+			if (crush != null) {
+				crush.limit = (t - Gravity.SLAM) * 6.0;
+				crush.step(5000);
+				if ((t - Gravity.SLAM) % 4 == 0 && crush.limit < Gravity.R) {
+					Kit.ringCrack(world, g, crush.limit, 3, null, 0.25F);
+				}
 			}
-			return t >= Horizon.END && (scar == null || scar.isDone()) || t > Horizon.END + 1500;
+			return t >= Gravity.END && (crush == null || crush.isDone()) || t > Gravity.END + 1200;
 		}
 
-		/** Steers the disk: around the hole, toward its plane, slowly inward; things that reach the hole are gone. */
-		private void orbit(int t, double spin) {
-			boolean collapse = t >= Horizon.COLLAPSE;
-			disk.removeIf(fb -> {
-				if (!fb.isAlive()) {
-					return true;
+		/** A column lets go: what stands on it, and its topsoil, float up; what the budget cannot carry just goes. */
+		private void float_(int x, int z) {
+			if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+				return;
+			}
+			int surf = surface(x, z), top = Math.min(top(x, z), surf + 40);
+			int budget = Kit.debrisBudget(world, center());
+			BlockPos.Mutable p = new BlockPos.Mutable();
+			for (int y = top; y >= surf; y--) {
+				BlockState s = world.getBlockState(p.set(x, y, z));
+				if (!breakable(p, s) || !s.getFluidState().isEmpty()) {
+					continue;
 				}
-				Vec3d rel = fb.getPos().subtract(s);
-				double r = Math.hypot(rel.x, rel.z);
-				if (rel.length() < 6.5) {
-					world.spawnParticles(ParticleTypes.REVERSE_PORTAL, fb.getX(), fb.getY(), fb.getZ(), 4, 0.3, 0.3, 0.3, 0.1);
-					fb.discard();
-					return true;
+				if (budget > 0 && SciShapes.hash(x * 3 + y, z * 5 - y) < 0.35) {
+					Destruction.record(world, p.toImmutable(), s);
+					FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, p.toImmutable(), s);
+					fb.setNoGravity(true);
+					fb.setDestroyedOnLanding();
+					Kit.velocity(fb, new Vec3d((world.random.nextDouble() - 0.5) * 0.06, 0.06 + world.random.nextDouble() * 0.14, (world.random.nextDouble() - 0.5) * 0.06));
+					floating.add(fb);
+					budget--;
+				} else {
+					put(p.toImmutable(), AIR);
 				}
-				if (collapse) {
-					Kit.velocity(fb, rel.normalize().multiply(-3.2));
-					return false;
-				}
-				Vec3d in = r > 1.0E-3 ? new Vec3d(-rel.x / r, 0, -rel.z / r) : Vec3d.ZERO;
-				Vec3d tangent = new Vec3d(-in.z, 0, in.x);
-				double want = Math.max(9, r * (0.994 - spin * 0.02));
-				double plane = (SciShapes.hash(fb.getId(), 3) - 0.5) * (2 + r * 0.06);
-				double speed = (0.4 + spin * 10) * Math.min(1.6, 30 / Math.max(10, r) + 0.4);
-				Kit.velocity(fb, tangent.multiply(speed).add(in.multiply((r - want) * 0.12)).add(0, (plane - rel.y) * 0.06, 0));
-				return false;
-			});
+			}
 		}
 
 		@Override
 		public void finish() {
-			Kit.vanish(disk);
+			Kit.vanish(floating);
 			super.finish();
 		}
 	}
 
-	// ====================================================================== NANITE BLOOM
+	// ====================================================================== SEISMIC TSUNAMI
 
 	/**
-	 * NANITE BLOOM (world destruction). A canister cracks and grey goo pours out: branching fingers of nanite matter
-	 * run out across the land and everything they touch, house, tree, hill or person, turns to grey metal in its
-	 * own shape. The gaps fill in, and then the whole region resolves itself: it melts flat into a gleaming silver
-	 * plain laid out in hexagons, with a pulse of light running through it.
+	 * SEISMIC TSUNAMI (world destruction). A piston hammer the size of a tower slams into the ground four times, and
+	 * on the last blow the land itself becomes a wave: a crest of rock and soil rolls out from the hammer, throwing
+	 * everything on it, and behind it the ground is scraped down to bare stone for three hundred blocks.
 	 */
-	public static class NaniteBloom extends Base {
-		private static final class Tip {
-			double x, z, heading;
-
-			Tip(double x, double z, double heading) {
-				this.x = x;
-				this.z = z;
-				this.heading = heading;
-			}
-		}
-
-		private final List<Tip> tips = new ArrayList<>();
-		private final java.util.Set<Long> done = new java.util.HashSet<>();
-		private TerrainJob fill, plain;
-		private int y0;
+	public static class SeismicTsunami extends Base {
+		private StrongBombEvents.RingSweep sweep;
 
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d g = center();
 			if (t == 0) {
-				y0 = MathHelper.floor(g.y);
-				WorldCutsceneEvents.begin(this, world, g, "block.armageddon.nanite_bloom", CINE_NANITE, Kit.dir(yaw()), Nanite.CINE);
-				Vfx.newFx(world, FX_NANITE, g, g, (float) Nanite.R, 0x70E0FF, 0, 0, Nanite.END);
-				Vfx.skyTint(world, g, 100000, 0x202830, 0.6F);
+				WorldCutsceneEvents.begin(this, world, g, "block.armageddon.seismic_tsunami", CINE_WAVE, Kit.dir(yaw()), Wave.CINE);
+				Vfx.newFx(world, FX_WAVE, g, g, (float) Wave.R, 0x8A7A60, 0, 0, Wave.END);
+				Kit.sound(world, g, SoundEvents.BLOCK_PISTON_EXTEND, 64.0F, 0.3F);
 			}
-			if (t == Nanite.RELEASE) {
-				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 32.0F, 0.6F);
-				Kit.sound(world, g, SoundEvents.BLOCK_SCULK_SPREAD, 64.0F, 0.5F);
-				Vfx.ring(world, g.add(0, 0.5, 0), 20.0F, 1.0F, 0x80D0E0, false, 20);
-				for (int i = 0; i < 14; i++) {
-					tips.add(new Tip(g.x, g.z, i * MathHelper.TAU / 14 + world.random.nextGaussian() * 0.15));
+			for (int i = 0; i < Wave.SLAMS; i++) {
+				if (t == Wave.slam(i)) {
+					float k = (i + 1) / (float) Wave.SLAMS;
+					Vfx.shake(world, g, 100000, 1.0F + k * 1.8F);
+					Vfx.ring(world, g.add(0, 0.5, 0), 40.0F + 40 * k, 2.0F, 0x8A7A60, true, 30);
+					Kit.sound(world, g, SoundEvents.BLOCK_ANVIL_LAND, 64.0F, 0.3F);
+					Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.4F - k * 0.15F);
+					Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 48.0F * k, 0.5F);
+					com.armageddon.event.Climax.groundWave(world, g, 10 + i * 6, 6, 30, 0.4 + k * 0.3);
+					if (i == Wave.SLAMS - 1) {
+						CityDestructionEvents.frames(world, g, 0, 2);
+					}
 				}
 			}
-			if (t >= Nanite.GROW && t < Nanite.GROW_END && Destruction.enabled(world)) {
-				grow(g);
-				if (t % 10 == 0) {
-					Kit.sound(world, g, SoundEvents.BLOCK_SCULK_SPREAD, 64.0F, 0.4F + world.random.nextFloat() * 0.3F);
-				}
+			if (t == Wave.WAVE) {
+				sweep = new StrongBombEvents.RingSweep((int) Wave.R);
 			}
-			if (t == Nanite.FILL && Destruction.enabled(world)) {
-				fill = TerrainJob.disc(world, g, Nanite.R, c -> convert(c.x, c.z));
-				fill.limit = 0;
-			}
-			if (fill != null) {
-				fill.limit = Nanite.fill(t);
-				fill.step(300);
-			}
-			if (t == Nanite.PLAIN) {
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.5F);
-				Kit.sound(world, g, SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, 64.0F, 0.4F);
-				Vfx.shake(world, g, 100000, 1.2F);
+			if (sweep != null) {
+				double front = Wave.front(t);
 				if (Destruction.enabled(world)) {
-					plain = TerrainJob.disc(world, g, Nanite.R, this::flatten);
-					plain.limit = 0;
+					sweep.advance(front, 900, (dx, dz, d) -> scrape(MathHelper.floor(g.x) + dx, MathHelper.floor(g.z) + dz, d));
 				}
-			}
-			if (plain != null) {
-				plain.limit = Math.max(0, (t - Nanite.PLAIN) * 3.2);
-				plain.step(6000);
-			}
-			if (t == Nanite.PULSE) {
-				CityDestructionEvents.frames(world, g, 3);
-				Vfx.flash(world, g, 0.3F, 100000, 0xA0F0FF);
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 1.0F);
-				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 64.0F, 0.8F);
-			}
-			return t >= Nanite.END && (fill == null || fill.isDone()) && (plain == null || plain.isDone()) || t > Nanite.END + 1600;
-		}
-
-		private void grow(Vec3d g) {
-			List<Tip> born = new ArrayList<>();
-			tips.removeIf(tip -> {
-				tip.heading += world.random.nextGaussian() * 0.28;
-				tip.x += Math.cos(tip.heading) * 1.4;
-				tip.z += Math.sin(tip.heading) * 1.4;
-				double d = Math.hypot(tip.x - g.x, tip.z - g.z);
-				if (d > Nanite.R || world.random.nextFloat() < 0.0025F) {
-					return true;
-				}
-				int r = d < 30 ? 3 : 2;
-				for (int dx = -r; dx <= r; dx++) {
-					for (int dz = -r; dz <= r; dz++) {
-						if (dx * dx + dz * dz <= r * r) {
-							convert(MathHelper.floor(tip.x) + dx, MathHelper.floor(tip.z) + dz);
+				if (t % 2 == 0 && front < Wave.R) {
+					com.armageddon.event.Climax.groundWave(world, g, front, 4, 22, 0.9);
+					for (LivingEntity e : Kit.living(world, g, front + 8)) {
+						double d = Math.hypot(e.getX() - g.x, e.getZ() - g.z);
+						if (d > front - 8 && !Kit.creativeOrSpectator(e)) {
+							Vec3d out = new Vec3d(e.getX() - g.x, 0, e.getZ() - g.z).normalize();
+							Kit.push(e, out.multiply(1.4).add(0, 1.1, 0));
+							e.damage(ModDamageTypes.source(world, ModDamageTypes.SHRAPNEL, null, owner()), 10.0F);
 						}
 					}
 				}
-				for (LivingEntity e : Kit.living(world, new Vec3d(tip.x, g.y, tip.z), 4)) {
-					if (!Kit.creativeOrSpectator(e)) {
-						e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 6.0F);
-						e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, 2, false, false));
-					}
+				if (t % 5 == 0 && front < Wave.R) {
+					Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F);
+					Kit.sound(world, g, SoundEvents.BLOCK_GRAVEL_BREAK, 64.0F, 0.4F);
+					Vfx.shake(world, g, 100000, 1.2F);
 				}
-				if (tips.size() + born.size() < 90 && world.random.nextFloat() < 0.035F) {
-					born.add(new Tip(tip.x, tip.z, tip.heading + (world.random.nextBoolean() ? 0.7 : -0.7)));
-				}
-				return false;
-			});
-			tips.addAll(born);
-			if (tips.size() < 6) {
-				double a = world.random.nextDouble() * MathHelper.TAU, d = world.random.nextDouble() * Nanite.R * 0.4;
-				tips.add(new Tip(g.x + Math.cos(a) * d, g.z + Math.sin(a) * d, a));
 			}
+			return t >= Wave.END;
 		}
 
-		/** Goo in the shape of whatever was there: every block of the column above the bedrock of the soil turns grey. */
-		private void convert(int x, int z) {
-			if (!world.isChunkLoaded(x >> 4, z >> 4) || !done.add(BlockPos.asLong(x, 0, z))) {
+		/** Behind the crest: scraped down to the rock, the soil and everything on it carried away. */
+		private void scrape(int x, int z, double d) {
+			if (!world.isChunkLoaded(x >> 4, z >> 4)) {
 				return;
 			}
-			int surf = surface(x, z), top = Math.min(top(x, z), surf + 28);
+			int surf = surface(x, z), top = Math.min(top(x, z), surf + 60);
+			double k = Math.min(1.0, d / 40.0) * Math.min(1.0, (Wave.R - d) / 30.0 + 0.2);
+			int scrape = (int) Math.round(Wave.SCRAPE * k * (0.7 + SciShapes.hash(x, z) * 0.6));
 			BlockPos.Mutable p = new BlockPos.Mutable();
-			for (int y = top; y >= surf - 2; y--) {
+			for (int y = top; y > surf - scrape; y--) {
 				BlockState s = world.getBlockState(p.set(x, y, z));
-				if (!breakable(p, s) || isGoo(s)) {
-					continue;
-				}
-				if (!s.isFullCube(world, p) && y > surf) {
+				if (breakable(p, s)) {
 					put(p.toImmutable(), AIR);
-					continue;
-				}
-				put(p.toImmutable(), goo(x, y, z));
-			}
-		}
-
-		private static boolean isGoo(BlockState s) {
-			return s.isOf(Blocks.LIGHT_GRAY_CONCRETE) || s.isOf(Blocks.GRAY_CONCRETE) || s.isOf(Blocks.IRON_BLOCK) || s.isOf(Blocks.SEA_LANTERN)
-					|| s.isOf(Blocks.WHITE_CONCRETE);
-		}
-
-		private static BlockState goo(int x, int y, int z) {
-			double n = SciShapes.hash(x * 31 + y, z * 17 - y);
-			return n < 0.012 ? Blocks.SEA_LANTERN.getDefaultState() : n < 0.12 ? Blocks.IRON_BLOCK.getDefaultState()
-					: n < 0.4 ? Blocks.GRAY_CONCRETE.getDefaultState() : Blocks.LIGHT_GRAY_CONCRETE.getDefaultState();
-		}
-
-		/** The plain: everything above the anchor's height melts away, hollows fill, and the top is laid out in hexagons. */
-		private void flatten(TerrainJob.Column c) {
-			int surf = c.surface(), top = Math.min(c.top(), surf + 60);
-			for (int y = top; y > y0 - 1; y--) {
-				if (!c.get(y).isAir()) {
-					c.set(y, AIR);
 				}
 			}
-			for (int y = Math.max(surf + 1, y0 - 14); y < y0 - 1; y++) {
-				c.set(y, Blocks.GRAY_CONCRETE.getDefaultState());
+			BlockState floor = world.getBlockState(p.set(x, surf - scrape, z));
+			if (breakable(p, floor)) {
+				double n = SciShapes.hash(x * 7, z * 3);
+				put(p.toImmutable(), n < 0.55 ? Blocks.STONE.getDefaultState() : n < 0.8 ? Blocks.COBBLESTONE.getDefaultState()
+						: n < 0.93 ? Blocks.GRAVEL.getDefaultState() : Blocks.ANDESITE.getDefaultState());
 			}
-			c.set(y0 - 1, hex(c.x, c.z));
-		}
-
-		/** Hexagons ten blocks across: iron edges, white-grey faces, a lamp in the middle of each. */
-		private BlockState hex(int x, int z) {
-			double size = 6.0;
-			double qx = (x * Math.sqrt(3) / 3 - z / 3.0) / size, qz = (z * 2 / 3.0) / size;
-			double cx = qx, cz = qz, cy = -qx - qz;
-			double rx = Math.round(cx), rz = Math.round(cz), ry = Math.round(cy);
-			double ddx = Math.abs(rx - cx), ddz = Math.abs(rz - cz), ddy = Math.abs(ry - cy);
-			if (ddx > ddz && ddx > ddy) {
-				rx = -rz - ry;
-			} else if (ddz > ddy) {
-				rz = -rx - ry;
-			}
-			double fx = cx - rx, fz = cz - rz, fy = -fx - fz;
-			double edge = Math.max(Math.abs(fx), Math.max(Math.abs(fz), Math.abs(fy)));
-			if (edge > 0.42) {
-				return Blocks.IRON_BLOCK.getDefaultState();
-			}
-			if (edge < 0.07) {
-				return Blocks.SEA_LANTERN.getDefaultState();
-			}
-			return SciShapes.hash(x, z) < 0.5 ? Blocks.LIGHT_GRAY_CONCRETE.getDefaultState() : Blocks.WHITE_CONCRETE.getDefaultState();
-		}
-	}
-
-	// ====================================================================== INVERSION ENGINE
-
-	/**
-	 * INVERSION ENGINE (world destruction). A gyroscope of light spins up over the bomb and a mirror opens in the
-	 * air. A sphere of the world, buildings, trees, soil and rock, peels away from the top down and reappears
-	 * upside down above the mirror, until the whole town hangs inverted in the sky over a round pit. It hangs, the
-	 * engine fails, and the island shatters: half of it rains down across the land, the rest comes apart into light.
-	 */
-	public static class InversionEngine extends Base {
-		private long[] order;
-		private int cursor;
-		private final List<Long> island = new ArrayList<>();
-		private int cx, cy, cz;
-
-		@Override
-		public boolean tick() {
-			int t = age();
-			Vec3d g = center();
-			if (t == 0) {
-				cx = MathHelper.floor(g.x);
-				cy = MathHelper.floor(g.y);
-				cz = MathHelper.floor(g.z);
-				WorldCutsceneEvents.begin(this, world, g, "block.armageddon.inversion_engine", CINE_INVERSION, Kit.dir(yaw()), Inversion.CINE);
-				Vfx.newFx(world, FX_INVERSION, g, g, (float) Inversion.R, 0xC0A0FF, 0, 0, Inversion.END);
-				Vfx.skyTint(world, g, 100000, 0x180C28, 0.7F);
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.5F);
-			}
-			if (t > Inversion.CHARGE && t < Inversion.LIFT && t % 10 == 0) {
-				Kit.sound(world, g, SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, 64.0F, 0.5F + t * 0.006F);
-				Vfx.shake(world, g, 400, 0.3F + t * 0.01F);
-			}
-			if (t == Inversion.LIFT) {
-				CityDestructionEvents.frames(world, g, 1);
-				Vfx.screen(world, g, 100000, 4, 0.9F, 6);
-				Kit.sound(world, g, SoundEvents.BLOCK_END_PORTAL_SPAWN, 64.0F, 0.7F);
-				Kit.sound(world, g, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 64.0F, 0.5F);
-				order = sphereTopDown();
-			}
-			if (t >= Inversion.LIFT && t < Inversion.HANG_END) {
-				if (order != null && Destruction.enabled(world)) {
-					int want = (int) (order.length * Inversion.lifted(t + 1));
-					transfer(want, 9000);
-				}
-				if (t % 8 == 0) {
-					for (LivingEntity e : Kit.living(world, g, Inversion.R + 4)) {
-						if (!Kit.creativeOrSpectator(e) && t < Inversion.LIFT_END + 20) {
-							e.addStatusEffect(new StatusEffectInstance(StatusEffects.LEVITATION, 14, 4, false, false));
-						}
-					}
-					if (t < Inversion.LIFT_END) {
-						Kit.sound(world, g.add(0, Inversion.HEIGHT * 0.5, 0), SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 48.0F, 0.5F + world.random.nextFloat());
-					}
-				}
-			}
-			if (t == Inversion.LIFT_END) {
-				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.4F);
-				Vfx.shake(world, g, 100000, 1.4F);
-			}
-			if (t > Inversion.LIFT_END && t < Inversion.SHATTER && t % 30 == 0) {
-				// It creaks: an upside-down town is not meant to hang there.
-				Kit.sound(world, g.add(0, Inversion.HEIGHT, 0), SoundEvents.BLOCK_POINTED_DRIPSTONE_LAND, 64.0F, 0.3F);
-				Kit.sound(world, g.add(0, Inversion.HEIGHT, 0), ModSounds.NUKE_RUMBLE, 64.0F, 0.3F);
-			}
-			if (t == Inversion.SHATTER) {
-				shatter(g);
-			}
-			return t >= Inversion.END;
-		}
-
-		/** Every position in the sphere, top layer first (roofs and treetops go before the ground and the rock). */
-		private long[] sphereTopDown() {
-			int r = MathHelper.ceil(Inversion.R);
-			List<Long> list = new ArrayList<>();
-			for (int dy = r; dy >= -r; dy--) {
-				List<Long> layer = new ArrayList<>();
-				for (int dx = -r; dx <= r; dx++) {
-					for (int dz = -r; dz <= r; dz++) {
-						if (dx * dx + dy * dy + dz * dz <= Inversion.R * Inversion.R) {
-							layer.add(BlockPos.asLong(cx + dx, cy + dy, cz + dz));
-						}
-					}
-				}
-				Collections.shuffle(layer, new java.util.Random(dy * 31L + cx));
-				list.addAll(layer);
-			}
-			long[] out = new long[list.size()];
-			for (int i = 0; i < out.length; i++) {
-				out[i] = list.get(i);
-			}
-			return out;
-		}
-
-		/** Moves blocks up to index {@code want}: each one is removed below and set again, mirrored, above the mirror. */
-		private void transfer(int want, int budget) {
-			BlockPos.Mutable p = new BlockPos.Mutable();
-			while (cursor < Math.min(want, order.length) && budget > 0) {
-				p.set(order[cursor++]);
-				if (!world.isChunkLoaded(p)) {
-					continue;
-				}
-				budget--;
-				BlockState s = world.getBlockState(p);
-				if (s.isAir()) {
-					continue;
-				}
-				if (!s.getFluidState().isEmpty()) {
-					// Water and lava do not survive the trip; they just drain out of the pit.
-					if (s.getBlock() instanceof net.minecraft.block.FluidBlock) {
-						put(p.toImmutable(), AIR);
-					}
-					continue;
-				}
-				if (!breakable(p, s)) {
-					continue;
-				}
-				Destruction.record(world, p.toImmutable(), s);
-				BlockPos to = new BlockPos(p.getX(), cy + Inversion.mirror(p.getY() - cy), p.getZ());
-				put(p.toImmutable(), AIR);
-				if (put(to, stable(s))) {
-					island.add(to.asLong());
-				}
-				budget -= 2;
-			}
-		}
-
-		/** What a block becomes upside down in the sky: nothing that falls, and leaves that do not decay. */
-		private static BlockState stable(BlockState s) {
-			if (s.getBlock() instanceof FallingBlock) {
-				if (s.isIn(BlockTags.SAND)) {
-					return s.isOf(Blocks.RED_SAND) ? Blocks.RED_SANDSTONE.getDefaultState() : Blocks.SANDSTONE.getDefaultState();
-				}
-				return s.isOf(Blocks.GRAVEL) ? Blocks.TUFF.getDefaultState() : Blocks.STONE.getDefaultState();
-			}
-			if (s.getBlock() instanceof LeavesBlock) {
-				return s.with(LeavesBlock.PERSISTENT, true);
-			}
-			if (s.contains(net.minecraft.state.property.Properties.BLOCK_HALF)) {
-				net.minecraft.block.enums.BlockHalf h = s.get(net.minecraft.state.property.Properties.BLOCK_HALF);
-				return s.with(net.minecraft.state.property.Properties.BLOCK_HALF,
-						h == net.minecraft.block.enums.BlockHalf.TOP ? net.minecraft.block.enums.BlockHalf.BOTTOM : net.minecraft.block.enums.BlockHalf.TOP);
-			}
-			if (s.contains(net.minecraft.state.property.Properties.SLAB_TYPE)) {
-				net.minecraft.block.enums.SlabType st = s.get(net.minecraft.state.property.Properties.SLAB_TYPE);
-				return st == net.minecraft.block.enums.SlabType.DOUBLE ? s : s.with(net.minecraft.state.property.Properties.SLAB_TYPE,
-						st == net.minecraft.block.enums.SlabType.TOP ? net.minecraft.block.enums.SlabType.BOTTOM : net.minecraft.block.enums.SlabType.TOP);
-			}
-			return s;
-		}
-
-		/** The engine fails: the island breaks up, much of it raining onto the land and the rest coming apart as light. */
-		private void shatter(Vec3d g) {
-			Vec3d isl = g.add(0, Inversion.HEIGHT, 0);
-			CityDestructionEvents.frames(world, g, 3, 1, 3);
-			Vfx.screen(world, g, 100000, 4, 0.8F, 4);
-			Vfx.flash(world, isl, 0.5F, 100000, 0xD0C0FF);
-			Vfx.ring(world, isl, 260.0F, 6.0F, 0xC0A0FF, false, 50);
-			Vfx.shake(world, g, 100000, 2.6F);
-			Kit.sound(world, isl, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.3F);
-			Kit.sound(world, isl, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.4F);
-			Kit.sound(world, isl, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F);
-			if (!Destruction.enabled(world)) {
-				return;
-			}
-			Collections.shuffle(island, new java.util.Random(cx * 31L + cz));
-			int falls = Math.min(island.size(), Math.min(1400, Kit.debrisBudget(world, g)));
-			BlockPos.Mutable p = new BlockPos.Mutable();
-			for (int i = 0; i < falls; i++) {
-				p.set(island.get(i));
-				BlockState s = world.getBlockState(p);
-				if (s.isAir() || s.hasBlockEntity()) {
-					continue;
-				}
-				FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, p.toImmutable(), s);
-				Vec3d out = new Vec3d(p.getX() - isl.x, 0, p.getZ() - isl.z);
-				double l = out.length();
-				Vec3d dir = l > 1.0E-3 ? out.multiply(1 / l) : Vec3d.ZERO;
-				Kit.velocity(fb, dir.multiply(0.4 + world.random.nextDouble() * 1.4).add(0, world.random.nextDouble() * 0.7, 0));
-			}
-			Ruin.disintegrate(world, isl, Inversion.R + 3, Blocks.PEARLESCENT_FROGLIGHT.getDefaultState(), ParticleTypes.END_ROD, 70);
 		}
 	}
 }

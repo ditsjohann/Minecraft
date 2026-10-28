@@ -137,11 +137,11 @@ public final class ModBlocks {
 
 	// ---------------------------------------------------------------- plasma and sci-fi
 	public static final BombBlock ION_SCYTHE = tiered(bomb("ion_scythe", BombType.ION_SCYTHE, Rarity.EPIC), Tier.CELESTIAL);
-	public static final BombBlock PHASE_SCRUBBER = tiered(bomb("phase_scrubber", BombType.PHASE_SCRUBBER, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock RESONANCE_CASCADE = tiered(bomb("resonance_cascade", BombType.RESONANCE_CASCADE, Rarity.EPIC), Tier.CITY_DESTRUCTION);
 	public static final BombBlock TESLA_DOMINION = tiered(bomb("tesla_dominion", BombType.TESLA_DOMINION, Rarity.EPIC), Tier.CITY_DESTRUCTION);
-	public static final BombBlock EVENT_HORIZON = tiered(bomb("event_horizon", BombType.EVENT_HORIZON, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock NANITE_BLOOM = tiered(bomb("nanite_bloom", BombType.NANITE_BLOOM, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
-	public static final BombBlock INVERSION_ENGINE = tiered(bomb("inversion_engine", BombType.INVERSION_ENGINE, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock DYSON_LANCE = tiered(bomb("dyson_lance", BombType.DYSON_LANCE, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock GRAVITY_KILLSWITCH = tiered(bomb("gravity_killswitch", BombType.GRAVITY_KILLSWITCH, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock SEISMIC_TSUNAMI = tiered(bomb("seismic_tsunami", BombType.SEISMIC_TSUNAMI, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks
 	public static final Block ENERGY_CRYSTAL = register("energy_crystal", new TransparentBlock(AbstractBlock.Settings.create()

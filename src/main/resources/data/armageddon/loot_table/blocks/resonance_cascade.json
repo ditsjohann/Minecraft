@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "armageddon:phase_scrubber"
+          "name": "armageddon:resonance_cascade"
         }
       ],
       "conditions": [
@@ -17,5 +17,5 @@
       ]
     }
   ],
-  "random_sequence": "armageddon:blocks/phase_scrubber"
+  "random_sequence": "armageddon:blocks/resonance_cascade"
 }

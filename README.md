@@ -84,15 +84,15 @@ freezing for anyone not standing by a fire; then the sun's corpse falls, and the
 
 **Plasma and sci-fi** — none of these is an explosion. ION SCYTHE (Celestial): an orbital ion beam carves a spiral
 trench of molten glass outward, charges it, then the whole spiral ignites as a curtain of light that disintegrates
-the land. PHASE SCRUBBER (City Destruction): a hex force field drops over the town and a scan plane descends through
-it, erasing everything it passes, hills included, then prints a lit test-chamber floor and shatters. TESLA DOMINION
-(City Destruction): a tesla tower rises and arcs at the tallest things around; each strike burns a branching
-fulgurite of glass into the ground, and the ball lightning on its crown discharges everywhere at once. EVENT HORIZON
-ENGINE (World Destruction): three rings open a singularity in the sky, the land is torn up into its accretion disk
-and spun faster and faster until it all goes in. NANITE BLOOM (World Destruction): grey goo runs out in branching
-fingers turning everything to metal in its own shape, then the region melts into a silver hex plain. INVERSION
-ENGINE (World Destruction): a sphere of the world is flipped upside down into the sky over its own pit, hangs there,
-and shatters back down.
+the land. RESONANCE CASCADE (City Destruction): a tuning fork hums until it finds the town's frequency, then every
+building, wall and tree behind the spreading front shakes apart into heaps of rubble and the soil goes to mud. TESLA
+DOMINION (City Destruction): a tesla tower arcs at the tallest things around; the lightning chains through buildings
+blowing them apart and ploughs smoking furrows where it earths, then the ball lightning discharges everywhere and
+the tower topples. DYSON LANCE (World Destruction): an orbital mirror swarm focuses the sun into a beam that cuts
+three 600-block canyons through the world into a six-pointed star, then drills the centre. GRAVITY KILLSWITCH (World
+Destruction): gravity switches off and the town floats up and tumbles, then it comes back many times over and slams
+everything down. SEISMIC TSUNAMI (World Destruction): a piston hammer slams the ground until the land becomes a wave
+of rock rolling out three hundred blocks, scraping everything behind it down to bare stone.
 
 **Oddities (Legendary and Mythic)** — Sonar (green echo vision, shoving rings that shatter glass, a sonic boom),
 8-Bit (the world goes low-res on screen and in the blocks, then GAME OVER), Magnetar (iron, ore included, ripped into

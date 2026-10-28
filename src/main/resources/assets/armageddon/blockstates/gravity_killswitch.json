@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/gravity_killswitch"
+    },
+    "facing=east": {
+      "model": "armageddon:block/gravity_killswitch",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/gravity_killswitch",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/gravity_killswitch",
+      "y": 270
+    }
+  }
+}

@@ -4,12 +4,12 @@ import com.armageddon.client.render.FxDraw;
 import com.armageddon.client.render.FxRenderLayers;
 import com.armageddon.network.FxPayload;
 import com.armageddon.util.SciShapes;
-import com.armageddon.util.SciShapes.Horizon;
-import com.armageddon.util.SciShapes.Inversion;
+import com.armageddon.util.SciShapes.Dyson;
+import com.armageddon.util.SciShapes.Gravity;
 import com.armageddon.util.SciShapes.Ion;
-import com.armageddon.util.SciShapes.Nanite;
-import com.armageddon.util.SciShapes.Phase;
+import com.armageddon.util.SciShapes.Resonance;
 import com.armageddon.util.SciShapes.Tesla;
+import com.armageddon.util.SciShapes.Wave;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.world.ClientWorld;
@@ -30,11 +30,11 @@ final class SciFx {
 	static FxEffect create(int kind, Vec3d a, Vec3d b, FxPayload p) {
 		return switch (kind) {
 			case 40 -> new IonFx(a, b.x, p.duration());
-			case 41 -> new PhaseFx(a, p.duration());
-			case 42 -> new TeslaFx(a, p.duration());
-			case 43 -> new HorizonFx(a, p.duration());
-			case 44 -> new NaniteFx(a, p.duration());
-			case 45 -> new InversionFx(a, p.duration());
+			case 41 -> new ResonanceFx(a, p.duration());
+			case 42 -> new TeslaFx(a, b.x, p.duration());
+			case 43 -> new DysonFx(a, b.x, p.duration());
+			case 44 -> new GravityFx(a, p.duration());
+			case 45 -> new WaveFx(a, p.duration());
 			default -> null;
 		};
 	}
@@ -50,6 +50,24 @@ final class SciFx {
 	static float fadeOut(float a, float from, float len) {
 		return 1.0F - MathHelper.clamp((a - from) / len, 0.0F, 1.0F);
 	}
+
+	/** A lit cube tumbling about {@code (rx, ry)}: the phantom debris of the gravity and wave bombs. */
+	static void cube(VertexConsumer solid, Matrix4f m, Vec3d c, double h, double rx, double ry, int rgb) {
+		double cx = Math.cos(rx), sx = Math.sin(rx), cy = Math.cos(ry), sy = Math.sin(ry);
+		Vec3d u = new Vec3d(cy, 0, -sy).multiply(h);
+		Vec3d v = new Vec3d(sy * sx, cx, cy * sx).multiply(h);
+		Vec3d w = new Vec3d(sy * cx, -sx, cy * cx).multiply(h);
+		Vec3d[][] faces = {{u, v, w}, {u.multiply(-1), v, w.multiply(-1)}, {v, w, u}, {v.multiply(-1), w, u.multiply(-1)}, {w, u, v}, {w.multiply(-1), u, v.multiply(-1)}};
+		for (Vec3d[] f : faces) {
+			Vec3d n = f[0].normalize();
+			int col = Solids.scale(rgb, Solids.light(n));
+			Vec3d o = c.add(f[0]);
+			Solids.quad(solid, m, o.subtract(f[1]).subtract(f[2]), o.add(f[1]).subtract(f[2]), o.add(f[1]).add(f[2]), o.subtract(f[1]).add(f[2]), col, 1.0F);
+		}
+	}
+
+	/** Earth colours for phantom debris. */
+	static final int[] EARTH = {0x5E9E3A, 0x6A8E34, 0x7A5A3A, 0x6A4A2E, 0x808080, 0x6E6E6E, 0xA0804A, 0x3A7A2A, 0x9A9488};
 
 	/** A torus of short tube segments with glowing nodes: the ring machines' building block. */
 	static void ring(VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d c, Vec3d u, Vec3d v, double r, double thick, int segs,
@@ -170,110 +188,93 @@ final class SciFx {
 		}
 	}
 
-	// ====================================================================== PHASE SCRUBBER
+	// ====================================================================== RESONANCE CASCADE
 
-	/** The hex-lattice dome, the descending scan plane, the floor pulse, and the dome breaking into shards. */
-	static final class PhaseFx extends FxEffect {
+	/** The tuning fork, its pressure rings warping the air, the collapse front and its dust, the fork shattering. */
+	static final class ResonanceFx extends FxEffect {
 		private final Vec3d g;
 
-		PhaseFx(Vec3d g, int life) {
+		ResonanceFx(Vec3d g, int life) {
 			super(Math.max(40, life));
 			this.g = g;
 		}
 
-		/** Point on the dome: azimuth {@code az}, elevation {@code el} (0 at the rim, PI/2 at the crown). */
-		private Vec3d dome(double az, double el, double drop) {
-			return g.add(Math.cos(az) * Math.cos(el) * Phase.R, Math.sin(el) * Phase.H + drop, Math.sin(az) * Math.cos(el) * Phase.R);
+		@Override
+		public boolean tick(ClientWorld world) {
+			if (age > Resonance.HUM && age < Resonance.CASCADE_END) {
+				ClientFx.shake = Math.max(ClientFx.shake, (float) Resonance.hum(age) * 0.8F);
+			}
+			return super.tick(world);
 		}
 
 		@Override
 		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
 			float a = age + td;
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			Vec3d off = cam.multiply(-1);
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
-			if (a < Phase.DOME) {
-				return;
-			}
-			double drop = a < Phase.DOME_UP ? Math.pow(1 - (a - Phase.DOME) / (Phase.DOME_UP - Phase.DOME), 2) * 160 : 0;
-			float on = fadeIn(a, Phase.DOME, 20);
-			int lat = 9, lon = 30;
-			if (a < Phase.SHATTER) {
-				// The field: staggered rows of hexagon-ish cells, drawn as their edges.
-				for (int i = 0; i < lat; i++) {
-					double el0 = i * (Math.PI / 2) / lat, el1 = (i + 1) * (Math.PI / 2) / lat;
-					int n = Math.max(6, (int) (lon * Math.cos(el0)));
-					for (int j = 0; j < n; j++) {
-						double az0 = (j + (i % 2) * 0.5) * MathHelper.TAU / n, az1 = (j + 1 + (i % 2) * 0.5) * MathHelper.TAU / n;
-						Vec3d p0 = dome(az0, el0, drop).add(off), p1 = dome(az1, el0, drop).add(off);
-						Vec3d p2 = dome((az0 + az1) * 0.5, el1, drop).add(off);
-						float flick = 0.35F + 0.15F * MathHelper.sin(a * 0.2F + i * 1.7F + j * 0.9F);
-						FxDraw.ribbon(glow, m, p0, p1, Vec3d.ZERO, 0.35, 0x70D8FF, flick * on, flick * on);
-						FxDraw.ribbon(glow, m, p0, p2, Vec3d.ZERO, 0.3, 0x60C0FF, flick * on * 0.7F, flick * on * 0.7F);
-					}
-				}
-				FxDraw.sphere(glow, m, g.add(0, drop - Phase.H * 0.05, 0).add(off), Phase.R, Vec3d.ZERO, 0x3080FF, 0.0F, 0.12F * on, 18, 28);
-			}
-			// The scan plane: a disc of light with a hard bright rim and a grid ruled across it.
-			if (a >= Phase.SCAN && a < Phase.SCAN_END + 10) {
-				double py = Phase.plane(a);
-				double r = Phase.radiusAt(py);
-				Vec3d pc = g.add(0, py, 0).add(off);
-				Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
-				float k = fadeIn(a, Phase.SCAN, 8) * fadeOut(a, Phase.SCAN_END, 10);
-				FxDraw.disc(glow, m, pc, x, z, r, 0x60C8FF, 0.16F * k, 0.08F * k, 64);
-				FxDraw.ring(glow, m, pc, x, z, r - 1.2, r, 0xD0F4FF, 0.0F, 0.8F * k, 0.0F, 96);
-				for (double u = -r; u <= r; u += 6) {
-					double h = Math.sqrt(Math.max(0, r * r - u * u));
-					FxDraw.ribbon(glow, m, pc.add(u, 0, -h), pc.add(u, 0, h), Vec3d.ZERO, 0.18, 0xA0E0FF, 0.35F * k, 0.35F * k);
-					FxDraw.ribbon(glow, m, pc.add(-h, 0, u), pc.add(h, 0, u), Vec3d.ZERO, 0.18, 0xA0E0FF, 0.35F * k, 0.35F * k);
+			Vec3d c = g.subtract(cam);
+			double hum = Resonance.hum(a);
+			float alive = fadeOut(a, Resonance.SHATTER, 1);
+			double rise = MathHelper.clamp((a - Resonance.EMIT) / 30.0, 0.0, 1.0);
+			if (alive > 0) {
+				// The fork: a stem and two tines that blur as they ring.
+				double H = Resonance.FORK_H * rise;
+				Vec3d stem = c.add(0, -Resonance.FORK_H * (1 - rise), 0);
+				Solids.tube(solid, m, stem, stem.add(0, H * 0.35, 0), 1.6, 1.3, 10, 0x9AA4B0, 1.0F, true);
+				Vec3d side = new Vec3d(1, 0, 0);
+				for (int sg = -1; sg <= 1; sg += 2) {
+					double buzz = Math.sin(a * 2.7) * hum * 0.6 * sg;
+					Vec3d root = stem.add(0, H * 0.35, 0).add(side.multiply(sg * 1.6));
+					Vec3d tip = stem.add(0, H, 0).add(side.multiply(sg * 2.2 + buzz));
+					Solids.tube(solid, m, root, tip, 0.9, 0.7, 8, 0xC8D0DA, 1.0F, true);
+					FxDraw.ribbon(glow, m, root, tip, Vec3d.ZERO, 2.2 * hum, 0xA0F0FF, 0.25F * (float) hum, 0.4F * (float) hum);
 				}
 			}
-			if (a >= Phase.PRINT && a < Phase.END) {
-				double fr = (a - Phase.PRINT) * 2.5;
-				if (fr < Phase.R) {
-					Vec3d gc = g.add(0, 0.15, 0).add(off);
-					FxDraw.ring(glow, m, gc, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), Math.max(0, fr - 3), fr, 0xC0F0FF, 0.0F, 0.6F, 0.0F, 96);
-				}
-			}
-			if (a >= Phase.SHATTER) {
-				// The field breaks into hexagonal shards that tumble down and fade.
-				float e = a - Phase.SHATTER;
-				float fa = fadeOut(e, 40, 50);
-				for (int i = 0; i < 160; i++) {
-					double az = SciShapes.hash(i, 1) * MathHelper.TAU, el = SciShapes.hash(i, 2) * Math.PI / 2 * 0.95;
-					Vec3d p0 = dome(az, el, 0);
-					double delay = SciShapes.hash(i, 3) * 20;
-					double t = Math.max(0, e - delay);
-					Vec3d out = new Vec3d(p0.x - g.x, 0, p0.z - g.z).normalize();
-					Vec3d p = p0.add(out.multiply(t * 0.15)).add(0, -0.03 * t * t, 0).add(off);
-					double spin = t * 0.1 + i;
-					Vec3d u = new Vec3d(Math.cos(spin), Math.sin(spin * 0.7) * 0.5, Math.sin(spin)).normalize();
-					Vec3d v = u.crossProduct(new Vec3d(0.2, 1, 0.3)).normalize();
+			// Pressure rings rolling out of the fork, rippled by the note.
+			if (a > Resonance.HUM && a < Resonance.CASCADE_END) {
+				Vec3d gc = c.add(0, 0.3, 0);
+				for (int k = 0; k < 6; k++) {
+					double rr = ((a - Resonance.HUM) * 2.2 + k * 18) % (Resonance.R + 10);
+					float fa = (float) (0.35 * hum * (1 - rr / (Resonance.R + 10)));
 					Vec3d prev = null;
-					for (int k = 0; k <= 6; k++) {
-						double ang = k * MathHelper.TAU / 6;
-						Vec3d q = p.add(u.multiply(Math.cos(ang) * 3.2)).add(v.multiply(Math.sin(ang) * 3.2));
+					for (int i = 0; i <= 64; i++) {
+						double ang = i * MathHelper.TAU / 64;
+						double wob = rr + Math.sin(ang * 9 + a * 0.4) * 1.2 * hum;
+						Vec3d p = gc.add(Math.cos(ang) * wob, Math.sin(ang * 5 + a * 0.3) * 0.6 * hum, Math.sin(ang) * wob);
 						if (prev != null) {
-							FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 0.3, 0x90E0FF, 0.6F * fa, 0.6F * fa);
+							FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 0.5, 0xB0F4FF, fa, fa);
 						}
-						prev = q;
+						prev = p;
 					}
-					FxDraw.disc(glow, m, p, u, v, 3.0, 0x60B0FF, 0.15F * fa, 0.05F * fa, 6);
 				}
+			}
+			// The collapse front: a churning wall of dust where the buildings are coming down.
+			if (a >= Resonance.CASCADE && a < Resonance.END) {
+				double front = Resonance.front(a);
+				float k = fadeOut(a, Resonance.CASCADE_END, 60);
+				java.util.List<Effects.Puff> dust = FxKit.puffs();
+				FxKit.dustRing(m, cb, c, Math.max(4, front - 3), 8, 0xA09484, 0x3A342C, 0.55F * k, 501, dust);
+				FxKit.dustRing(m, cb, c, Math.max(2, front * 0.6), 14, 0x8A8070, 0x2A2620, 0.3F * k, 502, dust);
+				FxKit.flush(dust, consumers, m, cb);
+			}
+			if (a >= Resonance.SHATTER && a < Resonance.SHATTER + 30) {
+				float e = a - Resonance.SHATTER;
+				FxKit.sparks(consumers, m, c.add(0, Resonance.FORK_H * 0.7, 0), 20, 80, 0xD0F0FF, e / 30.0F, fadeOut(e, 5, 25), 503);
 			}
 		}
 	}
 
 	// ====================================================================== TESLA DOMINION
 
-	/** The lattice tower with its coils and crown torus, crawling arcs, the ball lightning, and the tower's fall. */
+	/** The lattice tower with its coils and crown torus, crawling arcs, the ball lightning, and the tower falling over. */
 	static final class TeslaFx extends FxEffect {
-		private final Vec3d g;
+		private final Vec3d g, dir;
 
-		TeslaFx(Vec3d g, int life) {
+		TeslaFx(Vec3d g, double yawDeg, int life) {
 			super(Math.max(40, life));
 			this.g = g;
+			this.dir = Vec3d.fromPolar(0, (float) yawDeg);
 		}
 
 		@Override
@@ -291,64 +292,72 @@ final class SciFx {
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 			Vec3d base = g.subtract(cam);
-			double up = Tesla.risen(a) * Tesla.TOWER_H;
-			// It sinks back into the ground at the end, sparking.
-			double sink = a > Tesla.FALL ? Math.pow((a - Tesla.FALL) / (double) (Tesla.END - Tesla.FALL), 2) * (Tesla.TOWER_H + 12) : 0;
-			Vec3d b0 = base.add(0, up - Tesla.TOWER_H - sink, 0);
 			double H = Tesla.TOWER_H;
+			double up = Tesla.risen(a) * H;
+			// Toppling: it leans, then goes over along its heading, hinged at the base.
+			double tip = a > Tesla.FALL ? Math.min(1.0, Math.pow((a - Tesla.FALL) / 30.0, 2)) * Math.PI / 2 : 0;
+			float gone = fadeOut(a, Tesla.END - 30, 30);
+			if (gone <= 0) {
+				return;
+			}
+			Vec3d hinge = new Vec3d(-dir.z, 0, dir.x);
+			java.util.function.Function<Vec3d, Vec3d> T = local -> {
+				Vec3d l = local.add(0, up - H, 0);
+				double cs = Math.cos(tip), sn = Math.sin(tip);
+				double along = l.dotProduct(dir), vert = l.y;
+				Vec3d rest = l.subtract(dir.multiply(along)).subtract(0, vert, 0);
+				return base.add(rest).add(dir.multiply(along * cs + vert * sn)).add(0, -along * sn + vert * cs, 0);
+			};
 			int steel = 0x3A3E48, copper = 0xB06A3A;
-			// Four legs leaning in, braced every few blocks.
 			Vec3d[] legBot = new Vec3d[4], legTop = new Vec3d[4];
 			for (int i = 0; i < 4; i++) {
 				double ang = i * Math.PI / 2 + Math.PI / 4;
-				legBot[i] = b0.add(Math.cos(ang) * 8, 0, Math.sin(ang) * 8);
-				legTop[i] = b0.add(Math.cos(ang) * 1.8, H, Math.sin(ang) * 1.8);
-				Solids.tube(solid, m, legBot[i], legTop[i], 0.9, 0.5, 6, steel, 1.0F, true);
+				legBot[i] = new Vec3d(Math.cos(ang) * 8, 0, Math.sin(ang) * 8);
+				legTop[i] = new Vec3d(Math.cos(ang) * 1.8, H, Math.sin(ang) * 1.8);
+				Solids.tube(solid, m, T.apply(legBot[i]), T.apply(legTop[i]), 0.9, 0.5, 6, steel, 1.0F, true);
 			}
 			for (double y = 6; y < H - 4; y += 7) {
 				double k = y / H;
 				for (int i = 0; i < 4; i++) {
+					int j = (i + 1) % 4;
 					Vec3d p = legBot[i].add(legTop[i].subtract(legBot[i]).multiply(k));
-					Vec3d q = legBot[(i + 1) % 4].add(legTop[(i + 1) % 4].subtract(legBot[(i + 1) % 4]).multiply(k + 7 / H));
-					Vec3d q2 = legBot[(i + 1) % 4].add(legTop[(i + 1) % 4].subtract(legBot[(i + 1) % 4]).multiply(k));
-					Solids.tube(solid, m, p, q, 0.3, 0.3, 4, steel, 1.0F, true);
-					Solids.tube(solid, m, p, q2, 0.35, 0.35, 4, steel, 1.0F, true);
+					Vec3d q = legBot[j].add(legTop[j].subtract(legBot[j]).multiply(k + 7 / H));
+					Vec3d q2 = legBot[j].add(legTop[j].subtract(legBot[j]).multiply(k));
+					Solids.tube(solid, m, T.apply(p), T.apply(q), 0.3, 0.3, 4, steel, 1.0F, true);
+					Solids.tube(solid, m, T.apply(p), T.apply(q2), 0.35, 0.35, 4, steel, 1.0F, true);
 				}
 			}
-			// Copper coils up the core, and the crown: a fat torus that glows when it is charged.
-			Vec3d core0 = b0.add(0, 2, 0), core1 = b0.add(0, H, 0);
-			Solids.tube(solid, m, core0, core1, 1.6, 1.1, 10, copper, 1.0F, true);
+			Solids.tube(solid, m, T.apply(new Vec3d(0, 2, 0)), T.apply(new Vec3d(0, H, 0)), 1.6, 1.1, 10, copper, 1.0F, true);
 			for (double y = 8; y < H - 6; y += 2.2) {
 				double rr = 1.8 - y / H * 0.6;
-				Solids.tube(solid, m, b0.add(0, y, 0), b0.add(0, y + 1.2, 0), rr + 0.3, rr + 0.3, 10, Solids.scale(copper, 0.85), 1.0F, true);
+				Solids.tube(solid, m, T.apply(new Vec3d(0, y, 0)), T.apply(new Vec3d(0, y + 1.2, 0)), rr + 0.3, rr + 0.3, 10, Solids.scale(copper, 0.85), 1.0F, true);
 			}
-			Vec3d crown = b0.add(0, H + 6, 0);
-			float charged = a >= Tesla.STORM ? 1.0F : fadeIn(a, Tesla.RISEN, 10);
-			ring(solid, glow, m, crown, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 6.5, 2.2, 24, 0x8A8E9A, 0x90D8FF, 0.6F * charged, 0);
-			Solids.tube(solid, m, core1, crown, 1.1, 0.6, 8, copper, 1.0F, true);
+			Vec3d crown = T.apply(new Vec3d(0, H + 6, 0));
+			Vec3d cu = T.apply(new Vec3d(1, H + 6, 0)).subtract(crown), cv = T.apply(new Vec3d(0, H + 6, 1)).subtract(crown);
+			float charged = (a >= Tesla.STORM ? 1.0F : fadeIn(a, Tesla.RISEN, 10)) * (a > Tesla.FALL ? fadeOut(a, Tesla.FALL, 20) : 1.0F);
+			ring(solid, glow, m, crown, cu, cv, 6.5, 2.2, 24, 0x8A8E9A, 0x90D8FF, 0.6F * charged, 0);
+			Solids.tube(solid, m, T.apply(new Vec3d(0, H, 0)), crown, 1.1, 0.6, 8, copper, 1.0F, true);
 			FxKit.halo(consumers, m, cb, crown, 12, 0x80C8FF, 0.25F * charged);
-			// Arcs crawling around the crown and down the legs, re-rolled a few times a second.
 			int roll = (int) (a * 0.5F);
-			for (int k = 0; k < 6; k++) {
-				if (SciShapes.hash(k, roll) < 0.35 || a < Tesla.RISEN) {
+			for (int k = 0; k < 6 && charged > 0.05F && a >= Tesla.RISEN; k++) {
+				if (SciShapes.hash(k, roll) < 0.35) {
 					continue;
 				}
 				double ang = SciShapes.hash(k, roll + 1) * MathHelper.TAU;
-				Vec3d p = crown.add(Math.cos(ang) * 6.5, 0, Math.sin(ang) * 6.5);
+				Vec3d p = crown.add(cu.multiply(Math.cos(ang) * 6.5)).add(cv.multiply(Math.sin(ang) * 6.5));
 				for (int j = 0; j < 5; j++) {
 					Vec3d q = p.add((SciShapes.hash(k * 7 + j, roll) - 0.5) * 6, -1.5 - SciShapes.hash(j, k + roll) * 3, (SciShapes.hash(k * 5 + j, roll + 9) - 0.5) * 6);
-					FxDraw.ribbon(glow, m, p, q, Vec3d.ZERO, 0.25, j % 2 == 0 ? 0xFFFFFF : 0x9AD8FF, 0.8F, 0.6F);
+					FxDraw.ribbon(glow, m, p, q, Vec3d.ZERO, 0.25, j % 2 == 0 ? 0xFFFFFF : 0x9AD8FF, 0.8F * charged, 0.6F * charged);
 					p = q;
 				}
 			}
-			// Ball lightning: it swells on the crown, ringed in arcs, until it goes.
 			if (a >= Tesla.ORB && a < Tesla.DISCHARGE + 6) {
 				float k = MathHelper.clamp((a - Tesla.ORB) / (Tesla.DISCHARGE - Tesla.ORB), 0.0F, 1.0F);
 				double r = 2 + k * 11;
 				Vec3d orb = crown.add(0, 4 + r * 0.6, 0);
 				float boom = a > Tesla.DISCHARGE ? fadeOut(a, Tesla.DISCHARGE, 6) : 1.0F;
-				FxDraw.sphere(glow, m, orb, r, Vec3d.ZERO, 0xE8F8FF, 0.75F * boom, 0.3F * boom, 14, 20);
-				FxKit.halo(consumers, m, cb, orb, r * 2.4, 0x70B8FF, 0.35F * boom);
+				FxDraw.sphere(glow, m, orb, r, Vec3d.ZERO, 0xE8F8FF, 0.7F * boom, 0.3F * boom, 14, 20);
+				FxKit.halo(consumers, m, cb, orb, r * 2.4, 0x70B8FF, 0.3F * boom);
 				for (int j = 0; j < 10; j++) {
 					Vec3d d = Cinematics.sphereDir(j + (int) (a * 0.7F) * 13, 41);
 					Vec3d p = orb.add(d.multiply(r));
@@ -360,27 +369,219 @@ final class SciFx {
 				float e = a - Tesla.DISCHARGE;
 				FxKit.groundShock(consumers, m, base.add(0, 0.5, 0), 10 + e * 4, 0xA0D8FF, fadeOut(e, 0, 40));
 			}
-			if (sink > 0 && a < Tesla.END) {
-				FxKit.sparks(consumers, m, base.add(0, 2, 0), 18, 60, 0x9AD8FF, (a * 0.05F) % 1.0F, 0.7F, 402);
+			if (a > Tesla.FALL + 26 && a < Tesla.FALL + 70) {
+				// Where it lands: a line of dust kicked up along the fallen tower.
+				java.util.List<Effects.Puff> dust = FxKit.puffs();
+				float e = a - Tesla.FALL - 26;
+				for (int i = 0; i < 12; i++) {
+					Vec3d p = base.add(dir.multiply(6 + i * (H / 12))).add(0, 2 + e * 0.15, 0);
+					dust.add(new Effects.Puff(p, 4 + e * 0.12, 0x8A8070, 0x2A2420, 0.6F * fadeOut(e, 10, 34)));
+				}
+				FxKit.flush(dust, consumers, m, cb);
 			}
 		}
 	}
 
-	// ====================================================================== EVENT HORIZON ENGINE
+	// ====================================================================== DYSON LANCE
 
-	/** Three spinning rings, the black hole with its photon ring and lensing halo, the accretion disk, the collapse. */
-	static final class HorizonFx extends FxEffect {
-		private final Vec3d s;
+	/** The mirror swarm, its focus, the beam cutting the canyons with their cooling trails, and the drill. */
+	static final class DysonFx extends FxEffect {
+		private final Vec3d g;
+		private final double yaw;
 
-		HorizonFx(Vec3d s, int life) {
+		DysonFx(Vec3d g, double yaw, int life) {
 			super(Math.max(40, life));
-			this.s = s;
+			this.g = g;
+			this.yaw = yaw;
+		}
+
+		private Vec3d focus() {
+			return g.add(0, Dyson.MIRROR_ALT, 0);
 		}
 
 		@Override
 		public boolean tick(ClientWorld world) {
-			if (age >= Horizon.OPEN && age < Horizon.GONE && age % 3 == 0) {
-				ClientFx.light(s, 0.5F, 0xFFB060);
+			for (int k = 0; k < 3; k++) {
+				double along = Dyson.along(k, age);
+				if (!Double.isNaN(along)) {
+					Vec3d ax = Dyson.axis(k, yaw);
+					double x = g.x + ax.x * along, z = g.z + ax.z * along;
+					ClientFx.light(new Vec3d(x, ground(x, z, g.y) + 3, z), 0.7F, 0xFFC080);
+					for (int i = 0; i < 6; i++) {
+						world.addParticle(ParticleTypes.LAVA, x + world.random.nextGaussian() * 3, ground(x, z, g.y) + 1, z + world.random.nextGaussian() * 3, 0, 0, 0);
+					}
+				}
+			}
+			return super.tick(world);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw0, float pitch) {
+			float a = age + td;
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw0, pitch);
+			Vec3d f = focus().subtract(cam);
+			float on = fadeIn(a, Dyson.SWARM, 40) * fadeOut(a, Dyson.END - 30, 30);
+			double focusK = MathHelper.clamp((a - Dyson.SWARM) / (Dyson.FOCUS - Dyson.SWARM), 0.0, 1.0);
+			// The swarm: mirror panels on a slow ring, closing in on the focus.
+			for (int i = 0; i < 180; i++) {
+				if (SciShapes.hash(i, 1) > focusK * 1.4) {
+					continue;
+				}
+				double ring = 60 + SciShapes.hash(i, 2) * 120 * (1.2 - focusK * 0.6);
+				double ang = SciShapes.hash(i, 3) * MathHelper.TAU + a * 0.002 * (1 + SciShapes.hash(i, 4));
+				double hh = (SciShapes.hash(i, 5) - 0.5) * 40 + 20;
+				Vec3d p = f.add(Math.cos(ang) * ring, hh, Math.sin(ang) * ring);
+				Vec3d toF = f.subtract(p).normalize();
+				Vec3d u = toF.crossProduct(new Vec3d(0, 1, 0)).normalize().multiply(3.2);
+				Vec3d v = u.crossProduct(toF).normalize().multiply(3.2);
+				Solids.quad(solid, m, p.subtract(u).subtract(v), p.add(u).subtract(v), p.add(u).add(v), p.subtract(u).add(v), 0xC8A050, 1.0F);
+				if (SciShapes.hash(i, 6) < 0.25) {
+					Solids.dot(glow, m, p, cb, 1.6, 0xFFF0C0, 0.7F * on);
+				}
+			}
+			FxKit.halo(consumers, m, cb, f, 10 + focusK * 16, 0xFFE0A0, (float) (0.5 * focusK) * on);
+			// The beam and its cut: white-gold, a bright foot, and a trail along the canyon that cools to red.
+			for (int k = 0; k < 3; k++) {
+				Vec3d ax = Dyson.axis(k, yaw);
+				double along = Dyson.along(k, a);
+				double end = Double.isNaN(along) ? (a > Dyson.cutStart(k) ? Dyson.L : -Dyson.L - 1) : along;
+				if (end < -Dyson.L) {
+					continue;
+				}
+				Vec3d prev = null;
+				for (double s2 = -Dyson.L; s2 <= end; s2 += 6) {
+					double x = g.x + ax.x * s2, z = g.z + ax.z * s2;
+					Vec3d p = new Vec3d(x, ground(x, z, g.y) + 0.4, z).subtract(cam);
+					if (prev != null) {
+						double cutAt = Dyson.cutStart(k) + (s2 + Dyson.L) / (2 * Dyson.L) * Dyson.CUT_LEN;
+						float cool = MathHelper.clamp((float) ((a - cutAt) / 140.0), 0.0F, 1.0F);
+						int col = cool < 0.25F ? 0xFFF0C0 : cool < 0.6F ? 0xFF9040 : 0xA02810;
+						float al = (0.8F - 0.55F * cool) * on;
+						FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 4.0 - cool * 2, col, al, al);
+					}
+					prev = p;
+				}
+				if (!Double.isNaN(along)) {
+					double x = g.x + ax.x * along, z = g.z + ax.z * along;
+					Vec3d hit = new Vec3d(x, ground(x, z, g.y), z).subtract(cam);
+					FxDraw.beam(glow, m, f, hit, Vec3d.ZERO, 2.0, 0xFFFFFF, 0.85F);
+					FxDraw.beam(glow, m, f, hit, Vec3d.ZERO, 6.0, 0xFFD080, 0.3F);
+					FxDraw.beam(glow, m, f, hit, Vec3d.ZERO, 14.0, 0xFF9040, 0.08F);
+					FxKit.flare(consumers, m, cb, hit.add(0, 2, 0), 22, 0xFFE0B0, 0.6F, a * 0.02);
+					FxKit.fire(consumers, m, cb, hit.add(0, 3, 0), 7, 0xFFD090, (a * 0.06F) % 1.0F, 0.8F, a, 601 + k);
+					FxKit.sparks(consumers, m, hit.add(0, 1, 0), 26, 50, 0xFFB060, (a * 0.05F) % 1.0F, 0.8F, 611 + k);
+				}
+			}
+			if (a >= Dyson.DRILL && a < Dyson.END) {
+				float k = fadeIn(a, Dyson.DRILL, 10) * fadeOut(a, Dyson.END - 20, 20);
+				Vec3d hit = g.subtract(cam).add(0, -40, 0);
+				FxDraw.beam(glow, m, f, hit, Vec3d.ZERO, 6.0 * k, 0xFFFFFF, 0.8F);
+				FxDraw.beam(glow, m, f, hit, Vec3d.ZERO, 16.0 * k, 0xFFC070, 0.25F);
+				FxKit.groundShock(consumers, m, g.subtract(cam).add(0, 0.5, 0), 20 + (a - Dyson.DRILL) * 0.4, 0xFFD090, 0.6F * k);
+			}
+		}
+	}
+
+	// ====================================================================== GRAVITY KILLSWITCH
+
+	/** The generator, the land floating up as a slow storm of tumbling blocks, and the slam back down. */
+	static final class GravityFx extends FxEffect {
+		private static final int DEBRIS = 1100;
+		private final Vec3d g;
+		private final double[] gy = new double[DEBRIS];
+
+		GravityFx(Vec3d g, int life) {
+			super(Math.max(40, life));
+			this.g = g;
+			java.util.Arrays.fill(gy, Double.NaN);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			Vec3d c = g.subtract(cam).add(0, 5, 0);
+			float alive = fadeOut(a, Gravity.SLAM, 4);
+			if (alive > 0) {
+				double sp = a * (0.03 + 0.06 * fadeIn(a, Gravity.HUM, 60));
+				ring(solid, glow, m, c, new Vec3d(Math.cos(sp), 0, Math.sin(sp)), new Vec3d(0, 1, 0), 4.5, 0.4, 20, 0x4A4458, 0xB0A0FF, 0.6F * alive, sp);
+				ring(solid, glow, m, c, new Vec3d(1, 0, 0), new Vec3d(0, Math.cos(-sp), Math.sin(-sp)), 6, 0.4, 24, 0x4A4458, 0x9080FF, 0.6F * alive, -sp);
+				Solids.sphere(solid, m, c, 1.8, 0x0A0612, 10, 14, false);
+				FxKit.halo(consumers, m, cb, c, 5, 0xA090FF, 0.4F * alive);
+			}
+			// Ten times more of the land than the server can carry floats up as phantom blocks over the real ones.
+			if (a > Gravity.OFF && a < Gravity.SLAM + 16) {
+				double rise = Gravity.rise(a) * (1 - Gravity.fall(a));
+				double reach = Gravity.R * Math.min(1.0, (a - Gravity.OFF) / 90.0);
+				for (int i = 0; i < DEBRIS; i++) {
+					double r = Math.sqrt(SciShapes.hash(i, 1)) * Gravity.R;
+					if (r > reach) {
+						continue;
+					}
+					double ang = SciShapes.hash(i, 2) * MathHelper.TAU;
+					double x = g.x + Math.cos(ang) * r, z = g.z + Math.sin(ang) * r;
+					if (Double.isNaN(gy[i])) {
+						gy[i] = ground(x, z, g.y);
+					}
+					double lag = SciShapes.hash(i, 3);
+					double h = Gravity.CEIL * (0.15 + 0.85 * lag) * rise + Math.sin(a * 0.03 + i) * 1.5 * rise;
+					Vec3d p = new Vec3d(x + Math.sin(a * 0.01 + i) * 2 * rise, gy[i] + 0.5 + h, z + Math.cos(a * 0.013 + i) * 2 * rise).subtract(cam);
+					if (p.lengthSquared() > 260 * 260) {
+						continue;
+					}
+					double spin = a * (0.02 + lag * 0.05) * rise;
+					cube(solid, m, p, 0.5 + SciShapes.hash(i, 4) * 0.35, spin + i, spin * 0.7 + i * 2, EARTH[i % EARTH.length]);
+				}
+				FxDraw.sphere(glow, m, g.subtract(cam), Gravity.R, Vec3d.ZERO, 0x8070FF, 0.0F, 0.06F * alive, 16, 24);
+			}
+			if (a >= Gravity.SLAM && a < Gravity.SLAM + 60) {
+				float e = a - Gravity.SLAM;
+				Vec3d gc = g.subtract(cam).add(0, 0.5, 0);
+				FxKit.groundShock(consumers, m, gc, 10 + e * 6, 0xC8C0B0, fadeOut(e, 10, 50));
+				java.util.List<Effects.Puff> dust = FxKit.puffs();
+				FxKit.dustRing(m, cb, gc, Math.min(Gravity.R, 10 + e * 5), 10, 0xA09888, 0x3A3630, 0.6F * fadeOut(e, 20, 40), 701, dust);
+				FxKit.dustRing(m, cb, gc, Gravity.R * 0.5, 16, 0x8A8274, 0x2A2824, 0.45F * fadeOut(e, 20, 40), 702, dust);
+				FxKit.flush(dust, consumers, m, cb);
+			}
+		}
+	}
+
+	// ====================================================================== SEISMIC TSUNAMI
+
+	/** The piston hammer and the wave of rock: a curling crest of tumbling earth with spray behind it. */
+	static final class WaveFx extends FxEffect {
+		private final Vec3d g;
+
+		WaveFx(Vec3d g, int life) {
+			super(Math.max(40, life));
+			this.g = g;
+		}
+
+		/** How far down the ram is (0 hauled up, 1 on the ground): it drops fast on each blow and is winched back up. */
+		private double ram(float a) {
+			for (int i = 0; i < Wave.SLAMS; i++) {
+				double d = a - Wave.slam(i);
+				if (d > -6 && d <= 0) {
+					double u = (d + 6) / 6.0;
+					return u * u;
+				}
+				if (d > 0 && d < 18 && i < Wave.SLAMS - 1) {
+					return 1 - d / 18.0;
+				}
+			}
+			return a > Wave.slam(Wave.SLAMS - 1) ? 1.0 : 0.0;
+		}
+
+		@Override
+		public boolean tick(ClientWorld world) {
+			for (int i = 0; i < Wave.SLAMS; i++) {
+				if (age == Wave.slam(i)) {
+					ClientFx.shake = Math.max(ClientFx.shake, 2.0F + i);
+				}
 			}
 			return super.tick(world);
 		}
@@ -389,200 +590,57 @@ final class SciFx {
 		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
 			float a = age + td;
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
-			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
-			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
-			Vec3d c = s.subtract(cam);
-			double spin = 0;
-			for (int i = Horizon.OPEN; i < Math.min(a, Horizon.COLLAPSE); i += 4) {
-				spin += Horizon.spin(i) * 4;
-			}
-			// Assembly: the rings fly in from scattered pieces; at the collapse they shrink into the hole.
-			double gather = MathHelper.clamp((a - Horizon.ASSEMBLE) / (Horizon.OPEN - Horizon.ASSEMBLE), 0.0, 1.0);
-			gather = 1 - Math.pow(1 - gather, 3);
-			double shrink = a > Horizon.COLLAPSE ? MathHelper.clamp((a - Horizon.COLLAPSE) / (Horizon.GONE - Horizon.COLLAPSE), 0.0, 1.0) : 0;
-			if (a >= Horizon.ASSEMBLE && a < Horizon.GONE) {
-				double[] rr = {Horizon.RING_R, Horizon.RING_R * 0.8, Horizon.RING_R * 0.62};
-				for (int k = 0; k < 3; k++) {
-					double tilt = (k - 1) * 0.6 + spin * (k == 1 ? 0.3 : 0.1) * (k == 2 ? -1 : 1);
-					Vec3d u = new Vec3d(1, 0, 0);
-					Vec3d v = new Vec3d(0, Math.sin(tilt), Math.cos(tilt));
-					if (k == 1) {
-						u = new Vec3d(Math.cos(tilt), Math.sin(tilt), 0);
-						v = new Vec3d(0, 0, 1);
-					}
-					double r = rr[k] * (1 - shrink) * (0.3 + 0.7 * gather) + 0.5;
-					Vec3d scatter = Cinematics.sphereDir(k, 77).multiply((1 - gather) * 120);
-					ring(solid, glow, m, c.add(scatter), u, v, r, 1.3 - shrink, 36, 0x5A5E6A, 0xFFB060,
-							(float) (0.3 + 0.5 * gather) * (float) (1 - shrink), spin * (k + 1) * (k == 1 ? -1 : 1));
-				}
-			}
-			if (a < Horizon.OPEN || a >= Horizon.GONE + 40) {
-				return;
-			}
-			float open = fadeIn(a, Horizon.OPEN, 20);
-			double hr = 5.5 * open * (a > Horizon.COLLAPSE ? 1 + shrink * 1.5 : 1);
-			float alive = a < Horizon.GONE ? 1.0F : fadeOut(a, Horizon.GONE, 40);
-			if (a < Horizon.GONE) {
-				// The hole: pure black, a thin blazing photon ring, and a dark lensing halo around it.
-				Solids.sphere(solid, m, c, hr, 0x000000, 14, 20, false);
-				FxDraw.ring(glow, m, c, cb[0], cb[1], hr * 1.05, hr * 1.35, 0xFFE0B0, 0.0F, 0.9F * open, 0.0F, 64);
-				FxDraw.ring(shade, m, c, cb[0], cb[1], hr * 1.35, hr * 3.2, 0x000000, 0.55F * open, 0.25F * open, 0.0F, 64);
-				// The accretion disk: a flat whirl of hot matter, white at the inner edge, red at the outside.
-				Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
-				float feed = fadeIn(a, Horizon.FEED, 60) * (a > Horizon.COLLAPSE ? (float) (1 - shrink) : 1.0F);
-				FxDraw.ring(glow, m, c, x, z, hr * 1.6, hr * 3.0, 0xFFF0D0, 0.0F, 0.6F * feed, 0.2F * feed, 72);
-				FxDraw.ring(glow, m, c, x, z, hr * 3.0, hr * 7.5, 0xFF9040, 0.25F * feed, 0.3F * feed, 0.0F, 72);
-				FxDraw.ring(glow, m, c, x, z, hr * 7.5, hr * 13, 0xB03010, 0.12F * feed, 0.08F * feed, 0.0F, 72);
-				for (int i = 0; i < 90; i++) {
-					double rad = hr * (1.8 + SciShapes.hash(i, 5) * 10);
-					double ang = SciShapes.hash(i, 6) * MathHelper.TAU + a * (0.04 + 0.6 / rad) * (1 + spin * 0.05);
-					Vec3d p = c.add(Math.cos(ang) * rad, (SciShapes.hash(i, 7) - 0.5) * 1.2, Math.sin(ang) * rad);
-					Solids.dot(glow, m, p, cb, 0.6 + SciShapes.hash(i, 8) * 0.8, rad < hr * 4 ? 0xFFE8C0 : 0xFF8A40, 0.7F * feed);
-				}
-				if (a > Horizon.COLLAPSE) {
-					// Relativistic jets out of both poles as it swallows the last of it.
-					float j = (float) Math.sin(shrink * Math.PI);
-					FxDraw.beam(glow, m, c, c.add(0, 260, 0), Vec3d.ZERO, 3.0 * j, 0xC0D8FF, 0.6F);
-					FxDraw.beam(glow, m, c, c.add(0, -Horizon.ALT, 0), Vec3d.ZERO, 3.0 * j, 0xC0D8FF, 0.6F);
-				}
-			} else {
-				// It closes: one ring of light running out over the land.
-				float e = a - Horizon.GONE;
-				Vec3d gnd = c.add(0, -Horizon.ALT + 1, 0);
-				FxKit.groundShock(consumers, m, gnd, 20 + e * 9, 0xFFD8A0, alive);
-				FxKit.shock(consumers, m, c, cb[0], cb[1], 10 + e * 6, 0xFFFFFF, alive * 0.7F);
-			}
-		}
-	}
-
-	// ====================================================================== NANITE BLOOM
-
-	/** The canister, its release, a shimmer of nanites over the spreading grey, and the hex light pulse at the end. */
-	static final class NaniteFx extends FxEffect {
-		private final Vec3d g;
-
-		NaniteFx(Vec3d g, int life) {
-			super(Math.max(40, life));
-			this.g = g;
-		}
-
-		@Override
-		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
-			float a = age + td;
-			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
-			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 			Vec3d c = g.subtract(cam);
-			if (a < Nanite.RELEASE + 10) {
-				// The canister: a steel cylinder with lit bands, cracking open.
-				float crack = fadeIn(a, Nanite.RELEASE - 10, 10);
-				Solids.tube(solid, m, c, c.add(0, 2.4, 0), 0.7, 0.7, 10, 0x8A9098, 1.0F, true);
-				for (double y = 0.4; y < 2.2; y += 0.6) {
-					FxDraw.ring(glow, m, c.add(0, y, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 0.72, 0.8, 0x70E0FF, 0.8F, 0.8F, 0.8F, 20);
-				}
-				FxKit.halo(consumers, m, cb, c.add(0, 1.2, 0), 2 + crack * 4, 0x70E0FF, 0.3F + crack * 0.4F);
-			}
-			// Nanite shimmer: tiny metallic glints drifting low over the area the bloom has reached.
-			double reach = a < Nanite.FILL ? Math.min(Nanite.R, (a - Nanite.GROW) * 0.35) : Math.max(Nanite.fill(a), Math.min(Nanite.R, (a - Nanite.GROW) * 0.35));
-			if (a > Nanite.RELEASE && a < Nanite.PULSE + 60 && reach > 1) {
-				int n = 260;
-				for (int i = 0; i < n; i++) {
-					double r = Math.sqrt(SciShapes.hash(i, 11)) * reach, ang = SciShapes.hash(i, 12) * MathHelper.TAU + a * 0.002;
-					double x = g.x + Math.cos(ang) * r, z = g.z + Math.sin(ang) * r;
-					double life = (a * 0.03 + SciShapes.hash(i, 13)) % 1.0;
-					Vec3d p = new Vec3d(x, ground(x, z, g.y) + 0.6 + life * 2.5, z).subtract(cam);
-					float tw = (float) Math.sin(life * Math.PI);
-					Solids.dot(glow, m, p, cb, 0.18, SciShapes.hash(i, 14) < 0.3 ? 0x80F0FF : 0xE0E8F0, 0.8F * tw);
-				}
-			}
-			// The pulse: a front of light running out along the hex seams of the new plain.
-			if (a >= Nanite.PULSE && a < Nanite.END) {
-				double fr = (a - Nanite.PULSE) * 3.0;
-				float k = fadeOut(a, Nanite.END - 30, 30);
-				Vec3d gc = c.add(0, 0.12, 0);
-				FxDraw.ring(glow, m, gc, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), Math.max(0, fr - 4), fr, 0xA0F4FF, 0.0F, 0.7F * k, 0.0F, 120);
-				double size = 6.0;
-				for (int q = -14; q <= 14; q++) {
-					for (int rr = -14; rr <= 14; rr++) {
-						double hx = size * Math.sqrt(3) * (q + rr / 2.0), hz = size * 1.5 * rr;
-						double d = Math.hypot(hx, hz);
-						if (Math.abs(d - fr) > 10 || d > Nanite.R) {
-							continue;
-						}
-						float w = (float) (1 - Math.abs(d - fr) / 10) * k;
-						Vec3d hc = gc.add(hx, 0, hz);
-						Vec3d prev = null;
-						for (int s2 = 0; s2 <= 6; s2++) {
-							double ang = s2 * Math.PI / 3 + Math.PI / 6;
-							Vec3d p = hc.add(Math.cos(ang) * size, 0, Math.sin(ang) * size);
-							if (prev != null) {
-								FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 0.3, 0x90F0FF, 0.7F * w, 0.7F * w);
-							}
-							prev = p;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// ====================================================================== INVERSION ENGINE
-
-	/** The gyroscope, the mirror plane between pit and island, the streams of light carrying the world up, the break. */
-	static final class InversionFx extends FxEffect {
-		private final Vec3d g;
-
-		InversionFx(Vec3d g, int life) {
-			super(Math.max(40, life));
-			this.g = g;
-		}
-
-		@Override
-		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
-			float a = age + td;
-			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
-			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
-			Vec3d mid = g.add(0, Inversion.HEIGHT * 0.5, 0).subtract(cam);
-			float on = fadeIn(a, 0, 30) * (a < Inversion.SHATTER ? 1.0F : fadeOut(a, Inversion.SHATTER, 20));
-			if (on > 0) {
-				// The engine: two counter-rotating rings around a white core, hanging at the mirror.
-				double sp = a * (0.03 + 0.08 * fadeIn(a, Inversion.CHARGE, 70));
-				ring(solid, glow, m, mid, new Vec3d(Math.cos(sp), 0, Math.sin(sp)), new Vec3d(0, 1, 0), 9, 0.8, 28, 0x6A6E7A, 0xC0A0FF, 0.6F * on, sp);
-				ring(solid, glow, m, mid, new Vec3d(1, 0, 0), new Vec3d(0, Math.cos(-sp), Math.sin(-sp)), 12, 0.8, 32, 0x6A6E7A, 0xA0C0FF, 0.6F * on, -sp);
-				FxKit.halo(consumers, m, cb, mid, 6, 0xE0D0FF, 0.5F * on);
-				Solids.dot(glow, m, mid, cb, 1.6, 0xFFFFFF, 0.9F * on);
-			}
-			// The mirror: a disc of rippling light the world passes through on its way up.
-			if (a >= Inversion.LIFT - 20 && a < Inversion.SHATTER + 10) {
-				float k = fadeIn(a, Inversion.LIFT - 20, 20) * fadeOut(a, Inversion.SHATTER, 10);
-				Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
-				double r = Inversion.R + 6;
-				FxDraw.disc(glow, m, mid, x, z, r, 0x9080FF, 0.12F * k, 0.05F * k, 64);
-				FxDraw.ring(glow, m, mid, x, z, r - 0.8, r, 0xE0D8FF, 0.0F, 0.8F * k, 0.0F, 96);
+			float hammer = fadeIn(a, 0, 20) * fadeOut(a, Wave.WAVE + 120, 40);
+			if (hammer > 0) {
+				// The frame and the ram, hauled up between blows and dropped.
 				for (int i = 0; i < 4; i++) {
-					double rr = ((a * 0.6 + i * r / 4) % r);
-					FxDraw.ring(glow, m, mid, x, z, rr, rr + 0.6, 0xC0B0FF, 0.0F, 0.35F * k * (float) (1 - rr / r), 0.0F, 72);
+					double ang = i * Math.PI / 2 + Math.PI / 4;
+					Vec3d p = c.add(Math.cos(ang) * 9, 0, Math.sin(ang) * 9);
+					Solids.tube(solid, m, p, p.add(0, 34, 0), 1.2, 1.0, 6, 0x3A3E48, 1.0F, true);
+				}
+				Solids.tube(solid, m, c.add(-9, 34, -9), c.add(9, 34, 9), 1.2, 1.2, 6, 0x3A3E48, 1.0F, true);
+				Solids.tube(solid, m, c.add(-9, 34, 9), c.add(9, 34, -9), 1.2, 1.2, 6, 0x3A3E48, 1.0F, true);
+				double y = 4 + (1 - ram(a)) * 20;
+				Solids.tube(solid, m, c.add(0, y, 0), c.add(0, y + 10, 0), 5.0, 5.0, 14, 0x9AA2AE, 1.0F, true);
+				Solids.tube(solid, m, c.add(0, y + 10, 0), c.add(0, 34, 0), 1.6, 1.6, 8, 0x6A707A, 1.0F, true);
+			}
+			if (a < Wave.WAVE || a > Wave.END) {
+				return;
+			}
+			double front = Wave.front(a);
+			double H = Wave.height(front);
+			if (H < 0.5) {
+				return;
+			}
+			// The crest: rows of tumbling earth stacked into a curling wall, throwing spray off the top.
+			int segs = 300;
+			java.util.List<Effects.Puff> spray = FxKit.puffs();
+			for (int i = 0; i < segs; i++) {
+				double ang = i * MathHelper.TAU / segs;
+				double cx = Math.cos(ang), cz = Math.sin(ang);
+				double gx0 = g.x + cx * front, gz0 = g.z + cz * front;
+				if (new Vec3d(gx0 - cam.x, 0, gz0 - cam.z).lengthSquared() > 280 * 280) {
+					continue;
+				}
+				double gy0 = ground(gx0, gz0, g.y);
+				for (int j = 0; j < 6; j++) {
+					double u = j / 5.0;
+					double back = -u * 3 + u * u * 5;
+					double h = H * u + Math.sin(a * 0.3 + i + j) * 0.4;
+					double rr = front + back;
+					Vec3d p = new Vec3d(g.x + cx * rr, gy0 + h, g.z + cz * rr).subtract(cam);
+					double sz = 0.9 + SciShapes.hash(i, j) * 0.7;
+					cube(solid, m, p, sz, a * 0.1 + i, a * 0.13 + j, EARTH[(i * 7 + j * 3) % EARTH.length]);
+				}
+				if (i % 10 == 0) {
+					Vec3d top = new Vec3d(g.x + cx * (front + 1), gy0 + H + 1, g.z + cz * (front + 1)).subtract(cam);
+					spray.add(new Effects.Puff(top, 3 + H * 0.15, 0xA09480, 0x3A3428, 0.5F));
 				}
 			}
-			// Streams of light carrying the world up through the mirror while the transfer runs.
-			if (a >= Inversion.LIFT && a < Inversion.LIFT_END + 10) {
-				float k = fadeOut(a, Inversion.LIFT_END, 10);
-				for (int i = 0; i < 70; i++) {
-					double r = Math.sqrt(SciShapes.hash(i, 21)) * Inversion.R, ang = SciShapes.hash(i, 22) * MathHelper.TAU;
-					double life = (a * 0.025 + SciShapes.hash(i, 23)) % 1.0;
-					double y0 = -Inversion.R * 0.3 + life * (Inversion.HEIGHT + Inversion.R * 0.3);
-					Vec3d p = g.add(Math.cos(ang) * r, y0, Math.sin(ang) * r).subtract(cam);
-					FxDraw.ribbon(glow, m, p, p.add(0, 6, 0), Vec3d.ZERO, 0.3, i % 3 == 0 ? 0xFFFFFF : 0xB0A0FF, 0.0F, 0.6F * k * (float) Math.sin(life * Math.PI));
-				}
-			}
-			if (a >= Inversion.SHATTER && a < Inversion.SHATTER + 50) {
-				float e = a - Inversion.SHATTER;
-				Vec3d isl = g.add(0, Inversion.HEIGHT, 0).subtract(cam);
-				FxKit.shock(consumers, m, isl, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 20 + e * 6, 0xD0C0FF, 0.5F * fadeOut(e, 0, 50));
-				FxKit.sparks(consumers, m, isl, 60, 120, 0xC0B0FF, e / 50.0F, fadeOut(e, 10, 40), 403);
-			}
+			FxKit.dustRing(m, cb, c, Math.max(2, front - 6), 8, 0x9A8E7A, 0x3A3428, 0.45F, 801, spray);
+			FxKit.flush(spray, consumers, m, cb);
 		}
 	}
 }

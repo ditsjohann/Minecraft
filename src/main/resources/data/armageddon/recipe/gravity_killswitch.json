@@ -17,11 +17,11 @@
       "item": "minecraft:nether_star"
     },
     "K": {
-      "item": "armageddon:chrono_break"
+      "item": "armageddon:gravity_grenade"
     }
   },
   "result": {
-    "id": "armageddon:phase_scrubber",
+    "id": "armageddon:gravity_killswitch",
     "count": 1
   }
 }

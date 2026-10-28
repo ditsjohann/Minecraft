@@ -17,11 +17,11 @@
       "item": "minecraft:nether_star"
     },
     "K": {
-      "item": "armageddon:termite_domain"
+      "item": "armageddon:tectonic_bomb"
     }
   },
   "result": {
-    "id": "armageddon:nanite_bloom",
+    "id": "armageddon:seismic_tsunami",
     "count": 1
   }
 }

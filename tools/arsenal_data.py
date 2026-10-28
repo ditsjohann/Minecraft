@@ -106,18 +106,18 @@ NEW_BOMBS.update({
     "sonar_bomb": "Sonar Bomb", "pixel_bomb": "8-Bit Bomb", "magnetar": "Magnetar", "ink_bomb": "KA-BOOM!",
     "aurora_bomb": "Aurora Bomb", "seasons_bomb": "Century Bomb", "prism_bomb": "Prism Bomb", "geode_bomb": "Geode Bomb",
     "fossil_bomb": "Fossil Bomb", "lava_lamp": "Lava Lamp Bomb",
-    "ion_scythe": "ION SCYTHE", "phase_scrubber": "PHASE SCRUBBER", "tesla_dominion": "TESLA DOMINION",
-    "event_horizon": "EVENT HORIZON ENGINE", "nanite_bloom": "NANITE BLOOM", "inversion_engine": "INVERSION ENGINE",
+    "ion_scythe": "ION SCYTHE", "resonance_cascade": "RESONANCE CASCADE", "tesla_dominion": "TESLA DOMINION",
+    "dyson_lance": "DYSON LANCE", "gravity_killswitch": "GRAVITY KILLSWITCH", "seismic_tsunami": "SEISMIC TSUNAMI",
 })
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
     "ion_scythe": "CELESTIAL. An orbital ion cannon cuts a spiral trench of molten glass through everything, charges it, then ignites the whole spiral at once. Light twice.",
-    "phase_scrubber": "CITY DESTRUCTION. A hex force field drops over the town and a plane of light descends through it, erasing everything it passes. Then it prints a clean floor. Light twice.",
-    "tesla_dominion": "CITY DESTRUCTION. A tesla tower rises and arcs at everything tall. Every strike burns a branching fulgurite of glass into the ground. Then the ball lightning goes. Light twice.",
-    "event_horizon": "WORLD DESTRUCTION. Three rings open a singularity in the sky. The land is torn up into its accretion disk, spun, and swallowed. Camera cutscene. Light twice.",
-    "nanite_bloom": "WORLD DESTRUCTION. Grey goo: branching fingers turn everything to metal in its own shape, then the region melts into a silver hex plain. Camera cutscene. Light twice.",
-    "inversion_engine": "WORLD DESTRUCTION. A sphere of the world is flipped upside down into the sky above its own pit, hangs there, and shatters back down. Camera cutscene. Light twice.",
+    "resonance_cascade": "CITY DESTRUCTION. A tuning fork hums until it finds the town's frequency; then every building, wall and tree shakes itself apart into rubble and the ground goes to mud. Light twice.",
+    "tesla_dominion": "CITY DESTRUCTION. A tesla tower rises and arcs at everything tall; the lightning chains through buildings, blowing them apart, and ploughs furrows where it earths. Then the ball lightning goes. Light twice.",
+    "dyson_lance": "WORLD DESTRUCTION. A swarm of orbital mirrors focuses the sun into one beam that cuts three canyons across the map into a six-pointed star, then drills the centre. Camera cutscene. Light twice.",
+    "gravity_killswitch": "WORLD DESTRUCTION. Gravity switches off: the town floats up and tumbles. Then it comes back many times over and slams everything down. Camera cutscene. Light twice.",
+    "seismic_tsunami": "WORLD DESTRUCTION. A piston hammer slams the ground until the land itself becomes a wave, rolling out and scraping everything down to bare stone. Camera cutscene. Light twice.",
     "lidar_bomb": "CELESTIAL. The world becomes a lidar point cloud. Four scan pulses tag every living thing, then TARGETS LOCKED: strikes walk the map and the mast overloads. Light twice.",
     "shadow_void": "CELESTIAL. A black orb drinks the light: a growing void of darkness swallows the ground shell by shell, inhales... and exhales a shockwave of shadow. Light twice.",
     "spectral_ice": "CELESTIAL. Ice spikes erupt into a pyramid with one point. The apex lights blue, the spikes glow, and the white apex sprays a storm of ice shards. Light twice.",
@@ -286,8 +286,8 @@ def bomb_recipes2(shaped):
          "eternal_sapling": "world_eater", "sixteen_chunks": "ragnarok", "truman_show": "chrono_break", "disco_ball": "disco_bomb",
          "lidar_bomb": "orbital_designator", "shadow_void": "singularity_bomb", "spectral_ice": "ice_age_bomb",
          "termite_domain": "world_eater", "sun_disappears": "galactic_smash",
-         "phase_scrubber": "chrono_break", "tesla_dominion": "tesla_bomb", "event_horizon": "singularity_bomb",
-         "nanite_bloom": "termite_domain", "inversion_engine": "chrono_break"}
+         "resonance_cascade": "sonar_bomb", "tesla_dominion": "tesla_bomb", "dyson_lance": "solstice_sunlance",
+         "gravity_killswitch": "gravity_grenade", "seismic_tsunami": "tectonic_bomb"}
     O = {"sonar_bomb": "minecraft:sculk_shrieker", "pixel_bomb": "minecraft:note_block", "magnetar": "minecraft:lodestone",
          "ink_bomb": "minecraft:ink_sac", "aurora_bomb": "minecraft:prismarine_crystals", "seasons_bomb": "minecraft:clock",
          "prism_bomb": "minecraft:glass", "geode_bomb": "minecraft:amethyst_block", "fossil_bomb": "minecraft:bone_block",

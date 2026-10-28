@@ -17,11 +17,11 @@
       "item": "minecraft:nether_star"
     },
     "K": {
-      "item": "armageddon:chrono_break"
+      "item": "armageddon:solstice_sunlance"
     }
   },
   "result": {
-    "id": "armageddon:inversion_engine",
+    "id": "armageddon:dyson_lance",
     "count": 1
   }
 }

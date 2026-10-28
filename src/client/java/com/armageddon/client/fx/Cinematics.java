@@ -35,7 +35,7 @@ public final class Cinematics {
 	}
 
 	public static final int GALACTIC_SMASH = 1, BOOM_SURVEY = 2, ALIEN_LAUNCH = 3,
-			ETERNAL_SAPLING = 4, SIXTEEN_CHUNKS = 5, DISCO_BALL = 7, SCI_HORIZON = 8, SCI_NANITE = 9, SCI_INVERSION = 10;
+			ETERNAL_SAPLING = 4, SIXTEEN_CHUNKS = 5, DISCO_BALL = 7, SCI_DYSON = 8, SCI_GRAVITY = 9, SCI_WAVE = 10;
 
 	public static Cine create(int scene, Vec3d anchor, Vec3d heading, int life) {
 		return switch (scene) {
@@ -44,7 +44,7 @@ public final class Cinematics {
 			case ETERNAL_SAPLING -> new EternalSaplingCine(anchor, heading, life);
 			case SIXTEEN_CHUNKS -> new SixteenChunksCine(anchor, heading, life);
 			case DISCO_BALL -> new DiscoBallCine(anchor, heading, life);
-			case SCI_HORIZON, SCI_NANITE, SCI_INVERSION -> new SciCine(scene, anchor, heading, life);
+			case SCI_DYSON, SCI_GRAVITY, SCI_WAVE -> new SciCine(scene, anchor, heading, life);
 			default -> new AlienLaunch(anchor, heading, life);
 		};
 	}
@@ -59,25 +59,33 @@ public final class Cinematics {
 	public static class SciCine extends Cine {
 		private final double[][] shots;
 
+		private final double yawRad;
+
 		SciCine(int scene, Vec3d anchor, Vec3d heading, int life) {
 			super(anchor, heading, life);
-			double alt = com.armageddon.util.SciShapes.Horizon.ALT, h = com.armageddon.util.SciShapes.Inversion.HEIGHT;
+			this.yawRad = Math.atan2(-fwd.x, fwd.z);
+			int c0 = com.armageddon.util.SciShapes.Dyson.cutStart(0), c1 = com.armageddon.util.SciShapes.Dyson.cutStart(1);
+			int c2 = com.armageddon.util.SciShapes.Dyson.cutStart(2), len = com.armageddon.util.SciShapes.Dyson.CUT_LEN;
+			int drill = com.armageddon.util.SciShapes.Dyson.DRILL;
+			double ceil = com.armageddon.util.SciShapes.Gravity.CEIL;
+			int off = com.armageddon.util.SciShapes.Gravity.OFF, slam = com.armageddon.util.SciShapes.Gravity.SLAM;
+			int wave = com.armageddon.util.SciShapes.Wave.WAVE;
 			this.shots = switch (scene) {
-				case SCI_HORIZON -> new double[][]{
-						{0, 0, 150, -90, 10, -150, -60, 22, -115, 0, alt * 0.8, 0, 0, alt, 0, 70},
-						{1, 150, 330, -2.2, -0.6, 150, 40, 70, 0, alt, 0, 62},
-						{0, 330, 520, 45, alt - 14, -75, 22, alt + 8, -55, 0, alt, 0, 0, alt, 0, 66},
-						{0, 520, 640, 0, 150, -210, 0, 230, -280, 0, alt * 0.6, 0, 0, 10, 0, 72}};
-				case SCI_NANITE -> new double[][]{
-						{0, 0, 110, 7, 2.5, -10, 10, 4, -13, 0, 1, 0, 0, 1.5, 0, 60},
-						{0, 110, 360, 18, 16, -36, 50, 130, -130, 0, 2, 0, 0, 0, 0, 70},
-						{1, 360, 640, -1.4, 1.2, 170, 140, 160, 0, 0, 0, 66},
-						{0, 640, 780, -110, 7, -130, -50, 7, -70, 0, 2, 40, 0, 2, 80, 80}};
+				case SCI_DYSON -> new double[][]{
+						{0, 0, c0, -70, 6, -100, -55, 12, -85, 0, 300, 0, 0, 240, 0, 72},
+						{2, c0, c0 + len + 10, 0, 70, 40, 66},
+						{0, c1 - 10, c1 + len + 10, 0, 240, -240, 0, 280, -300, 0, 0, 0, 0, 0, 0, 70},
+						{2, c2 - 10, c2 + len + 10, 2, -80, 50, 66},
+						{0, drill - 10, life, 50, 40, -70, 80, 80, -120, 0, -10, 0, 0, -30, 0, 66}};
+				case SCI_GRAVITY -> new double[][]{
+						{0, 0, off, 14, 4, -18, 20, 6, -24, 0, 4, 0, 0, 5, 0, 64},
+						{0, off, off + 120, 60, 8, -90, 80, 30, -120, 0, 6, 0, 0, ceil * 0.5, 0, 72},
+						{1, off + 120, slam - 4, -0.8, 0.9, 110, ceil * 0.4, ceil * 0.8, 0, ceil * 0.6, 0, 66},
+						{0, slam - 4, life, 60, 10, -80, 90, 40, -130, 0, 4, 0, 0, 0, 0, 74}};
 				default -> new double[][]{
-						{0, 0, 90, 40, 8, -60, 32, 10, -52, 0, 12, 0, 0, 20, 0, 66},
-						{0, 90, 260, 70, 20, -90, 95, h + 10, -120, 0, 10, 0, 0, h * 0.8, 0, 70},
-						{1, 260, 470, -0.9, 1.4, 125, h * 0.55, h * 0.75, 0, h * 0.75, 0, 62},
-						{0, 470, 560, 55, 14, -60, 62, 12, -70, 0, h, 0, 0, h * 0.4, 0, 84}};
+						{0, 0, wave, 30, 6, -40, 36, 10, -46, 0, 14, 0, 0, 10, 0, 66},
+						{0, wave, wave + 140, 0, 40, -60, 0, 90, -170, 0, 0, 40, 0, 0, 120, 72},
+						{1, wave + 140, life, -1.9, -1.0, 230, 60, 90, 0, 0, 0, 70}};
 			};
 		}
 
@@ -95,6 +103,19 @@ public final class Cinematics {
 				}
 			}
 			double u = ease(clamp01((a - shot[1]) / (shot[2] - shot[1])));
+			if (shot[0] == 2) {
+				// Tracking the beam along cut k: from the side and above, looking at its foot.
+				int k = (int) shot[3];
+				double along = com.armageddon.util.SciShapes.Dyson.along(k, a);
+				if (Double.isNaN(along)) {
+					along = a < shot[1] + 10 ? -com.armageddon.util.SciShapes.Dyson.L : com.armageddon.util.SciShapes.Dyson.L;
+				}
+				Vec3d ax = com.armageddon.util.SciShapes.Dyson.axis(k, yawRad);
+				Vec3d side = new Vec3d(-ax.z, 0, ax.x);
+				Vec3d foot = anchor.add(ax.multiply(along));
+				aim(s, foot.add(side.multiply(shot[4])).add(ax.multiply(-30)).add(0, shot[5], 0), foot, (float) shot[6], false);
+				return;
+			}
 			if (shot[0] == 0) {
 				Vec3d p = lerp(rel(shot[3], shot[4], shot[5]), rel(shot[6], shot[7], shot[8]), u);
 				Vec3d t = lerp(rel(shot[9], shot[10], shot[11]), rel(shot[12], shot[13], shot[14]), u);

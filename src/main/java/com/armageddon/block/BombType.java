@@ -93,11 +93,11 @@ public enum BombType {
 	LAVA_LAMP(120, 0xFF6020),
 	// plasma and sci-fi
 	ION_SCYTHE(200, 0x80E0FF),
-	PHASE_SCRUBBER(300, 0x60C8FF),
+	RESONANCE_CASCADE(300, 0x60C8FF),
 	TESLA_DOMINION(300, 0x90D8FF),
-	EVENT_HORIZON(400, 0xFFB060),
-	NANITE_BLOOM(400, 0x70E0FF),
-	INVERSION_ENGINE(400, 0xC0A0FF);
+	DYSON_LANCE(400, 0xFFB060),
+	GRAVITY_KILLSWITCH(400, 0x70E0FF),
+	SEISMIC_TSUNAMI(400, 0xC0A0FF);
 
 	public final int fuse;
 	public final int color;
@@ -134,7 +134,7 @@ public enum BombType {
 	/** The CITY DESTRUCTION tier: the end of the map (a city-sized area or more is remade). */
 	public boolean isCityDestruction() {
 		return switch (this) {
-			case MOONFALL, WORLD_EATER, RAGNAROK, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW, TERMITE_DOMAIN, PHASE_SCRUBBER, TESLA_DOMINION -> true;
+			case MOONFALL, WORLD_EATER, RAGNAROK, ETERNAL_SAPLING, SIXTEEN_CHUNKS, TRUMAN_SHOW, TERMITE_DOMAIN, RESONANCE_CASCADE, TESLA_DOMINION -> true;
 			default -> false;
 		};
 	}
@@ -142,7 +142,7 @@ public enum BombType {
 	/** The true WORLD DESTRUCTION tier: the world enders, with scripted camera cutscenes. */
 	public boolean isWorldDestruction() {
 		return switch (this) {
-			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY, SUN_DISAPPEARS, EVENT_HORIZON, NANITE_BLOOM, INVERSION_ENGINE -> true;
+			case GALACTIC_SMASH, BOOMING_TICK, ALIEN_DEATH_RAY, SUN_DISAPPEARS, DYSON_LANCE, GRAVITY_KILLSWITCH, SEISMIC_TSUNAMI -> true;
 			default -> false;
 		};
 	}

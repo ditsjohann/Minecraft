@@ -1,12 +1,21 @@
 # Offline effect preview: name tick [dx dy dz [tx ty tz]] (camera offset / target from the anchor)
 galactic 300
-galactic 300 -350 250 -350 0 200 230
 galactic 380 -350 250 -350 0 200 230
 galactic 430 -350 250 -350 0 200 230
-galactic 446 -350 250 -350 0 200 230
-galactic 452 -350 250 -350 0 200 230
-galactic 457 -350 250 -350 0 200 230
+galactic 448 -350 250 -350 0 200 230
+galactic 455 -350 250 -350 0 200 230
 galactic 470 -350 250 -350 0 200 230
-galactic 500 -350 250 -350 0 200 230
-galactic 400
 galactic 450
+resonance 120 -50 20 -50 0 15 0
+resonance 260 -90 40 -90 0 0 0
+tesla 300 -60 40 -60 0 40 0
+tesla 560 -90 40 -90 0 20 0
+dyson 120 -80 20 -80 0 200 0
+dyson 260 -150 90 -150 0 0 0
+dyson 700 -100 60 -100 0 0 0
+gravity 200 -100 30 -100 0 30 0
+gravity 300 -60 20 -60 0 40 0
+gravity 350 -100 30 -100 0 0 0
+wave 100 -40 20 -40 0 15 0
+wave 260 -200 60 -200 0 0 0
+wave 400 -150 90 -150 0 0 0
