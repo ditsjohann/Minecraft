@@ -357,7 +357,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 				w.addImportantParticle(ModParticles.PLASMA_SPARK, true, getX(), getY() + 1, getZ(), random.nextGaussian() * 0.1, 0.3, random.nextGaussian() * 0.1);
 				w.addImportantParticle(ParticleTypes.CLOUD, true, getX(), getY() + 2, getZ(), 0, 0.1, 0);
 			}
-			case MINI_NUKE, BOMBLET, GATLING_NUKE, FALLING_NUKE, AIR_BOMB -> {
+			case MINI_NUKE, BOMBLET, FALLING_NUKE, AIR_BOMB -> {
 				w.addParticle(ParticleTypes.FLAME, tail.x, tail.y, tail.z, -v.x * 0.1, -v.y * 0.1, -v.z * 0.1);
 				w.addParticle(ModParticles.EMBER, tail.x, tail.y, tail.z, 0, 0, 0);
 				w.addImportantParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, true, tail.x, tail.y, tail.z, 0, 0.01, 0);
@@ -539,6 +539,12 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case SHATTERFROST -> Vfx.play(world, VfxIds.SHATTER_BURST, at, 1.0F);
 			case ARCFLASH -> Vfx.play(world, VfxIds.ARC_BURST, at, 2.0F);
 			case EMP -> Vfx.play(world, VfxIds.EMP_PULSE, at, 1.0F);
+			case BOUNCE_BOMB -> Vfx.play(world, VfxIds.BOUNCE_BURST, at, 1.0F);
+			case LOOT_TORNADO -> Vfx.play(world, VfxIds.LOOT_BURST, at, 1.0F);
+			case MOONWALK_MINE -> Vfx.play(world, VfxIds.MOON_BURST, at, 1.0F);
+			case HOLOGRAM -> Vfx.play(world, VfxIds.HOLO_BURST, at, 1.0F);
+			case MAGNET -> Vfx.play(world, VfxIds.MAGNET_PULSE, at, 1.0F);
+			case PAINT_BOMB -> Vfx.play(world, VfxIds.PAINT_SPLASH, at, 1.0F);
 			case SEISMIC_MINE -> Vfx.play(world, VfxIds.SEISMIC_BURST, at, 1.0F);
 			case ION_FOG -> Vfx.play(world, VfxIds.ION_BLOOM, at, 1.0F);
 			case STASIS -> Vfx.play(world, VfxIds.STASIS_FIELD, at, 1.0F);

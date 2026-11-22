@@ -48,6 +48,12 @@ final class ThrowVfx {
 			case ARCFLASH -> 0xE0F4FF;
 			case IMPLOSION -> 0x9050FF;
 			case EMP -> 0x40A0FF;
+			case BOUNCE_BOMB -> 0xFF60C0;
+			case LOOT_TORNADO -> 0xFFD040;
+			case MOONWALK_MINE -> 0xD8D0FF;
+			case HOLOGRAM -> 0x40FFFF;
+			case MAGNET -> 0xFF4040;
+			case PAINT_BOMB -> 0xFF40FF;
 			case SEISMIC_MINE -> 0xFFA040;
 			case ION_FOG -> 0x90FFE0;
 			case STASIS -> 0x80E0FF;
@@ -67,6 +73,7 @@ final class ThrowVfx {
 		trails();
 		detonations();
 		ThrowVfx2.register();
+		ThrowVfx3.register();
 	}
 
 	// ------------------------------------------------------------------ throw and warning light

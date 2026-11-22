@@ -2,8 +2,10 @@ package com.armageddon.item;
 
 import com.armageddon.entity.ProjectileKind;
 import com.armageddon.entity.WmdProjectileEntity;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModItems;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
@@ -39,7 +41,7 @@ public class GatlingItem extends GunItem {
 		Vec3d m = muzzle(player, 1.4);
 		p.setPosition(m.x, m.y, m.z);
 		world.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.NUKE_LAUNCH, SoundCategory.PLAYERS, 1.6F, 1.2F + world.random.nextFloat() * 0.3F);
-		muzzleFlash(world, player, 1.4);
+		Vfx.play(world, VfxIds.GATLING_MUZZLE, m, player.getRotationVec(1.0F), 1.0F, 0);
 		recoil(player, 0.12);
 	}
 }

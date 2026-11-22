@@ -3,10 +3,11 @@ package com.armageddon.item;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
-import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.Hitscan;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -37,7 +38,7 @@ public class PlasmaBladeItem extends SwordItem {
 	public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
 		target.setOnFireFor(5.0F);
 		if (attacker.getWorld() instanceof ServerWorld world) {
-			world.spawnParticles(ModParticles.PLASMA_SPARK, target.getX(), target.getBodyY(0.5), target.getZ(), 12, 0.3, 0.4, 0.3, 0.15);
+			Vfx.play(world, VfxIds.BLADE_HIT, new Vec3d(target.getX(), target.getBodyY(0.5), target.getZ()), attacker.getRotationVec(1.0F), 1.0F, 0);
 		}
 		return super.postHit(stack, target, attacker);
 	}
@@ -60,6 +61,7 @@ public class PlasmaBladeItem extends SwordItem {
 			user.velocityModified = true;
 			user.fallDistance = 0;
 			ModNetworking.sendFx(server, start, 128, new FxPayload(FxType.BEAM, start, end, 0.35F, 0xFF4FD8, 10));
+			Vfx.play(server, VfxIds.BLADE_DASH, start, end.subtract(start), 1.0F, 0);
 			world.playSound(null, user.getX(), user.getY(), user.getZ(), ModSounds.BLADE_DASH, SoundCategory.PLAYERS, 1.5F, 1.2F);
 			user.getItemCooldownManager().set(this, 40);
 			stack.damage(1, user, LivingEntity.getSlotForHand(hand));

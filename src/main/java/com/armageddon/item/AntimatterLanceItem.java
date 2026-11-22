@@ -7,9 +7,9 @@ import com.armageddon.detonation.DetonationManager;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModItems;
-import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.Hitscan;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -41,9 +41,9 @@ public class AntimatterLanceItem extends GunItem {
 				Vfx.charge(server, p.getId(), muzzle(p, 1.0), 1.5F, 0xE070FF, chargeTicks());
 				server.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.ANTIMATTER, SoundCategory.PLAYERS, 1.0F, 1.8F);
 			}
-		} else if (user instanceof PlayerEntity p) {
-			Vec3d m = muzzle(p, 1.0);
-			world.addParticle(ModParticles.VOID_SPARK, m.x + world.random.nextGaussian() * 0.3, m.y + world.random.nextGaussian() * 0.3, m.z + world.random.nextGaussian() * 0.3, 0, 0, 0);
+			if (used % 3 == 0 && used <= chargeTicks()) {
+				Vfx.play(server, VfxIds.LANCE_CHARGE, muzzle(p, 1.0), p.getRotationVec(1.0F), 0.5F + used / (float) chargeTicks(), 0);
+			}
 		}
 	}
 
@@ -57,6 +57,9 @@ public class AntimatterLanceItem extends GunItem {
 		Vfx.beam(world, from, end, 0.35F, 0xFFFFFF, 20);
 		Vfx.layeredBlast(world, end, 4.0F, 0xE070FF);
 		Vfx.orb(world, end, 4.5F, 0.0F, 0x100018, 1, 20);
+		Vfx.play(world, VfxIds.LANCE_MUZZLE, from, dir, 1.0F, 0);
+		Vfx.play(world, VfxIds.LANCE_TRAIL, from, end.subtract(from), 1.0F, 0);
+		Vfx.play(world, VfxIds.ANTIMATTER_FLASH, end, 1.2F);
 		for (Entity e : Hitscan.pierce(world, player, from, end, 1.0)) {
 			e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, player, player), 45.0F);
 		}

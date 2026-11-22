@@ -4,10 +4,12 @@ import com.armageddon.detonation.Detonations;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModItems;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.Hitscan;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -26,6 +28,8 @@ public class DubstepGunItem extends GunItem {
 	/** One bar of 16 steps. Values are wub pitches, 0 = rest. */
 	private static final float[] BAR = {0.5F, 0, 0.5F, 0.75F, 0, 0.5F, 1.0F, 0, 0.5F, 0, 0.6F, 0.6F, 0.6F, 0.6F, 1.2F, 1.6F};
 	private static final double RANGE = 48;
+	/** The beat's colours, one per step round the bar. */
+	private static final int[] RAINBOW = {0xFF4040, 0xFFA030, 0xFFF040, 0x50FF60, 0x40C0FF, 0x6060FF, 0xC050FF, 0xFF50C0};
 
 	public DubstepGunItem(Settings settings) {
 		super(settings, Trigger.AUTO, () -> ModItems.PLASMA_CELL, 160, 0, 30);
@@ -52,6 +56,9 @@ public class DubstepGunItem extends GunItem {
 
 		ModNetworking.sendFx(world, eye, 192, new FxPayload(FxType.DUBSTEP_BEAM, muzzle, end, 0.35F + note * 0.25F, 0xFFFFFF, heldTicks / 2));
 		world.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.DUBSTEP_WUB, SoundCategory.PLAYERS, 2.0F, note);
+		int color = RAINBOW[step % RAINBOW.length];
+		Vfx.play(world, VfxIds.WUB_RING, muzzle, dir, 0.6F + note * 0.4F, color);
+		Vfx.play(world, VfxIds.WUB_HIT, end, dir.multiply(-1), 0.6F + note * 0.5F, color);
 
 		for (Entity e : Hitscan.pierce(world, player, eye, end, 0.8)) {
 			if (e instanceof LivingEntity living) {
@@ -66,6 +73,7 @@ public class DubstepGunItem extends GunItem {
 		if (drop) {
 			ModNetworking.sendFx(world, end, 256, new FxPayload(FxType.BASS_PULSE, end, end, 9.0F, 0xFFFFFF, heldTicks));
 			world.playSound(null, end.x, end.y, end.z, ModSounds.DUBSTEP_DROP, SoundCategory.PLAYERS, 4.0F, 1.0F);
+			Vfx.play(world, VfxIds.BASS_DROP, end, 1.0F);
 			world.createExplosion(player, end.x, end.y, end.z, 3.0F, false,
 					Detonations.blockDamage(world) ? World.ExplosionSourceType.TNT : World.ExplosionSourceType.NONE);
 			for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, new Box(end, end).expand(8), x -> x != player && x.isAlive())) {

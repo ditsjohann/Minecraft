@@ -124,6 +124,31 @@ public final class VfxIds {
 	public static final String SNOW_GLOBE_BURST = "snow_globe_burst";
 	public static final String SLIME_BURST = "slime_burst";
 
+	// fun throwables and more weapons
+	public static final String BOUNCE_TRAIL = "bounce_trail";
+	public static final String LOOT_GLINT = "loot_glint";
+	public static final String MOON_DUST = "moon_dust";
+	public static final String HOLO_FLICKER = "holo_flicker";
+	public static final String MAGNET_SPARKS = "magnet_sparks";
+	public static final String PAINT_DRIP = "paint_drip";
+	public static final String NUKE_ROUND_TRAIL = "nuke_round_trail";
+	public static final String BOUNCE_BURST = "bounce_burst";
+	public static final String LOOT_BURST = "loot_burst";
+	public static final String MOON_BURST = "moon_burst";
+	public static final String HOLO_BURST = "holo_burst";
+	public static final String MAGNET_PULSE = "magnet_pulse";
+	public static final String PAINT_SPLASH = "paint_splash";
+	public static final String LANCE_CHARGE = "lance_charge";
+	public static final String LANCE_MUZZLE = "lance_muzzle";
+	public static final String LANCE_TRAIL = "lance_trail";
+	public static final String ANTIMATTER_FLASH = "antimatter_flash";
+	public static final String BLADE_HIT = "blade_hit";
+	public static final String BLADE_DASH = "blade_dash";
+	public static final String GATLING_MUZZLE = "gatling_muzzle";
+	public static final String WUB_RING = "wub_ring";
+	public static final String WUB_HIT = "wub_hit";
+	public static final String BASS_DROP = "bass_drop";
+
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD,
@@ -138,7 +163,10 @@ public final class VfxIds {
 			SHATTER_BURST, EMP_PULSE,
 			SEISMIC_HUM, ION_GLOW, STASIS_HEX, QUANTUM_GLITCH, CRYSTAL_GLINT, VOID_CRACKLE, HORIZON_PULL, MIRROR_SHIMMER,
 			SNOW_SWIRL, SLIME_DRIP, SEISMIC_BURST, ION_BLOOM, STASIS_FIELD, QUANTUM_BURST, CRYSTAL_BURST, VOIDSTORM_BURST,
-			HORIZON_COLLAPSE, MIRROR_FLASH, SNOW_GLOBE_BURST, SLIME_BURST);
+			HORIZON_COLLAPSE, MIRROR_FLASH, SNOW_GLOBE_BURST, SLIME_BURST,
+			BOUNCE_TRAIL, LOOT_GLINT, MOON_DUST, HOLO_FLICKER, MAGNET_SPARKS, PAINT_DRIP, NUKE_ROUND_TRAIL, BOUNCE_BURST,
+			LOOT_BURST, MOON_BURST, HOLO_BURST, MAGNET_PULSE, PAINT_SPLASH, LANCE_CHARGE, LANCE_MUZZLE, LANCE_TRAIL,
+			ANTIMATTER_FLASH, BLADE_HIT, BLADE_DASH, GATLING_MUZZLE, WUB_RING, WUB_HIT, BASS_DROP);
 
 	private VfxIds() {
 	}

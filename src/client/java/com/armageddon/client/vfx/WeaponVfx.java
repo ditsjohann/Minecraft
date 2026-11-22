@@ -63,6 +63,13 @@ public final class WeaponVfx {
 			case ARCFLASH -> VfxIds.ARC_CRACKLE;
 			case EMP -> VfxIds.EMP_PING;
 			case BOOMERANG -> VfxIds.BOOMERANG_TRAIL;
+			case BOUNCE_BOMB -> VfxIds.BOUNCE_TRAIL;
+			case LOOT_TORNADO -> VfxIds.LOOT_GLINT;
+			case MOONWALK_MINE -> VfxIds.MOON_DUST;
+			case HOLOGRAM -> VfxIds.HOLO_FLICKER;
+			case MAGNET -> VfxIds.MAGNET_SPARKS;
+			case PAINT_BOMB -> VfxIds.PAINT_DRIP;
+			case GATLING_NUKE -> VfxIds.NUKE_ROUND_TRAIL;
 			case SEISMIC_MINE -> VfxIds.SEISMIC_HUM;
 			case ION_FOG -> VfxIds.ION_GLOW;
 			case STASIS -> VfxIds.STASIS_HEX;
