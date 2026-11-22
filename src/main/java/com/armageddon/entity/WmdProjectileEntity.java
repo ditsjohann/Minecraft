@@ -333,7 +333,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 
 	/**
 	 * Set by the client: draws this projectile's trail with the particle engine, returning false for kinds it leaves to
-	 * the vanilla particles below.
+	 * the vanilla particles below (kinds it draws have no case of their own there).
 	 */
 	public static java.util.function.Predicate<WmdProjectileEntity> clientTrail = e -> false;
 
@@ -357,49 +357,16 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 				w.addImportantParticle(ModParticles.PLASMA_SPARK, true, getX(), getY() + 1, getZ(), random.nextGaussian() * 0.1, 0.3, random.nextGaussian() * 0.1);
 				w.addImportantParticle(ParticleTypes.CLOUD, true, getX(), getY() + 2, getZ(), 0, 0.1, 0);
 			}
-			case BFG -> {
-				for (int i = 0; i < 4; i++) {
-					w.addParticle(ModParticles.RADIATION, getX() + random.nextGaussian(), getY() + random.nextGaussian(), getZ() + random.nextGaussian(), 0, 0, 0);
-				}
-			}
-			case ROCKET, MIRV, MINI_NUKE, BOMBLET, GATLING_NUKE, FALLING_NUKE, AIR_BOMB -> {
+			case MINI_NUKE, BOMBLET, GATLING_NUKE, FALLING_NUKE, AIR_BOMB -> {
 				w.addParticle(ParticleTypes.FLAME, tail.x, tail.y, tail.z, -v.x * 0.1, -v.y * 0.1, -v.z * 0.1);
 				w.addParticle(ModParticles.EMBER, tail.x, tail.y, tail.z, 0, 0, 0);
 				w.addImportantParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, true, tail.x, tail.y, tail.z, 0, 0.01, 0);
-			}
-			case PLASMA -> {
-				w.addParticle(ModParticles.PLASMA_SPARK, getX(), getY(), getZ(), random.nextGaussian() * 0.02, random.nextGaussian() * 0.02, random.nextGaussian() * 0.02);
-			}
-			case CRYO -> {
-				w.addParticle(ModParticles.CRYO_MIST, getX(), getY(), getZ(), 0, 0, 0);
-				w.addParticle(ParticleTypes.SNOWFLAKE, getX(), getY(), getZ(), random.nextGaussian() * 0.05, random.nextGaussian() * 0.05, random.nextGaussian() * 0.05);
 			}
 			case SINGULARITY -> {
 				for (int i = 0; i < 3; i++) {
 					w.addParticle(ModParticles.VOID_SPARK, getX() + random.nextGaussian() * 0.6, getY() + random.nextGaussian() * 0.6, getZ() + random.nextGaussian() * 0.6, 0, 0, 0);
 				}
 				w.addParticle(ParticleTypes.REVERSE_PORTAL, getX(), getY(), getZ(), 0, 0, 0);
-			}
-			case PLASMA_GRENADE -> {
-				if (age % 2 == 0) {
-					w.addParticle(ModParticles.PLASMA_SPARK, getX(), getY() + 0.1, getZ(), 0, 0.05, 0);
-				}
-			}
-			case CRYO_GRENADE -> {
-				if (age % 3 == 0) {
-					w.addParticle(ParticleTypes.SNOWFLAKE, getX(), getY() + 0.1, getZ(), 0, 0.03, 0);
-				}
-			}
-			case TOXIC -> {
-				if (age % 3 == 0) {
-					w.addParticle(ModParticles.TOXIC_GAS, getX(), getY() + 0.1, getZ(), 0, 0.02, 0);
-				}
-			}
-			case GRAVITY -> w.addParticle(ParticleTypes.REVERSE_PORTAL, getX(), getY() + 0.1, getZ(), 0, 0, 0);
-			case POCKET_NUKE -> {
-				if (age % 4 == 0) {
-					w.addParticle(ModParticles.RADIATION, getX(), getY() + 0.2, getZ(), 0, 0.03, 0);
-				}
 			}
 			default -> {
 				if (age % 4 == 0) {
@@ -508,7 +475,6 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case ROCKET, MIRV -> Detonations.highExplosive(world, at, this, 4.0F, false);
 			case BOMBLET -> Detonations.highExplosive(world, at, this, 2.6F, false);
 			case PLASMA -> {
-				ModNetworking.sendFx(world, at, 128, new FxPayload(FxType.PLASMA_BURST, at, 1.0F, 0x55FFEE));
 				world.playSound(null, at.x, at.y, at.z, ModSounds.PLASMA_IMPACT, SoundCategory.PLAYERS, 1.0F, 1.0F + random.nextFloat() * 0.3F);
 			}
 			case CRYO -> Detonations.freezeBurst(world, at, owner, 5);
@@ -518,7 +484,6 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 				Detonations.blast(world, at, 7, 10.0F, ModDamageTypes.SHRAPNEL, owner, 0, 0.4);
 			}
 			case PLASMA_GRENADE -> {
-				ModNetworking.sendFx(world, at, 128, new FxPayload(FxType.PLASMA_BURST, at, 3.0F, 0x55FFEE));
 				Detonations.highExplosive(world, at, this, 3.4F, false);
 				Detonations.blast(world, at, 5, 12.0F, ModDamageTypes.PLASMA, owner, 5, 0.6);
 			}

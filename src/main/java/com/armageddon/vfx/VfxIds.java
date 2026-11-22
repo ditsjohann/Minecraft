@@ -32,7 +32,6 @@ public final class VfxIds {
 	public static final String RAY_CHARGE = "ray_charge";
 	public static final String RAY_MUZZLE = "ray_muzzle";
 	public static final String RAY_HEAD = "ray_head";
-	public static final String RAY_BLAST = "ray_blast";
 	// cactus
 	public static final String CACTUS_DUST = "cactus_dust";
 	public static final String CACTUS_SPIKE = "cactus_spike";
@@ -40,10 +39,8 @@ public final class VfxIds {
 	public static final String CACTUS_BLOOM = "cactus_bloom";
 	public static final String SANDSTORM = "sandstorm";
 	// blackforge
-	public static final String FORGE_EMBERS = "forge_embers";
 	public static final String FORGE_STRIKE = "forge_strike";
 	public static final String FORGE_SHOCK = "forge_shock";
-	public static final String FORGE_SPLASH = "forge_splash";
 	public static final String ANVIL_IMPACT = "anvil_impact";
 	public static final String IRON_WAVE = "iron_wave";
 	public static final String PLATE_DUST = "plate_dust";
@@ -129,8 +126,8 @@ public final class VfxIds {
 
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE,
-			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD, RAY_BLAST,
-			CACTUS_DUST, CACTUS_SPIKE, SPIKE_IMPACT, FORGE_EMBERS, FORGE_STRIKE, FORGE_SHOCK, FORGE_SPLASH,
+			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD,
+			CACTUS_DUST, CACTUS_SPIKE, SPIKE_IMPACT, FORGE_STRIKE, FORGE_SHOCK,
 			SOUL_FLARE, SOUL_PILLAR, SOUL_VORTEX, SOUL_TRAIL, SOUL_SWEEP, INFRIT_IMPACT, INFRIT_BURST,
 			CACTUS_BLOOM, SANDSTORM, ANVIL_IMPACT, IRON_WAVE, PLATE_DUST, INFRIT_MANE, INFRIT_SPARKS, INFRIT_BREATH,
 			PLASMA_MUZZLE, PLASMA_TRAIL, RAIL_CHARGE, RAIL_MUZZLE, RAIL_ION, RAIL_IMPACT, MINIGUN_MUZZLE, SHELL_CASING,

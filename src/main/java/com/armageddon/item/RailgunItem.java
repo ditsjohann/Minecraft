@@ -94,7 +94,6 @@ public class RailgunItem extends GunItem {
 		}
 		Vec3d muzzle = muzzle(player, 1.0);
 		ModNetworking.sendFx(world, start, 256, new FxPayload(FxType.BEAM, muzzle, end, 0.18F, 0x66E0FF, 22));
-		ModNetworking.sendFx(world, end, 128, new FxPayload(FxType.PLASMA_BURST, end, 1.5F, 0x66E0FF));
 		ModNetworking.sendFx(world, start, 32, new FxPayload(FxType.SHAKE, start, 0.6F, 0));
 		Vfx.play(world, VfxIds.RAIL_MUZZLE, muzzle, dir, 1.0F, 0);
 		Vfx.play(world, VfxIds.RAIL_ION, muzzle, end.subtract(muzzle), 1.0F, 0);

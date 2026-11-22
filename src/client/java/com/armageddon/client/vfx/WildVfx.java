@@ -141,18 +141,6 @@ final class WildVfx {
 						.color(Gradient.of(0, 0x5A5A60, 1, 0x8A8A90)).alpha(0.6F).module(Module.buoyancy(0.004F)).module(Module.wind(1)).build())
 				.build());
 
-		FxEngine.register(EffectDef.builder(VfxIds.RAY_BLAST).tint(blue).lod(48, 320)
-				.emit(flash("flash", 4, 5, 0xC0F0FF).layer(Layer.GLOW_TOP).build())
-				.emit(EmitterDef.builder("core").priority(Priority.HERO).burst(1).size(4, 4).life(10, 10).sprite(FxSprites.GLOW).tinted()
-						.color(WHITE_FADE).alphaOverLife(Curve.FADE_OUT).build())
-				.emit(EmitterDef.builder("ring").burst(1).size(7, 7).life(12, 12).sprite(FxSprites.SHOCK).tinted()
-						.sizeOverLife(Curve.EASE_OUT).color(WHITE_FADE).alphaOverLife(Curve.FADE_OUT).build())
-				.emit(EmitterDef.builder("sparks").priority(Priority.DETAIL).burst(90).velocity(Velocity.random(0.3F, 1.0F))
-						.gravity(0.03F).drag(0.04F).collide(0.3F, 0.6F, 1).life(10, 25).size(0.04F, 0.06F).mode(Mode.STRETCHED)
-						.sprite(FxSprites.STREAK).tinted().color(WHITE_FADE).alphaOverLife(Curve.FADE_OUT).build())
-				.emit(smoke("smoke").burst(18).shape(Shape.dome(1.5F)).velocity(Velocity.radial(0.05F, 0.14F)).life(50, 90)
-						.size(1.0F, 1.6F).color(VfxLibrary.SOOT).alpha(0.8F).emissive(INNER_GLOW).module(Module.buoyancy(0.01F)).build())
-				.build());
 	}
 
 	// ------------------------------------------------------------------ cactus
@@ -193,15 +181,6 @@ final class WildVfx {
 	// ------------------------------------------------------------------ blackforge
 
 	private static void forge() {
-		FxEngine.register(EffectDef.builder(VfxIds.FORGE_EMBERS).lod(80, 600).maxAge(600)
-				.emit(EmitterDef.builder("embers").priority(Priority.DETAIL).rate(3, 520).onGround().shape(Shape.disc(30))
-						.velocity(Velocity.up(0.04F, 0.1F, 0.4F)).module(Module.buoyancy(0.004F)).module(Module.jitter(0.004F)).drag(0.02F)
-						.life(40, 80).size(0.04F, 0.07F).mode(Mode.STRETCHED).sprite(FxSprites.STREAK).color(VfxLibrary.EMBER)
-						.alphaOverLife(Curve.FADE).build())
-				.emit(smoke("smoke").rate(0.3F, 520).onGround().shape(Shape.disc(20)).velocity(Velocity.up(0.04F, 0.08F, 0.3F))
-						.life(120, 200).size(1.5F, 2.5F).color(Gradient.of(0, 0x2A201C, 1, 0x4A4440)).alpha(0.7F)
-						.emissive(Curve.keys(0, 0.9F, 0.2F, 0)).module(Module.buoyancy(0.006F)).module(Module.wind(1)).build())
-				.build());
 
 		FxEngine.register(EffectDef.builder(VfxIds.FORGE_STRIKE).lod(120, 900)
 				.emit(flash("flash", 10, 5, 0xFFC080).layer(Layer.GLOW_TOP).build())
@@ -230,13 +209,6 @@ final class WildVfx {
 						.emissive(Curve.keys(0, 0.6F, 0.2F, 0)).drag(0.04F).build())
 				.build());
 
-		FxEngine.register(EffectDef.builder(VfxIds.FORGE_SPLASH).lod(48, 300)
-				.emit(EmitterDef.builder("glow").burst(1).size(1.5F, 1.5F).life(5, 5).sprite(FxSprites.GLOW).color(0xFFA040)
-						.alphaOverLife(Curve.FADE_OUT).build())
-				.emit(sparkShower("sparks", 30, 0.15F, 0.4F, MOLTEN, null))
-				.emit(smoke("smoke").burst(3).velocity(Velocity.up(0.03F, 0.06F, 0.4F)).life(40, 70).size(0.6F, 1)
-						.color(VfxLibrary.SOOT).alpha(0.7F).emissive(INNER_GLOW).module(Module.buoyancy(0.008F)).build())
-				.build());
 	}
 
 	// ------------------------------------------------------------------ blue infrit

@@ -6,15 +6,12 @@ import com.armageddon.network.ModNetworking;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.vfx.VfxIds;
-import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SwordItem;
 import net.minecraft.item.ToolMaterial;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.particle.BlockStateParticleEffect;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
@@ -58,7 +55,6 @@ public class GravityHammerItem extends SwordItem {
 	private static void slam(ServerWorld world, PlayerEntity user) {
 		Vec3d c = user.getPos();
 		double radius = 8.0;
-		ModNetworking.sendFx(world, c, 128, new FxPayload(FxType.SHOCKWAVE, c.add(0, 0.1, 0), (float) radius, 0xB58CFF));
 		ModNetworking.sendFx(world, c, 48, new FxPayload(FxType.SHAKE, c, 1.2F, 0));
 		world.playSound(null, c.x, c.y, c.z, ModSounds.GRAVITY_SLAM, SoundCategory.PLAYERS, 2.5F, 0.6F);
 		Vfx.play(world, VfxIds.HAMMER_SLAM, c.add(0, 0.1, 0), 1.0F);
@@ -75,17 +71,6 @@ public class GravityHammerItem extends SwordItem {
 			e.velocityModified = true;
 		}
 		BlockPos below = user.getBlockPos().down();
-		for (int i = 0; i < 40; i++) {
-			double a = i / 40.0 * Math.PI * 2;
-			for (double r = 1.5; r < radius; r += 2.5) {
-				BlockPos bp = BlockPos.ofFloored(c.x + Math.cos(a) * r, c.y - 0.5, c.z + Math.sin(a) * r);
-				BlockState state = world.getBlockState(bp);
-				if (!state.isAir()) {
-					world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, state), bp.getX() + 0.5, bp.getY() + 1.1, bp.getZ() + 0.5, 3, 0.3, 0.1, 0.3, 0.3);
-				}
-			}
-		}
-		world.spawnParticles(ParticleTypes.EXPLOSION, c.x, c.y + 0.2, c.z, 3, 1, 0.1, 1, 0);
 		if (below.getY() < world.getBottomY()) {
 			return;
 		}

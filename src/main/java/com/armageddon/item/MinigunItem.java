@@ -53,7 +53,6 @@ public class MinigunItem extends GunItem {
 			if (!state.isAir()) {
 				world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, state), p.x, p.y, p.z, 3, 0.05, 0.05, 0.05, 0.1);
 			}
-			world.spawnParticles(ParticleTypes.SMOKE, p.x, p.y, p.z, 1, 0, 0, 0, 0.01);
 		}
 		ModNetworking.sendFx(world, start, 160, new FxPayload(FxType.TRACER, muzzle(player, 1.1), hit.end(), 0.04F, 0xFFD27A, 0));
 		if (heldTicks % 2 == 0) {
