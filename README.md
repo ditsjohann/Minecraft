@@ -52,15 +52,23 @@ deadly it is.
 | Fun | harmless or temporary | Disco Ball, Balloon, Party Popper |
 | Uncommon | under 5 blocks | Frag, Incendiary, Gravity Grenade, Flamethrower |
 | Rare | 5 to 12 blocks, gadgets | Thermobaric, Thermite, Sinkhole, Pocket Nuke, Rocket Launcher, Plasma Rifle |
-| Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher |
-| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar |
-| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator |
-| Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch |
+| Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun |
+| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb |
+| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge |
+| Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit |
 | City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence |
 | World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami |
 
 Bombs of Mythic tier and up must be lit twice; Celestial and up are gated by `armageddonAllowCelestial` and live in
 the Cataclysms tab.
+
+**The wild ones** — GOO BOMB (alien goo swells, throbbing faster and faster, then bursts into acid globs; what they land
+on turns to goo and dissolves), HYPERBEAM RAYGUN (a three-second charge, then a beam as thick as a house tunnels
+forward and blows up where it ends), CACTUS BOMB (a tower-sized saguaro spins faster and faster and flings its spikes in
+every direction, each one blasting a hole), BLACKFORGE (a black anvil rises and a giant hammer strikes it four times,
+each blow beating a wider ring of land flat into slag, then molten iron rains) and BLUE INFRIT (a summoning circle
+burns into the ground in blue fire, and a hound's head of blue flame dives on the land six times, leaving pits of
+lava, before blue fire sweeps the country).
 
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-4]`, to build a city of
 skyscrapers, roads, street lights and parks (with villagers) to destroy. `/armageddon purge` clears fallout,

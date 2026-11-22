@@ -143,6 +143,12 @@ public final class ModBlocks {
 	public static final BombBlock GRAVITY_KILLSWITCH = tiered(bomb("gravity_killswitch", BombType.GRAVITY_KILLSWITCH, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock SEISMIC_TSUNAMI = tiered(bomb("seismic_tsunami", BombType.SEISMIC_TSUNAMI, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 
+	// ---------------------------------------------------------------- the wild ones
+	public static final BombBlock GOO_BOMB = tiered(bomb("goo_bomb", BombType.GOO_BOMB, Rarity.EPIC), Tier.EPIC);
+	public static final BombBlock CACTUS_BOMB = tiered(bomb("cactus_bomb", BombType.CACTUS_BOMB, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock BLACKFORGE = tiered(bomb("blackforge", BombType.BLACKFORGE, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock BLUE_INFRIT = tiered(bomb("blue_infrit", BombType.BLUE_INFRIT, Rarity.EPIC), Tier.CELESTIAL);
+
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks
 	public static final Block ENERGY_CRYSTAL = register("energy_crystal", new TransparentBlock(AbstractBlock.Settings.create()
 			.mapColor(MapColor.PURPLE).strength(1.5F).luminance(s -> 12).nonOpaque().sounds(BlockSoundGroup.AMETHYST_BLOCK)

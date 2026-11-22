@@ -128,6 +128,11 @@ public final class Events {
 		EVENTS.put("dyson_lance", com.armageddon.event.events.SciFiEvents.DysonLance::new);
 		EVENTS.put("gravity_killswitch", com.armageddon.event.events.SciFiEvents.GravityKillswitch::new);
 		EVENTS.put("seismic_tsunami", com.armageddon.event.events.SciFiEvents.SeismicTsunami::new);
+		EVENTS.put("goo_bomb", com.armageddon.event.events.WildEvents.GooBomb::new);
+		EVENTS.put("hyperbeam", com.armageddon.event.events.WildEvents.Hyperbeam::new);
+		EVENTS.put("cactus_bomb", com.armageddon.event.events.WildEvents.CactusBomb::new);
+		EVENTS.put("blackforge", com.armageddon.event.events.WildEvents.Blackforge::new);
+		EVENTS.put("blue_infrit", com.armageddon.event.events.WildEvents.BlueInfrit::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);
 		EVENTS.put("zeropoint", CelestialEvents.Zeropoint::new);

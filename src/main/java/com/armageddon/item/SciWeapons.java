@@ -155,6 +155,55 @@ public final class SciWeapons {
 		}
 	}
 
+	// ====================================================================== HYPERBEAM RAYGUN
+
+	/**
+	 * EPIC. A long, heavy charge (sparks pour into the muzzle, the ball of light swells, the gun weighs you down), then
+	 * on release a beam as thick as a house roars out and tunnels forward through everything.
+	 */
+	public static class HyperbeamRaygun extends GunItem {
+		public HyperbeamRaygun(Settings settings) {
+			super(settings, Trigger.CHARGE, () -> ModItems.PLASMA_CELL, 3, 80, 60);
+		}
+
+		@Override
+		protected int chargeTicks() {
+			return 60;
+		}
+
+		@Override
+		protected void onCharging(World world, LivingEntity user, ItemStack stack, int used) {
+			if (!(user instanceof PlayerEntity p) || !(world instanceof ServerWorld server)) {
+				return;
+			}
+			int full = chargeTicks();
+			Vec3d m = GunItem.muzzle(p, 1.0);
+			if (used == 1) {
+				Vfx.charge(server, p.getId(), m, 2.6F, 0x60C8FF, full);
+			}
+			if (used % 5 == 0 && used <= full) {
+				Vfx.play(server, com.armageddon.vfx.VfxIds.RAY_CHARGE, m, p.getRotationVec(1.0F), 0.5F + used / (float) full, 0);
+				server.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.ORBITAL_CHARGE, SoundCategory.PLAYERS, 0.6F, 0.5F + used * 0.015F);
+			}
+			if (used == full) {
+				server.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1.2F, 1.8F);
+			}
+			// The charge is heavy: you can barely walk while you hold it.
+			p.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.SLOWNESS, 5, 2, false, false));
+		}
+
+		@Override
+		protected void fire(ServerWorld world, PlayerEntity player, ItemStack stack, int heldTicks) {
+			Vec3d dir = player.getRotationVec(1.0F);
+			EventEntity.start(world, muzzle(player, 1.6), "hyperbeam", player, nbt -> {
+				nbt.putDouble("Dx", dir.x);
+				nbt.putDouble("Dy", dir.y);
+				nbt.putDouble("Dz", dir.z);
+			});
+			recoil(player, 1.4);
+		}
+	}
+
 	// ====================================================================== OBLITERATOR
 
 	/** WORLD DESTRUCTION. Hold: a beam that takes apart everything it touches, block by block, and keeps going. */

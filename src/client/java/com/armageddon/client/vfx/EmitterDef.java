@@ -73,6 +73,7 @@ public final class EmitterDef {
 	final float shade;
 	final boolean tint;
 	final boolean groundSnap;
+	final float expand;
 
 	private EmitterDef(Builder b) {
 		name = b.name;
@@ -115,6 +116,7 @@ public final class EmitterDef {
 		shade = b.shade;
 		tint = b.tint;
 		groundSnap = b.groundSnap;
+		expand = b.expand;
 		float burst = 0;
 		for (Burst x : bursts) {
 			burst += x.count;
@@ -168,6 +170,7 @@ public final class EmitterDef {
 		private float shade = 1.0F;
 		private boolean tint;
 		private boolean groundSnap;
+		private float expand;
 
 		private Builder(String name) {
 			this.name = name;
@@ -370,6 +373,15 @@ public final class EmitterDef {
 		/** Spawn on the ground below the emitter instead of at its height (dust skirts, ground rings). */
 		public Builder onGround() {
 			groundSnap = true;
+			return this;
+		}
+
+		/**
+		 * The spawn shape grows outward by {@code blocksPerTick} (at scale 1) as the emitter runs: a ring becomes a front
+		 * that travels, for flame walls and dust walls riding a shockwave.
+		 */
+		public Builder expand(float blocksPerTick) {
+			expand = blocksPerTick;
 			return this;
 		}
 

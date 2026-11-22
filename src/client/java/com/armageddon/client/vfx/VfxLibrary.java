@@ -51,6 +51,7 @@ public final class VfxLibrary {
 		FxEngine.register(firework());
 		FxEngine.register(muzzleFlash());
 		FxEngine.register(nuke());
+		WildVfx.register();
 		for (String id : VfxIds.ALL) {
 			if (FxEngine.get(id) == null) {
 				throw new IllegalStateException("particle effect " + id + " is named but not defined");

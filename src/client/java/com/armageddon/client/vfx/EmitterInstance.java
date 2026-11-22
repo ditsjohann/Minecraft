@@ -54,8 +54,10 @@ public final class EmitterInstance {
 		return age > def.spawnEnd() && pool.count == 0;
 	}
 
+	/** Distance thins everything but the hero layers (a lone glob or spike must never vanish because it is far). */
 	private float countScale() {
-		return fx.lod * FxEngine.budget(def.priority);
+		float lod = def.priority == EmitterDef.Priority.HERO ? 1.0F : fx.lod;
+		return lod * FxEngine.budget(def.priority);
 	}
 
 	/** Stochastic rounding, so 0.4 of a particle per tick still spawns about every 2.5 ticks. */
@@ -137,6 +139,14 @@ public final class EmitterInstance {
 		}
 		d.shape.sample(rng, scale, shape);
 		float x = ox + shape[0], y = oy + shape[1], z = oz + shape[2];
+		if (d.expand != 0) {
+			float h = (float) Math.sqrt(shape[3] * shape[3] + shape[5] * shape[5]);
+			if (h > 1.0E-4F) {
+				float push = d.expand * scale * age / h;
+				x += shape[3] * push;
+				z += shape[5] * push;
+			}
+		}
 		if (d.groundSnap && world != null) {
 			int top = world.getTopY(Heightmap.Type.MOTION_BLOCKING, (int) Math.floor(fx.ox + x), (int) Math.floor(fx.oz + z));
 			float rel = (float) (top - fx.oy);

@@ -174,6 +174,7 @@ public final class ModItems {
 	public static final Item GRAVITON_LANCE = tier(register("graviton_lance", new com.armageddon.item.SciWeapons.GravitonLance(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.LEGENDARY);
 	public static final Item SUNFALL_MORTAR = tier(register("sunfall_mortar", new com.armageddon.item.SciWeapons.SunfallMortar(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.LEGENDARY);
 	public static final Item HALO_CUTTER = tier(register("halo_cutter", new com.armageddon.item.SciWeapons.HaloCutter(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.MYTHIC);
+	public static final Item HYPERBEAM_RAYGUN = tier(register("hyperbeam_raygun", new com.armageddon.item.SciWeapons.HyperbeamRaygun(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.EPIC);
 	public static final Item OBLITERATOR = tier(register("obliterator", new com.armageddon.item.SciWeapons.Obliterator(new Item.Settings().rarity(Rarity.EPIC).fireproof())), Tier.MYTHIC);
 	public static final Item WORLDSPLITTER_HAMMER = tier(register("worldsplitter_hammer", new WorldsplitterItem(ModMaterials.PLASMA,
 			new Item.Settings().fireproof().attributeModifiers(SwordItem.createAttributeModifiers(ModMaterials.PLASMA, 14, -3.3F)))), Tier.LEGENDARY);

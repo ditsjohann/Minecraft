@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/blue_infrit"
+    },
+    "facing=east": {
+      "model": "armageddon:block/blue_infrit",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/blue_infrit",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/blue_infrit",
+      "y": 270
+    }
+  }
+}

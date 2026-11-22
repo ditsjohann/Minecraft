@@ -110,6 +110,9 @@ public final class PreviewMain {
 			case "graviton" -> NewFx.create(payload(FxType.NEW_FX, a.add(0, 3, 0), a, 18, 0xB080FF, 47, 0, 0, 110));
 			case "sunfall" -> NewFx.create(payload(FxType.NEW_FX, a.add(-80, 4, 0), a, 18, 0xFFB040, 48, 40, 0, 130));
 			case "halo" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(0.3, 0, 0), 34, 0xFF5030, 49, 0, 0, 260));
+			case "cactus" -> NewFx.create(payload(FxType.NEW_FX, a, a, 34, 0x5AA040, 50, 0, 0, com.armageddon.util.WildShapes.Cactus.SOLID + 4));
+			case "forge" -> NewFx.create(payload(FxType.NEW_FX, a, a, 135, 0xFF5A1A, 51, 0, 0, com.armageddon.util.WildShapes.Forge.END));
+			case "infrit" -> NewFx.create(payload(FxType.NEW_FX, a, a, 42, 0x40C8FF, 52, 4242, 0, com.armageddon.util.WildShapes.Infrit.END));
 			case "twister" -> new MegaEffects.Twister(a, h, 26, 0.35, 600);
 			case "ufo" -> new MegaEffects.Ufo(a.add(-200, 70, 0), a.add(200, 70, 0), 60, 600);
 			case "moon" -> new ArsenalEffects.Moon(a, 40, 500, 0xC8C8D0, 400);

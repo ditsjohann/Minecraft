@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PPG",
+    "CFC",
+    "T  "
+  ],
+  "key": {
+    "P": {
+      "item": "armageddon:plasma_cell"
+    },
+    "G": {
+      "item": "minecraft:glowstone"
+    },
+    "C": {
+      "item": "armageddon:circuit_board"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    },
+    "T": {
+      "item": "armageddon:titanium_ingot"
+    }
+  },
+  "result": {
+    "id": "armageddon:hyperbeam_raygun",
+    "count": 1
+  }
+}

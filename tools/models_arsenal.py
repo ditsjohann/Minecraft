@@ -1452,3 +1452,73 @@ BOMBS.update({
     "ink_bomb": ink_bomb, "aurora_bomb": aurora_bomb, "seasons_bomb": seasons_bomb, "prism_bomb": prism_bomb,
     "geode_bomb": geode_bomb, "fossil_bomb": fossil_bomb, "lava_lamp": lava_lamp,
 })
+
+
+# =========================================================================== the wild ones
+
+def goo_bomb():
+    # A cracked containment canister with alien goo bulging out of the top and running down its sides.
+    m = [B(2, 0, 2, 14, 1.4, 14, "gunmetal"), B(3, 1.4, 3, 13, 2, 13, "hazard")]
+    m += cyl_y(8, 8, 2, 8.5, 4.6, "steel") + ring_y(8, 5.2, 8, 5.0, "glow_lime", 0.35)
+    m += vsphere(8, 10.4, 8, 4.4, 1.0, "glass_slime")
+    m += vsphere(5.2, 9.0, 6.0, 2.0, 1.0, "glass_slime") + vsphere(10.8, 9.6, 10.2, 1.8, 1.0, "glass_slime")
+    m += [B(6.2, 9.6, 6.2, 9.8, 13.2, 9.8, "glow_lime")]
+    for (x, z, h) in ((3.2, 6.5, 4.0), (12.4, 9.5, 5.0), (7.0, 12.6, 3.0)):
+        m += [B(x, 8.5 - h, z, x + 0.9, 8.5, z + 0.9, "glass_slime")]
+    return m
+
+
+def cactus_bomb():
+    # A saguaro on a sandy pot, its arms raised and its spines pale against the green.
+    m = [B(2, 0, 2, 14, 2.4, 14, "sand"), B(3, 2.4, 3, 13, 3, 13, "mud")]
+    m += [B(6, 3, 6, 10, 15, 10, "cactus"), B(6.5, 15, 6.5, 9.5, 16, 9.5, "cactus")]
+    m += [B(2, 7, 7, 6, 9.4, 9, "cactus"), B(2, 9.4, 7, 4, 13, 9, "cactus")]
+    m += [B(10, 9, 7, 14, 11.2, 9, "cactus"), B(12, 11.2, 7, 14, 14, 9, "cactus")]
+    for (x, y, z) in ((5.6, 5, 7.5), (10, 6.5, 8.2), (7.5, 8, 5.6), (8.2, 10.5, 10), (5.6, 12.5, 8.6), (10, 13.5, 7.2),
+                      (1.6, 11, 7.8), (14, 12.5, 8.1), (7.6, 4.2, 10)):
+        m += [B(x, y, z, x + 0.4, y + 0.4, z + 0.4, "bone")]
+    m += [B(7.2, 16, 7.2, 8.8, 16.6, 8.8, "pink")]
+    return m
+
+
+def blackforge():
+    # An anvil of black iron on a glowing forge bed, a hammer resting across it.
+    m = [B(1, 0, 1, 15, 1.6, 15, "obsidian"), B(2, 1.6, 2, 14, 2, 14, "glow_orange")]
+    m += [B(3, 2, 5, 13, 4, 11, "black"), B(5.5, 4, 6.2, 10.5, 7, 9.8, "black"), B(2, 7, 5.5, 13, 10, 10.5, "gunmetal")]
+    m += [B(13, 7.6, 6.6, 15.4, 9.6, 9.4, "gunmetal"), B(15.4, 8.1, 7.3, 16, 9.1, 8.7, "gunmetal")]
+    m += [B(5.4, 4.5, 6.15, 10.6, 4.9, 6.2, "glow_orange"), B(5.4, 4.5, 9.8, 10.6, 4.9, 9.85, "glow_orange")]
+    m += [B(4, 10, 6.5, 9, 13, 9.5, "crimson"), B(5.5, 10.6, 6.3, 7.5, 12.4, 6.5, "glow_orange")]
+    m += [B(8.5, 11, 7.3, 15, 12, 8.7, "mud")]
+    return m
+
+
+def blue_infrit():
+    # A blackstone altar with a summoning circle of blue fire, a horned hound's skull glowing on top.
+    m = [B(0.5, 0, 0.5, 15.5, 1.2, 15.5, "obsidian")]
+    m += ring_y(8, 1.25, 8, 6.8, "glow_cyan", 0.3, segs=24) + ring_y(8, 1.25, 8, 5.0, "glow_blue", 0.25, segs=20)
+    m += [B(4, 1.2, 4, 12, 5, 12, "black"), B(4.5, 5, 4.5, 11.5, 5.4, 11.5, "glow_cyan")]
+    m += [B(5, 5.4, 5, 11, 10.5, 10.6, "gunmetal"), B(6, 6, 10.6, 10, 8.6, 14, "gunmetal"), B(6.6, 6, 14, 9.4, 7.6, 14.6, "black")]
+    m += [B(5.6, 10.5, 6, 7.2, 14.5, 7.6, "black"), B(8.8, 10.5, 6, 10.4, 14.5, 7.6, "black")]
+    m += [B(5.9, 8.4, 10.58, 7.4, 9.3, 10.65, "glow_cyan"), B(8.6, 8.4, 10.58, 10.1, 9.3, 10.65, "glow_cyan")]
+    m += [B(6.4, 5.4, 12.6, 6.9, 6.2, 13, "glow_white"), B(9.1, 5.4, 12.6, 9.6, 6.2, 13, "glow_white")]
+    return m
+
+
+BOMBS.update({"goo_bomb": goo_bomb, "cactus_bomb": cactus_bomb, "blackforge": blackforge, "blue_infrit": blue_infrit})
+
+
+def hyperbeam_raygun():
+    # A chunky retro raygun: a bulbous charge chamber with fins, a wide bell emitter and a glowing coil.
+    m = [B(5.5, 7, 6, 10.5, 12.5, 18, "white")]
+    m += vsphere(8, 10, 3.5, 3.4, 1.0, "glass_cyan")
+    m += [B(6.8, 8.8, 2.3, 9.2, 11.2, 4.7, "glow_cyan")]
+    for z in (6.5, 9, 11.5):
+        m += ring_y_frame(8, 9.8, z, 3.4, "chrome", 0.6)
+    m += [B(7.5, 12.5, 8, 8.5, 15.5, 15, "red"), B(7.5, 4, 9, 8.5, 7, 14, "red")]
+    m += cyl_z(8, 10, -4, 0.5, 1.4, "chrome") + ring_y_frame(8, 10, -4.5, 3.0, "chrome", 0.7) + ring_y_frame(8, 10, -4.6, 2.2, "glow_cyan", 0.4)
+    m += [B(7.2, 9.2, -5.2, 8.8, 10.8, -4.6, "glow_white")]
+    m += [B(6.5, 7, 18, 9.5, 11, 23, "white"), grip(8, 8, 15)]
+    return m, (8, 4, 15)
+
+
+GUNS["hyperbeam_raygun"] = hyperbeam_raygun

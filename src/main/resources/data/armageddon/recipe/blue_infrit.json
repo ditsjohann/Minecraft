@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CSC",
+    "FKF",
+    "CSC"
+  ],
+  "key": {
+    "C": {
+      "item": "armageddon:celestial_core"
+    },
+    "S": {
+      "item": "minecraft:soul_lantern"
+    },
+    "F": {
+      "item": "minecraft:soul_campfire"
+    },
+    "K": {
+      "item": "minecraft:wither_skeleton_skull"
+    }
+  },
+  "result": {
+    "id": "armageddon:blue_infrit",
+    "count": 1
+  }
+}

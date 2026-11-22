@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/blackforge"
+    },
+    "facing=east": {
+      "model": "armageddon:block/blackforge",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/blackforge",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/blackforge",
+      "y": 270
+    }
+  }
+}

@@ -31,6 +31,7 @@ NAMES = {
     # plasma and sci-fi (cataclysm tiers)
     "helix_disruptor": "Helix Disruptor", "graviton_lance": "Graviton Lance", "sunfall_mortar": "Sunfall Mortar",
     "halo_cutter": "Halo Cutter", "obliterator": "Obliterator",
+    "hyperbeam_raygun": "Hyperbeam Raygun",
 }
 
 BLOCKS = {
@@ -82,6 +83,7 @@ DESC = {
     "sunfall_mortar": ["Lobs a small plasma sun in a high arc.", "Where it lands, the ground melts into a pool of lava."],
     "halo_cutter": ["Charge to paint a target: an orbital beam draws a ring canyon round it,", "then the whole disc inside drops out of the world."],
     "obliterator": ["Hold: a beam that takes apart everything it touches and keeps going.", "Ammo: antimatter cells."],
+    "hyperbeam_raygun": ["Hold for three seconds while it charges (you can barely walk),", "then release: a beam as thick as a house tunnels forward and blows up where it ends.", "Ammo: plasma cells."],
     "worldsplitter_hammer": ["Right-click the ground: eight fissures, lifted earth, a second crushing wave."],
     "solar_verdict_beacon": ["A public five-second countdown. Then nine beams of judgement."],
     "titanfall_warhead": ["Calls a heavy warhead from orbit along your line of sight.", "Delayed secondary detonation."],
@@ -116,10 +118,15 @@ NEW_BOMBS.update({
     "fossil_bomb": "Fossil Bomb", "lava_lamp": "Lava Lamp Bomb",
     "ion_scythe": "ION SCYTHE", "resonance_cascade": "RESONANCE CASCADE", "tesla_dominion": "TESLA DOMINION",
     "dyson_lance": "DYSON LANCE", "gravity_killswitch": "GRAVITY KILLSWITCH", "seismic_tsunami": "SEISMIC TSUNAMI",
+    "goo_bomb": "Goo Bomb", "cactus_bomb": "Cactus Bomb", "blackforge": "BLACKFORGE", "blue_infrit": "BLUE INFRIT",
 })
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
+    "goo_bomb": "An alien goo oozes out and swells, throbbing faster and faster, eating into the ground, until it bursts. Acid globs fly everywhere, and whatever they land on turns to goo and dissolves.",
+    "cactus_bomb": "A cactus the size of a tower grows out of the ground and starts to spin, faster and faster, until its spikes tear off and fly in every direction, blowing holes wherever they land.",
+    "blackforge": "The ground cracks on a glow from far below. A black anvil rises and a hammer as tall as a tower strikes it four times, each blow beating a wider ring of the land flat into slag. Then it rains molten iron. Light twice.",
+    "blue_infrit": "CELESTIAL. Blue fire draws a summoning circle into the ground. Pillars of it rise, the circle becomes a vortex, and a hound's head of blue flame bursts out and dives on the land six times, leaving burning pits of lava. Then blue fire sweeps the country. Light twice.",
     "ion_scythe": "An orbital ion cannon cuts a spiral trench of molten glass through everything, charges it, then ignites the whole spiral at once. Light twice.",
     "resonance_cascade": "CELESTIAL. A tuning fork hums until it finds the town's frequency; then every building, wall and tree shakes itself apart into rubble and the ground goes to mud. Light twice.",
     "tesla_dominion": "CELESTIAL. A tesla tower rises and arcs at everything tall; the lightning chains through buildings, blowing them apart, and ploughs furrows where it earths. Then the ball lightning goes. Light twice.",
@@ -306,8 +313,19 @@ def bomb_recipes2(shaped):
         shaped(name, ["CXC", "NKN", "CXC"], {"C": "celestial_core", "X": "singularity_core", "N": "minecraft:nether_star", "K": core}, category=cat)
 
 
+def bomb_recipes3(shaped):
+    cat = "redstone"
+    shaped("goo_bomb", ["SLS", "LTL", "SLS"], {"S": "minecraft:slime_block", "L": "minecraft:lime_dye", "T": "minecraft:tnt"}, category=cat)
+    shaped("cactus_bomb", ["CSC", "SNS", "CSC"], {"C": "minecraft:cactus", "S": "minecraft:sand", "N": "atomic_bomb"}, category=cat)
+    shaped("blackforge", ["IAI", "MNM", "IBI"], {"I": "minecraft:netherite_ingot", "A": "minecraft:anvil", "M": "minecraft:magma_block",
+                                               "N": "minecraft:nether_star", "B": "minecraft:blackstone"}, category=cat)
+    shaped("blue_infrit", ["CSC", "FKF", "CSC"], {"C": "celestial_core", "S": "minecraft:soul_lantern", "F": "minecraft:soul_campfire",
+                                                "K": "minecraft:wither_skeleton_skull"}, category=cat)
+
+
 def bomb_recipes(shaped):
     bomb_recipes2(shaped)
+    bomb_recipes3(shaped)
     P, C, F = "titanium_plate", "circuit_board", "fusion_core"
     cat = "redstone"
     U = {"disco_bomb": "minecraft:note_block", "glitter_bomb": "minecraft:glowstone_dust", "pumpkin_patch_bomb": "minecraft:carved_pumpkin",
@@ -375,6 +393,7 @@ def recipes(shaped, shapeless):
     shaped("graviton_lance", ["AAS", "CFC", "T  "], {"A": "antimatter_cell", "S": "singularity_core", "C": "celestial_core", "F": F, "T": Ti})
     shaped("sunfall_mortar", ["SSS", "CFC", "OOO"], {"S": "solar_cell", "C": "celestial_core", "F": F, "O": "minecraft:obsidian"})
     shaped("halo_cutter", ["NAN", "CFC", "SAS"], {"N": "minecraft:nether_star", "A": "antimatter_cell", "C": "celestial_core", "F": F, "S": "singularity_core"})
+    shaped("hyperbeam_raygun", ["PPG", "CFC", "T  "], {"P": "plasma_cell", "G": "minecraft:glowstone", "C": C, "F": F, "T": Ti})
     shaped("obliterator", ["AAA", "NFC", "S  "], {"A": "antimatter_cell", "N": "minecraft:nether_star", "F": F, "C": "celestial_core", "S": "singularity_core"})
     shaped("judgment_engine", ["SSG", "MFC", " PP"], {"S": "solar_cell", "G": "minecraft:gold_block", "M": "minigun", "F": F, "C": C, "P": P})
     shaped("helios_crown_bomb", ["SGS", "GFG", "SGS"], {"S": "solar_cell", "G": "minecraft:gold_block", "F": F}, category="redstone")

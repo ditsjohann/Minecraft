@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CSC",
+    "SNS",
+    "CSC"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:cactus"
+    },
+    "S": {
+      "item": "minecraft:sand"
+    },
+    "N": {
+      "item": "armageddon:atomic_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:cactus_bomb",
+    "count": 1
+  }
+}
