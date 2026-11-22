@@ -48,10 +48,12 @@ public final class WildShapes {
 		public static final int RISE = 10, RISEN = 100, SPIN = 110, FIRE = 160, FIRE_END = 340, STOP = 390, SOLID = 400, END = 420;
 		public static final double TRUNK_H = 34, TRUNK_R = 3.2, ARM_R = 2.2;
 		/** Arms: side angle (radians), height where it joins, how far out it reaches, how far up it then grows. */
-		public static final double[][] ARMS = {{0.4, 13, 7.5, 11}, {0.4 + Math.PI, 18, 6.5, 9}};
+		public static final double[][] ARMS = {{0.4, 13, 7.5, 11}, {2.75, 18, 6.5, 9}};
 		public static final int TRUNK_SPIKES = 64, ARM_SPIKES = 18;
 		public static final int SPIKES = TRUNK_SPIKES + ARM_SPIKES * 2;
 		public static final double GRAVITY = 0.07;
+		/** How far the red sandstorm turns the land to desert once it has stopped. */
+		public static final double DESERT_R = 45;
 		public static final double MAX_SPIN = 0.22;
 
 		private Cactus() {
@@ -130,6 +132,62 @@ public final class WildShapes {
 			return new Vec3d(v.x * c - v.z * s, v.y, v.x * s + v.z * c);
 		}
 
+		/**
+		 * The turn to draw (and launch spikes) at, measured so that it comes to rest at zero: the spinning model stops
+		 * exactly lined up with the blocks the server then sets in its place.
+		 */
+		public static double spin(double t) {
+			return angle(t) - angle(STOP);
+		}
+
+		private static java.util.List<int[]> voxels;
+
+		/**
+		 * The cactus as blocks, relative to the block it grows from: {x, y, z, rib} with rib 1 for the darker ribs.
+		 * The server places exactly these; the client spins exactly these, about the centre of the base block.
+		 */
+		public static synchronized java.util.List<int[]> voxels() {
+			if (voxels == null) {
+				java.util.LinkedHashMap<Long, int[]> m = new java.util.LinkedHashMap<>();
+				column(m, 0, 0, TRUNK_R, 0, TRUNK_H);
+				for (double[] arm : ARMS) {
+					double ox = Math.cos(arm[0]), oz = Math.sin(arm[0]);
+					for (double s = 0; s <= arm[2]; s += 0.5) {
+						for (double dy = -ARM_R; dy <= ARM_R; dy += 1) {
+							disc(m, ox * s, arm[1] + dy, oz * s, Math.sqrt(Math.max(0, ARM_R * ARM_R - dy * dy)));
+						}
+					}
+					column(m, ox * arm[2], oz * arm[2], ARM_R, arm[1], arm[1] + arm[3]);
+				}
+				voxels = java.util.List.copyOf(m.values());
+			}
+			return voxels;
+		}
+
+		private static void column(java.util.Map<Long, int[]> m, double x, double z, double r, double y0, double y1) {
+			for (double y = y0; y <= y1; y += 1) {
+				// Rounded off at the top.
+				double rr = y > y1 - r ? Math.sqrt(Math.max(0, r * r - (y - (y1 - r)) * (y - (y1 - r)))) : r;
+				disc(m, x, y, z, rr);
+			}
+		}
+
+		private static void disc(java.util.Map<Long, int[]> m, double x, double y, double z, double r) {
+			int ri = MathHelper.ceil(r);
+			for (int dx = -ri; dx <= ri; dx++) {
+				for (int dz = -ri; dz <= ri; dz++) {
+					if (dx * dx + dz * dz > r * r + 0.5) {
+						continue;
+					}
+					// Ribs: bands of darker green running up the stem, round its own axis.
+					boolean rib = Math.floorMod((int) Math.floor(Math.atan2(dz, dx) / (Math.PI * 2) * 14), 2) == 0;
+					boolean edge = dx * dx + dz * dz > (r - 1) * (r - 1);
+					int bx = MathHelper.floor(x) + dx, by = MathHelper.floor(y), bz = MathHelper.floor(z) + dz;
+					m.putIfAbsent(net.minecraft.util.math.BlockPos.asLong(bx, by, bz), new int[]{bx, by, bz, edge && rib ? 1 : 0});
+				}
+			}
+		}
+
 		/** Launch speed of spike {@code i} (blocks per tick, before the spin's own throw is added). */
 		public static double speed(int i) {
 			return 0.7 + 0.4 * SciShapes.hash(i, 11);
@@ -139,62 +197,89 @@ public final class WildShapes {
 	// ====================================================================== BLACKFORGE
 
 	/**
-	 * Under the world there is a forge. The ground cracks; a black anvil rises; a hammer the size of a tower comes
-	 * down out of the sky and strikes, four times. Each blow hammers a wider ring of the land flat into slag.
+	 * The Blackforge: anvils start falling out of the sky, a few, then more and faster until it pours anvils. Then a
+	 * hammer the size of a tower slams the ground: every anvil turns to iron, and the land round it breaks into
+	 * tectonic plates that heave and sink.
 	 */
 	public static final class Forge {
-		public static final int CRACK = 0, RISE = 30, RISEN = 100, HAMMER_IN = 100;
-		public static final int[] STRIKES = {170, 230, 290, 370};
-		/** Outer radius of the land each blow hammers flat (each ring starts where the last ended). */
-		public static final double[] BANDS = {22, 42, 62, 85};
-		public static final int RAIN = 380, RAIN_END = 470, LIFT = 470, END = 540;
-		public static final double ANVIL_H = 22, HAMMER_UP = 55;
-		/** The hammer head's half-extents: width (x), height (y) and length (z, along the anvil). */
-		public static final double HEAD_W = 7, HEAD_H = 7, HEAD_L = 12, HANDLE_L = 70;
+		public static final int RAIN_END = 200, HAMMER_IN = 185, STRIKE = 250, LIFT = 380, END = 440;
+		/** Passes of the plates shifting after the blow. */
+		public static final int[] SHIFTS = {262, 292, 322, 352};
+		/** How far out the anvils fall (it widens as the rain goes on), the iron, and the plates. */
+		public static final double RAIN_R = 70, IRON_R = 80, PLATE_IN = 12, PLATE_R = 85;
+		/** The plates: ring boundaries and how many plates each ring is split into. */
+		public static final double[] RINGS = {12, 28, 48, 68, 85};
+		public static final int SECTORS = 7;
+		public static final double HAMMER_UP = 70;
+		/** The hammer head's half-extents: width (x), height (y) and length (z), and the handle's length. */
+		public static final double HEAD_W = 9, HEAD_H = 8, HEAD_L = 16, HANDLE_L = 90;
 
 		private Forge() {
 		}
 
-		/** How far the anvil has risen out of the ground (0..1); it sinks again at the end. */
-		public static double risen(double t) {
-			return smooth((t - RISE) / (RISEN - RISE)) * (1 - smooth((t - LIFT - 20) / 50.0));
+		/** Anvils per tick at tick {@code t}: a trickle that becomes a downpour. */
+		public static double rate(double t) {
+			double u = MathHelper.clamp(t / RAIN_END, 0.0, 1.0);
+			return t >= RAIN_END ? 0 : 0.12 + 5.5 * Math.pow(u, 2.2);
 		}
 
-		/** Gap between the hammer head and the anvil's face at tick {@code t} (0 = struck; huge = out of sight). */
+		/** How far out the anvils are falling at tick {@code t}. */
+		public static double rainRadius(double t) {
+			return 12 + (RAIN_R - 12) * MathHelper.clamp(t / RAIN_END, 0.0, 1.0);
+		}
+
+		/** Gap between the hammer head and the ground at tick {@code t} (0 = struck; huge = out of sight). */
 		public static double lift(double t) {
 			if (t < HAMMER_IN) {
 				return 400;
 			}
-			int first = STRIKES[0];
-			if (t < first - 14) {
-				return HAMMER_UP + 300 * (1 - smooth((t - HAMMER_IN) / (first - 14 - HAMMER_IN)));
+			if (t < STRIKE - 14) {
+				return HAMMER_UP + 330 * (1 - smooth((t - HAMMER_IN) / (STRIKE - 14 - HAMMER_IN)));
 			}
-			for (int k = 0; k < STRIKES.length; k++) {
-				int s = STRIKES[k];
-				if (t < s - 14) {
-					// Lifting back up after the last blow, then held high.
-					int prev = STRIKES[k - 1];
-					return HAMMER_UP * smooth((t - prev) / 30.0);
-				}
-				if (t < s) {
-					double u = (t - (s - 14)) / 14.0;
-					return HAMMER_UP * (1 - u * u);
-				}
+			if (t < STRIKE) {
+				double u = (t - (STRIKE - 14)) / 14.0;
+				return HAMMER_UP * (1 - u * u);
 			}
 			if (t < LIFT) {
 				return 0;
 			}
-			return 400 * smooth((t - LIFT) / 60.0);
+			return 400 * smooth((t - LIFT) / 50.0);
 		}
 
-		/** Which blow is landing on tick {@code t}, or -1. */
-		public static int strikeAt(int t) {
-			for (int k = 0; k < STRIKES.length; k++) {
-				if (STRIKES[k] == t) {
-					return k;
+		/** Which plate a column lies on: ring index * SECTORS + sector, or -1 on a crack (or outside). */
+		public static int plate(double dx, double dz) {
+			double d = Math.sqrt(dx * dx + dz * dz);
+			for (int r = 0; r < RINGS.length - 1; r++) {
+				if (d >= RINGS[r] && d < RINGS[r + 1]) {
+					if (d - RINGS[r] < 1.2) {
+						return -1;
+					}
+					// Each ring's sectors are turned a little, so the cracks don't line up into spokes.
+					double a = Math.atan2(dz, dx) + r * 0.7;
+					double f = (a / (Math.PI * 2) + 1) % 1.0 * SECTORS;
+					if (f - Math.floor(f) < 1.2 * SECTORS / (Math.PI * 2 * d)) {
+						return -1;
+					}
+					return r * SECTORS + (int) f;
 				}
 			}
 			return -1;
+		}
+
+		/**
+		 * How far (blocks, up or down) plate {@code id} has moved at a column {@code d} out from the centre after
+		 * {@code pass} passes: each plate rises or sinks, and tilts.
+		 */
+		public static int offset(int id, double d, int pass) {
+			if (id < 0 || pass <= 0) {
+				return 0;
+			}
+			int r = id / SECTORS;
+			double mid = (RINGS[r] + RINGS[r + 1]) * 0.5, w = RINGS[r + 1] - RINGS[r];
+			double lift = (SciShapes.hash(id, 41) < 0.5 ? -1 : 1) * (1.5 + 2.5 * SciShapes.hash(id, 42));
+			double tilt = (SciShapes.hash(id, 43) - 0.5) * 6;
+			double full = lift + tilt * (d - mid) / w;
+			return (int) Math.round(full * Math.min(pass, SHIFTS.length) / SHIFTS.length);
 		}
 	}
 

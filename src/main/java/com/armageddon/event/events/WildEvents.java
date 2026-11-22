@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.FallingBlockEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -262,11 +263,12 @@ public final class WildEvents {
 
 	/**
 	 * The hyperbeam: after the long charge, a beam as thick as a house roars out of the raygun and pushes forward,
-	 * tunnelling through everything, holds, and goes off where it ends.
+	 * tunnelling through everything for nearly a hundred blocks, and keeps pouring for six seconds before it thins
+	 * away to nothing.
 	 */
 	public static class Hyperbeam extends SciFiEvents.Base {
-		static final int LIFE = 52;
-		static final double SPEED = 2.4, MAX = 40, R = 2.6;
+		static final int LIFE = 120, FADE = 14;
+		static final double SPEED = 2.4, MAX = 96, R = 2.6;
 
 		@Override
 		public boolean tick() {
@@ -282,25 +284,24 @@ public final class WildEvents {
 				Kit.sound(world, o, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 6.0F, 0.6F);
 			}
 			if (t < LIFE) {
-				// Two beams: a wide blue glow and a white-hot core.
-				Vfx.beam(world, o, head, 2.4F, 0x48B8FF, 3);
-				Vfx.beam(world, o, head, 0.9F, 0xF0FFFF, 3);
-				if (t % 2 == 0) {
-					Vfx.play(world, VfxIds.RAY_HEAD, head, d.multiply(-1), 1.4F, 0);
+				// Two beams, a wide blue glow and a white-hot core, thinning away over the last moments.
+				float w = (float) MathHelper.clamp((LIFE - t) / (double) FADE, 0.0, 1.0);
+				Vfx.beam(world, o, head, 2.4F * w + 0.2F, 0x48B8FF, 3);
+				Vfx.beam(world, o, head, 0.9F * w + 0.1F, 0xF0FFFF, 3);
+				if (t % 2 == 0 && w > 0.3F) {
+					Vfx.play(world, VfxIds.RAY_HEAD, head, d.multiply(-1), 1.4F * w, 0);
 				}
 				if (t % 4 == 0) {
-					Kit.sound(world, o, ModSounds.DEATH_RAY, 4.0F, 0.7F);
-					Vfx.shake(world, o, 48, 0.45F);
+					Kit.sound(world, o, ModSounds.DEATH_RAY, 4.0F * w + 1, 0.7F);
+					Vfx.shake(world, o, 48, 0.45F * w);
 				}
 				if (len < MAX && Destruction.enabled(world)) {
 					Kit.sphere(world, BlockPos.ofFloored(head), R, AIR);
 					Kit.sphere(world, BlockPos.ofFloored(head.subtract(d.multiply(SPEED * 0.5))), R, AIR);
 				}
-				hurt(o, d, len);
-			}
-			if (t == LIFE) {
-				Kit.boom(world, head, 3.0F, 0x60C8FF, owner(), true);
-				Vfx.play(world, VfxIds.RAY_BLAST, head, d.multiply(-1), 2.0F, 0);
+				if (w > 0.2F) {
+					hurt(o, d, len);
+				}
 			}
 			return t >= LIFE;
 		}
@@ -327,17 +328,24 @@ public final class WildEvents {
 	// ====================================================================== CACTUS
 
 	/**
-	 * CACTUS BOMB (legendary). A saguaro the size of a tower grows out of the ground, starts to turn, and spins
-	 * faster and faster until its spikes tear off and fly in every direction, each one blasting a hole where it
-	 * lands. When the last is gone it slows, stops, and sets into a real, bald cactus of blocks.
+	 * CACTUS BOMB (legendary). A saguaro the size of a tower grows out of the ground, block by block, starts to
+	 * turn, and spins faster and faster until its spikes tear off and fly in every direction, each one blasting a
+	 * hole where it lands. When the last is gone it slows and stops, and stands there as real blocks; its crown
+	 * blooms, and a red sandstorm rolls out and turns the land around it to desert.
 	 */
 	public static class CactusBomb extends SciFiEvents.Base {
 		private final List<Ballistic> spikes = new ArrayList<>();
 
+		/** The axis it turns about: the centre of the block it grows from. */
+		private Vec3d pivot() {
+			BlockPos b = BlockPos.ofFloored(center());
+			return new Vec3d(b.getX() + 0.5, b.getY(), b.getZ() + 0.5);
+		}
+
 		@Override
 		public boolean tick() {
 			int t = age();
-			Vec3d base = center();
+			Vec3d base = pivot();
 			if (t == 0) {
 				Vfx.newFx(world, FX_CACTUS, base, base, (float) Cactus.TRUNK_H, 0x5AA040, 0, 0, Cactus.SOLID + 4);
 				Kit.sound(world, base, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 16.0F, 0.5F);
@@ -369,15 +377,19 @@ public final class WildEvents {
 				}
 			}
 			if (t == Cactus.SOLID) {
-				build(base, Cactus.angle(Cactus.STOP));
+				build(base);
 				Kit.sound(world, base, SoundEvents.BLOCK_WOOD_PLACE, 16.0F, 0.4F);
 			}
-			return t >= Cactus.END && spikes.isEmpty() || t > Cactus.END + 240;
+			if (t == Cactus.SOLID + 6) {
+				bloom(base);
+			}
+			stepJobs(3000);
+			return t >= Cactus.END && spikes.isEmpty() && jobs.isEmpty() || t > Cactus.END + 240;
 		}
 
 		private void launch(Vec3d base, int i, int t) {
 			double[] o = new double[3];
-			double a = Cactus.angle(t);
+			double a = Cactus.spin(t);
 			Vec3d root = Cactus.turn(Cactus.spike(i, o), a);
 			Vec3d dir = Cactus.turn(new Vec3d(o[0], o[1], o[2]), a);
 			Vec3d start = base.add(root).add(dir.multiply(1.5));
@@ -399,49 +411,53 @@ public final class WildEvents {
 			Destruction.explode(world, owner(), at.x, at.y, at.z, 3.4F, false);
 		}
 
-		/** The spent cactus, set into blocks where it stood: ribbed, bald and turned the way it stopped. */
-		private void build(Vec3d base, double a) {
-			if (!Destruction.enabled(world)) {
+		/** The spent cactus, set into exactly the blocks the spinning one was drawn with. */
+		private void build(Vec3d base) {
+			BlockPos b = BlockPos.ofFloored(base);
+			for (int[] v : Cactus.voxels()) {
+				put(b.add(v[0], v[1], v[2]), v[3] == 1 ? Blocks.GREEN_TERRACOTTA.getDefaultState() : Blocks.MOSS_BLOCK.getDefaultState());
+			}
+		}
+
+		/** The crown flowers, and a red sandstorm rolls out, leaving desert where it passes. */
+		private void bloom(Vec3d base) {
+			Vfx.play(world, VfxIds.CACTUS_BLOOM, base.add(0, Cactus.TRUNK_H + 1, 0), 1.0F);
+			Vfx.play(world, VfxIds.SANDSTORM, base, 1.0F);
+			Vfx.shake(world, base, 80, 0.5F);
+			Kit.sound(world, base, SoundEvents.ITEM_ELYTRA_FLYING, 24.0F, 0.5F);
+			Kit.sound(world, base.add(0, Cactus.TRUNK_H, 0), SoundEvents.BLOCK_AZALEA_LEAVES_BREAK, 12.0F, 0.6F);
+			DetonationManager.add(new Ruin.Front(world, TerrainJob.disc(world, base, 6, Cactus.DESERT_R, this::desert), 1.4));
+		}
+
+		/** One column of the new desert: red sand and coarse dirt, dead bushes, now and then a little cactus. */
+		private void desert(TerrainJob.Column col) {
+			int surf = col.surface();
+			BlockState g = col.get(surf);
+			if (!(g.isIn(BlockTags.DIRT) || g.isOf(Blocks.GRASS_BLOCK) || g.isIn(BlockTags.SAND) || g.isOf(Blocks.GRAVEL))) {
 				return;
 			}
-			BlockPos b = BlockPos.ofFloored(base);
-			column(b, 0, 0, Cactus.TRUNK_R, 0, Cactus.TRUNK_H, a);
-			for (double[] arm : Cactus.ARMS) {
-				Vec3d out = Cactus.turn(new Vec3d(Math.cos(arm[0]), 0, Math.sin(arm[0])), a);
-				for (double s = 0; s <= arm[2]; s += 0.5) {
-					ball(b, out.x * s, arm[1], out.z * s, Cactus.ARM_R, a);
+			for (int y = surf + 1; y <= surf + 2; y++) {
+				BlockState s = col.get(y);
+				if (s.isReplaceable() || s.isIn(BlockTags.FLOWERS)) {
+					col.set(y, AIR);
 				}
-				column(b, out.x * arm[2], out.z * arm[2], Cactus.ARM_R, arm[1], arm[1] + arm[3], a);
 			}
-		}
-
-		private void column(BlockPos b, double x, double z, double r, double y0, double y1, double a) {
-			for (double y = y0; y <= y1; y += 1) {
-				// Rounded off at the top.
-				double rr = y > y1 - r ? Math.sqrt(Math.max(0, r * r - (y - (y1 - r)) * (y - (y1 - r)))) : r;
-				disc(b, x, y, z, rr, a);
+			double n = col.noise(21);
+			BlockState sand = n < 0.6 ? Blocks.RED_SAND.getDefaultState() : n < 0.75 ? Blocks.SAND.getDefaultState()
+					: n < 0.9 ? Blocks.COARSE_DIRT.getDefaultState() : Blocks.RED_SANDSTONE.getDefaultState();
+			col.set(surf, sand);
+			if (!col.get(surf - 1).isAir()) {
+				col.set(surf - 1, n < 0.75 ? Blocks.RED_SANDSTONE.getDefaultState() : Blocks.COARSE_DIRT.getDefaultState());
 			}
-		}
-
-		private void ball(BlockPos b, double x, double y, double z, double r, double a) {
-			for (double dy = -r; dy <= r; dy += 1) {
-				disc(b, x, y + dy, z, Math.sqrt(Math.max(0, r * r - dy * dy)), a);
-			}
-		}
-
-		private void disc(BlockPos b, double x, double y, double z, double r, double a) {
-			int ri = MathHelper.ceil(r);
-			for (int dx = -ri; dx <= ri; dx++) {
-				for (int dz = -ri; dz <= ri; dz++) {
-					if (dx * dx + dz * dz > r * r + 0.5) {
-						continue;
+			double p = col.noise(23);
+			if (col.get(surf + 1).isAir() && sand.isIn(BlockTags.SAND)) {
+				if (p < 0.06) {
+					col.set(surf + 1, Blocks.DEAD_BUSH.getDefaultState());
+				} else if (p < 0.075) {
+					int h = 1 + (int) (col.noise(25) * 3);
+					for (int y = 1; y <= h; y++) {
+						col.set(surf + y, Blocks.CACTUS.getDefaultState());
 					}
-					// Ribs: bands of darker green running up the stem, turned with it.
-					double ang = Math.atan2(dz, dx) - a;
-					boolean rib = Math.floorMod((int) Math.floor(ang / (Math.PI * 2) * 14), 2) == 0;
-					boolean edge = dx * dx + dz * dz > (r - 1) * (r - 1);
-					BlockState s = edge && rib ? Blocks.GREEN_TERRACOTTA.getDefaultState() : Blocks.GREEN_CONCRETE.getDefaultState();
-					put(b.add(MathHelper.floor(x) + dx, MathHelper.floor(y), MathHelper.floor(z) + dz), s);
 				}
 			}
 		}
@@ -450,48 +466,46 @@ public final class WildEvents {
 	// ====================================================================== BLACKFORGE
 
 	/**
-	 * BLACKFORGE (mythic). The ground cracks open on a glow from far below. A black anvil the size of a hall rises
-	 * out of it, and a hammer as tall as a tower comes down out of the sky. It strikes four times. Every blow throws
-	 * a storm of molten sparks and hammers a wider ring of the land flat into slag, basalt and magma. Then it rains
-	 * molten iron, the hammer goes back up into the dark, and the anvil sinks.
+	 * BLACKFORGE (mythic). Anvils start falling out of the sky: a few, then more, faster and faster, wider and wider,
+	 * until it pours anvils. Then a hammer the size of a tower comes down out of the dark and slams the ground at the
+	 * centre. Every anvil turns to iron, and the land round it breaks into tectonic plates that heave and sink.
 	 */
 	public static class Blackforge extends SciFiEvents.Base {
+		private static final int MAX_ANVILS = 520;
+		private double acc;
+		private int dropped;
+
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d c = center();
 			if (t == 0) {
 				CelestialEvents.announce(world, c, "block.armageddon.blackforge");
-				Vfx.newFx(world, FX_FORGE, c, c, (float) Forge.BANDS[Forge.BANDS.length - 1], 0xFF5A1A, 0, 0, Forge.END);
-				Vfx.skyTint(world, c, 100000, 0x200804, 0.6F);
-				Kit.sound(world, c, ModSounds.NUKE_RUMBLE, 48.0F, 0.5F);
+				Vfx.newFx(world, FX_FORGE, c, c, (float) Forge.PLATE_R, 0xFF5A1A, 0, 0, Forge.END);
+				Vfx.skyTint(world, c, 100000, 0x1A1410, 0.55F);
+				Kit.sound(world, c, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 48.0F, 0.5F);
 			}
-			if (t == Forge.CRACK + 2) {
-				for (int k = 0; k < 4; k++) {
-					double a = Math.PI / 4 + k * Math.PI / 2;
-					Kit.fissure(world, c, new Vec3d(Math.cos(a), 0, Math.sin(a)), 50, 4, 2, Blocks.MAGMA_BLOCK.getDefaultState());
+			if (t < Forge.RAIN_END) {
+				acc += Forge.rate(t);
+				double r = Forge.rainRadius(t);
+				while (acc >= 1 && dropped < MAX_ANVILS) {
+					acc -= 1;
+					dropAnvil(c, r);
 				}
-				Vfx.play(world, VfxIds.FORGE_EMBERS, c, 1.0F);
-				Vfx.shake(world, c, 200, 0.8F);
-				Kit.sound(world, c, SoundEvents.BLOCK_BASALT_BREAK, 48.0F, 0.4F);
-			}
-			if (t == Forge.RISE) {
-				// Make room: whatever stands where the anvil comes up is swept away.
-				jobs.add(TerrainJob.disc(world, c, 19, col -> col.clear(col.surface() + 1, col.surface() + 40)));
-			}
-			if (t >= Forge.RISE && t < Forge.RISEN && t % 5 == 0) {
-				Vfx.shake(world, c, 200, 0.6F);
-				Kit.sound(world, c, SoundEvents.BLOCK_DEEPSLATE_BREAK, 32.0F, 0.4F);
+				if (t % 20 == 0) {
+					Vfx.shake(world, c, 200, 0.2F + t * 0.004F);
+				}
 			}
 			if (t == Forge.HAMMER_IN) {
 				Kit.sound(world, c, SoundEvents.ENTITY_WITHER_SHOOT, 48.0F, 0.3F);
 			}
-			int k = Forge.strikeAt(t);
-			if (k >= 0) {
-				strike(c, k);
+			if (t == Forge.STRIKE) {
+				strike(c);
 			}
-			if (t >= Forge.RAIN && t < Forge.RAIN_END && t % 3 == 0) {
-				rain(c);
+			for (int k = 0; k < Forge.SHIFTS.length; k++) {
+				if (t == Forge.SHIFTS[k]) {
+					shift(c, k + 1);
+				}
 			}
 			if (t == Forge.LIFT) {
 				Kit.sound(world, c, SoundEvents.BLOCK_ANVIL_USE, 48.0F, 0.3F);
@@ -500,70 +514,124 @@ public final class WildEvents {
 			return t >= Forge.END && jobs.isEmpty();
 		}
 
-		private void strike(Vec3d c, int k) {
-			Vec3d top = c.add(0, Forge.ANVIL_H, 0);
-			double r0 = k == 0 ? 0 : Forge.BANDS[k - 1], r1 = Forge.BANDS[k];
-			Vfx.flash(world, top, 0.35F, 400, 0xFF8030);
-			Vfx.shake(world, c, 500, 1.2F + k * 0.3F);
-			Vfx.light(world, top, 1.2F, 0xFF7020);
-			Kit.sound(world, top, SoundEvents.BLOCK_ANVIL_LAND, 96.0F, 0.5F - k * 0.05F);
-			Kit.sound(world, top, ModSounds.NUKE_DETONATE, 48.0F, 1.2F - k * 0.1F);
-			Vfx.play(world, VfxIds.FORGE_STRIKE, top, UP, 1.0F + k * 0.4F, 0);
-			Vfx.play(world, VfxIds.FORGE_SHOCK, c, (float) (r1 / 35.0));
-			for (int j = 0; j < 8; j++) {
-				double r = r0 + (r1 - r0) * j / 8.0;
-				DetonationManager.schedule(world, 1 + (int) (r / 5), () -> Climax.groundWave(world, c, r, 4, 24, 0.6));
+		/** One anvil, dropped from high above a random spot, falling fast; it dents what it lands on. */
+		private void dropAnvil(Vec3d c, double r) {
+			Vec3d hit = Climax.around(world, c, 0, r);
+			BlockPos from = BlockPos.ofFloored(hit.x, hit.y + 45 + world.random.nextInt(25), hit.z);
+			if (!world.isChunkLoaded(from.getX() >> 4, from.getZ() >> 4) || !world.getBlockState(from).isAir()) {
+				return;
 			}
-			DetonationManager.add(new Ruin.Front(world, TerrainJob.disc(world, c, Math.max(r0, 18), r1, this::forged), 5.0));
-			for (LivingEntity e : Kit.living(world, c, r1)) {
-				if (Kit.creativeOrSpectator(e)) {
-					continue;
-				}
-				double d = Math.hypot(e.getX() - c.x, e.getZ() - c.z);
-				if (d >= r0 - 4) {
-					e.damage(ModDamageTypes.source(world, ModDamageTypes.NUCLEAR_BLAST, null, owner()), 24.0F);
-					e.setOnFireFor(6);
-					Kit.push(e, new Vec3d(0, 1.1, 0));
-				}
+			dropped++;
+			FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, from, Blocks.ANVIL.getDefaultState());
+			fb.setHurtEntities(2.0F, 40);
+			double v = -1.0 - world.random.nextDouble() * 0.8;
+			Kit.velocity(fb, new Vec3d(0, v, 0));
+			// When it will land, as vanilla moves it: gravity, then the move, then drag.
+			double y = from.getY(), vy = v;
+			int ticks = 0;
+			while (y > hit.y + 0.5 && ticks < 200) {
+				vy -= 0.04;
+				y += vy;
+				vy *= 0.98;
+				ticks++;
 			}
-		}
-
-		/** One column of the land under the hammer: swept bare and beaten into slag. */
-		private void forged(TerrainJob.Column col) {
-			int surf = col.surface();
-			col.clear(surf + 1, Math.min(col.top(), surf + 40));
-			double n = col.noise(3);
-			BlockState s = n < 0.05 ? Blocks.MAGMA_BLOCK.getDefaultState()
-					: n < 0.35 ? Blocks.BLACKSTONE.getDefaultState()
-					: n < 0.65 ? Blocks.BASALT.getDefaultState()
-					: n < 0.9 ? Blocks.SMOOTH_BASALT.getDefaultState() : Blocks.POLISHED_BLACKSTONE.getDefaultState();
-			if (col.noise(7) < 0.012) {
-				s = Blocks.LAVA.getDefaultState();
-			}
-			col.set(surf, s);
-			if (!col.get(surf - 1).isAir()) {
-				col.set(surf - 1, Blocks.BLACKSTONE.getDefaultState());
-			}
-		}
-
-		/** A drop of molten iron, falling from the dark onto the hammered land. */
-		private void rain(Vec3d c) {
-			Vec3d hit = Climax.around(world, c, 12, Forge.BANDS[Forge.BANDS.length - 1]);
-			Climax.fall(world, hit, 120, 0xFF6020, 1.0F, 18, () -> {
-				Vfx.play(world, VfxIds.FORGE_SPLASH, hit, 1.0F);
-				Kit.sound(world, hit, SoundEvents.BLOCK_LAVA_EXTINGUISH, 6.0F, 0.6F);
-				BlockPos p = BlockPos.ofFloored(hit);
-				put(p.down(), Blocks.MAGMA_BLOCK.getDefaultState());
-				if (world.getBlockState(p).isAir()) {
-					put(p, Blocks.FIRE.getDefaultState());
-				}
-				for (LivingEntity e : Kit.living(world, hit, 3)) {
-					if (!Kit.creativeOrSpectator(e)) {
-						e.setOnFireFor(8);
-						e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA, null, owner()), 10.0F);
-					}
+			DetonationManager.schedule(world, Math.max(1, ticks - 1), () -> {
+				Vfx.play(world, VfxIds.ANVIL_IMPACT, hit, 1.0F);
+				if (Destruction.enabled(world)) {
+					Kit.sphere(world, BlockPos.ofFloored(hit).down(2), 1.3, AIR);
 				}
 			});
+		}
+
+		/** The hammer lands: every anvil in reach turns to iron, even those still falling. */
+		private void strike(Vec3d c) {
+			Vfx.flash(world, c, 0.38F, 500, 0xFFB070);
+			Vfx.shake(world, c, 600, 1.8F);
+			Vfx.light(world, c, 1.4F, 0xFF9040);
+			Kit.sound(world, c, SoundEvents.BLOCK_ANVIL_LAND, 128.0F, 0.4F);
+			Kit.sound(world, c, ModSounds.NUKE_DETONATE, 64.0F, 0.9F);
+			Vfx.play(world, VfxIds.FORGE_STRIKE, c, UP, 2.2F, 0);
+			Vfx.play(world, VfxIds.FORGE_SHOCK, c, (float) (Forge.IRON_R / 35.0));
+			Vfx.play(world, VfxIds.IRON_WAVE, c, 1.0F);
+			for (LivingEntity e : Kit.living(world, c, 24)) {
+				if (!Kit.creativeOrSpectator(e)) {
+					e.damage(ModDamageTypes.source(world, ModDamageTypes.NUCLEAR_BLAST, null, owner()), 30.0F);
+					Kit.push(e, e.getPos().subtract(c).normalize().multiply(1.5).add(0, 1.0, 0));
+				}
+			}
+			for (net.minecraft.entity.Entity e : Kit.entities(world, c, Forge.IRON_R, e -> e instanceof FallingBlockEntity fb && fb.getBlockState().isIn(BlockTags.ANVIL))) {
+				FallingBlockEntity old = (FallingBlockEntity) e;
+				BlockPos p = old.getBlockPos();
+				Vec3d v = old.getVelocity();
+				old.discard();
+				if (world.getBlockState(p).isAir()) {
+					FallingBlockEntity iron = FallingBlockEntity.spawnFromBlock(world, p, Blocks.IRON_BLOCK.getDefaultState());
+					iron.setHurtEntities(2.0F, 40);
+					Kit.velocity(iron, v);
+				}
+			}
+			jobs.add(TerrainJob.disc(world, c, 13, col -> {
+				int surf = col.surface();
+				col.clear(surf - 2, surf + 6);
+				col.set(surf - 3, Blocks.IRON_BLOCK.getDefaultState());
+			}));
+			DetonationManager.add(new Ruin.Front(world, TerrainJob.disc(world, c, 0, Forge.IRON_R, this::ironify), 3.0));
+		}
+
+		/** One column: every anvil in it (they stack) becomes a block of iron. */
+		private void ironify(TerrainJob.Column col) {
+			int top = col.top();
+			for (int y = top; y >= top - 8; y--) {
+				if (col.get(y).isIn(BlockTags.ANVIL)) {
+					col.set(y, Blocks.IRON_BLOCK.getDefaultState());
+				}
+			}
+		}
+
+		/** The plates move: each rises or sinks (and tilts) a little more; the first pass also opens the cracks. */
+		private void shift(Vec3d c, int pass) {
+			if (pass == 1) {
+				for (int k = 0; k < 7; k++) {
+					double a = k * Math.PI * 2 / 7 + 0.3;
+					Kit.fissure(world, c.add(Math.cos(a) * Forge.PLATE_IN, 0, Math.sin(a) * Forge.PLATE_IN),
+							new Vec3d(Math.cos(a), 0, Math.sin(a)), (int) (Forge.PLATE_R - Forge.PLATE_IN), 5, 2, Blocks.MAGMA_BLOCK.getDefaultState());
+				}
+			}
+			jobs.add(TerrainJob.disc(world, c, Forge.PLATE_IN, Forge.PLATE_R, col -> move(col, c, pass)));
+			Vfx.shake(world, c, 400, 1.0F);
+			Kit.sound(world, c, SoundEvents.BLOCK_DEEPSLATE_BREAK, 64.0F, 0.3F + pass * 0.05F);
+			Kit.sound(world, c, ModSounds.NUKE_RUMBLE, 48.0F, 0.6F);
+			for (int k = 0; k < 14; k++) {
+				double r = Forge.RINGS[1 + world.random.nextInt(Forge.RINGS.length - 1)];
+				double a = world.random.nextDouble() * Math.PI * 2;
+				Vfx.play(world, VfxIds.PLATE_DUST, Kit.ground(world, c.x + Math.cos(a) * r, c.z + Math.sin(a) * r), 1.5F);
+			}
+		}
+
+		/** One column of a plate, raised or lowered by however much further its plate moves this pass. */
+		private void move(TerrainJob.Column col, Vec3d c, int pass) {
+			double dx = col.x + 0.5 - c.x, dz = col.z + 0.5 - c.z;
+			int id = Forge.plate(dx, dz);
+			if (id < 0) {
+				return;
+			}
+			double d = Math.sqrt(dx * dx + dz * dz);
+			int delta = Forge.offset(id, d, pass) - Forge.offset(id, d, pass - 1);
+			int surf = col.surface();
+			for (int k = 0; k < Math.abs(delta); k++) {
+				if (delta > 0) {
+					// Raise: everything from a little below the surface up shifts one block higher.
+					for (int y = surf + 1 + k; y > surf - 3 + k; y--) {
+						col.set(y, col.get(y - 1));
+					}
+				} else {
+					int top = surf - k;
+					for (int y = top - 3; y < top; y++) {
+						col.set(y, col.get(y + 1));
+					}
+					col.set(top, AIR);
+				}
+			}
 		}
 	}
 

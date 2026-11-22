@@ -18,12 +18,16 @@ final class VfxPreviewEffect extends FxEffect {
 	private final EffectInstance fx;
 	private boolean reported;
 
-	VfxPreviewEffect(String spec, Vec3d at) {
-		super(1200);
+	static void boot() {
 		if (!booted) {
 			VfxLibrary.bootstrap();
 			booted = true;
 		}
+	}
+
+	VfxPreviewEffect(String spec, Vec3d at) {
+		super(1200);
+		boot();
 		String[] p = spec.split(":");
 		EffectDef def = FxEngine.get(p[0]);
 		if (def == null) {

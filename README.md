@@ -63,10 +63,11 @@ Bombs of Mythic tier and up must be lit twice; Celestial and up are gated by `ar
 the Cataclysms tab.
 
 **The wild ones** — GOO BOMB (alien goo swells, throbbing faster and faster, then bursts into acid globs; what they land
-on turns to goo and dissolves), HYPERBEAM RAYGUN (a three-second charge, then a beam as thick as a house tunnels
-forward and blows up where it ends), CACTUS BOMB (a tower-sized saguaro spins faster and faster and flings its spikes in
-every direction, each one blasting a hole), BLACKFORGE (a black anvil rises and a giant hammer strikes it four times,
-each blow beating a wider ring of land flat into slag, then molten iron rains) and BLUE INFRIT (a summoning circle
+on turns to goo and dissolves), HYPERBEAM RAYGUN (a three-second charge, then a beam as thick as a house pours out for
+six seconds, tunnelling nearly 100 blocks), CACTUS BOMB (a tower-sized saguaro spins faster and faster and flings its
+spikes in every direction, each one blasting a hole, then blooms while a red sandstorm turns the land to desert),
+BLACKFORGE (anvils rain from the sky, faster and faster, until a giant hammer slams the ground: every anvil turns to
+iron and the land around breaks into shifting tectonic plates) and BLUE INFRIT (a summoning circle
 burns into the ground in blue fire, and a hound's head of blue flame dives on the land six times, leaving pits of
 lava, before blue fire sweeps the country).
 

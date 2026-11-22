@@ -130,6 +130,8 @@ public final class PreviewMain {
 		String[] t = line.split("\\s+");
 		String name = t[0];
 		int tick = Integer.parseInt(t[1]);
+		VfxPreviewEffect.boot();
+		com.armageddon.client.vfx.FxEngine.clear();
 		FxEffect e = make(name);
 		for (int i = 0; i < tick; i++) {
 			try {
@@ -138,6 +140,8 @@ public final class PreviewMain {
 				// Ticks that need a real world (particles, sounds) just stop early.
 			}
 			e.age = i + 1;
+			// Particle effects the scene itself started (the hound's fire) run alongside it.
+			com.armageddon.client.vfx.FxEngine.step(null);
 		}
 		Vec3d cam;
 		float yaw, pitch, fov = 70;
@@ -170,6 +174,7 @@ public final class PreviewMain {
 		Capture cap = new Capture();
 		FxBuffers.install(cap, cap.owner::get);
 		e.render(new Matrix4f(), cap, cam, 0.0F, yaw, pitch);
+		com.armageddon.client.vfx.FxEngine.render(new Matrix4f(), cap, cam, 0.0F, yaw, pitch);
 		FxBuffers.install(null, null);
 		cap.drawInto(r);
 		emit(name + "@" + tick + (t.length >= 5 ? " cam" : ""), r.image());

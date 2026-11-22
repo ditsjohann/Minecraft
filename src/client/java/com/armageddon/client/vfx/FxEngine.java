@@ -67,6 +67,21 @@ public final class FxEngine {
 		return fx;
 	}
 
+	/**
+	 * Starts an effect that rides on something moving at {@code (vx, vy, vz)} blocks per tick: emitters with
+	 * {@link EmitterDef.Builder#inherit} carry that much of the motion, so flames keep up with a flying head.
+	 */
+	public static EffectInstance playMoving(String name, double x, double y, double z, float dx, float dy, float dz, float scale, long seed,
+			float vx, float vy, float vz) {
+		EffectInstance fx = play(name, x, y, z, dx, dy, dz, scale, 0, seed);
+		if (fx != null) {
+			fx.cvx = vx;
+			fx.cvy = vy;
+			fx.cvz = vz;
+		}
+		return fx;
+	}
+
 	/** Builds an instance without starting it (the offline preview drives its own). */
 	public static EffectInstance create(EffectDef def, double x, double y, double z, float dx, float dy, float dz, float scale, int color,
 			long seed, double camDist) {
@@ -107,6 +122,11 @@ public final class FxEngine {
 		// A slow, gusting wind that every smoke layer shares.
 		windX = 0.03F + 0.015F * MathHelper.sin(clock * 0.0021F) + 0.006F * MathHelper.sin(clock * 0.031F);
 		windZ = 0.012F + 0.012F * MathHelper.cos(clock * 0.0017F);
+		step(world);
+	}
+
+	/** Advances every playing effect one tick ({@code world} may be null: the offline preview). */
+	public static void step(ClientWorld world) {
 		int n = 0;
 		for (int i = 0; i < ACTIVE.size(); ) {
 			EffectInstance fx = ACTIVE.get(i);

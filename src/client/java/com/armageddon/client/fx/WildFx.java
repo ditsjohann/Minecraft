@@ -2,8 +2,10 @@ package com.armageddon.client.fx;
 
 import com.armageddon.client.render.FxDraw;
 import com.armageddon.client.render.FxRenderLayers;
+import com.armageddon.client.render.FxSprites;
 import com.armageddon.client.vfx.FxEngine;
 import com.armageddon.network.FxPayload;
+import com.armageddon.util.SciShapes;
 import com.armageddon.util.WildShapes.Cactus;
 import com.armageddon.util.WildShapes.Forge;
 import com.armageddon.util.WildShapes.Infrit;
@@ -11,14 +13,20 @@ import com.armageddon.vfx.VfxIds;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
- * The big models of the wild bombs: the spinning saguaro that sheds its spikes, the Blackforge's anvil and hammer,
- * and the Blue Infrit's summoning circle and flaming hound's head. Particles come from the engine (WildVfx); timing
- * and geometry from {@code WildShapes}, shared with the server.
+ * The big models of the wild bombs: the spinning saguaro, built of exactly the blocks it sets into; the Blackforge's
+ * hammer; and the Blue Infrit's summoning circle and its burning hound's head. Particles come from the engine
+ * (WildVfx); timing and geometry from {@code WildShapes}, shared with the server.
  */
 public final class WildFx {
 	private WildFx() {
@@ -67,15 +75,48 @@ public final class WildFx {
 
 	// ====================================================================== CACTUS
 
-	/** The saguaro: ribbed trunk and arms, domed tops, flowers, and the spikes that have not flown yet. */
+	/**
+	 * The saguaro as blocks: the very blocks the server sets when it stops, spun about the centre of the block it
+	 * grows from, with the spikes that have not flown yet standing out of it.
+	 */
 	static final class CactusFx extends FxEffect {
-		private static final int DARK = 0x467E2C, LIGHT = 0x5C9C38, SPIKE = 0xE8DCA8;
-		private final Vec3d base;
+		/** Moss and green terracotta, as they look in the world. */
+		private static final int BODY = 0x617A32, RIB = 0x4C532A, SPIKE = 0xE8DCA8;
+		private static final int[][] DIRS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+		/** Exposed faces: centre x, y, z (relative to the pivot), direction index, colour. */
+		private static float[][] faces;
+		private final Vec3d pivot;
 		private final double[] dir = new double[3];
 
 		CactusFx(Vec3d base, int life) {
 			super(Math.max(20, life));
-			this.base = base;
+			BlockPos b = BlockPos.ofFloored(base);
+			this.pivot = new Vec3d(b.getX() + 0.5, b.getY(), b.getZ() + 0.5);
+		}
+
+		private static float[][] faces() {
+			if (faces == null) {
+				List<int[]> vox = Cactus.voxels();
+				Set<Long> filled = new HashSet<>();
+				for (int[] v : vox) {
+					filled.add(BlockPos.asLong(v[0], v[1], v[2]));
+				}
+				List<float[]> out = new ArrayList<>();
+				for (int[] v : vox) {
+					// A little variation from block to block, like a real texture.
+					double k = 0.92 + 0.16 * SciShapes.hash(v[0] * 31 + v[2], v[1]);
+					int col = Solids.scale(v[3] == 1 ? RIB : BODY, k);
+					for (int d = 0; d < 6; d++) {
+						int[] n = DIRS[d];
+						if (!filled.contains(BlockPos.asLong(v[0] + n[0], v[1] + n[1], v[2] + n[2]))) {
+							// Measured from the pivot (the base block's centre at its foot), block v's centre is at v, half a block up.
+							out.add(new float[]{v[0] + 0.5F * n[0], v[1] + 0.5F + 0.5F * n[1], v[2] + 0.5F * n[2], d, col});
+						}
+					}
+				}
+				faces = out.toArray(new float[0][]);
+			}
+			return faces;
 		}
 
 		@Override
@@ -87,30 +128,33 @@ public final class WildFx {
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			double sink = (1 - Cactus.risen(a)) * (Cactus.TRUNK_H + 3);
-			Vec3d o = base.subtract(cam).add(0, -sink, 0);
-			double turn = Cactus.angle(a);
-			ribbed(solid, m, o, Vec3d.ZERO, Cactus.TRUNK_R, 0, Cactus.TRUNK_H - Cactus.TRUNK_R, turn);
-			dome(solid, m, o.add(0, Cactus.TRUNK_H - Cactus.TRUNK_R, 0), Cactus.TRUNK_R);
-			for (double[] arm : Cactus.ARMS) {
-				Vec3d out = Cactus.turn(new Vec3d(Math.cos(arm[0]), 0, Math.sin(arm[0])), turn);
-				Vec3d join = o.add(0, arm[1], 0), elbow = join.add(out.multiply(arm[2]));
-				Solids.tube(solid, m, join, elbow, Cactus.ARM_R, Cactus.ARM_R, 14, LIGHT, 1.0F, true);
-				dome(solid, m, elbow, Cactus.ARM_R);
-				ribbed(solid, m, o, elbow.subtract(o).multiply(1, 0, 1), Cactus.ARM_R, arm[1], arm[1] + arm[3] - Cactus.ARM_R, turn);
-				dome(solid, m, elbow.add(0, arm[3] - Cactus.ARM_R, 0), Cactus.ARM_R);
-			}
-			// Pale blossoms crowning the trunk.
-			for (int k = 0; k < 5; k++) {
-				Vec3d f = Cactus.turn(new Vec3d(Math.cos(k * 1.26) * 1.6, Cactus.TRUNK_H - 0.4, Math.sin(k * 1.26) * 1.6), turn);
-				box(solid, m, o.add(f), X, Y, Z, 0.45, 0.35, 0.45, 0xF4E6B0, true);
+			Vec3d o = pivot.subtract(cam).add(0, -sink, 0);
+			double turn = Cactus.spin(a);
+			double cs = Math.cos(turn), sn = Math.sin(turn);
+			for (float[] f : faces()) {
+				int d = (int) f[3];
+				int[] n = DIRS[d];
+				// Face centres are already relative to the pivot (the centre of the base block).
+				double fx = f[0], fy = f[1], fz = f[2];
+				Vec3d c = new Vec3d(o.x + fx * cs - fz * sn, o.y + fy, o.z + fx * sn + fz * cs);
+				Vec3d nn = new Vec3d(n[0] * cs - n[2] * sn, n[1], n[0] * sn + n[2] * cs);
+				// Two half-edges in the face's plane.
+				Vec3d u = n[1] != 0 ? new Vec3d(cs, 0, sn) : new Vec3d(0, 1, 0);
+				Vec3d v = nn.crossProduct(u);
+				u = u.multiply(0.5);
+				v = v.multiply(0.5);
+				// Shaded the way the world shades blocks: top full, bottom half, sides in between.
+				double shade = nn.y > 0.5 ? 1.0 : nn.y < -0.5 ? 0.5 : 0.7 + 0.15 * (nn.x * 0.6 + nn.z * 0.8);
+				int col = Solids.scale((int) f[4], shade);
+				Solids.quad(solid, m, c.subtract(u).subtract(v), c.add(u).subtract(v), c.add(u).add(v), c.subtract(u).add(v), col, 1.0F);
 			}
 			for (int i = 0; i < Cactus.SPIKES; i++) {
 				if (Cactus.fireTick(i) <= a) {
 					continue;
 				}
 				Vec3d root = Cactus.turn(Cactus.spike(i, dir), turn);
-				Vec3d d = Cactus.turn(new Vec3d(dir[0], dir[1], dir[2]), turn);
-				Solids.tube(solid, m, o.add(root), o.add(root).add(d.multiply(2.4)), 0.2, 0.02, 4, SPIKE, 1.0F, true);
+				Vec3d dd = Cactus.turn(new Vec3d(dir[0], dir[1], dir[2]), turn);
+				Solids.tube(solid, m, o.add(root), o.add(root).add(dd.multiply(2.4)), 0.2, 0.02, 4, SPIKE, 1.0F, true);
 			}
 			// The faster it turns, the more dust it whips up round its foot.
 			float w = (float) (Cactus.omega(a) / Cactus.MAX_SPIN);
@@ -121,47 +165,18 @@ public final class WildFx {
 				}
 			}
 		}
-
-		/** A ribbed column around {@code axis} (an offset from {@code o}), from {@code y0} to {@code y1}, turned by {@code turn}. */
-		private static void ribbed(VertexConsumer vc, Matrix4f m, Vec3d o, Vec3d axis, double r, double y0, double y1, double turn) {
-			int n = 16;
-			Vec3d c0 = o.add(axis).add(0, y0, 0), c1 = o.add(axis).add(0, y1, 0);
-			for (int i = 0; i < n; i++) {
-				double a0 = turn + MathHelper.TAU * i / n, a1 = turn + MathHelper.TAU * (i + 1) / n;
-				// Alternate faces stand proud: the ribs.
-				double rr = i % 2 == 0 ? r * 1.07 : r;
-				Vec3d n0 = new Vec3d(Math.cos(a0), 0, Math.sin(a0)), n1 = new Vec3d(Math.cos(a1), 0, Math.sin(a1));
-				int col = Solids.scale(i % 2 == 0 ? LIGHT : DARK, Solids.light(n0.add(n1).normalize()));
-				Solids.quad(vc, m, c0.add(n0.multiply(rr)), c0.add(n1.multiply(rr)), c1.add(n1.multiply(rr)), c1.add(n0.multiply(rr)), col, 1.0F);
-			}
-		}
-
-		private static void dome(VertexConsumer vc, Matrix4f m, Vec3d c, double r) {
-			Solids.ellipsoid(vc, m, c, r, r, r, 6, 14, (lat, lon, n) -> lon % 2 == 0 ? LIGHT : DARK, true, 1.0F);
-		}
 	}
 
 	// ====================================================================== BLACKFORGE
 
-	/** The black anvil, glowing at its seams with every blow, and the hammer that comes down out of the dark. */
+	/** The hammer the size of a tower, out of the dark, and the hot scar it leaves where it lands. */
 	static final class ForgeFx extends FxEffect {
-		private static final int IRON = 0x1C171B, IRON_LIGHT = 0x2A2328, HEAD = 0x2A2A32, HANDLE = 0x2A1C12;
+		private static final int HEAD = 0x2A2A32, IRON = 0x1C171B, HANDLE = 0x2A1C12;
 		private final Vec3d c;
 
 		ForgeFx(Vec3d c, int life) {
 			super(Math.max(20, life));
 			this.c = c;
-		}
-
-		/** How hot the anvil glows: a flare after each blow that cools off. */
-		private static float heat(float a) {
-			float h = 0.15F * (float) Forge.risen(a);
-			for (int s : Forge.STRIKES) {
-				if (a >= s) {
-					h = Math.max(h, (float) Math.exp(-(a - s) / 30.0));
-				}
-			}
-			return h;
 		}
 
 		@Override
@@ -170,51 +185,38 @@ public final class WildFx {
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
-			double rise = Forge.risen(a);
-			Vec3d o = c.subtract(cam).add(0, -(1 - rise) * (Forge.ANVIL_H + 4), 0);
-			float hot = heat(a);
-			if (rise > 0.001) {
-				// Foot, waist, face, horn and heel.
-				box(solid, m, o.add(0, 2.5, 0), X, Y, Z, 13, 2.5, 8, IRON, true);
-				box(solid, m, o.add(0, 9, 0), X, Y, Z, 7, 4, 5, IRON, true);
-				box(solid, m, o.add(0, 17.5, 0), X, Y, Z, 17, 4.5, 7, IRON_LIGHT, true);
-				Solids.tube(solid, m, o.add(17, 18.5, 0), o.add(31, 20, 0), 4.5, 0.3, 10, IRON_LIGHT, 1.0F, true);
-				box(solid, m, o.add(-19.5, 17.5, 0), X, Y, Z, 2.5, 3.5, 5.5, IRON, true);
-				// Molten seams: along the waist, round the face, and the face itself when it is struck.
-				int seam = 0xFF6018;
-				float s = 0.35F + 0.65F * hot;
-				for (int side = -1; side <= 1; side += 2) {
-					box(glow, m, o.add(0, 9, side * 5.05), X, Y, Z, 7, 0.25, 0.05, seam, false);
-					box(glow, m, o.add(side * 7.05, 9, 0), X, Y, Z, 0.05, 0.25, 5, seam, false);
-				}
-				FxDraw.ring(glow, m, o.add(0, 22.06, 0), X, Z, 0, 16, 0xFF8030, 0.85F * hot, 0.45F * hot, 0.0F, 24);
-				FxKit.halo(consumers, m, cb, o.add(0, 2, 0), 26, 0xFF4010, 0.25F * s * (float) rise);
-				FxKit.halo(consumers, m, cb, o.add(0, 23, 0), 20 * hot + 4, 0xFFA040, 0.5F * hot);
+			Vec3d o = c.subtract(cam);
+			if (a >= Forge.STRIKE) {
+				float hot = (float) Math.exp(-(a - Forge.STRIKE) / 45.0);
+				FxDraw.ring(glow, m, o.add(0, 0.2, 0), X, Z, 0, 18, 0xFF8030, 0.9F * hot, 0.5F * hot, 0.0F, 32);
+				FxKit.halo(consumers, m, cb, o.add(0, 3, 0), 28 * hot + 6, 0xFFA040, 0.5F * hot);
 			}
 			double lift = Forge.lift(a);
-			if (lift < 380) {
-				Vec3d head = o.add(0, Forge.ANVIL_H + lift + Forge.HEAD_H, 0);
-				box(solid, m, head, X, Y, Z, Forge.HEAD_W, Forge.HEAD_H, Forge.HEAD_L, HEAD, true);
-				// Bands of glowing runes round the head, and the striking face's rim.
-				for (int k = -1; k <= 1; k += 2) {
-					box(glow, m, head.add(0, 0, k * Forge.HEAD_L * 0.55), X, Y, Z, Forge.HEAD_W + 0.06, Forge.HEAD_H + 0.06, 0.4, 0xFF5010, false);
-				}
-				box(solid, m, head.add(0, -Forge.HEAD_H - 0.6, 0), X, Y, Z, Forge.HEAD_W * 0.9, 0.6, Forge.HEAD_L * 0.9, IRON, true);
-				Vec3d grip = head.add(0, Forge.HEAD_H, 0);
-				Solids.tube(solid, m, grip, grip.add(0, Forge.HANDLE_L, 0), 2.0, 1.7, 10, HANDLE, 1.0F, true);
-				for (int k = 1; k < 6; k++) {
-					Vec3d band = grip.add(0, k * Forge.HANDLE_L / 6, 0);
-					Solids.tube(solid, m, band, band.add(0, 1.2, 0), 2.2, 2.2, 10, 0x3A3A40, 1.0F, true);
-				}
-				box(solid, m, grip.add(0, Forge.HANDLE_L + 1.5, 0), X, Y, Z, 3, 1.5, 3, HEAD, true);
-				// Speed lines while it falls.
-				double fall = Forge.lift(a - 1) - lift;
-				if (fall > 1.5 && fall < 100) {
-					float k = (float) MathHelper.clamp(fall / 10.0, 0.0, 1.0);
-					for (int i = -2; i <= 2; i++) {
-						Vec3d x0 = head.add(i * Forge.HEAD_W * 0.45, Forge.HEAD_H, 0);
-						FxDraw.ribbon(glow, m, x0, x0.add(0, fall * 3, 0), Vec3d.ZERO, 0.4, 0xFFD0A0, 0.35F * k, 0.0F);
-					}
+			if (lift >= 380) {
+				return;
+			}
+			Vec3d head = o.add(0, lift + Forge.HEAD_H, 0);
+			box(solid, m, head, X, Y, Z, Forge.HEAD_W, Forge.HEAD_H, Forge.HEAD_L, HEAD, true);
+			// Bands of glowing runes round the head, and a heavy striking face.
+			for (int k = -1; k <= 1; k++) {
+				box(glow, m, head.add(0, 0, k * Forge.HEAD_L * 0.6), X, Y, Z, Forge.HEAD_W + 0.06, Forge.HEAD_H + 0.06, 0.5, 0xFF5010, false);
+			}
+			box(solid, m, head.add(0, -Forge.HEAD_H - 0.8, 0), X, Y, Z, Forge.HEAD_W * 0.9, 0.8, Forge.HEAD_L * 0.9, IRON, true);
+			Vec3d grip = head.add(0, Forge.HEAD_H, 0);
+			Solids.tube(solid, m, grip, grip.add(0, Forge.HANDLE_L, 0), 2.6, 2.2, 10, HANDLE, 1.0F, true);
+			for (int k = 1; k < 7; k++) {
+				Vec3d band = grip.add(0, k * Forge.HANDLE_L / 7, 0);
+				Solids.tube(solid, m, band, band.add(0, 1.4, 0), 2.9, 2.9, 10, 0x3A3A40, 1.0F, true);
+			}
+			box(solid, m, grip.add(0, Forge.HANDLE_L + 2, 0), X, Y, Z, 4, 2, 4, HEAD, true);
+			FxKit.halo(consumers, m, cb, head, 22, 0xFF5010, 0.18F);
+			// Speed lines while it falls.
+			double fall = Forge.lift(a - 1) - lift;
+			if (fall > 1.5 && fall < 100) {
+				float k = (float) MathHelper.clamp(fall / 10.0, 0.0, 1.0);
+				for (int i = -2; i <= 2; i++) {
+					Vec3d x0 = head.add(i * Forge.HEAD_W * 0.45, Forge.HEAD_H, 0);
+					FxDraw.ribbon(glow, m, x0, x0.add(0, fall * 3, 0), Vec3d.ZERO, 0.5, 0xFFD0A0, 0.35F * k, 0.0F);
 				}
 			}
 		}
@@ -222,9 +224,14 @@ public final class WildFx {
 
 	// ====================================================================== BLUE INFRIT
 
-	/** The summoning circle burning itself into the ground, and the hound's head of blue flame. */
+	/**
+	 * The summoning circle burning itself into the ground, and the hound's head: a skull of night-blue wreathed in
+	 * blue fire, flames licking off every surface, two rings of fire wheeling round it, a mane streaming behind,
+	 * sparks swirling, jets of fire from its eyes and, when its jaw drops, a torrent of it from its throat.
+	 */
 	static final class InfritFx extends FxEffect {
 		private static final int SOUL = 0x40C8FF, HOT = 0xC0F8FF;
+		private static final double S = 1.4;
 		private final Vec3d c;
 		private final int seed;
 		private Vec3d facing = new Vec3d(0, 0, 1);
@@ -243,12 +250,39 @@ public final class WildFx {
 			return Infrit.head(t, seed, (x, z) -> ground(x, z));
 		}
 
+		private static Vec3d basisUp(Vec3d f, Vec3d r) {
+			return r.crossProduct(f).normalize();
+		}
+
+		private static Vec3d basisRight(Vec3d f) {
+			Vec3d r = f.crossProduct(Y);
+			return r.lengthSquared() < 1.0E-4 ? X : r.normalize();
+		}
+
 		@Override
 		public boolean tick(ClientWorld world) {
 			boolean alive = super.tick(world);
-			if (world != null && age >= Infrit.EMERGE && age < Infrit.BURST && age % 2 == 0) {
-				Vec3d h = c.add(headAt(age));
-				FxEngine.play(VfxIds.SOUL_TRAIL, h.x, h.y, h.z, 0, 1, 0, 1.3F, 0, seed * 31L + age);
+			if (age < Infrit.EMERGE || age >= Infrit.BURST) {
+				return alive;
+			}
+			Vec3d h = c.add(headAt(age));
+			Vec3d v = headAt(age + 1).subtract(headAt(age));
+			Vec3d f = v.lengthSquared() > 1.0E-4 ? v.normalize() : facing;
+			Vec3d r = basisRight(f), u = basisUp(f, r);
+			long s = seed * 31L + age;
+			float vx = (float) v.x, vy = (float) v.y, vz = (float) v.z;
+			// The mane streams back off it, sparks wheel round it, and it leaves a wake of fire.
+			FxEngine.playMoving(VfxIds.INFRIT_MANE, h.x, h.y, h.z, (float) -f.x, (float) -f.y, (float) -f.z, (float) S, s, vx, vy, vz);
+			FxEngine.playMoving(VfxIds.INFRIT_SPARKS, h.x, h.y, h.z, 0, 1, 0, (float) S, s + 1, vx, vy, vz);
+			if (age % 2 == 0) {
+				FxEngine.play(VfxIds.SOUL_TRAIL, h.x, h.y, h.z, 0, 1, 0, (float) S, 0, s + 2);
+			}
+			if (Infrit.jaw(age) > 0.45) {
+				Vec3d mouth = h.add(f.multiply(12 * S)).add(u.multiply(-2.2 * S));
+				FxEngine.playMoving(VfxIds.INFRIT_BREATH, mouth.x, mouth.y, mouth.z, (float) f.x, (float) f.y, (float) f.z, (float) S, s + 3, vx, vy, vz);
+			}
+			if (world != null) {
+				ClientFx.light(h, 0.9F, 0x40B0FF);
 			}
 			return alive;
 		}
@@ -260,7 +294,7 @@ public final class WildFx {
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 			circle(glow, consumers, m, cb, cam, a);
 			if (a >= Infrit.EMERGE && a < Infrit.BURST) {
-				hound(consumers.getBuffer(FxRenderLayers.SOLID), glow, consumers, m, cb, cam, a);
+				hound(consumers.getBuffer(FxRenderLayers.SOLID), glow, consumers.getBuffer(FxSprites.GLOW_LAYER), consumers, m, cb, cam, a);
 			}
 		}
 
@@ -305,23 +339,18 @@ public final class WildFx {
 			}
 		}
 
-		/** The head: skull, brow, snout, a jaw that drops open as it dives, tall ears, burning eyes, all wreathed in fire. */
-		private void hound(VertexConsumer solid, VertexConsumer glow, VertexConsumerProvider consumers, Matrix4f m, Vec3d[] cb, Vec3d cam, float a) {
+		private void hound(VertexConsumer solid, VertexConsumer glow, VertexConsumer flames, VertexConsumerProvider consumers, Matrix4f m,
+				Vec3d[] cb, Vec3d cam, float a) {
 			Vec3d pos = c.add(headAt(a)).subtract(cam);
 			Vec3d vel = headAt(a + 1).subtract(headAt(a));
 			if (vel.lengthSquared() > 1.0E-4) {
 				facing = facing.lerp(vel.normalize(), 0.35).normalize();
 			}
-			Vec3d f = facing;
-			Vec3d r = f.crossProduct(Y);
-			if (r.lengthSquared() < 1.0E-4) {
-				r = X;
-			}
-			r = r.normalize();
-			Vec3d u = r.crossProduct(f).normalize();
-			double s = 1.4;
+			Vec3d f = facing, r = basisRight(f), u = basisUp(f, r);
+			double s = S;
 			int fur = 0x0E1838, dark = 0x080E24, mid = 0x16224A;
-			FxKit.halo(consumers, m, cb, pos, 16 * s, 0x2A70FF, 0.35F);
+			FxKit.halo(consumers, m, cb, pos, 20 * s, 0x2A70FF, 0.4F + 0.1F * MathHelper.sin(a * 0.7F));
+			FxKit.halo(consumers, m, cb, pos, 9 * s, 0x90E8FF, 0.35F);
 			box(solid, m, at(pos, r, u, f, 0, 0, 0, s), r, u, f, 5 * s, 4.5 * s, 5 * s, fur, true);
 			box(solid, m, at(pos, r, u, f, 0, 2.6, 4.6, s), r, u, f, 5.2 * s, 1.2 * s, 1.2 * s, mid, true);
 			box(solid, m, at(pos, r, u, f, 0, -0.8, 8.5, s), r, u, f, 2.9 * s, 2.2 * s, 4 * s, fur, true);
@@ -340,9 +369,8 @@ public final class WildFx {
 							r, ju, jf, 0.3 * s, 0.5 * s, 0.3 * s, HOT, false);
 				}
 			}
-			// The fire in its throat shows when it opens.
 			if (open > 0.15) {
-				FxKit.halo(consumers, m, cb, at(pos, r, u, f, 0, -2.4, 6, s), 5 * s * open, 0x80E8FF, 0.8F * (float) open);
+				FxKit.halo(consumers, m, cb, at(pos, r, u, f, 0, -2.4, 6, s), 6 * s * open, 0x80E8FF, 0.9F * (float) open);
 			}
 			for (int side = -1; side <= 1; side += 2) {
 				Vec3d ear = at(pos, r, u, f, side * 3.3, 6.5, -1.6, s);
@@ -352,7 +380,64 @@ public final class WildFx {
 				box(glow, m, ear.add(back.multiply(3.3 * s)), r, back, earF, 0.6 * s, 0.3 * s, 0.5 * s, SOUL, false);
 				Vec3d eye = at(pos, r, u, f, side * 2.6, 1.5, 5.1, s);
 				box(glow, m, eye, r, u, f, 1.0 * s, 0.55 * s, 0.1 * s, HOT, false);
-				FxKit.halo(consumers, m, cb, eye.add(f.multiply(0.3)), 2.4 * s, 0x80F0FF, 0.9F);
+				FxKit.halo(consumers, m, cb, eye.add(f.multiply(0.3)), 2.8 * s, 0x80F0FF, 1.0F);
+				// Flames streaming back from the eyes, flickering.
+				for (int k = 0; k < 3; k++) {
+					double flick = 0.6 + 0.4 * MathHelper.sin(a * 1.3F + k * 2 + side);
+					Vec3d tail = eye.add(f.multiply(-(5 + k * 2.5) * s * flick)).add(u.multiply((1.2 + k * 0.6) * s)).add(r.multiply(side * k * 0.6 * s));
+					FxDraw.ribbon(glow, m, eye, tail, Vec3d.ZERO, (0.9 - k * 0.2) * s, k == 0 ? HOT : SOUL, 0.85F, 0.0F);
+				}
+			}
+			skin(flames, m, cb, pos, r, u, f, a);
+			rings(flames, glow, m, cb, pos, r, u, f, a);
+		}
+
+		/** Flames licking off every surface of the head, each rising and fading on its own clock. */
+		private void skin(VertexConsumer flames, Matrix4f m, Vec3d[] cb, Vec3d pos, Vec3d r, Vec3d u, Vec3d f, float a) {
+			for (int k = 0; k < 56; k++) {
+				double hx = SciShapes.hash(k, 1) * 2 - 1, hy = SciShapes.hash(k, 2) * 2 - 1, hz = SciShapes.hash(k, 3) * 2 - 1;
+				// Snap to the surface of the skull or the snout.
+				boolean snout = k % 3 == 0;
+				double ex = snout ? 3.0 : 5.2, ey = snout ? 2.3 : 4.7, ez = snout ? 4.2 : 5.2, oz = snout ? 8.5 : 0;
+				double ax = Math.abs(hx), ay = Math.abs(hy), az = Math.abs(hz);
+				if (ax >= ay && ax >= az) {
+					hx = Math.signum(hx);
+				} else if (ay >= az) {
+					hy = Math.signum(hy);
+				} else {
+					hz = Math.signum(hz);
+				}
+				double phase = (a * (0.07 + 0.05 * SciShapes.hash(k, 4)) + SciShapes.hash(k, 5)) % 1.0;
+				Vec3d p = at(pos, r, u, f, hx * ex, hy * ey + phase * 3.5, hz * ez + oz - phase * 2.5, S);
+				double size = (1.0 + 1.4 * SciShapes.hash(k, 6)) * (1 - phase * 0.55) * S;
+				float alpha = (float) Math.sin(phase * Math.PI) * 0.85F;
+				int col = Solids.mix(0xD0F8FF, 0x2A70FF, phase);
+				FxSprites.billboard(flames, m, p, cb, size, a * 0.05 + k, FxSprites.FIRE + (k & 1), col, alpha, FxSprites.FULL_BRIGHT);
+			}
+		}
+
+		/** Two tilted rings of fire wheeling round the head in opposite directions, with burning tails. */
+		private void rings(VertexConsumer flames, VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d pos, Vec3d r, Vec3d u, Vec3d f, float a) {
+			for (int ring = 0; ring < 2; ring++) {
+				double tilt = ring == 0 ? 0.55 : -0.75;
+				Vec3d e1 = ring == 0 ? r : f;
+				Vec3d e2 = ring == 0 ? f.multiply(Math.cos(tilt)).add(u.multiply(Math.sin(tilt))) : u.multiply(Math.cos(tilt)).add(r.multiply(Math.sin(tilt)));
+				double rad = (ring == 0 ? 13 : 11) * S, spin = (ring == 0 ? 0.22 : -0.3) * a;
+				int n = ring == 0 ? 10 : 8;
+				for (int k = 0; k < n; k++) {
+					double th = spin + k * MathHelper.TAU / n;
+					Vec3d p = pos.add(e1.multiply(Math.cos(th) * rad)).add(e2.multiply(Math.sin(th) * rad));
+					FxSprites.billboard(flames, m, p, cb, 1.8 * S, a * 0.1 + k, FxSprites.FIRE + (k & 1), 0x60D0FF, 0.9F, FxSprites.FULL_BRIGHT);
+					FxSprites.billboard(flames, m, p, cb, 0.8 * S, 0, FxSprites.GLOW, 0xE0FFFF, 0.9F, FxSprites.FULL_BRIGHT);
+					Vec3d prev = p;
+					for (int j = 1; j <= 6; j++) {
+						double tj = th - (ring == 0 ? 1 : -1) * j * 0.07;
+						Vec3d q = pos.add(e1.multiply(Math.cos(tj) * rad)).add(e2.multiply(Math.sin(tj) * rad));
+						float fa = 0.6F * (1 - j / 7.0F);
+						FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 1.1 * S * (1 - j / 8.0), SOUL, fa, fa * 0.8F);
+						prev = q;
+					}
+				}
 			}
 		}
 

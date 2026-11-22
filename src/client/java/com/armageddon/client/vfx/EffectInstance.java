@@ -21,6 +21,8 @@ public final class EffectInstance {
 	/** Tint for {@link EmitterDef.Builder#tinted()} emitters, 0 for none. */
 	public final int tint;
 	public final long seed;
+	/** Velocity of whatever the effect rides on (blocks per tick); emitters take {@code inherit} of it. */
+	float cvx, cvy, cvz;
 	/** Detail kept at this distance: 1 up close, down to 0.3 far away. */
 	final float lod;
 	final Rng rng;
@@ -105,7 +107,7 @@ public final class EffectInstance {
 		}
 		while (nextEntry < def.entries.size() && def.entries.get(nextEntry).at() <= age) {
 			EmitterDef e = def.entries.get(nextEntry++).emitter();
-			emitters.add(new EmitterInstance(e, this, e.offsetX * scale, e.offsetY * scale, e.offsetZ * scale, 0, 0, 0, rng.nextLong()));
+			emitters.add(new EmitterInstance(e, this, e.offsetX * scale, e.offsetY * scale, e.offsetZ * scale, cvx, cvy, cvz, rng.nextLong()));
 		}
 		for (EmitterInstance e : emitters) {
 			e.tick(world);

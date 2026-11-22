@@ -37,6 +37,9 @@ final class WildVfx {
 		cactus();
 		forge();
 		infrit();
+		desert();
+		anvils();
+		hound();
 	}
 
 	// ------------------------------------------------------------------ goo bomb
@@ -323,6 +326,125 @@ final class WildVfx {
 				.emit(EmitterDef.builder("wisps").burst(20).shape(Shape.sphere(4)).velocity(Velocity.random(0.05F, 0.2F))
 						.module(Module.curl(6, 0.01F)).drag(0.05F).life(40, 70).size(1, 2).sprite(FxSprites.WISP).color(SOUL_FIRE)
 						.alpha(0.7F).alphaOverLife(Curve.BELL).build())
+				.build());
+	}
+
+	// ------------------------------------------------------------------ cactus aftermath
+
+	private static void desert() {
+		FxEngine.register(EffectDef.builder(VfxIds.CACTUS_BLOOM).lod(48, 320)
+				.emit(EmitterDef.builder("glow").burst(1).size(3, 3).life(10, 10).sprite(FxSprites.GLOW).color(0xFFC0E0)
+						.alpha(0.6F).alphaOverLife(Curve.FADE_OUT).build())
+				.emit(petals("pink", 0xF080B0))
+				.emit(petals("gold", 0xF8E070))
+				.emit(petals("white", 0xF8F0E0))
+				.emit(EmitterDef.builder("pollen").priority(Priority.DETAIL).burst(40).shape(Shape.sphere(2))
+						.velocity(Velocity.random(0.05F, 0.2F)).module(Module.jitter(0.01F)).drag(0.05F).life(40, 90).size(0.08F, 0.14F)
+						.sprite(FxSprites.FLARE).color(0xFFE890).alphaOverLife(VfxLibrary.TWINKLE).build())
+				.build());
+
+		Gradient red = Gradient.of(0, 0xD8884A, 1, 0xB86A38);
+		FxEngine.register(EffectDef.builder(VfxIds.SANDSTORM).lod(80, 500).maxAge(400)
+				.emit(EmitterDef.builder("ring").priority(Priority.HERO).burst(1).onGround().mode(Mode.FLAT).fixedRotation()
+						.size((float) WildShapes.Cactus.DESERT_R, (float) WildShapes.Cactus.DESERT_R).life(34, 34).sprite(FxSprites.SHOCK)
+						.sizeOverLife(Curve.EASE_OUT).alpha(0.7F).alphaOverLife(Curve.FADE_OUT).color(0xE0904A).build())
+				.emit(smoke("wall").priority(Priority.HERO).rate(30, 30).onGround().shape(Shape.ring(6, 2)).expand(1.3F)
+						.velocity(Velocity.radial(0.15F, 0.3F)).velocity(Velocity.up(0.03F, 0.08F, 0.4F)).life(40, 80).size(2, 3.5F)
+						.sprite(FxSprites.DUST, 2).sizeOverLife(Curve.keys(0, 0.5F, 1, 2.2F)).color(red).alpha(0.8F).shade(0.75F)
+						.drag(0.03F).module(Module.wind(1)).build())
+				.emit(EmitterDef.builder("grit").priority(Priority.DETAIL).rate(4, 30).onGround().shape(Shape.ring(6, 3)).expand(1.3F)
+						.velocity(Velocity.radial(0.4F, 0.7F)).velocity(Velocity.up(0.05F, 0.15F, 0.5F)).gravity(0.02F).drag(0.03F)
+						.life(15, 30).size(0.03F, 0.05F).mode(Mode.STRETCHED).layer(Layer.SMOKE).sprite(FxSprites.STREAK)
+						.color(0xC07848).build())
+				.emit(10, smoke("haze").rate(1.5F, 200).onGround().shape(Shape.disc((float) WildShapes.Cactus.DESERT_R - 5))
+						.velocity(Velocity.up(0.01F, 0.03F, 0.5F)).life(80, 140).size(1.5F, 2.5F).sprite(FxSprites.DUST, 2)
+						.color(red).alpha(0.35F).module(Module.wind(2)).build())
+				.build());
+	}
+
+	private static EmitterDef petals(String name, int rgb) {
+		return EmitterDef.builder(name).burst(36).shape(Shape.sphere(2.0F)).velocity(Velocity.random(0.12F, 0.35F))
+				.velocity(Velocity.up(0.1F, 0.25F, 1.0F)).gravity(0.006F).drag(0.05F).module(Module.jitter(0.01F))
+				.life(60, 110).size(0.28F, 0.45F).spin(0.1F, 0.3F).layer(Layer.SMOKE).sprite(FxSprites.GLOW).color(rgb)
+				.emissive(Curve.constant(0.3F)).alphaOverLife(Curve.FADE).build();
+	}
+
+	// ------------------------------------------------------------------ blackforge: anvils, iron, plates
+
+	private static void anvils() {
+		FxEngine.register(EffectDef.builder(VfxIds.ANVIL_IMPACT).lod(48, 300)
+				.emit(smoke("dust").burst(10).shape(Shape.dome(0.8F)).velocity(Velocity.radial(0.1F, 0.22F))
+						.velocity(Velocity.up(0.03F, 0.1F, 0.6F)).life(30, 60).size(0.8F, 1.3F).color(Gradient.of(0, 0x6A6058, 1, 0x9A9088))
+						.alpha(0.75F).drag(0.06F).build())
+				.emit(sparkShower("sparks", 14, 0.15F, 0.45F, SPARK, null))
+				.emit(EmitterDef.builder("chips").priority(Priority.DETAIL).burst(6).velocity(Velocity.random(0.15F, 0.35F))
+						.velocity(Velocity.up(0.15F, 0.3F, 0.7F)).gravity(0.05F).collide(0.3F, 0.6F, 1).life(20, 40)
+						.size(0.08F, 0.14F).layer(Layer.SMOKE).sprite(FxSprites.DUST, 2).color(0x5A4A38).spin(0.1F, 0.3F).build())
+				.build());
+
+		FxEngine.register(EffectDef.builder(VfxIds.IRON_WAVE).lod(150, 1000)
+				.emit(EmitterDef.builder("ring").priority(Priority.HERO).burst(1).onGround().mode(Mode.FLAT).fixedRotation()
+						.size((float) WildShapes.Forge.IRON_R, (float) WildShapes.Forge.IRON_R).life(28, 28).sprite(FxSprites.SHOCK)
+						.sizeOverLife(Curve.EASE_OUT).alphaOverLife(Curve.FADE_OUT).color(0xD8E0E8).build())
+				.emit(EmitterDef.builder("glints").priority(Priority.HERO).rate(30, 26).onGround().shape(Shape.ring(4, 2)).expand(3.0F)
+						.velocity(Velocity.up(0.05F, 0.2F, 0.4F)).drag(0.05F).life(10, 22).size(0.3F, 0.6F).sprite(FxSprites.FLARE)
+						.color(0xF0F4FF).alphaOverLife(VfxLibrary.TWINKLE).build())
+				.emit(EmitterDef.builder("sparks").priority(Priority.DETAIL).rate(20, 26).onGround().shape(Shape.ring(4, 2)).expand(3.0F)
+						.velocity(Velocity.up(0.2F, 0.5F, 0.5F)).gravity(0.03F).drag(0.03F).life(15, 30).size(0.04F, 0.06F)
+						.mode(Mode.STRETCHED).sprite(FxSprites.STREAK).color(Gradient.of(0, 0xFFFFFF, 1, argb(0xA0B0C0, 0)))
+						.alphaOverLife(Curve.FADE_OUT).build())
+				.build());
+
+		FxEngine.register(EffectDef.builder(VfxIds.PLATE_DUST).lod(80, 600)
+				.emit(smoke("dust").burst(12).shape(Shape.dome(1.5F)).velocity(Velocity.radial(0.1F, 0.25F))
+						.velocity(Velocity.up(0.1F, 0.3F, 0.5F)).life(40, 80).size(1.2F, 2).color(Gradient.of(0, 0x5A4A3A, 1, 0x8A7A68))
+						.alpha(0.8F).drag(0.05F).module(Module.wind(1)).build())
+				.emit(EmitterDef.builder("rocks").priority(Priority.DETAIL).burst(10).velocity(Velocity.random(0.15F, 0.4F))
+						.velocity(Velocity.up(0.2F, 0.5F, 0.6F)).gravity(0.05F).collide(0.3F, 0.6F, 1).life(30, 50)
+						.size(0.12F, 0.22F).layer(Layer.SMOKE).sprite(FxSprites.DUST, 2).color(0x4A3E34).spin(0.1F, 0.3F).build())
+				.emit(sparkShower("lava", 10, 0.15F, 0.4F, SPARK, null))
+				.build());
+	}
+
+	// ------------------------------------------------------------------ the hound's fire
+
+	private static void hound() {
+		// The mane: played every tick at the head, aimed backwards; it rides along with the head and streams off it.
+		FxEngine.register(EffectDef.builder(VfxIds.INFRIT_MANE).lod(100, 800)
+				.emit(EmitterDef.builder("flames").priority(Priority.HERO).burst(9).shape(Shape.sphere(3.2F))
+						.velocity(Velocity.along(0.12F, 0.35F, 0.6F)).velocity(Velocity.random(0.02F, 0.08F)).inherit(0.9F)
+						.module(Module.buoyancy(0.025F)).drag(0.12F).life(10, 20).size(1.2F, 2.4F).sprite(FxSprites.FIRE, 2)
+						.color(SOUL_FIRE).alpha(0.65F).sizeOverLife(Curve.POP).alphaOverLife(Curve.FADE).build())
+				.emit(EmitterDef.builder("core").burst(3).shape(Shape.sphere(1.8F)).velocity(Velocity.along(0.05F, 0.15F, 0.5F))
+						.inherit(0.95F).drag(0.1F).life(6, 10).size(0.8F, 1.4F).sprite(FxSprites.FIRE, 2)
+						.color(Gradient.of(0, 0xF0FFFF, 1, argb(0x60C8FF, 0))).alpha(0.8F).alphaOverLife(Curve.FADE_OUT).build())
+				.emit(smoke("wisp").burst(0.5F).shape(Shape.sphere(3)).velocity(Velocity.along(0.05F, 0.12F, 0.4F)).inherit(0.8F)
+						.life(14, 26).size(1.2F, 2.0F).color(Gradient.of(0, 0x203A70, 1, 0x30508A)).alpha(0.16F)
+						.emissive(Curve.constant(0.6F)).build())
+				.build());
+
+		// Sparks and embers wheeling round the head as it flies.
+		FxEngine.register(EffectDef.builder(VfxIds.INFRIT_SPARKS).lod(100, 800)
+				.emit(EmitterDef.builder("sparks").priority(Priority.DETAIL).burst(12).shape(Shape.shell(4.5F))
+						.velocity(Velocity.swirl(0.3F, 0.6F)).velocity(Velocity.random(0.1F, 0.3F)).inherit(1.0F).drag(0.06F)
+						.life(12, 26).size(0.06F, 0.1F).mode(Mode.STRETCHED).sprite(FxSprites.STREAK).color(SOUL_SPARK)
+						.alphaOverLife(Curve.FADE_OUT).build())
+				.emit(EmitterDef.builder("embers").priority(Priority.DETAIL).burst(6).shape(Shape.shell(5))
+						.velocity(Velocity.random(0.05F, 0.15F)).inherit(0.95F).drag(0.04F).life(15, 30).size(0.12F, 0.22F)
+						.sprite(FxSprites.FLARE).color(0x90F0FF).alphaOverLife(VfxLibrary.TWINKLE).build())
+				.emit(EmitterDef.builder("wisps").burst(2).shape(Shape.shell(4)).velocity(Velocity.random(0.05F, 0.15F)).inherit(0.9F)
+						.module(Module.curl(4, 0.02F)).drag(0.05F).life(15, 30).size(1, 1.8F).sprite(FxSprites.WISP).color(SOUL_FIRE)
+						.alpha(0.6F).alphaOverLife(Curve.BELL).build())
+				.build());
+
+		// Blue fire pouring out of its throat while the jaw hangs open.
+		FxEngine.register(EffectDef.builder(VfxIds.INFRIT_BREATH).lod(100, 800)
+				.emit(EmitterDef.builder("fire").priority(Priority.HERO).burst(14).velocity(Velocity.along(0.8F, 1.4F, 0.22F)).inherit(1.0F)
+						.module(Module.buoyancy(0.01F)).drag(0.07F).life(10, 18).size(0.8F, 1.6F).sprite(FxSprites.FIRE, 2)
+						.color(SOUL_FIRE).alpha(0.75F).sizeOverLife(Curve.keys(0, 0.4F, 1, 2.4F)).alphaOverLife(Curve.FADE).build())
+				.emit(EmitterDef.builder("sparks").priority(Priority.DETAIL).burst(8).velocity(Velocity.along(1.0F, 1.6F, 0.3F)).inherit(1.0F)
+						.drag(0.05F).life(8, 16).size(0.05F, 0.08F).mode(Mode.STRETCHED).sprite(FxSprites.STREAK).color(SOUL_SPARK)
+						.alphaOverLife(Curve.FADE_OUT).build())
 				.build());
 	}
 }

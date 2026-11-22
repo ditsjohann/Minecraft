@@ -83,7 +83,7 @@ DESC = {
     "sunfall_mortar": ["Lobs a small plasma sun in a high arc.", "Where it lands, the ground melts into a pool of lava."],
     "halo_cutter": ["Charge to paint a target: an orbital beam draws a ring canyon round it,", "then the whole disc inside drops out of the world."],
     "obliterator": ["Hold: a beam that takes apart everything it touches and keeps going.", "Ammo: antimatter cells."],
-    "hyperbeam_raygun": ["Hold for three seconds while it charges (you can barely walk),", "then release: a beam as thick as a house tunnels forward and blows up where it ends.", "Ammo: plasma cells."],
+    "hyperbeam_raygun": ["Hold for three seconds while it charges (you can barely walk),", "then release: a beam as thick as a house pours out for six seconds, tunnelling nearly 100 blocks.", "Ammo: plasma cells."],
     "worldsplitter_hammer": ["Right-click the ground: eight fissures, lifted earth, a second crushing wave."],
     "solar_verdict_beacon": ["A public five-second countdown. Then nine beams of judgement."],
     "titanfall_warhead": ["Calls a heavy warhead from orbit along your line of sight.", "Delayed secondary detonation."],
@@ -124,8 +124,8 @@ BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
     "goo_bomb": "An alien goo oozes out and swells, throbbing faster and faster, eating into the ground, until it bursts. Acid globs fly everywhere, and whatever they land on turns to goo and dissolves.",
-    "cactus_bomb": "A cactus the size of a tower grows out of the ground and starts to spin, faster and faster, until its spikes tear off and fly in every direction, blowing holes wherever they land.",
-    "blackforge": "The ground cracks on a glow from far below. A black anvil rises and a hammer as tall as a tower strikes it four times, each blow beating a wider ring of the land flat into slag. Then it rains molten iron. Light twice.",
+    "cactus_bomb": "A cactus the size of a tower grows out of the ground and spins faster and faster until its spikes tear off and fly in every direction, blowing holes wherever they land. Then it blooms, and a red sandstorm turns the land to desert.",
+    "blackforge": "Anvils start falling out of the sky: a few, then more, faster and faster, until it pours anvils. Then a hammer as tall as a tower slams the ground: every anvil turns to iron, and the land around breaks into tectonic plates that heave and sink. Light twice.",
     "blue_infrit": "CELESTIAL. Blue fire draws a summoning circle into the ground. Pillars of it rise, the circle becomes a vortex, and a hound's head of blue flame bursts out and dives on the land six times, leaving burning pits of lava. Then blue fire sweeps the country. Light twice.",
     "ion_scythe": "An orbital ion cannon cuts a spiral trench of molten glass through everything, charges it, then ignites the whole spiral at once. Light twice.",
     "resonance_cascade": "CELESTIAL. A tuning fork hums until it finds the town's frequency; then every building, wall and tree shakes itself apart into rubble and the ground goes to mud. Light twice.",
