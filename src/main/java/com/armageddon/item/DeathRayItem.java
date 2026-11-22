@@ -4,10 +4,12 @@ import com.armageddon.detonation.Detonations;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModItems;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.Hitscan;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.AbstractFireBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -41,6 +43,12 @@ public class DeathRayItem extends GunItem {
 		Vec3d end = block.getType() == HitResult.Type.MISS ? eye.add(dir.multiply(RANGE)) : block.getPos();
 
 		ModNetworking.sendFx(world, eye, 256, new FxPayload(FxType.DEATH_RAY, muzzle(player, 1.0), end, 0.3F, 0xFF2A40, heldTicks));
+		if (heldTicks % 2 == 0 && block.getType() == HitResult.Type.BLOCK) {
+			Vfx.play(world, VfxIds.DEATHRAY_BURN, end, dir.multiply(-1), 1.0F, 0);
+		}
+		if (heldTicks % 4 == 0) {
+			Vfx.play(world, VfxIds.DEATHRAY_MUZZLE, muzzle(player, 1.0), dir, 1.0F, 0);
+		}
 		if (heldTicks % 5 == 0) {
 			world.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.DEATH_RAY, SoundCategory.PLAYERS, 1.2F, 0.8F + world.random.nextFloat() * 0.1F);
 		}

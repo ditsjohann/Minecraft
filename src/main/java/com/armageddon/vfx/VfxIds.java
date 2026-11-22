@@ -59,12 +59,40 @@ public final class VfxIds {
 	public static final String INFRIT_SPARKS = "infrit_sparks";
 	public static final String INFRIT_BREATH = "infrit_breath";
 
+	// weapons
+	public static final String PLASMA_MUZZLE = "plasma_muzzle";
+	public static final String PLASMA_TRAIL = "plasma_trail";
+	public static final String RAIL_CHARGE = "rail_charge";
+	public static final String RAIL_MUZZLE = "rail_muzzle";
+	public static final String RAIL_ION = "rail_ion";
+	public static final String RAIL_IMPACT = "rail_impact";
+	public static final String MINIGUN_MUZZLE = "minigun_muzzle";
+	public static final String SHELL_CASING = "shell_casing";
+	public static final String BULLET_IMPACT = "bullet_impact";
+	public static final String FLAME_JET = "flame_jet";
+	public static final String FLAME_SPLASH = "flame_splash";
+	public static final String ARC_MUZZLE = "arc_muzzle";
+	public static final String CRYO_MUZZLE = "cryo_muzzle";
+	public static final String CRYO_TRAIL = "cryo_trail";
+	public static final String ROCKET_BACKBLAST = "rocket_backblast";
+	public static final String ROCKET_TRAIL = "rocket_trail";
+	public static final String BFG_MUZZLE = "bfg_muzzle";
+	public static final String BFG_TRAIL = "bfg_trail";
+	public static final String BFG_BLAST = "bfg_blast";
+	public static final String HAMMER_SLAM = "hammer_slam";
+	public static final String HAMMER_HIT = "hammer_hit";
+	public static final String DEATHRAY_BURN = "deathray_burn";
+	public static final String DEATHRAY_MUZZLE = "deathray_muzzle";
+
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD, RAY_BLAST,
 			CACTUS_DUST, CACTUS_SPIKE, SPIKE_IMPACT, FORGE_EMBERS, FORGE_STRIKE, FORGE_SHOCK, FORGE_SPLASH,
 			SOUL_FLARE, SOUL_PILLAR, SOUL_VORTEX, SOUL_TRAIL, SOUL_SWEEP, INFRIT_IMPACT, INFRIT_BURST,
-			CACTUS_BLOOM, SANDSTORM, ANVIL_IMPACT, IRON_WAVE, PLATE_DUST, INFRIT_MANE, INFRIT_SPARKS, INFRIT_BREATH);
+			CACTUS_BLOOM, SANDSTORM, ANVIL_IMPACT, IRON_WAVE, PLATE_DUST, INFRIT_MANE, INFRIT_SPARKS, INFRIT_BREATH,
+			PLASMA_MUZZLE, PLASMA_TRAIL, RAIL_CHARGE, RAIL_MUZZLE, RAIL_ION, RAIL_IMPACT, MINIGUN_MUZZLE, SHELL_CASING,
+			BULLET_IMPACT, FLAME_JET, FLAME_SPLASH, ARC_MUZZLE, CRYO_MUZZLE, CRYO_TRAIL, ROCKET_BACKBLAST, ROCKET_TRAIL,
+			BFG_MUZZLE, BFG_TRAIL, BFG_BLAST, HAMMER_SLAM, HAMMER_HIT, DEATHRAY_BURN, DEATHRAY_MUZZLE);
 
 	private VfxIds() {
 	}

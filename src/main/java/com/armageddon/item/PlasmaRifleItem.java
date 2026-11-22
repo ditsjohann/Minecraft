@@ -2,8 +2,10 @@ package com.armageddon.item;
 
 import com.armageddon.entity.ProjectileKind;
 import com.armageddon.entity.WmdProjectileEntity;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModItems;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
@@ -27,6 +29,6 @@ public class PlasmaRifleItem extends GunItem {
 		Vec3d m = muzzle(player, 0.9);
 		bolt.setPosition(m.x, m.y, m.z);
 		world.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.PLASMA_FIRE, SoundCategory.PLAYERS, 0.9F, 0.9F + world.random.nextFloat() * 0.25F);
-		muzzleFlash(world, player, 0.9);
+		Vfx.play(world, VfxIds.PLASMA_MUZZLE, m, player.getRotationVec(1.0F), 1.0F, 0);
 	}
 }

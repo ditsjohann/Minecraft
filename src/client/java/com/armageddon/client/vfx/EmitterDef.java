@@ -74,6 +74,7 @@ public final class EmitterDef {
 	final boolean tint;
 	final boolean groundSnap;
 	final float expand;
+	final boolean span;
 
 	private EmitterDef(Builder b) {
 		name = b.name;
@@ -117,6 +118,7 @@ public final class EmitterDef {
 		tint = b.tint;
 		groundSnap = b.groundSnap;
 		expand = b.expand;
+		span = b.span;
 		float burst = 0;
 		for (Burst x : bursts) {
 			burst += x.count;
@@ -171,6 +173,7 @@ public final class EmitterDef {
 		private boolean tint;
 		private boolean groundSnap;
 		private float expand;
+		private boolean span;
 
 		private Builder(String name) {
 			this.name = name;
@@ -382,6 +385,15 @@ public final class EmitterDef {
 		 */
 		public Builder expand(float blocksPerTick) {
 			expand = blocksPerTick;
+			return this;
+		}
+
+		/**
+		 * Spread spawns along the effect's direction, as far as that direction is long (play it with the vector from
+		 * one end of a line to the other): one packet fills a whole beam.
+		 */
+		public Builder span() {
+			span = true;
 			return this;
 		}
 

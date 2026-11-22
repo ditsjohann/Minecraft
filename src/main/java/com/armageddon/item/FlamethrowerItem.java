@@ -1,9 +1,10 @@
 package com.armageddon.item;
 
 import com.armageddon.detonation.Detonations;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModItems;
-import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.AbstractFireBlock;
 import net.minecraft.block.Block;
 import net.minecraft.entity.LivingEntity;
@@ -30,10 +31,7 @@ public class FlamethrowerItem extends GunItem {
 	protected void fire(ServerWorld world, PlayerEntity player, ItemStack stack, int heldTicks) {
 		Vec3d look = player.getRotationVec(1.0F);
 		Vec3d m = muzzle(player, 1.0);
-		for (int i = 0; i < 5; i++) {
-			Vec3d v = look.add(world.random.nextGaussian() * 0.07, world.random.nextGaussian() * 0.07, world.random.nextGaussian() * 0.07).multiply(0.6 + world.random.nextDouble() * 0.35);
-			world.spawnParticles(ModParticles.NAPALM_FLAME, m.x, m.y, m.z, 0, v.x, v.y, v.z, 1.0);
-		}
+		Vfx.play(world, VfxIds.FLAME_JET, m, look, 1.0F, 0);
 		if (heldTicks % 4 == 0) {
 			world.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.FLAMETHROWER, SoundCategory.PLAYERS, 1.0F, 0.8F + world.random.nextFloat() * 0.2F);
 		}
@@ -51,8 +49,12 @@ public class FlamethrowerItem extends GunItem {
 			e.timeUntilRegen = Math.min(e.timeUntilRegen, 5);
 			e.damage(world.getDamageSources().inFire(), 3.0F);
 		}
+		BlockHitResult hit = world.raycast(new RaycastContext(eye, eye.add(look.multiply(RANGE)), RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, player));
+		if (hit.getType() == HitResult.Type.BLOCK) {
+			Vec3d n = Vec3d.of(hit.getSide().getVector());
+			Vfx.play(world, VfxIds.FLAME_SPLASH, hit.getPos().add(n.multiply(0.1)), n, 1.0F, 0);
+		}
 		if (Detonations.blockDamage(world)) {
-			BlockHitResult hit = world.raycast(new RaycastContext(eye, eye.add(look.multiply(RANGE)), RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, player));
 			if (hit.getType() == HitResult.Type.BLOCK) {
 				BlockPos firePos = hit.getBlockPos().offset(hit.getSide());
 				if (world.getBlockState(firePos).isAir() && AbstractFireBlock.canPlaceAt(world, firePos, hit.getSide())) {

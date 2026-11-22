@@ -2,6 +2,8 @@ package com.armageddon.item;
 
 import com.armageddon.entity.ProjectileKind;
 import com.armageddon.entity.WmdProjectileEntity;
+import com.armageddon.network.Vfx;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -47,7 +49,17 @@ public class LauncherItem extends GunItem {
 			p.setVelocity(p.getVelocity().add(0, 0.35, 0));
 		}
 		world.playSound(null, player.getX(), player.getY(), player.getZ(), sound.get(), SoundCategory.PLAYERS, 2.0F, 0.9F + world.random.nextFloat() * 0.2F);
-		muzzleFlash(world, player, 1.0);
+		String muzzleFx = switch (kind) {
+			case ROCKET, MIRV, MINI_NUKE -> VfxIds.ROCKET_BACKBLAST;
+			case CRYO -> VfxIds.CRYO_MUZZLE;
+			case BFG -> VfxIds.BFG_MUZZLE;
+			default -> null;
+		};
+		if (muzzleFx != null) {
+			Vfx.play(world, muzzleFx, m, player.getRotationVec(1.0F), 1.0F, 0);
+		} else {
+			muzzleFlash(world, player, 1.0);
+		}
 		if (recoil > 0) {
 			recoil(player, recoil);
 		}

@@ -38,6 +38,7 @@ public class ArmageddonClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		ModParticleFactories.register();
 		com.armageddon.client.vfx.VfxLibrary.bootstrap();
+		com.armageddon.entity.WmdProjectileEntity.clientTrail = com.armageddon.client.vfx.WeaponVfx::trail;
 
 		EntityRendererRegistry.register(ModEntities.PROJECTILE, ProjectileModelRenderer::new);
 		EntityRendererRegistry.register(ModEntities.ENERGY_BOLT, EnergyBoltRenderer::new);

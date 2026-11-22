@@ -3,7 +3,9 @@ package com.armageddon.item;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,6 +38,9 @@ public class GravityHammerItem extends SwordItem {
 		Vec3d away = target.getPos().subtract(attacker.getPos()).normalize();
 		target.addVelocity(away.x * 1.4, 0.8, away.z * 1.4);
 		target.velocityModified = true;
+		if (target.getWorld() instanceof ServerWorld server) {
+			Vfx.play(server, VfxIds.HAMMER_HIT, target.getPos().add(0, target.getHeight() * 0.5, 0), 1.0F);
+		}
 		return super.postHit(stack, target, attacker);
 	}
 
@@ -56,6 +61,7 @@ public class GravityHammerItem extends SwordItem {
 		ModNetworking.sendFx(world, c, 128, new FxPayload(FxType.SHOCKWAVE, c.add(0, 0.1, 0), (float) radius, 0xB58CFF));
 		ModNetworking.sendFx(world, c, 48, new FxPayload(FxType.SHAKE, c, 1.2F, 0));
 		world.playSound(null, c.x, c.y, c.z, ModSounds.GRAVITY_SLAM, SoundCategory.PLAYERS, 2.5F, 0.6F);
+		Vfx.play(world, VfxIds.HAMMER_SLAM, c.add(0, 0.1, 0), 1.0F);
 		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, new Box(c, c).expand(radius), e -> e != user && e.isAlive())) {
 			Vec3d d = e.getPos().subtract(c);
 			double dist = d.length();

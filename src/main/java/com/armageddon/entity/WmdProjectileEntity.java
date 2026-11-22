@@ -4,11 +4,13 @@ import com.armageddon.detonation.Detonations;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModEntities;
 import com.armageddon.registry.ModItems;
 import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.AreaEffectCloudEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -329,7 +331,16 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		discard();
 	}
 
+	/**
+	 * Set by the client: draws this projectile's trail with the particle engine, returning false for kinds it leaves to
+	 * the vanilla particles below.
+	 */
+	public static java.util.function.Predicate<WmdProjectileEntity> clientTrail = e -> false;
+
 	private void spawnTrail(ProjectileKind kind) {
+		if (clientTrail.test(this)) {
+			return;
+		}
 		World w = getWorld();
 		Vec3d v = getVelocity();
 		Vec3d tail = getPos().subtract(v.lengthSquared() > 1.0E-4 ? v.normalize().multiply(0.6) : Vec3d.ZERO);
@@ -493,13 +504,20 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		switch (k) {
 			case MINI_NUKE -> Detonations.nuke(world, at, owner, 8);
 			case POCKET_NUKE -> Detonations.nuke(world, at, owner, 5);
-			case ROCKET, MIRV -> Detonations.highExplosive(world, at, this, 4.0F, false);
+			case ROCKET, MIRV -> {
+				Detonations.highExplosive(world, at, this, 4.0F, false);
+				Vfx.play(world, VfxIds.GRENADE_BLAST, at, 1.4F);
+			}
 			case BOMBLET -> Detonations.highExplosive(world, at, this, 2.6F, false);
 			case PLASMA -> {
 				ModNetworking.sendFx(world, at, 128, new FxPayload(FxType.PLASMA_BURST, at, 1.0F, 0x55FFEE));
+				Vfx.play(world, VfxIds.PLASMA_IMPACT, at, getVelocity().multiply(-1), 0.9F, 0x55FFEE);
 				world.playSound(null, at.x, at.y, at.z, ModSounds.PLASMA_IMPACT, SoundCategory.PLAYERS, 1.0F, 1.0F + random.nextFloat() * 0.3F);
 			}
-			case CRYO -> Detonations.freezeBurst(world, at, owner, 5);
+			case CRYO -> {
+				Detonations.freezeBurst(world, at, owner, 5);
+				Vfx.play(world, VfxIds.CRYO_BURST, at, 1.3F);
+			}
 			case SINGULARITY -> Detonations.singularity(world, at, owner, 4.0F, 180, true);
 			case FRAG -> {
 				Detonations.highExplosive(world, at, this, 2.8F, false);
@@ -516,7 +534,10 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case TOXIC -> toxicCloud(world, at);
 			case METEOR -> Detonations.meteorImpact(world, at, owner);
 			case ROD -> Detonations.kineticImpact(world, at, owner);
-			case BFG -> Detonations.bfgBurst(world, at, owner);
+			case BFG -> {
+				Detonations.bfgBurst(world, at, owner);
+				Vfx.play(world, VfxIds.BFG_BLAST, at, 2.5F);
+			}
 			case GATLING_NUKE -> Detonations.nuke(world, at, owner, 3, false);
 			case FALLING_NUKE -> Detonations.nuke(world, at, owner, 7, false);
 			case AIR_BOMB -> Detonations.highExplosive(world, at, this, 4.5F, true);

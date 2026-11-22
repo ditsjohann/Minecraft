@@ -4,11 +4,12 @@ import com.armageddon.detonation.Detonations;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModItems;
-import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.Hitscan;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -41,12 +42,9 @@ public class RailgunItem extends GunItem {
 		if (usedTicks == 1 && !world.isClient) {
 			world.playSound(null, user.getX(), user.getY(), user.getZ(), ModSounds.RAILGUN_CHARGE, SoundCategory.PLAYERS, 1.2F, 0.8F);
 		}
-		if (world.isClient && user instanceof PlayerEntity p) {
-			Vec3d m = muzzle(p, 0.8);
+		if (world instanceof ServerWorld server && user instanceof PlayerEntity p && usedTicks % 2 == 0) {
 			float charge = Math.min(1.0F, usedTicks / (float) chargeTicks());
-			for (int i = 0; i < 1 + (int) (charge * 3); i++) {
-				world.addParticle(ModParticles.ARC_SPARK, m.x + world.random.nextGaussian() * 0.08, m.y + world.random.nextGaussian() * 0.08, m.z + world.random.nextGaussian() * 0.08, 0, 0, 0);
-			}
+			Vfx.play(server, VfxIds.RAIL_CHARGE, muzzle(p, 0.8), p.getRotationVec(1.0F), 0.4F + charge * 0.8F, 0);
 		}
 		if (usedTicks == chargeTicks() && !world.isClient) {
 			world.playSound(null, user.getX(), user.getY(), user.getZ(), ModSounds.ORBITAL_CHARGE, SoundCategory.PLAYERS, 0.6F, 2.0F);
@@ -98,6 +96,9 @@ public class RailgunItem extends GunItem {
 		ModNetworking.sendFx(world, start, 256, new FxPayload(FxType.BEAM, muzzle, end, 0.18F, 0x66E0FF, 22));
 		ModNetworking.sendFx(world, end, 128, new FxPayload(FxType.PLASMA_BURST, end, 1.5F, 0x66E0FF));
 		ModNetworking.sendFx(world, start, 32, new FxPayload(FxType.SHAKE, start, 0.6F, 0));
+		Vfx.play(world, VfxIds.RAIL_MUZZLE, muzzle, dir, 1.0F, 0);
+		Vfx.play(world, VfxIds.RAIL_ION, muzzle, end.subtract(muzzle), 1.0F, 0);
+		Vfx.play(world, VfxIds.RAIL_IMPACT, end, dir.multiply(-1), 1.0F, 0);
 		world.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.RAILGUN_FIRE, SoundCategory.PLAYERS, 3.0F, 1.0F);
 		recoil(player, 0.5);
 	}

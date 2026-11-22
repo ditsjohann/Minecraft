@@ -139,6 +139,12 @@ public final class EmitterInstance {
 		}
 		d.shape.sample(rng, scale, shape);
 		float x = ox + shape[0], y = oy + shape[1], z = oz + shape[2];
+		if (d.span) {
+			float along = rng.next() * fx.dirLen;
+			x += fx.dir[0] * along;
+			y += fx.dir[1] * along;
+			z += fx.dir[2] * along;
+		}
 		if (d.expand != 0) {
 			float h = (float) Math.sqrt(shape[3] * shape[3] + shape[5] * shape[5]);
 			if (h > 1.0E-4F) {

@@ -3,10 +3,12 @@ package com.armageddon.item;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModItems;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.Hitscan;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -57,6 +59,14 @@ public class MinigunItem extends GunItem {
 		if (heldTicks % 2 == 0) {
 			world.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.MINIGUN_FIRE, SoundCategory.PLAYERS, 1.2F, 0.9F + world.random.nextFloat() * 0.3F);
 		}
-		muzzleFlash(world, player, 1.1);
+		Vec3d look = player.getRotationVec(1.0F);
+		Vec3d m = muzzle(player, 1.1);
+		Vfx.play(world, VfxIds.MINIGUN_MUZZLE, m, look, 1.0F, 0);
+		Vfx.play(world, VfxIds.BULLET_IMPACT, hit.end(), dir.multiply(-1), 1.0F, 0);
+		if (heldTicks % 2 == 0) {
+			// Casings out of the right-hand side.
+			Vec3d right = look.crossProduct(new Vec3d(0, 1, 0)).normalize();
+			Vfx.play(world, VfxIds.SHELL_CASING, muzzle(player, 0.4), right, 1.0F, 0);
+		}
 	}
 }

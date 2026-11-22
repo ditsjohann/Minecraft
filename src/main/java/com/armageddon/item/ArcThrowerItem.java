@@ -3,10 +3,12 @@ package com.armageddon.item;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModItems;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.Hitscan;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -49,9 +51,11 @@ public class ArcThrowerItem extends GunItem {
 		}
 		int seed = world.random.nextInt();
 		world.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.ARC_ZAP, SoundCategory.PLAYERS, 1.2F, 0.8F + world.random.nextFloat() * 0.4F);
+		Vfx.play(world, VfxIds.ARC_MUZZLE, start, look, 1.0F, 0);
 		if (first == null) {
 			Hitscan.Result miss = Hitscan.cast(world, player, eye, look, 18);
 			ModNetworking.sendFx(world, start, 160, new FxPayload(FxType.ARC, start, miss.end(), 0.08F, 0xA8E6FF, seed));
+			Vfx.play(world, VfxIds.ARC_BURST, miss.end(), 0.5F);
 			return;
 		}
 		Set<Entity> hit = new HashSet<>();
@@ -61,6 +65,7 @@ public class ArcThrowerItem extends GunItem {
 		for (int jump = 0; jump < 6 && current != null; jump++) {
 			Vec3d at = current.getPos().add(0, current.getHeight() * 0.5, 0);
 			ModNetworking.sendFx(world, from, 160, new FxPayload(FxType.ARC, from, at, 0.09F, 0xA8E6FF, seed + jump));
+			Vfx.play(world, VfxIds.ARC_BURST, at, 0.7F);
 			current.timeUntilRegen = 0;
 			current.damage(ModDamageTypes.source(world, ModDamageTypes.ELECTROCUTION, player, player), damage);
 			current.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 30, 4, false, false));

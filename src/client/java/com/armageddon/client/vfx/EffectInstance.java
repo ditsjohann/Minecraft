@@ -17,6 +17,8 @@ public final class EffectInstance {
 	public final double ox, oy, oz;
 	/** Unit direction (aim, surface normal); straight up by default. */
 	public final float[] dir;
+	/** Length of the direction as it was given: effects can spread along it (a beam's line, a shot's path). */
+	public final float dirLen;
 	public final float scale;
 	/** Tint for {@link EmitterDef.Builder#tinted()} emitters, 0 for none. */
 	public final int tint;
@@ -41,6 +43,7 @@ public final class EffectInstance {
 		this.oz = z;
 		float l = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
 		this.dir = l < 1.0E-4F ? new float[]{0, 1, 0} : new float[]{dx / l, dy / l, dz / l};
+		this.dirLen = l;
 		this.scale = Math.max(0.05F, scale);
 		this.tint = tint != 0 ? tint : def.tint;
 		this.seed = seed;
