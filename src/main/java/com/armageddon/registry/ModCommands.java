@@ -33,6 +33,7 @@ import java.util.List;
  * /armageddon protect add|remove|list — regions no weapon can damage
  * /armageddon showcase [section] | item <item> | clear — screenshot gallery
  * /armageddon restore [count] — undo recorded destruction (needs gamerule armageddonRecordRestore)
+ * /armageddon vfx <effect> [scale] — play a particle-engine effect where you look
  */
 public final class ModCommands {
 	public static void init() {
@@ -49,6 +50,12 @@ public final class ModCommands {
 								.then(CommandManager.argument("id", StringArgumentType.word())
 										.suggests((ctx, b) -> net.minecraft.command.CommandSource.suggestMatching(com.armageddon.event.Events.ids(), b))
 										.executes(ModCommands::startEvent)))
+						.then(CommandManager.literal("vfx")
+								.then(CommandManager.argument("effect", StringArgumentType.word())
+										.suggests((ctx, b) -> net.minecraft.command.CommandSource.suggestMatching(com.armageddon.vfx.VfxIds.ALL, b))
+										.executes(ctx -> playVfx(ctx, 1.0F))
+										.then(CommandManager.argument("scale", com.mojang.brigadier.arguments.FloatArgumentType.floatArg(0.1F, 64.0F))
+												.executes(ctx -> playVfx(ctx, com.mojang.brigadier.arguments.FloatArgumentType.getFloat(ctx, "scale"))))))
 						.then(CommandManager.literal("restore")
 								.executes(ctx -> restore(ctx, 100000))
 								.then(CommandManager.argument("count", IntegerArgumentType.integer(1))
@@ -63,6 +70,32 @@ public final class ModCommands {
 										.then(CommandManager.argument("name", StringArgumentType.word())
 												.executes(ModCommands::protectRemove)))
 								.then(CommandManager.literal("list").executes(ModCommands::protectList)))));
+	}
+
+	/**
+	 * Plays a particle-engine effect where you are looking (on the block you aim at, facing out of it; or in the air
+	 * ahead): for tuning effects without a weapon.
+	 */
+	private static int playVfx(CommandContext<ServerCommandSource> ctx, float scale) throws CommandSyntaxException {
+		String id = StringArgumentType.getString(ctx, "effect");
+		if (!com.armageddon.vfx.VfxIds.ALL.contains(id)) {
+			ctx.getSource().sendError(Text.literal("Unknown effect: " + id));
+			return 0;
+		}
+		Entity player = ctx.getSource().getEntityOrThrow();
+		net.minecraft.util.hit.HitResult hit = player.raycast(96, 1.0F, false);
+		net.minecraft.util.math.Vec3d at, dir;
+		if (hit instanceof net.minecraft.util.hit.BlockHitResult bh && hit.getType() == net.minecraft.util.hit.HitResult.Type.BLOCK) {
+			net.minecraft.util.math.Vec3i n = bh.getSide().getVector();
+			dir = new net.minecraft.util.math.Vec3d(n.getX(), n.getY(), n.getZ());
+			at = bh.getPos().add(dir.multiply(0.05));
+		} else {
+			at = player.getEyePos().add(player.getRotationVec(1.0F).multiply(12));
+			dir = new net.minecraft.util.math.Vec3d(0, 1, 0);
+		}
+		com.armageddon.network.Vfx.play(ctx.getSource().getWorld(), id, at, dir, scale, 0);
+		ctx.getSource().sendFeedback(() -> Text.literal("Playing " + id + " at scale " + scale), false);
+		return 1;
 	}
 
 	/** Starts a scripted event at your feet, facing where you look (testing without crafting bombs). */

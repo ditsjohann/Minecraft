@@ -85,6 +85,9 @@ public final class PreviewMain {
 
 	static FxEffect make(String name) {
 		Vec3d a = ANCHOR, h = HEADING;
+		if (name.startsWith("vfx:")) {
+			return new VfxPreviewEffect(name.substring(4), a);
+		}
 		return switch (name) {
 			case "spear" -> new MegaEffects.Spear(a, 92, 60, 120 + 24 + 60 + 50);
 			case "galactic" -> Cinematics.create(Cinematics.GALACTIC_SMASH, a, h, 760);

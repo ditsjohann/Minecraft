@@ -23,3 +23,25 @@ helix 30 -20 20 -40 40 8 0
 graviton 60 -20 12 -20 0 3 0
 sunfall 20 -60 30 -40 -40 20 0
 halo 110 -60 50 -60 0 0 0
+# Particle engine (vfx:<effect>[:<scale>])
+vfx:grenade_blast 3 -9 4 -9 0 1.5 0
+vfx:grenade_blast 14 -9 4 -9 0 1.5 0
+vfx:grenade_blast 45 -9 4 -9 0 2 0
+vfx:sparks 8 -3 1.5 -3 0 0.5 0
+vfx:plasma_impact 4 -4 2 -4 0 0.5 0
+vfx:napalm 40 -7 3 -7 0 1 0
+vfx:smoke_column 250 -40 15 -40 0 15 0
+vfx:cryo_burst 10 -8 3 -8 0 1 0
+vfx:cryo_burst 50 -8 3 -8 0 1 0
+vfx:void_implosion 30 -8 3 -8 0 0 0
+vfx:void_implosion 46 -8 3 -8 0 0 0
+vfx:toxic_cloud 80 -10 4 -10 0 1 0
+vfx:arc_burst 3 -4 2 -4 0 0.5 0
+vfx:firework 24 -30 8 -30 0 12 0
+vfx:firework 40 -30 8 -30 0 12 0
+vfx:muzzle_flash 1 -2 0.5 -2 0 0 0
+vfx:radiation 100 -8 3 -8 0 0 0
+vfx:ember_rain 150 -14 4 -14 0 4 0
+vfx:nuke:3 20 -250 60 -250 0 40 0
+vfx:nuke:3 120 -250 60 -250 0 50 0
+vfx:nuke:3 300 -250 60 -250 0 60 0

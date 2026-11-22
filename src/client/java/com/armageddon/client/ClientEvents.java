@@ -24,6 +24,7 @@ public final class ClientEvents {
 
 	public static void tick(MinecraftClient mc) {
 		ClientFx.tick(mc);
+		com.armageddon.client.vfx.FxEngine.tick(mc);
 		ClientPlayerEntity player = mc.player;
 		if (player == null) {
 			triggerSent = false;

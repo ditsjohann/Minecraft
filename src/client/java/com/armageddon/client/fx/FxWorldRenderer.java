@@ -12,7 +12,7 @@ import org.joml.Matrix4f;
 /** Draws every live {@link FxEffect} after translucent terrain. */
 public final class FxWorldRenderer {
 	public static void render(WorldRenderContext ctx) {
-		if (ClientFx.EFFECTS.isEmpty()) {
+		if (ClientFx.EFFECTS.isEmpty() && !com.armageddon.client.vfx.FxEngine.active()) {
 			return;
 		}
 		MinecraftClient mc = MinecraftClient.getInstance();
@@ -42,6 +42,7 @@ public final class FxWorldRenderer {
 		if (broken != null) {
 			ClientFx.EFFECTS.removeAll(broken);
 		}
+		com.armageddon.client.vfx.FxEngine.render(m, consumers, cam, tickDelta, camera.getYaw(), camera.getPitch());
 		consumers.finish();
 	}
 

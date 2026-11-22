@@ -19,6 +19,20 @@ public final class Vfx {
 		return new FxPayload(type, a.x, a.y, a.z, b.x, b.y, b.z, scale, color, seed, p1, p2, duration);
 	}
 
+	/**
+	 * Plays a particle-engine effect ({@link com.armageddon.vfx.VfxIds}) for everyone in range. {@code dir} aims it
+	 * (a gun's look, a surface normal); {@code color} tints effects that take one, 0 for their own colours.
+	 */
+	public static void play(ServerWorld w, String effect, Vec3d at, Vec3d dir, float scale, int color) {
+		double range = Math.min(FAR, Math.max(256, 160 * scale));
+		ModNetworking.sendVfx(w, at, range, new VfxPayload(effect, at.x, at.y, at.z, (float) dir.x, (float) dir.y, (float) dir.z,
+				scale, color, w.getRandom().nextLong()));
+	}
+
+	public static void play(ServerWorld w, String effect, Vec3d at, float scale) {
+		play(w, effect, at, new Vec3d(0, 1, 0), scale, 0);
+	}
+
 	public static void orb(ServerWorld w, Vec3d c, float r0, float r1, int color, int mode, int duration) {
 		send(w, c, FAR, p(FxType.ORB, c, c, r0, color, 0, r1, mode, duration));
 	}

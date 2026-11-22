@@ -37,6 +37,7 @@ public class ArmageddonClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ModParticleFactories.register();
+		com.armageddon.client.vfx.VfxLibrary.bootstrap();
 
 		EntityRendererRegistry.register(ModEntities.PROJECTILE, ProjectileModelRenderer::new);
 		EntityRendererRegistry.register(ModEntities.ENERGY_BOLT, EnergyBoltRenderer::new);
@@ -57,7 +58,11 @@ public class ArmageddonClient implements ClientModInitializer {
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderLayer.getTranslucent(), ModBlocks.ENERGY_CRYSTAL, ModBlocks.LUMINOUS_GLASS);
 
 		ClientPlayNetworking.registerGlobalReceiver(FxPayload.ID, (payload, context) -> ClientFx.handle(payload));
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientFx.clear());
+		ClientPlayNetworking.registerGlobalReceiver(com.armageddon.network.VfxPayload.ID, (payload, context) -> com.armageddon.client.vfx.FxEngine.handle(payload));
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			ClientFx.clear();
+			com.armageddon.client.vfx.FxEngine.clear();
+		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(ClientEvents::tick);
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(FxWorldRenderer::render);
