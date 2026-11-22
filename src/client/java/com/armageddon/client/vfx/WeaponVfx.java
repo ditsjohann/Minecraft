@@ -4,6 +4,7 @@ import com.armageddon.client.render.FxSprites;
 import com.armageddon.client.vfx.EmitterDef.Layer;
 import com.armageddon.client.vfx.EmitterDef.Mode;
 import com.armageddon.client.vfx.EmitterDef.Priority;
+import com.armageddon.entity.ProjectileKind;
 import com.armageddon.entity.WmdProjectileEntity;
 import com.armageddon.vfx.VfxIds;
 
@@ -46,23 +47,46 @@ public final class WeaponVfx {
 	 * for kinds that keep their old particles.
 	 */
 	public static boolean trail(WmdProjectileEntity e) {
-		String id = switch (e.getKind()) {
+		ProjectileKind kind = e.getKind();
+		String id = switch (kind) {
 			case PLASMA -> VfxIds.PLASMA_TRAIL;
 			case CRYO -> VfxIds.CRYO_TRAIL;
 			case ROCKET, MIRV -> VfxIds.ROCKET_TRAIL;
 			case BFG -> VfxIds.BFG_TRAIL;
+			case FRAG -> VfxIds.FUSE_SPARKS;
+			case PLASMA_GRENADE -> VfxIds.PLASMA_PULSE;
+			case CRYO_GRENADE, SHATTERFROST -> VfxIds.FROST_LEAK;
+			case INCENDIARY -> VfxIds.FIRE_LEAK;
+			case GRAVITY, IMPLOSION -> VfxIds.GRAVITY_WARP;
+			case TOXIC -> VfxIds.GAS_LEAK;
+			case POCKET_NUKE -> VfxIds.NUKE_TICK;
+			case ARCFLASH -> VfxIds.ARC_CRACKLE;
+			case EMP -> VfxIds.EMP_PING;
+			case BOOMERANG -> VfxIds.BOOMERANG_TRAIL;
 			default -> null;
 		};
 		if (id == null) {
 			return false;
 		}
 		var v = e.getVelocity();
-		FxEngine.playMoving(id, e.getX(), e.getY(), e.getZ(), (float) -v.x, (float) -v.y, (float) -v.z, 1.0F,
-				e.getId() * 0x9E3779B97F4A7C15L + e.age, (float) v.x, (float) v.y, (float) v.z);
+		long seed = e.getId() * 0x9E3779B97F4A7C15L + e.age;
+		FxEngine.playMoving(id, e.getX(), e.getY(), e.getZ(), (float) -v.x, (float) -v.y, (float) -v.z, 1.0F, 0,
+				seed, (float) v.x, (float) v.y, (float) v.z);
+		int tint = ThrowVfx.blinkColor(kind);
+		if (kind.isGrenade() && tint != 0) {
+			// The warning light: blinks faster and faster as the fuse runs down.
+			int left = Math.max(0, kind.fuse - e.age);
+			int every = Math.max(2, left / 6);
+			if (e.age % every == 0) {
+				FxEngine.playMoving(VfxIds.GRENADE_BLINK, e.getX(), e.getY() + 0.25, e.getZ(), 0, 1, 0, 1.0F, tint, seed + 1,
+						(float) v.x, (float) v.y, (float) v.z);
+			}
+		}
 		return true;
 	}
 
 	static void register() {
+		ThrowVfx.register();
 		plasma();
 		railgun();
 		minigun();

@@ -2,8 +2,11 @@ package com.armageddon.item;
 
 import com.armageddon.entity.ProjectileKind;
 import com.armageddon.entity.WmdProjectileEntity;
+import com.armageddon.network.Vfx;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Hand;
@@ -24,6 +27,8 @@ public class GrenadeItem extends WmdItem {
 		world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_SNOWBALL_THROW, SoundCategory.PLAYERS, 0.7F, 0.6F);
 		if (!world.isClient) {
 			WmdProjectileEntity p = WmdProjectileEntity.fire(world, user, kind, 1.3F, 1.0F);
+			Vfx.play((ServerWorld) world, VfxIds.THROW_WHOOSH,
+					user.getEyePos().add(user.getRotationVec(1.0F).multiply(0.8)), user.getRotationVec(1.0F), 1.0F, 0);
 			if (kind == ProjectileKind.PAINT_BOMB && user.isSneaking()) {
 				// Sneak-throw: a solvent bomb that washes paint away.
 				p.setPower(-1);

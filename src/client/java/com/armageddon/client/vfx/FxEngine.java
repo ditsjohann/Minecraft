@@ -71,9 +71,9 @@ public final class FxEngine {
 	 * Starts an effect that rides on something moving at {@code (vx, vy, vz)} blocks per tick: emitters with
 	 * {@link EmitterDef.Builder#inherit} carry that much of the motion, so flames keep up with a flying head.
 	 */
-	public static EffectInstance playMoving(String name, double x, double y, double z, float dx, float dy, float dz, float scale, long seed,
-			float vx, float vy, float vz) {
-		EffectInstance fx = play(name, x, y, z, dx, dy, dz, scale, 0, seed);
+	public static EffectInstance playMoving(String name, double x, double y, double z, float dx, float dy, float dz, float scale, int color,
+			long seed, float vx, float vy, float vz) {
+		EffectInstance fx = play(name, x, y, z, dx, dy, dz, scale, color, seed);
 		if (fx != null) {
 			fx.cvx = vx;
 			fx.cvy = vy;

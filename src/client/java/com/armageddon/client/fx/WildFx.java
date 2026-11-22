@@ -272,14 +272,14 @@ public final class WildFx {
 			long s = seed * 31L + age;
 			float vx = (float) v.x, vy = (float) v.y, vz = (float) v.z;
 			// The mane streams back off it, sparks wheel round it, and it leaves a wake of fire.
-			FxEngine.playMoving(VfxIds.INFRIT_MANE, h.x, h.y, h.z, (float) -f.x, (float) -f.y, (float) -f.z, (float) S, s, vx, vy, vz);
-			FxEngine.playMoving(VfxIds.INFRIT_SPARKS, h.x, h.y, h.z, 0, 1, 0, (float) S, s + 1, vx, vy, vz);
+			FxEngine.playMoving(VfxIds.INFRIT_MANE, h.x, h.y, h.z, (float) -f.x, (float) -f.y, (float) -f.z, (float) S, 0, s, vx, vy, vz);
+			FxEngine.playMoving(VfxIds.INFRIT_SPARKS, h.x, h.y, h.z, 0, 1, 0, (float) S, 0, s + 1, vx, vy, vz);
 			if (age % 2 == 0) {
 				FxEngine.play(VfxIds.SOUL_TRAIL, h.x, h.y, h.z, 0, 1, 0, (float) S, 0, s + 2);
 			}
 			if (Infrit.jaw(age) > 0.45) {
 				Vec3d mouth = h.add(f.multiply(12 * S)).add(u.multiply(-2.2 * S));
-				FxEngine.playMoving(VfxIds.INFRIT_BREATH, mouth.x, mouth.y, mouth.z, (float) f.x, (float) f.y, (float) f.z, (float) S, s + 3, vx, vy, vz);
+				FxEngine.playMoving(VfxIds.INFRIT_BREATH, mouth.x, mouth.y, mouth.z, (float) f.x, (float) f.y, (float) f.z, (float) S, 0, s + 3, vx, vy, vz);
 			}
 			if (world != null) {
 				ClientFx.light(h, 0.9F, 0x40B0FF);

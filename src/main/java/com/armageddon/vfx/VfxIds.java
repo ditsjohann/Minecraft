@@ -84,6 +84,27 @@ public final class VfxIds {
 	public static final String DEATHRAY_BURN = "deathray_burn";
 	public static final String DEATHRAY_MUZZLE = "deathray_muzzle";
 
+	// throwables
+	public static final String GRENADE_BLINK = "grenade_blink";
+	public static final String THROW_WHOOSH = "throw_whoosh";
+	public static final String FUSE_SPARKS = "fuse_sparks";
+	public static final String PLASMA_PULSE = "plasma_pulse";
+	public static final String FROST_LEAK = "frost_leak";
+	public static final String FIRE_LEAK = "fire_leak";
+	public static final String GRAVITY_WARP = "gravity_warp";
+	public static final String GAS_LEAK = "gas_leak";
+	public static final String NUKE_TICK = "nuke_tick";
+	public static final String ARC_CRACKLE = "arc_crackle";
+	public static final String EMP_PING = "emp_ping";
+	public static final String BOOMERANG_TRAIL = "boomerang_trail";
+	public static final String FRAG_SHRAPNEL = "frag_shrapnel";
+	public static final String PLASMA_NOVA = "plasma_nova";
+	public static final String INCENDIARY_BURST = "incendiary_burst";
+	public static final String GRAVITY_WELL = "gravity_well";
+	public static final String GAS_BURST = "gas_burst";
+	public static final String SHATTER_BURST = "shatter_burst";
+	public static final String EMP_PULSE = "emp_pulse";
+
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD, RAY_BLAST,
@@ -92,7 +113,10 @@ public final class VfxIds {
 			CACTUS_BLOOM, SANDSTORM, ANVIL_IMPACT, IRON_WAVE, PLATE_DUST, INFRIT_MANE, INFRIT_SPARKS, INFRIT_BREATH,
 			PLASMA_MUZZLE, PLASMA_TRAIL, RAIL_CHARGE, RAIL_MUZZLE, RAIL_ION, RAIL_IMPACT, MINIGUN_MUZZLE, SHELL_CASING,
 			BULLET_IMPACT, FLAME_JET, FLAME_SPLASH, ARC_MUZZLE, CRYO_MUZZLE, CRYO_TRAIL, ROCKET_BACKBLAST, ROCKET_TRAIL,
-			BFG_MUZZLE, BFG_TRAIL, BFG_BLAST, HAMMER_SLAM, HAMMER_HIT, DEATHRAY_BURN, DEATHRAY_MUZZLE);
+			BFG_MUZZLE, BFG_TRAIL, BFG_BLAST, HAMMER_SLAM, HAMMER_HIT, DEATHRAY_BURN, DEATHRAY_MUZZLE,
+			GRENADE_BLINK, THROW_WHOOSH, FUSE_SPARKS, PLASMA_PULSE, FROST_LEAK, FIRE_LEAK, GRAVITY_WARP, GAS_LEAK, NUKE_TICK,
+			ARC_CRACKLE, EMP_PING, BOOMERANG_TRAIL, FRAG_SHRAPNEL, PLASMA_NOVA, INCENDIARY_BURST, GRAVITY_WELL, GAS_BURST,
+			SHATTER_BURST, EMP_PULSE);
 
 	private VfxIds() {
 	}

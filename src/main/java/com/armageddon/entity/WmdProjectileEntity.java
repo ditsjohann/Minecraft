@@ -491,6 +491,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		detonated = true;
 		Entity owner = getOwner();
 		ProjectileKind k = getKind();
+		impactFx(world, k, at);
 		if (k.event != null) {
 			com.armageddon.event.EventEntity.start(world, at, k.event, owner, nbt -> {
 				nbt.putFloat("Yaw", getYaw());
@@ -504,20 +505,13 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		switch (k) {
 			case MINI_NUKE -> Detonations.nuke(world, at, owner, 8);
 			case POCKET_NUKE -> Detonations.nuke(world, at, owner, 5);
-			case ROCKET, MIRV -> {
-				Detonations.highExplosive(world, at, this, 4.0F, false);
-				Vfx.play(world, VfxIds.GRENADE_BLAST, at, 1.4F);
-			}
+			case ROCKET, MIRV -> Detonations.highExplosive(world, at, this, 4.0F, false);
 			case BOMBLET -> Detonations.highExplosive(world, at, this, 2.6F, false);
 			case PLASMA -> {
 				ModNetworking.sendFx(world, at, 128, new FxPayload(FxType.PLASMA_BURST, at, 1.0F, 0x55FFEE));
-				Vfx.play(world, VfxIds.PLASMA_IMPACT, at, getVelocity().multiply(-1), 0.9F, 0x55FFEE);
 				world.playSound(null, at.x, at.y, at.z, ModSounds.PLASMA_IMPACT, SoundCategory.PLAYERS, 1.0F, 1.0F + random.nextFloat() * 0.3F);
 			}
-			case CRYO -> {
-				Detonations.freezeBurst(world, at, owner, 5);
-				Vfx.play(world, VfxIds.CRYO_BURST, at, 1.3F);
-			}
+			case CRYO -> Detonations.freezeBurst(world, at, owner, 5);
 			case SINGULARITY -> Detonations.singularity(world, at, owner, 4.0F, 180, true);
 			case FRAG -> {
 				Detonations.highExplosive(world, at, this, 2.8F, false);
@@ -534,10 +528,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case TOXIC -> toxicCloud(world, at);
 			case METEOR -> Detonations.meteorImpact(world, at, owner);
 			case ROD -> Detonations.kineticImpact(world, at, owner);
-			case BFG -> {
-				Detonations.bfgBurst(world, at, owner);
-				Vfx.play(world, VfxIds.BFG_BLAST, at, 2.5F);
-			}
+			case BFG -> Detonations.bfgBurst(world, at, owner);
 			case GATLING_NUKE -> Detonations.nuke(world, at, owner, 3, false);
 			case FALLING_NUKE -> Detonations.nuke(world, at, owner, 7, false);
 			case AIR_BOMB -> Detonations.highExplosive(world, at, this, 4.5F, true);
@@ -551,6 +542,41 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			}
 		}
 		discard();
+	}
+
+	/** The particle-engine side of a detonation, layered over the blast itself. */
+	private void impactFx(ServerWorld world, ProjectileKind k, Vec3d at) {
+		Vec3d back = getVelocity().lengthSquared() > 1.0E-4 ? getVelocity().normalize().multiply(-1) : new Vec3d(0, 1, 0);
+		switch (k) {
+			case ROCKET, MIRV -> Vfx.play(world, VfxIds.GRENADE_BLAST, at, 1.4F);
+			case PLASMA -> Vfx.play(world, VfxIds.PLASMA_IMPACT, at, back, 0.9F, 0x55FFEE);
+			case CRYO -> Vfx.play(world, VfxIds.CRYO_BURST, at, 1.3F);
+			case BFG -> Vfx.play(world, VfxIds.BFG_BLAST, at, 2.5F);
+			case FRAG -> {
+				Vfx.play(world, VfxIds.GRENADE_BLAST, at, 1.0F);
+				Vfx.play(world, VfxIds.FRAG_SHRAPNEL, at, 1.0F);
+			}
+			case PLASMA_GRENADE -> {
+				Vfx.play(world, VfxIds.PLASMA_IMPACT, at, back, 2.2F, 0x55FFEE);
+				Vfx.play(world, VfxIds.PLASMA_NOVA, at, 1.0F);
+			}
+			case CRYO_GRENADE -> Vfx.play(world, VfxIds.CRYO_BURST, at, 1.4F);
+			case INCENDIARY -> {
+				Vfx.play(world, VfxIds.INCENDIARY_BURST, at, 1.0F);
+				Vfx.play(world, VfxIds.NAPALM, at, 1.3F);
+			}
+			case GRAVITY, IMPLOSION -> Vfx.play(world, VfxIds.GRAVITY_WELL, at, k == ProjectileKind.IMPLOSION ? 1.3F : 1.0F);
+			case TOXIC -> {
+				Vfx.play(world, VfxIds.GAS_BURST, at, 1.0F);
+				Vfx.play(world, VfxIds.TOXIC_CLOUD, at, 1.4F);
+			}
+			case POCKET_NUKE -> Vfx.play(world, VfxIds.NUKE, at, 0.5F);
+			case SHATTERFROST -> Vfx.play(world, VfxIds.SHATTER_BURST, at, 1.0F);
+			case ARCFLASH -> Vfx.play(world, VfxIds.ARC_BURST, at, 2.0F);
+			case EMP -> Vfx.play(world, VfxIds.EMP_PULSE, at, 1.0F);
+			default -> {
+			}
+		}
 	}
 
 	private void toxicCloud(ServerWorld world, Vec3d at) {

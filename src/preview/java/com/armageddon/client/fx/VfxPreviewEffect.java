@@ -64,7 +64,7 @@ final class VfxPreviewEffect extends FxEffect {
 				return true;
 			}
 			Vec3d at = from.add(age * speed, 4 + age * 0.02 * speed, 0);
-			FxEngine.playMoving(trail, at.x, at.y, at.z, (float) -speed, 0, 0, 1.0F, 777L + age, (float) speed, (float) (0.02 * speed), 0);
+			FxEngine.playMoving(trail, at.x, at.y, at.z, (float) -speed, 0, 0, 1.0F, 0, 777L + age, (float) speed, (float) (0.02 * speed), 0);
 			return true;
 		}
 		try {
