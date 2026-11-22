@@ -218,6 +218,7 @@ src/main/java/com/armageddon/      common code (items, blocks, entities, detonat
 src/client/java/com/armageddon/    client code (renderers, particles, FX engine, post shader, HUD, mixins)
 src/main/resources/                generated assets + data
 tools/                             asset generator
+docs/vfx/                          visual-effects research and roadmap (start at docs/vfx/README.md)
 ```
 
 ## Notes
