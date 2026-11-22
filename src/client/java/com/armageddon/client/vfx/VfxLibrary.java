@@ -223,7 +223,7 @@ public final class VfxLibrary {
 						.life(40, 60).size(0.04F, 0.07F).mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK)
 						.color(Gradient.of(0, 0xC090FF, 1, 0x6020C0)).alphaOverLife(Curve.BELL).build())
 				.emit(smoke("ink").rate(2, 40).shape(Shape.shell(3.5F)).module(Module.attract(0.01F, 0.4F)).module(Module.curl(3, 0.01F))
-						.drag(0.1F).life(30, 50).size(0.5F, 0.9F).sprite(FxSprites.WISP)
+						.drag(0.1F).life(30, 50).size(0.5F, 0.9F)
 						.sizeOverLife(Curve.keys(0, 1, 1, 0.2F)).color(Gradient.of(0, 0x0A0010, 1, 0x1A0830)).alpha(0.8F).build())
 				.emit(smoke("core").priority(Priority.HERO).burst(1).life(pop, pop).size(1.0F, 1.0F).fixedRotation().sprite(FxSprites.GLOW)
 						.sizeOverLife(Curve.keys(0, 0.1F, 0.9F, 1, 1, 0.2F)).alphaOverLife(Curve.keys(0, 0, 0.2F, 1, 1, 1))
@@ -294,17 +294,19 @@ public final class VfxLibrary {
 	/** A rocket with a sparkling trail that bursts into a tinted sphere of stars, some crackling as they die. */
 	static EffectDef firework() {
 		EmitterDef trail = EmitterDef.builder("trail").priority(Priority.DETAIL).burst(2).velocity(Velocity.random(0.01F, 0.03F))
-				.gravity(0.01F).drag(0.1F).life(8, 14).size(0.05F, 0.08F).color(Gradient.of(0, 0xFFD070, 1, 0xFF6010))
+				.gravity(0.01F).drag(0.1F).life(8, 14).size(0.12F, 0.18F).color(Gradient.of(0, 0xFFD070, 1, 0xFF6010))
 				.alphaOverLife(Curve.FADE_OUT).build();
-		EmitterDef crackle = flash("crackle", 0.15F, 3, 0xFFFFFF).priority(Priority.DETAIL).build();
+		EmitterDef crackle = flash("crackle", 0.35F, 3, 0xFFFFFF).priority(Priority.DETAIL).build();
 		EmitterDef stars = EmitterDef.builder("stars").priority(Priority.HERO).burst(90).velocity(Velocity.random(0.35F, 0.45F))
-				.gravity(0.012F).drag(0.07F).life(30, 45).size(0.05F, 0.07F).mode(Mode.STRETCHED).sprite(FxSprites.STREAK)
+				.gravity(0.012F).drag(0.07F).life(30, 45).size(0.12F, 0.16F).mode(Mode.STRETCHED).stretch(3).sprite(FxSprites.STREAK)
 				.tinted().color(WHITE_FADE).alphaOverLife(Curve.FADE).onDeath(0.3F, crackle).build();
-		EmitterDef bloom = flash("burst_flash", 3.0F, 6, 0xFFFFFF).tinted().build();
+		EmitterDef bloom = flash("burst_flash", 4.0F, 6, 0xFFFFFF).tinted().build();
+		EmitterDef glitter = EmitterDef.builder("glitter").priority(Priority.DETAIL).burst(40).velocity(Velocity.random(0.15F, 0.38F))
+				.gravity(0.008F).drag(0.08F).life(35, 60).size(0.1F, 0.16F).tinted().color(WHITE_FADE).alphaOverLife(TWINKLE).build();
 		return EffectDef.builder(VfxIds.FIREWORK).tint(0xFF4060).lod(64, 400)
 				.emit(EmitterDef.builder("rocket").priority(Priority.HERO).burst(1).velocity(Velocity.up(0.9F, 1.0F, 0.08F))
-						.drag(0.06F).gravity(0.01F).life(22, 26).size(0.12F, 0.12F).mode(Mode.STRETCHED).sprite(FxSprites.GLOW)
-						.color(0xFFE0A0).every(1, trail).onDeath(1, stars, bloom).build())
+						.drag(0.06F).gravity(0.01F).life(22, 26).size(0.3F, 0.3F).mode(Mode.STRETCHED).sprite(FxSprites.GLOW)
+						.color(0xFFE0A0).every(1, trail).onDeath(1, stars, glitter, bloom).build())
 				.cue(0, EffectDef.sound(() -> SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 2.0F, 1.0F))
 				.sonic(24, EffectDef.sound(() -> SoundEvents.ENTITY_FIREWORK_ROCKET_BLAST, 3.0F, 1.0F))
 				.build();
@@ -313,7 +315,9 @@ public final class VfxLibrary {
 	/** A gunshot at the muzzle, along the aim: a star flash, a cone of sparks, a puff of smoke. */
 	static EffectDef muzzleFlash() {
 		return EffectDef.builder(VfxIds.MUZZLE_FLASH).lod(16, 64)
-				.emit(flash("flash", 0.4F, 2, 0xFFF0C0).build())
+				.emit(flash("flash", 0.6F, 2, 0xFFF0C0).layer(Layer.GLOW_TOP).build())
+				.emit(EmitterDef.builder("glow").burst(1).size(0.9F, 0.9F).life(3, 3).sprite(FxSprites.GLOW)
+						.color(0xFFC060).alpha(0.6F).alphaOverLife(Curve.FADE_OUT).build())
 				.emit(EmitterDef.builder("cone").priority(Priority.DETAIL).burst(6).velocity(Velocity.along(0.3F, 0.6F, 0.25F))
 						.life(3, 5).size(0.02F, 0.03F).drag(0.3F).mode(Mode.STRETCHED).sprite(FxSprites.STREAK)
 						.color(Gradient.of(0, 0xFFF0C0, 1, 0xFFA040)).alphaOverLife(Curve.FADE_OUT).build())
@@ -343,16 +347,16 @@ public final class VfxLibrary {
 				.emit(4, EmitterDef.builder("condensation").priority(Priority.HERO).burst(1).size(14, 14).life(24, 24).layer(Layer.SMOKE)
 						.sprite(FxSprites.RING).fixedRotation().sizeOverLife(Curve.keys(0, 0.5F, 1, 1.4F))
 						.alphaOverLife(Curve.keys(0, 0, 0.1F, 0.6F, 1, 0)).emissive(Curve.ONE).color(0xF4F4F8).build())
-				.emit(15, smoke("stem").priority(Priority.HERO).rate(6, 160, Curve.keys(0, 1, 0.6F, 0.8F, 1, 0)).shape(Shape.column(1.6F, 4))
+				.emit(15, smoke("stem").priority(Priority.HERO).rate(6, 320, Curve.keys(0, 1, 0.4F, 0.8F, 1, 0)).shape(Shape.column(1.6F, 4))
 						.velocity(Velocity.up(0.25F, 0.35F, 0.08F)).module(Module.vortex(0.01F, 0.004F)).module(Module.buoyancy(0.02F))
-						.drag(0.04F).life(50, 70).size(1.6F, 2.6F).sizeOverLife(Curve.keys(0, 0.6F, 1, 1.6F)).alpha(0.9F).shade(0.6F)
+						.drag(0.04F).life(70, 110).size(1.6F, 2.6F).sizeOverLife(Curve.keys(0, 0.6F, 1, 1.6F)).alpha(0.9F).shade(0.6F)
 						.color(Gradient.of(0, 0x3A2A22, 0.5F, 0x6A5A50, 1, 0x8A8078)).emissive(Curve.keys(0, 1, 0.25F, 0.6F, 0.5F, 0)).build())
 				.emit(35, EmitterDef.builder("cap_fire").rate(4, 100, Curve.FALL).offset(0, 20, 0).shape(Shape.ring(3, 3))
 						.velocity(Velocity.radial(0.02F, 0.05F)).life(20, 40).size(2, 3).module(Module.buoyancy(0.005F))
 						.sprite(FxSprites.FIRE, 2).color(FIRE).alphaOverLife(Curve.FADE).build())
-				.emit(40, smoke("cap").priority(Priority.HERO).rate(10, 160, Curve.keys(0, 1, 0.7F, 0.7F, 1, 0)).offset(0, 20, 0)
+				.emit(40, smoke("cap").priority(Priority.HERO).rate(8, 300, Curve.keys(0, 1, 0.5F, 0.6F, 1, 0)).offset(0, 20, 0)
 						.shape(Shape.ring(4, 3)).velocity(Velocity.radial(0.04F, 0.1F)).velocity(Velocity.up(0.02F, 0.05F, 0.4F))
-						.life(160, 260).size(3, 5).sizeOverLife(Curve.keys(0, 0.5F, 0.4F, 1.6F, 1, 2.5F)).alpha(0.9F)
+						.life(260, 400).size(3, 5).sizeOverLife(Curve.keys(0, 0.5F, 0.3F, 1.6F, 1, 2.8F)).alpha(0.9F)
 						.color(Gradient.of(0, 0x5A4038, 0.5F, 0x8A7A70, 1, 0xA09080)).emissive(Curve.keys(0, 0.9F, 0.3F, 0.4F, 0.6F, 0))
 						.module(Module.buoyancy(0.006F)).module(Module.wind(0.5F)).module(Module.curl(20, 0.004F)).drag(0.03F).build())
 				.emit(6, smoke("dust_wall").rate(30, 40).onGround().shape(Shape.ring(6, 2)).velocity(Velocity.radial(1.2F, 1.5F))

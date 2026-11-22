@@ -13,6 +13,31 @@ Companion docs:
 - [EFFECT_RECIPES.md](EFFECT_RECIPES.md): a cookbook of layered effects built with this engine.
 - [TEXTURES.md](TEXTURES.md): how to author the textures the engine needs.
 
+## Status (what's built)
+
+Steps 1–2 and parts of 4 and 6 from the [migration plan](#7-migration-plan) are in `src/client/java/com/armageddon/client/vfx/`:
+
+| Built | Where |
+|---|---|
+| Structure-of-arrays pool, baked `Curve` / `Gradient`, seeded `Rng` | `ParticlePool`, `Curve`, `Gradient`, `Rng` |
+| Shapes: point, sphere, shell, dome, ring, disc, column, box | `Shape` |
+| Starting velocities: radial, up-cone, along-aim cone, random, swirl (they stack) | `Velocity` |
+| Modules: gravity, drag, buoyancy, curl noise, vortex, attract, wind, jitter; block collision | `Module`, `EmitterInstance` |
+| Sub-emitters: on death, on hit, every N ticks (trails), each able to start several layers | `EmitterDef.onDeath/onHit/every` |
+| Render modes: billboard, upright, stretched, flat; glow / glow-on-top / lit smoke layers through the FX atlas; smoke sorted back to front | `VfxRender` |
+| Cues: flash, shake, light, sound, chain, with "sonic" cues delayed by the speed of sound | `EffectDef` |
+| Budget (thins detail, then normal, never hero) and distance LOD | `FxEngine`, `EffectInstance` |
+| One packet per effect (`VfxPayload`), `Vfx.play(...)` on the server | `network/` |
+| 14 effects, listed in `VfxIds` | `VfxLibrary` |
+
+**Try it:** `/armageddon vfx <effect> [scale]` plays an effect on the block you're looking at, or in the air ahead.
+
+**Preview:** `vfx:<effect>[:<scale>]` scenes in `preview.txt` render through `./gradlew fxPreview`. They have no world, so no
+collision or ground snapping.
+
+**Not built yet:** JSON files and hot reload, ribbons, mesh particles, the light render mode, premultiplied blending,
+flipbooks, soft particles, quality presets, porting the existing weapons and bombs onto the engine, and GPU particles.
+
 ---
 
 ## 0. What we have today, and why it runs out
