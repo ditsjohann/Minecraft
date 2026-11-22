@@ -48,6 +48,16 @@ final class ThrowVfx {
 			case ARCFLASH -> 0xE0F4FF;
 			case IMPLOSION -> 0x9050FF;
 			case EMP -> 0x40A0FF;
+			case SEISMIC_MINE -> 0xFFA040;
+			case ION_FOG -> 0x90FFE0;
+			case STASIS -> 0x80E0FF;
+			case QUANTUM -> 0xFF40FF;
+			case CRYSTAL_SEED -> 0xC080FF;
+			case VOIDSTORM -> 0x8040FF;
+			case MICRO_HORIZON -> 0xFF8040;
+			case MIRROR -> 0xE0E8FF;
+			case SNOW_GLOBE -> 0xFFFFFF;
+			case SLIMEQUAKE -> 0x80FF40;
 			default -> 0;
 		};
 	}
@@ -56,6 +66,7 @@ final class ThrowVfx {
 		common();
 		trails();
 		detonations();
+		ThrowVfx2.register();
 	}
 
 	// ------------------------------------------------------------------ throw and warning light

@@ -63,6 +63,16 @@ public final class WeaponVfx {
 			case ARCFLASH -> VfxIds.ARC_CRACKLE;
 			case EMP -> VfxIds.EMP_PING;
 			case BOOMERANG -> VfxIds.BOOMERANG_TRAIL;
+			case SEISMIC_MINE -> VfxIds.SEISMIC_HUM;
+			case ION_FOG -> VfxIds.ION_GLOW;
+			case STASIS -> VfxIds.STASIS_HEX;
+			case QUANTUM -> VfxIds.QUANTUM_GLITCH;
+			case CRYSTAL_SEED -> VfxIds.CRYSTAL_GLINT;
+			case VOIDSTORM -> VfxIds.VOID_CRACKLE;
+			case MICRO_HORIZON -> VfxIds.HORIZON_PULL;
+			case MIRROR -> VfxIds.MIRROR_SHIMMER;
+			case SNOW_GLOBE -> VfxIds.SNOW_SWIRL;
+			case SLIMEQUAKE -> VfxIds.SLIME_DRIP;
 			default -> null;
 		};
 		if (id == null) {

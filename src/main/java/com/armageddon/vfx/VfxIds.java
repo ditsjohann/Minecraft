@@ -105,6 +105,28 @@ public final class VfxIds {
 	public static final String SHATTER_BURST = "shatter_burst";
 	public static final String EMP_PULSE = "emp_pulse";
 
+	// throwables II
+	public static final String SEISMIC_HUM = "seismic_hum";
+	public static final String ION_GLOW = "ion_glow";
+	public static final String STASIS_HEX = "stasis_hex";
+	public static final String QUANTUM_GLITCH = "quantum_glitch";
+	public static final String CRYSTAL_GLINT = "crystal_glint";
+	public static final String VOID_CRACKLE = "void_crackle";
+	public static final String HORIZON_PULL = "horizon_pull";
+	public static final String MIRROR_SHIMMER = "mirror_shimmer";
+	public static final String SNOW_SWIRL = "snow_swirl";
+	public static final String SLIME_DRIP = "slime_drip";
+	public static final String SEISMIC_BURST = "seismic_burst";
+	public static final String ION_BLOOM = "ion_bloom";
+	public static final String STASIS_FIELD = "stasis_field";
+	public static final String QUANTUM_BURST = "quantum_burst";
+	public static final String CRYSTAL_BURST = "crystal_burst";
+	public static final String VOIDSTORM_BURST = "voidstorm_burst";
+	public static final String HORIZON_COLLAPSE = "horizon_collapse";
+	public static final String MIRROR_FLASH = "mirror_flash";
+	public static final String SNOW_GLOBE_BURST = "snow_globe_burst";
+	public static final String SLIME_BURST = "slime_burst";
+
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD, RAY_BLAST,
@@ -116,7 +138,10 @@ public final class VfxIds {
 			BFG_MUZZLE, BFG_TRAIL, BFG_BLAST, HAMMER_SLAM, HAMMER_HIT, DEATHRAY_BURN, DEATHRAY_MUZZLE,
 			GRENADE_BLINK, THROW_WHOOSH, FUSE_SPARKS, PLASMA_PULSE, FROST_LEAK, FIRE_LEAK, GRAVITY_WARP, GAS_LEAK, NUKE_TICK,
 			ARC_CRACKLE, EMP_PING, BOOMERANG_TRAIL, FRAG_SHRAPNEL, PLASMA_NOVA, INCENDIARY_BURST, GRAVITY_WELL, GAS_BURST,
-			SHATTER_BURST, EMP_PULSE);
+			SHATTER_BURST, EMP_PULSE,
+			SEISMIC_HUM, ION_GLOW, STASIS_HEX, QUANTUM_GLITCH, CRYSTAL_GLINT, VOID_CRACKLE, HORIZON_PULL, MIRROR_SHIMMER,
+			SNOW_SWIRL, SLIME_DRIP, SEISMIC_BURST, ION_BLOOM, STASIS_FIELD, QUANTUM_BURST, CRYSTAL_BURST, VOIDSTORM_BURST,
+			HORIZON_COLLAPSE, MIRROR_FLASH, SNOW_GLOBE_BURST, SLIME_BURST);
 
 	private VfxIds() {
 	}

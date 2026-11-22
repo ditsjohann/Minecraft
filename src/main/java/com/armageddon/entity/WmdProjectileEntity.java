@@ -574,6 +574,16 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case SHATTERFROST -> Vfx.play(world, VfxIds.SHATTER_BURST, at, 1.0F);
 			case ARCFLASH -> Vfx.play(world, VfxIds.ARC_BURST, at, 2.0F);
 			case EMP -> Vfx.play(world, VfxIds.EMP_PULSE, at, 1.0F);
+			case SEISMIC_MINE -> Vfx.play(world, VfxIds.SEISMIC_BURST, at, 1.0F);
+			case ION_FOG -> Vfx.play(world, VfxIds.ION_BLOOM, at, 1.0F);
+			case STASIS -> Vfx.play(world, VfxIds.STASIS_FIELD, at, 1.0F);
+			case QUANTUM -> Vfx.play(world, VfxIds.QUANTUM_BURST, at, 1.0F);
+			case CRYSTAL_SEED -> Vfx.play(world, VfxIds.CRYSTAL_BURST, at, 1.0F);
+			case VOIDSTORM -> Vfx.play(world, VfxIds.VOIDSTORM_BURST, at, 1.0F);
+			case MICRO_HORIZON -> Vfx.play(world, VfxIds.HORIZON_COLLAPSE, at, 1.0F);
+			case MIRROR -> Vfx.play(world, VfxIds.MIRROR_FLASH, at, 1.0F);
+			case SNOW_GLOBE -> Vfx.play(world, VfxIds.SNOW_GLOBE_BURST, at, 1.0F);
+			case SLIMEQUAKE -> Vfx.play(world, VfxIds.SLIME_BURST, at, 1.0F);
 			default -> {
 			}
 		}
