@@ -12,6 +12,9 @@ things off one at a time.
 | [LIBRARIES.md](LIBRARIES.md) | Rendering and VFX libraries that exist for 1.21.1 Fabric, what each would give us, and whether it's worth taking on |
 | [TECHNIQUES.md](TECHNIQUES.md) | Rendering techniques we can build ourselves on top of the current `PostFx`, `Vision` and `FxBuffers` pipeline, with GLSL and Java sketches |
 | [DIRECTION.md](DIRECTION.md) | Art direction: timing, colour, contrast, camera, sound sync, and what makes an effect read as "wow" rather than as noise |
+| [PARTICLES.md](PARTICLES.md) | Design for a new emitter-based particle and effect engine: modules, curves, render modes, seeded network spawns, budgets and LOD, an optional GPU path, and JSON effect files you can reload in game |
+| [EFFECT_RECIPES.md](EFFECT_RECIPES.md) | Effect recipes in layers, with numbers: explosions, nukes, fire, smoke, plasma, electricity, ice, void, magic, weapons, impacts, aftermath, fun |
+| [TEXTURES.md](TEXTURES.md) | Making VFX textures: channel packing, alpha erosion, motion-vector flipbooks, gradient maps, six-way lit smoke, noise textures |
 | [BOMB_IDEAS.md](BOMB_IDEAS.md) | Concrete upgrades for each tier and each bomb, built from the techniques above |
 | [PERFORMANCE.md](PERFORMANCE.md) | Frame budget, quality presets, Sodium/Iris compatibility, and a testing checklist |
 
