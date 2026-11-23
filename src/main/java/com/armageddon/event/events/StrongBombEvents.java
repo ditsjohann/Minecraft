@@ -938,6 +938,7 @@ public final class StrongBombEvents {
 			if (t == Sun.BEAM) {
 				Kit.sound(world, g, ModSounds.DEATH_RAY, 64.0F, 0.6F);
 				Vfx.light(world, g.add(0, 20, 0), 1.0F, 0xFFE0A0);
+				Vfx.play(world, VfxIds.SUN_BEAM, g, 1.0F);
 			}
 			if (t == Sun.HIT) {
 				Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.4F);
@@ -1018,6 +1019,7 @@ public final class StrongBombEvents {
 			if (t % 20 == 0) {
 				Vfx.skyTint(world, g, 100000, 0x000004, 1.0F);
 				for (ServerPlayerEntity p : world.getPlayers()) {
+					Vfx.play(world, VfxIds.SUN_FROST, p.getPos(), 1.0F);
 					if (p.isCreative() || p.isSpectator()) {
 						continue;
 					}
@@ -1026,7 +1028,6 @@ public final class StrongBombEvents {
 					if (!warm) {
 						p.setFrozenTicks(Math.min(p.getFrozenTicks() + 70, 260));
 					}
-					world.spawnParticles(p, ParticleTypes.SNOWFLAKE, true, p.getX(), p.getY() + 3, p.getZ(), 20, 8, 3, 8, 0.02);
 				}
 				for (LivingEntity e : Kit.living(world, g, Math.max(16, front))) {
 					if (!(e instanceof PlayerEntity)) {
@@ -1097,11 +1098,10 @@ public final class StrongBombEvents {
 			Vfx.impact(world, g, 3, 3);
 			Vfx.shake(world, g, 100000, 4.0F);
 			Vfx.fov(world, g, 22.0F, 30);
-			Vfx.layeredBlast(world, g.add(0, 6, 0), 24.0F, 0xFF7030);
+			Vfx.play(world, VfxIds.SUN_IMPACT, g.add(0, 6, 0), 1.0F);
 			Vfx.ring(world, g.add(0, 1, 0), 700.0F, 18.0F, 0xFFB060, true, 120);
 			Vfx.ring(world, g.add(0, 1, 0), 420.0F, 10.0F, 0xFFFFFF, true, 80);
 			Vfx.dome(world, g, 320.0F, 0xFF9040, 70);
-			Vfx.pillar(world, g, 40.0F, 0xFFE0A0, false, 160);
 			Detonations.blast(world, g, 260, 90.0F, ModDamageTypes.ANNIHILATION, owner(), 7.0, 2.4);
 			Detonations.ignite(world, g, 90, 0.08F);
 			if (Destruction.enabled(world)) {
@@ -1132,6 +1132,7 @@ public final class StrongBombEvents {
 				p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(
 						Text.literal("the sun is reborn").formatted(Formatting.YELLOW, Formatting.ITALIC)));
 				p.setFrozenTicks(0);
+				Vfx.play(world, VfxIds.DAWN_MOTES, p.getPos(), 1.0F);
 			}
 		}
 	}

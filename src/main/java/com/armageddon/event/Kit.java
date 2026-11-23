@@ -289,6 +289,11 @@ public final class Kit {
 	 */
 	public static void boom(ServerWorld w, Vec3d c, float size, int color, @Nullable Entity owner, boolean blocks) {
 		com.armageddon.network.Vfx.layeredBlast(w, c, size, color);
+		blast(w, c, size, owner, blocks);
+	}
+
+	/** {@link #boom} without its picture, for callers that draw their own. */
+	public static void blast(ServerWorld w, Vec3d c, float size, @Nullable Entity owner, boolean blocks) {
 		com.armageddon.network.Vfx.shake(w, c, size * 16, Math.min(1.6F, 0.16F * size));
 		sound(w, c, com.armageddon.registry.ModSounds.NUKE_DETONATE, 12.0F + size * 3, 0.9F - Math.min(0.4F, size * 0.02F));
 		sound(w, c, net.minecraft.sound.SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 8.0F + size * 2, 0.6F);

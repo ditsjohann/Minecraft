@@ -286,6 +286,37 @@ public final class VfxIds {
 	public static final String SPOT_SCORCH = "spot_scorch";
 	public static final String SHOWTIME = "showtime";
 	public static final String FINALE_GLITTER = "finale_glitter";
+	public static final String SMASH_IMPACT = "smash_impact";
+	public static final String SMASH_BELL = "smash_bell";
+	public static final String STAR_LAND = "star_land";
+	public static final String HEART_NOVA = "heart_nova";
+	public static final String SMASH_DUST = "smash_dust";
+	public static final String TICK_BEAT = "tick_beat";
+	public static final String TICK_BOOM = "tick_boom";
+	public static final String FIELD_BLAST = "field_blast";
+	public static final String TICK_FINAL = "tick_final";
+	public static final String TICK_CHIME = "tick_chime";
+	public static final String TIME_STILL = "time_still";
+	public static final String TIME_SNAP = "time_snap";
+	public static final String ALIEN_EMP = "alien_emp";
+	public static final String EMP_CRAWL = "emp_crawl";
+	public static final String RAY_COLUMN = "ray_column";
+	public static final String RAY_IMPACT = "ray_impact";
+	public static final String TERRA_PULSE = "terra_pulse";
+	public static final String HARVEST_LIFT = "harvest_lift";
+	public static final String HARVEST_CUT = "harvest_cut";
+	public static final String BLOOM_SPORES = "bloom_spores";
+	public static final String SHAFT_MOTES = "shaft_motes";
+	public static final String SUN_BEAM = "sun_beam";
+	public static final String SUN_FROST = "sun_frost";
+	public static final String CORPSE_SHED = "corpse_shed";
+	public static final String SUN_IMPACT = "sun_impact";
+	public static final String DAWN_MOTES = "dawn_motes";
+	public static final String MIRROR_GLINT = "mirror_glint";
+	public static final String LANCE_CUT = "lance_cut";
+	public static final String LANCE_DRILL = "lance_drill";
+	public static final String HAMMER_BLOW = "hammer_blow";
+	public static final String CREST_SPRAY = "crest_spray";
 
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE, MUSHROOM,
@@ -318,7 +349,8 @@ public final class VfxIds {
 			MAW_VORTEX, MAW_SNAP, RAGNAROK_ASH, QUAKE_GEYSER, VENT_BURST, VENT_SPIT, SURTR_STRIKE, FIRE_GEYSER, FIRE_SIDE,
 			FROST_SIDE, STAR_IMPACT, PRISM_SHATTER, INVERT_RAIN, ACCRETION, VOID_COLLAPSE, COSMIC_NOVA, ABYSS_MOTES, DIRT_SPURT,
 			ANT_SKITTER, TERMITE_SWARM, MUD_FLING, TERMITE_CAVE, SAPLING_SPROUT, TREE_STAGE, TREE_FIREFLIES, ROOT_SLAM, TREE_BLOOM,
-			SEED_SPROUT, LAMP_CHUNK, LAMP_SHATTER, STAGE_HAZE, SPOT_SCORCH, SHOWTIME, FINALE_GLITTER);
+			SEED_SPROUT, LAMP_CHUNK, LAMP_SHATTER, STAGE_HAZE, SPOT_SCORCH, SHOWTIME, FINALE_GLITTER,
+			SMASH_IMPACT, SMASH_BELL, STAR_LAND, HEART_NOVA, SMASH_DUST, TICK_BEAT, TICK_BOOM, FIELD_BLAST, TICK_FINAL, TICK_CHIME, TIME_STILL, TIME_SNAP, ALIEN_EMP, EMP_CRAWL, RAY_COLUMN, RAY_IMPACT, TERRA_PULSE, HARVEST_LIFT, HARVEST_CUT, BLOOM_SPORES, SHAFT_MOTES, SUN_BEAM, SUN_FROST, CORPSE_SHED, SUN_IMPACT, DAWN_MOTES, MIRROR_GLINT, LANCE_CUT, LANCE_DRILL, HAMMER_BLOW, CREST_SPRAY);
 
 	private VfxIds() {
 	}

@@ -601,7 +601,6 @@ public final class SciFiEvents {
 					Vec3d ax = Dyson.axis(k, yaw);
 					Vec3d at = Kit.ground(world, g.x + ax.x * along, g.z + ax.z * along);
 					Kit.damage(world, at, Dyson.HALF_W + 4, 200.0F, ModDamageTypes.ANNIHILATION, null, owner());
-					world.spawnParticles(ParticleTypes.LAVA, at.x, at.y, at.z, 8, 3, 1, 3, 0.2);
 					if (t % 4 == 0) {
 						Kit.sound(world, at, SoundEvents.BLOCK_FIRE_EXTINGUISH, 64.0F, 0.5F);
 						Vfx.shake(world, at, 200, 1.4F);
@@ -620,6 +619,7 @@ public final class SciFiEvents {
 				Vfx.shake(world, g, 100000, 2.4F);
 				Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.4F);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.4F);
+				Vfx.play(world, VfxIds.LANCE_DRILL, g, 1.0F);
 				if (Destruction.enabled(world)) {
 					drill = TerrainJob.disc(world, g, Destruction.radius(world, 22.0F), c -> {
 						double d = Math.hypot(c.x + 0.5 - g.x, c.z + 0.5 - g.z);
@@ -839,7 +839,8 @@ public final class SciFiEvents {
 				if (t == Wave.slam(i)) {
 					float k = (i + 1) / (float) Wave.SLAMS;
 					Vfx.shake(world, g, 100000, 1.0F + k * 1.8F);
-					Vfx.ring(world, g.add(0, 0.5, 0), 40.0F + 40 * k, 2.0F, 0x8A7A60, true, 30);
+					Vfx.ring(world, g.add(0, 0.5, 0), 40.0F + 40 * k, 2.0F, 0x8A7A60, false, 30);
+					Vfx.play(world, VfxIds.HAMMER_BLOW, g, 1.0F + 1.2F * k);
 					Kit.sound(world, g, SoundEvents.BLOCK_ANVIL_LAND, 64.0F, 0.3F);
 					Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.4F - k * 0.15F);
 					Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 48.0F * k, 0.5F);

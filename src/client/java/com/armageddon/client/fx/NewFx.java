@@ -514,6 +514,10 @@ public final class NewFx {
 			}
 			if (t >= Sun.FALL && t < Sun.IMPACT) {
 				Vec3d c = Sun.corpse(g, corpseFrom, t);
+				Vec3d v = c.subtract(Sun.corpse(g, corpseFrom, t - 1));
+				// It sheds its crust as it falls: burning plates peeling off and a smoke wake.
+				com.armageddon.client.vfx.FxEngine.playMoving(com.armageddon.vfx.VfxIds.CORPSE_SHED, c.x, c.y, c.z, 0, 1, 0, 1.0F, 0, t * 7919L,
+						(float) v.x, (float) v.y, (float) v.z);
 				float k = (t - Sun.FALL) / (float) (Sun.IMPACT - Sun.FALL);
 				ClientFx.light(c, 0.5F + k, 0xFF7030);
 			}

@@ -17,6 +17,7 @@ import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.WorldShapes;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -204,7 +205,8 @@ public final class WorldCutsceneEvents {
 					float ring = 1.0F - k / 300.0F;
 					Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.5F + 0.15F * (k / 60));
 					Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 48.0F * ring + 8, 0.5F);
-					Vfx.ring(world, g, (float) front, 3.0F, 0xC080FF, true, 30);
+					Vfx.ring(world, g, (float) front, 3.0F, 0xC080FF, false, 30);
+					Vfx.play(world, VfxIds.SMASH_BELL, g, (float) (front / 40.0));
 					Vfx.shake(world, g, 100000, 0.4F + 1.0F * ring);
 				}
 			}
@@ -215,7 +217,9 @@ public final class WorldCutsceneEvents {
 				Vec3d hit = Kit.ground(world, g.x + Math.cos(ang) * d, g.z + Math.sin(ang) * d);
 				Vfx.streak(world, hit.add(world.random.nextGaussian() * 40, 160, world.random.nextGaussian() * 40), hit, 2.0F, 0xFF7030, 8);
 				DetonationManager.schedule(world, 8, () -> {
-					Kit.boom(world, hit.add(0, 0.5, 0), 3.0F + world.random.nextFloat() * 3.0F, 0xFF7030, owner(), true);
+					float size = 3.0F + world.random.nextFloat() * 3.0F;
+					Kit.blast(world, hit.add(0, 0.5, 0), size, owner(), true);
+					Vfx.play(world, VfxIds.FIELD_BLAST, hit.add(0, 0.5, 0), new Vec3d(0, 1, 0), size / 4.0F, 0xFF7030);
 					if (Destruction.enabled(world) && world.random.nextInt(3) == 0) {
 						Detonations.ignite(world, hit, 6, 0.3F);
 					}
@@ -235,8 +239,9 @@ public final class WorldCutsceneEvents {
 				// Each star is a collapsed thing: where it lands the ground is pulled into it and crushed, not blown out.
 				Vec3d hit = com.armageddon.event.Climax.around(world, g, R * 0.6, Math.max(R * 1.5, blast * 0.95));
 				double size = 4.0 + world.random.nextDouble() * 4.0;
-				com.armageddon.event.Climax.fall(world, hit, 300, world.random.nextBoolean() ? 0xC8B0FF : 0x80A0FF, 2.4F, 10, () -> {
-					Vfx.ring(world, hit.add(0, 0.5, 0), (float) size * 3, 1.5F, 0xB090FF, false, 30);
+				int star = world.random.nextBoolean() ? 0xC8B0FF : 0x80A0FF;
+				com.armageddon.event.Climax.fall(world, hit, 300, star, 2.4F, 10, () -> {
+					Vfx.play(world, VfxIds.STAR_LAND, hit.add(0, 0.5, 0), new Vec3d(0, 1, 0), (float) size / 5.0F, star);
 					Vfx.light(world, hit.add(0, 2, 0), 0.5F, 0xB090FF);
 					com.armageddon.event.Ruin.implode(world, hit.add(0, size * 0.3, 0), size, 26);
 				});
@@ -246,9 +251,9 @@ public final class WorldCutsceneEvents {
 				Vfx.flash(world, g.add(0, 300, 0), 0.6F, 100000, 0xFFFFFF);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.3F);
 				com.armageddon.event.Climax.strike(world, g, 500, 0xFFFFFF, 24.0F, (float) Math.min(46, R * 0.5), CraterJob.Mode.ANTIMATTER, 20, owner());
+				Vfx.play(world, VfxIds.HEART_NOVA, g.add(0, 20, 0), 1.0F);
 				DetonationManager.schedule(world, 20, () -> {
 					CityDestructionEvents.frames(world, g, 3, 1, 3);
-					Vfx.pillar(world, g, 20.0F, 0xD0C0FF, false, 120);
 					Vfx.ring(world, g.add(0, 1, 0), (float) blast, 8.0F, 0xC0A0FF, true, 80);
 					Vfx.shake(world, g, 100000, 3.0F);
 					Vfx.fov(world, g, 22.0F, 40);
@@ -262,8 +267,7 @@ public final class WorldCutsceneEvents {
 			frames(g, 3, 1, 0, 2, 3);
 			Vfx.fov(world, g, 24.0F, 40);
 			Vfx.shake(world, g, 100000, 3.0F);
-			Vfx.layeredBlast(world, g, 80.0F, 0xFF7030);
-			Vfx.layeredBlast(world, g.add(0, 30, 0), 55.0F, 0xC080FF);
+			Vfx.play(world, VfxIds.SMASH_IMPACT, g.add(0, 6, 0), fwd, 1.0F, 0);
 			Vfx.dome(world, g, 320.0F, 0xFFB070, 120);
 			Vfx.ring(world, g, 600.0F, 8.0F, 0xFF8040, true, 140);
 			Vfx.ring(world, g, 300.0F, 6.0F, 0xC080FF, true, 120);
@@ -368,7 +372,7 @@ public final class WorldCutsceneEvents {
 				Kit.sound(world, g, ModSounds.BOMB_BEEP, 8.0F + t * 0.04F, 0.6F + t * 0.0012F);
 				Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 6.0F + t * 0.02F, 1.6F);
 				// A visible heartbeat that grows with every tick.
-				Vfx.ring(world, g.add(0, 0.3, 0), 2.0F + t * 0.03F, 0.4F, 0xFF3030, false, 12);
+				Vfx.play(world, VfxIds.TICK_BEAT, g.add(0, 0.3, 0), (2.0F + t * 0.03F) / 2.4F);
 				Vfx.orb(world, g.add(0, 1.2, 0), 0.4F + t * 0.0015F, 0.2F + t * 0.001F, 0xFF3030, 0, 12);
 			}
 			if (beat >= 0 && beat < BOOMS * GAP && beat % GAP == 0) {
@@ -376,8 +380,8 @@ public final class WorldCutsceneEvents {
 				double r = WorldShapes.bandRadius(i, R);
 				int color = WorldShapes.bandColor(i);
 				// Big from the first one, and every boom bigger than the last.
-				Kit.boom(world, g.add(0, 1, 0), (float) Math.min(30.0, 3.0 + r * 0.22), color, owner(), true);
-				Vfx.layeredBlast(world, g, (float) (r * 0.3 + 2.0), color);
+				Kit.blast(world, g.add(0, 1, 0), (float) Math.min(30.0, 3.0 + r * 0.22), owner(), true);
+				Vfx.play(world, VfxIds.TICK_BOOM, g.add(0, 1, 0), new Vec3d(0, 1, 0), (float) (r * 0.3 + 2.0) / 10.0F, color);
 				Kit.sound(world, g, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), (float) Math.min(64, 8.0 + i * 5.5), (float) Math.max(0.35, 1.2 - i * 0.07));
 				Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_BASEDRUM.value(), (float) Math.min(64, 8.0 + i * 5), 0.5F);
 				Vfx.shake(world, g, 256 + r * 10, (float) Math.min(3.0, 0.8 + i * 0.2));
@@ -399,9 +403,10 @@ public final class WorldCutsceneEvents {
 					double a = world.random.nextDouble() * Math.PI * 2;
 					double d = R * 0.9 + world.random.nextDouble() * (40 + k * 0.6);
 					Vec3d p = Kit.ground(world, g.x + Math.cos(a) * d, g.z + Math.sin(a) * d);
-					Vfx.layeredBlast(world, p, 4.0F + world.random.nextInt(6), WorldShapes.bandColor(world.random.nextInt(BOOMS)));
+					Vfx.play(world, VfxIds.FIELD_BLAST, p.add(0, 0.5, 0), new Vec3d(0, 1, 0), (4.0F + world.random.nextInt(6)) / 5.0F,
+							WorldShapes.bandColor(world.random.nextInt(BOOMS)));
 					if (k % 2 == 0) {
-						Kit.boom(world, p.add(0, 0.5, 0), 3.5F + world.random.nextFloat() * 3.5F, 0xFF6020, owner(), true);
+						Kit.blast(world, p.add(0, 0.5, 0), 3.5F + world.random.nextFloat() * 3.5F, owner(), true);
 					}
 				}
 				if (k % 6 == 0) {
@@ -413,8 +418,7 @@ public final class WorldCutsceneEvents {
 				CityDestructionEvents.frames(world, g, 3, 1, 0, 2);
 				Vfx.fov(world, g, 22.0F, 50);
 				Vfx.shake(world, g, 100000, 3.0F);
-				Vfx.layeredBlast(world, g, 70.0F, 0xFFB060);
-				Vfx.pillar(world, g, 10.0F, 0xFF4020, false, 200);
+				Vfx.play(world, VfxIds.TICK_FINAL, g.add(0, 2, 0), 1.0F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.3F);
 				Detonations.blast(world, g, 500, 20000.0F, ModDamageTypes.ANNIHILATION, owner(), 250, 14.0);
 				addBand(g, BOOMS, t);
@@ -433,7 +437,8 @@ public final class WorldCutsceneEvents {
 				// Twelve chimes, each lighting the next terrace ring outward.
 				int k = (t - FINAL) / 16;
 				Kit.sound(world, g, SoundEvents.BLOCK_BELL_USE, 64.0F, 0.6F - k * 0.015F);
-				Vfx.ring(world, g, (float) WorldShapes.bandRadius(k + 1, R), 2.5F, WorldShapes.bandColor(k + 1), true, 40);
+				Vfx.ring(world, g, (float) WorldShapes.bandRadius(k + 1, R), 2.5F, WorldShapes.bandColor(k + 1), false, 40);
+				Vfx.play(world, VfxIds.TICK_CHIME, g, new Vec3d(0, 1, 0), (float) (WorldShapes.bandRadius(k + 1, R) / 20.0), WorldShapes.bandColor(k + 1));
 			}
 			if (front != null) {
 				front.limit = frontFrom + 3.0 * (t - frontStart) + 1;
@@ -461,6 +466,9 @@ public final class WorldCutsceneEvents {
 					// Time stops: the world goes grey and silent, nothing can move.
 					Vfx.skyTint(world, g, 100000, 0x505058, 1.0F);
 					Vfx.screen(world, g, 100000, 0, 0.95F, GO - STOP);
+					for (ServerPlayerEntity p : world.getPlayers()) {
+						Vfx.play(world, VfxIds.TIME_STILL, p.getEyePos(), 1.0F);
+					}
 					Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.3F);
 				}
 				if (k % 4 == 0) {
@@ -477,6 +485,9 @@ public final class WorldCutsceneEvents {
 				Vfx.flash(world, g, 1.0F, 100000, 0xFFE0B0);
 				Vfx.shake(world, g, 100000, 3.0F);
 				Vfx.skyTint(world, g, 100000, 0x401808, 0.95F);
+				for (ServerPlayerEntity p : world.getPlayers()) {
+					Vfx.play(world, VfxIds.TIME_SNAP, p.getEyePos(), 1.0F);
+				}
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.25F);
 				Kit.sound(world, g, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 64.0F, 0.4F);
 				double reach = Destruction.radius(world, 330.0F);
@@ -485,7 +496,8 @@ public final class WorldCutsceneEvents {
 					float size = 4.0F + world.random.nextFloat() * 5.0F;
 					int color = WorldShapes.bandColor(world.random.nextInt(BOOMS));
 					DetonationManager.schedule(world, world.random.nextInt(8), () -> {
-						Kit.boom(world, p.add(0, 0.5, 0), size, color, owner(), true);
+						Kit.blast(world, p.add(0, 0.5, 0), size, owner(), true);
+						Vfx.play(world, VfxIds.FIELD_BLAST, p.add(0, 0.5, 0), new Vec3d(0, 1, 0), size / 4.0F, color);
 						if (Destruction.enabled(world)) {
 							DetonationManager.add(new CraterJob(world, net.minecraft.util.math.BlockPos.ofFloored(p), size + 2, CraterJob.Mode.NUKE));
 						}
@@ -551,6 +563,7 @@ public final class WorldCutsceneEvents {
 				Vfx.screen(world, g, 100000, 3, 0.4F, 30);
 				Vfx.screen(world, g, 100000, 0, 0.5F, 80);
 				Vfx.flash(world, g, 0.3F, 4000, 0x80C0FF);
+				Vfx.play(world, VfxIds.ALIEN_EMP, g, 1.0F);
 				Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 2.0F);
 				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.5F);
 				for (ServerPlayerEntity p : world.getPlayers()) {
@@ -596,6 +609,7 @@ public final class WorldCutsceneEvents {
 				// The ray itself: the thin beam swells into a column of green fire as wide as a building.
 				Vfx.beam(world, g.add(0, 1, 0), g.add(0, 1400, 0), 30.0F, 0xA0FFD0, 180);
 				Vfx.pillar(world, g, 24.0F, 0x60FFA0, false, 180);
+				Vfx.play(world, VfxIds.RAY_COLUMN, g, 1.0F);
 				Vfx.flash(world, g, 0.7F, 100000, 0xC0FFE0);
 				Vfx.shake(world, g, 100000, 2.0F);
 				Kit.sound(world, g, ModSounds.DEATH_RAY, 64.0F, 0.5F);
@@ -631,7 +645,8 @@ public final class WorldCutsceneEvents {
 					terraform.limit = 30 + 2.2 * f;
 				}
 				if (f > 0 && f < 240 && f % 20 == 0) {
-					Vfx.ring(world, g, (float) Math.min(reach, 30 + 2.2 * f), 3.0F, 0x60FFA0, true, 30);
+					Vfx.ring(world, g, (float) Math.min(reach, 30 + 2.2 * f), 3.0F, 0x60FFA0, false, 30);
+					Vfx.play(world, VfxIds.TERRA_PULSE, g, (float) (Math.min(reach, 30 + 2.2 * f) / 40.0));
 					Kit.sound(world, g, SoundEvents.BLOCK_CHORUS_FLOWER_GROW, 48.0F, 0.5F);
 					Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 48.0F, 0.6F);
 				}
@@ -685,6 +700,9 @@ public final class WorldCutsceneEvents {
 							}
 						}
 					}
+					if (f % 10 == i % 10) {
+						Vfx.play(world, VfxIds.HARVEST_LIFT, p, 1.0F);
+					}
 					if (f % 30 == i * 5) {
 						Kit.sound(world, p, SoundEvents.BLOCK_BEACON_AMBIENT, 48.0F, 0.6F);
 					}
@@ -701,6 +719,7 @@ public final class WorldCutsceneEvents {
 					lifts.get(i).release();
 					// Whatever the beam was holding is taken apart where it stood: a clean, glowing-edged shaft into the ground.
 					Vfx.flash(world, p, 0.25F, 300, 0x80FFB0);
+					Vfx.play(world, VfxIds.HARVEST_CUT, p, 1.0F);
 					Kit.damage(world, p, 12, 40.0F, ModDamageTypes.ANNIHILATION, null, owner());
 					com.armageddon.event.Ruin.disintegrate(world, p.add(0, -2, 0), 10, Blocks.VERDANT_FROGLIGHT.getDefaultState(), ParticleTypes.HAPPY_VILLAGER, 30);
 				}
@@ -789,9 +808,7 @@ public final class WorldCutsceneEvents {
 			CityDestructionEvents.frames(world, g, 3, 1, 0, 2);
 			Vfx.fov(world, g, 24.0F, 50);
 			Vfx.shake(world, g, 100000, 3.5F);
-			Vfx.layeredBlast(world, g, 120.0F, 0x60FFA0);
-			Vfx.layeredBlast(world, g.add(0, 30, 0), 90.0F, 0xA070FF);
-			Vfx.layeredBlast(world, g.add(0, 80, 0), 60.0F, 0xFFFFFF);
+			Vfx.play(world, VfxIds.RAY_IMPACT, g.add(0, 8, 0), 1.0F);
 			Vfx.custom(world, FxType.NUKE, g, g, 90.0F, 0x80FFC0, 0, 0, 0, 0, Vfx.FAR);
 			Vfx.dome(world, g, 450.0F, 0x60FFA0, 140);
 			Vfx.ring(world, g, 1600.0F, 12.0F, 0xA070FF, true, 180);

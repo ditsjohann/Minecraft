@@ -8,7 +8,6 @@ import com.armageddon.util.WorldShapes;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Heightmap;
@@ -97,20 +96,13 @@ public final class WorldFx {
 					}
 				}
 			}
-			Vec3d cam = ClientFx.cameraPos();
 			float fade = envelope(age, lifetime, 10, 300);
+			if (age % 6 == 0 && fade > 0.05F) {
+				// Star dust settling over the imprint, slowly rising again like it can't decide.
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.SMASH_DUST, g.x, base, g.z, 0, 1, 0, (float) (R * 0.75 / 60.0), 0, age * 977L);
+			}
 			if (age < 140) {
 				ClientFx.light(g.add(0, 18, 0), 0.7F * (1 - age / 140.0F), 0xC090FF);
-			}
-			if (cam.squaredDistanceTo(g) < R * R * 6 && fade > 0.05F) {
-				// Star dust settling over the imprint, slowly rising again like it can't decide.
-				for (int i = 0; i < 3; i++) {
-					double a = world.random.nextDouble() * MathHelper.TAU, d = Math.sqrt(world.random.nextDouble()) * R * 0.75;
-					double x = g.x + Math.cos(a) * d, z = g.z + Math.sin(a) * d;
-					double y = ground(world, x, z, base) + 0.5 + world.random.nextDouble() * 6;
-					world.addParticle(i == 0 ? ParticleTypes.WITCH : ParticleTypes.END_ROD, x, y, z,
-							world.random.nextGaussian() * 0.01, 0.01 + world.random.nextDouble() * 0.02, world.random.nextGaussian() * 0.01);
-				}
 			}
 			return super.tick(world);
 		}
@@ -310,7 +302,7 @@ public final class WorldFx {
 					double x2 = x + Math.cos(b) * len, z2 = z + Math.sin(b) * len;
 					Vec3d p1 = new Vec3d(x, ground(world, x, z, g.y) + 0.2, z), p2 = new Vec3d(x2, ground(world, x2, z2, g.y) + 0.2, z2);
 					ClientFx.add(new Effects.Arc(p1, p2, 0.2, color, world.random.nextInt()));
-					world.addParticle(ParticleTypes.ELECTRIC_SPARK, x, p1.y + 0.2, z, 0, 0.05, 0);
+					com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.EMP_CRAWL, x, p1.y + 0.2, z, 0, 1, 0, 1.0F, 0, world.random.nextLong());
 				}
 			}
 			return super.tick(world);
@@ -367,19 +359,12 @@ public final class WorldFx {
 					}
 				}
 			}
+			if (fade > 0.05F && age % 2 == 0) {
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.SHAFT_MOTES, g.x, base + 2, g.z, 0, 1, 0, (float) (shaft / 10.0), 0, age * 613L);
+			}
 			Vec3d cam = ClientFx.cameraPos();
-			if (fade > 0.05F && Math.hypot(cam.x - g.x, cam.z - g.z) < reach + 40) {
-				for (int i = 0; i < 3; i++) {
-					double x = cam.x + world.random.nextGaussian() * 18, z = cam.z + world.random.nextGaussian() * 18;
-					if (Math.hypot(x - g.x, z - g.z) < reach) {
-						double y = ground(world, x, z, cam.y) + world.random.nextDouble() * 4;
-						world.addParticle(ParticleTypes.GLOW, x, y, z, 0, 0.02 + world.random.nextDouble() * 0.03, 0);
-					}
-				}
-				if (age % 2 == 0) {
-					world.addParticle(ParticleTypes.END_ROD, g.x + world.random.nextGaussian() * shaft * 0.5, base + 2, g.z + world.random.nextGaussian() * shaft * 0.5,
-							0, 0.3 + world.random.nextDouble() * 0.3, 0);
-				}
+			if (fade > 0.05F && age % 3 == 0 && Math.hypot(cam.x - g.x, cam.z - g.z) < reach) {
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.BLOOM_SPORES, cam.x, cam.y, cam.z, 0, 1, 0, 1.0F, 0, age * 389L);
 			}
 			return super.tick(world);
 		}

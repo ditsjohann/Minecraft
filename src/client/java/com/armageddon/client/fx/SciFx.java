@@ -382,15 +382,20 @@ final class SciFx {
 
 		@Override
 		public boolean tick(ClientWorld world) {
+			if (age > Dyson.SWARM + 20 && age < Dyson.END - 30 && age % 3 == 0) {
+				// Sun off the mirrors: glints winking across the swarm as it turns.
+				Vec3d f = focus();
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.MIRROR_GLINT, f.x, f.y, f.z, 0, 1, 0, 1.0F, 0, age * 173L);
+			}
 			for (int k = 0; k < 3; k++) {
 				double along = Dyson.along(k, age);
 				if (!Double.isNaN(along)) {
 					Vec3d ax = Dyson.axis(k, yaw);
 					double x = g.x + ax.x * along, z = g.z + ax.z * along;
-					ClientFx.light(new Vec3d(x, ground(x, z, g.y) + 3, z), 0.7F, 0xFFC080);
-					for (int i = 0; i < 6; i++) {
-						world.addParticle(ParticleTypes.LAVA, x + world.random.nextGaussian() * 3, ground(x, z, g.y) + 1, z + world.random.nextGaussian() * 3, 0, 0, 0);
-					}
+					double y = ground(x, z, g.y);
+					// Where the lance touches: molten spray, steam and slag cooling on the floor of the cut.
+					com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.LANCE_CUT, x, y, z, (float) ax.x, 0, (float) ax.z, 1.0F, 0, age * 131L + k);
+					ClientFx.light(new Vec3d(x, y + 3, z), 0.7F, 0xFFC080);
 				}
 			}
 			return super.tick(world);
@@ -565,6 +570,21 @@ final class SciFx {
 					ClientFx.shake = Math.max(ClientFx.shake, 2.0F + i);
 				}
 			}
+			if (age >= Wave.WAVE && age < Wave.END) {
+				double front = Wave.front(age);
+				double h = Wave.height(front);
+				if (h > 1) {
+					// The crest sheds clods and dust off its top, thrown outward ahead of it. Only near the viewer.
+					Vec3d cam = com.armageddon.client.render.FxDraw.world() == null ? g : ClientFx.cameraPos();
+					double toCam = Math.atan2(cam.z - g.z, cam.x - g.x);
+					for (int i = 0; i < 4; i++) {
+						double ang = toCam + (world.random.nextDouble() - 0.5) * Math.min(Math.PI * 2, 400 / Math.max(40, front));
+						double cx = Math.cos(ang), cz = Math.sin(ang);
+						double x = g.x + cx * (front + 1), z = g.z + cz * (front + 1);
+						com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.CREST_SPRAY, x, ground(x, z, g.y) + h, z, (float) cx, 0.2F, (float) cz, 1.0F, 0, age * 41L + i);
+					}
+				}
+			}
 			return super.tick(world);
 		}
 
@@ -615,10 +635,6 @@ final class SciFx {
 					Vec3d p = new Vec3d(g.x + cx * rr, gy0 + h, g.z + cz * rr).subtract(cam);
 					double sz = 0.9 + SciShapes.hash(i, j) * 0.7;
 					cube(solid, m, p, sz, a * 0.1 + i, a * 0.13 + j, EARTH[(i * 7 + j * 3) % EARTH.length]);
-				}
-				if (i % 10 == 0) {
-					Vec3d top = new Vec3d(g.x + cx * (front + 1), gy0 + H + 1, g.z + cz * (front + 1)).subtract(cam);
-					spray.add(new Effects.Puff(top, 3 + H * 0.15, 0xA09480, 0x3A3428, 0.5F));
 				}
 			}
 			FxKit.dustRing(m, cb, c, Math.max(2, front - 6), 8, 0x9A8E7A, 0x3A3428, 0.45F, 801, spray);
