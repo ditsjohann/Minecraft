@@ -231,6 +231,51 @@ public final class VfxIds {
 	public static final String GRAVITY_FLOAT = "gravity_float";
 	public static final String GRAVITY_SLAM = "gravity_slam";
 
+	// city destruction bombs
+	public static final String MOON_TIDE = "moon_tide";
+	public static final String MOON_POCK = "moon_pock";
+	public static final String MOON_LANDING = "moon_landing";
+	public static final String MOON_SETTLE = "moon_settle";
+	public static final String MOON_GEODE = "moon_geode";
+	public static final String EATER_PULSE = "eater_pulse";
+	public static final String WORM_HEAVE = "worm_heave";
+	public static final String WORM_STARS = "worm_stars";
+	public static final String WORM_BREACH = "worm_breach";
+	public static final String MAW_VORTEX = "maw_vortex";
+	public static final String MAW_SNAP = "maw_snap";
+	public static final String RAGNAROK_ASH = "ragnarok_ash";
+	public static final String QUAKE_GEYSER = "quake_geyser";
+	public static final String VENT_BURST = "vent_burst";
+	public static final String VENT_SPIT = "vent_spit";
+	public static final String SURTR_STRIKE = "surtr_strike";
+	public static final String FIRE_GEYSER = "fire_geyser";
+	public static final String FIRE_SIDE = "fire_side";
+	public static final String FROST_SIDE = "frost_side";
+	public static final String STAR_IMPACT = "star_impact";
+	public static final String PRISM_SHATTER = "prism_shatter";
+	public static final String INVERT_RAIN = "invert_rain";
+	public static final String ACCRETION = "accretion";
+	public static final String VOID_COLLAPSE = "void_collapse";
+	public static final String COSMIC_NOVA = "cosmic_nova";
+	public static final String ABYSS_MOTES = "abyss_motes";
+	public static final String DIRT_SPURT = "dirt_spurt";
+	public static final String ANT_SKITTER = "ant_skitter";
+	public static final String TERMITE_SWARM = "termite_swarm";
+	public static final String MUD_FLING = "mud_fling";
+	public static final String TERMITE_CAVE = "termite_cave";
+	public static final String SAPLING_SPROUT = "sapling_sprout";
+	public static final String TREE_STAGE = "tree_stage";
+	public static final String TREE_FIREFLIES = "tree_fireflies";
+	public static final String ROOT_SLAM = "root_slam";
+	public static final String TREE_BLOOM = "tree_bloom";
+	public static final String SEED_SPROUT = "seed_sprout";
+	public static final String LAMP_CHUNK = "lamp_chunk";
+	public static final String LAMP_SHATTER = "lamp_shatter";
+	public static final String STAGE_HAZE = "stage_haze";
+	public static final String SPOT_SCORCH = "spot_scorch";
+	public static final String SHOWTIME = "showtime";
+	public static final String FINALE_GLITTER = "finale_glitter";
+
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE, MUSHROOM,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD,
@@ -257,7 +302,12 @@ public final class VfxIds {
 			RIFT_MAW, RIFT_HIT, RIFT_COLLAPSE, RIFT_BLAST, SPINDLE_SHAFT, SPINDLE_SWEEP, SPINDLE_PULSE, EXTINCTION_ASH, IMPACTOR_STREAK, EXTINCTION_WALL,
 			COW_SHADOW, COW_SHADOW_BIG, COW_STREAK, MILK_SPLASH, COW_DOOM, MILK_RAINBOW, TWISTER_BASE, TWISTER_RAIN, TWISTER_CALM,
 			UFO_BEAM, UFO_DRIVE, CROP_PULSE, ABDUCT_LIFT, FORK_HUM, DUST_DANCE, CASCADE_FRONT, FORK_SHATTER,
-			TESLA_HIT, TESLA_CORONA, BALL_FEED, TESLA_NOVA, TOWER_DUST, GRAVITY_HUM, GRAVITY_FLOAT, GRAVITY_SLAM);
+			TESLA_HIT, TESLA_CORONA, BALL_FEED, TESLA_NOVA, TOWER_DUST, GRAVITY_HUM, GRAVITY_FLOAT, GRAVITY_SLAM,
+			MOON_TIDE, MOON_POCK, MOON_LANDING, MOON_SETTLE, MOON_GEODE, EATER_PULSE, WORM_HEAVE, WORM_STARS, WORM_BREACH,
+			MAW_VORTEX, MAW_SNAP, RAGNAROK_ASH, QUAKE_GEYSER, VENT_BURST, VENT_SPIT, SURTR_STRIKE, FIRE_GEYSER, FIRE_SIDE,
+			FROST_SIDE, STAR_IMPACT, PRISM_SHATTER, INVERT_RAIN, ACCRETION, VOID_COLLAPSE, COSMIC_NOVA, ABYSS_MOTES, DIRT_SPURT,
+			ANT_SKITTER, TERMITE_SWARM, MUD_FLING, TERMITE_CAVE, SAPLING_SPROUT, TREE_STAGE, TREE_FIREFLIES, ROOT_SLAM, TREE_BLOOM,
+			SEED_SPROUT, LAMP_CHUNK, LAMP_SHATTER, STAGE_HAZE, SPOT_SCORCH, SHOWTIME, FINALE_GLITTER);
 
 	private VfxIds() {
 	}

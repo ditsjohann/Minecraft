@@ -16,6 +16,7 @@ import com.armageddon.util.NewBombShapes.Ice;
 import com.armageddon.util.NewBombShapes.Lidar;
 import com.armageddon.util.NewBombShapes.Sun;
 import com.armageddon.util.NewBombShapes.Termite;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SnowBlock;
@@ -613,7 +614,7 @@ public final class StrongBombEvents {
 				Vfx.shake(world, g, 120, 0.4F);
 				for (int i = 0; i < 6; i++) {
 					Vec3d p = CityDestructionEvents.around(world, g, 20);
-					world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.DIRT.getDefaultState()), p.x, p.y + 0.5, p.z, 20, 0.6, 0.2, 0.6, 0.1);
+					Vfx.play(world, VfxIds.DIRT_SPURT, p, 1.0F);
 					Kit.sound(world, p, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 8.0F, 0.6F);
 				}
 			}
@@ -627,6 +628,11 @@ public final class StrongBombEvents {
 				}
 				if (t % 5 == 0) {
 					bite(g, front);
+					// The swarm itself: dark specks skittering along the eating front.
+					for (int i = 0; i < 2; i++) {
+						double a = world.random.nextDouble() * MathHelper.TAU;
+						Vfx.play(world, VfxIds.ANT_SKITTER, Kit.ground(world, g.x + Math.cos(a) * front, g.z + Math.sin(a) * front), 1.0F);
+					}
 				}
 				if (t % 6 == 0) {
 					double a = world.random.nextDouble() * MathHelper.TAU;
@@ -662,6 +668,11 @@ public final class StrongBombEvents {
 				}
 				if (t % 5 == 0) {
 					bite(g, front);
+					// The nuptial flight: winged swarms boiling along the front.
+					for (int i = 0; i < 2; i++) {
+						double a = world.random.nextDouble() * MathHelper.TAU;
+						Vfx.play(world, VfxIds.TERMITE_SWARM, Kit.ground(world, g.x + Math.cos(a) * front, g.z + Math.sin(a) * front).add(0, 4 + world.random.nextDouble() * 8, 0), 1.3F);
+					}
 				}
 				if (t % 8 == 0) {
 					double a = world.random.nextDouble() * MathHelper.TAU;
@@ -672,6 +683,7 @@ public final class StrongBombEvents {
 				build(g, Termite.built(t) * Termite.HILL_H);
 				if (t % 7 == 0) {
 					Kit.sound(world, g.add(0, builtH, 0), SoundEvents.BLOCK_MUD_PLACE, 32.0F, 0.6F + world.random.nextFloat() * 0.4F);
+					Vfx.play(world, VfxIds.MUD_FLING, g.add(0, builtH * 0.6, 0), 1.0F);
 				}
 			}
 			if (t == Termite.BUILD_END + 10) {
@@ -705,6 +717,7 @@ public final class StrongBombEvents {
 			if (t == Termite.CAVE) {
 				CityDestructionEvents.frames(world, g, 0, 2);
 				Kit.boom(world, g.add(0, 1, 0), 10.0F, 0x6A4A2A, owner(), false);
+				Vfx.play(world, VfxIds.TERMITE_CAVE, g, 1.0F);
 				Vfx.ring(world, g.add(0, 0.5, 0), (float) Termite.RADIUS * 1.6F, 5.0F, 0x8A6A44, true, 70);
 				Vfx.shake(world, g, 100000, 2.4F);
 				Vfx.fov(world, g, 14.0F, 30);

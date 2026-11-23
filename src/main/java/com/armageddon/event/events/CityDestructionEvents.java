@@ -23,6 +23,7 @@ import com.armageddon.registry.ModBlocks;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.CityShapes;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -147,6 +148,10 @@ public final class CityDestructionEvents {
 			}
 			if (t > 0 && t < FALL && t % 20 == 0) {
 				Vfx.shake(world, g, 4096, 0.2F + 1.4F * t / FALL);
+				if (t >= 100) {
+					// The tide: silver dust and water lifting off the land toward it.
+					Vfx.play(world, VfxIds.MOON_TIDE, g, 0.6F + 0.8F * t / FALL);
+				}
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.25F + 0.3F * t / FALL);
 			}
 			// Its pull: everyone under it gets light on their feet, floating higher with every step as it nears.
@@ -174,7 +179,7 @@ public final class CityDestructionEvents {
 				Vec3d hit = com.armageddon.event.Climax.around(world, g, r * 1.4, Math.min(260, r * 5.5));
 				int size = 2 + world.random.nextInt(4);
 				com.armageddon.event.Climax.fall(world, hit, 220, 0xC8CCD8, 1.4F, 10, () -> {
-					Vfx.ring(world, hit.add(0, 0.4, 0), size * 5.0F, 1.5F, 0xA8A8B0, true, 30);
+					Vfx.play(world, VfxIds.MOON_POCK, hit, size * 0.5F);
 					Kit.sound(world, hit, SoundEvents.BLOCK_GRAVEL_BREAK, 24.0F, 0.4F);
 					Kit.sound(world, hit, SoundEvents.BLOCK_ANVIL_LAND, 16.0F, 0.3F);
 					Vfx.shake(world, hit, 60, 0.6F);
@@ -223,6 +228,7 @@ public final class CityDestructionEvents {
 			}
 			if (t == FALL) {
 				Kit.vanish(tide);
+				Vfx.play(world, VfxIds.MOON_LANDING, g, r / 30.0F);
 				Vfx.shake(world, g, 100000, 3.0F);
 				Vfx.fov(world, g, 22.0F, 50);
 				Kit.sound(world, g, SoundEvents.BLOCK_ANVIL_LAND, 64.0F, 0.2F);
@@ -253,7 +259,7 @@ public final class CityDestructionEvents {
 				Vec3d from = hit.add((world.random.nextDouble() - 0.5) * 60, 160, (world.random.nextDouble() - 0.5) * 60);
 				Vfx.streak(world, from, hit, 1.2F, 0xB8BCC8, 8);
 				DetonationManager.schedule(world, 8, () -> {
-					Vfx.ring(world, hit.add(0, 0.3, 0), 9.0F, 1.2F, 0xA8A8B0, true, 24);
+					Vfx.play(world, VfxIds.MOON_POCK, hit, 1.4F);
 					Kit.sound(world, hit, SoundEvents.BLOCK_GRAVEL_BREAK, 16.0F, 0.4F);
 					Kit.damage(world, hit, 6, 30.0F, ModDamageTypes.SHRAPNEL, null, owner());
 					if (Destruction.enabled(world)) {
@@ -281,7 +287,7 @@ public final class CityDestructionEvents {
 			// It keeps settling: low groans and dust slumping off its flanks.
 			if (t > FALL && t % 30 == 0) {
 				Vfx.shake(world, g, 2048, 0.6F);
-				Vfx.ring(world, g.add(0, 0.3, 0), r + 6.0F, 2.0F, 0x9A9AA4, true, 30);
+				Vfx.play(world, VfxIds.MOON_SETTLE, g, r / 30.0F);
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 48.0F, 0.2F);
 			}
 			queue.drain(BlockQueue.PER_TICK);
@@ -298,6 +304,7 @@ public final class CityDestructionEvents {
 			Vec3d core = Vec3d.ofCenter(ground).add(0, r * 0.35, 0);
 			frames(world, g, 1, 3, 0);
 			Vfx.flash(world, core, 0.8F, 100000, 0xC090FF);
+			Vfx.play(world, VfxIds.MOON_GEODE, core, r / 30.0F);
 			Vfx.pillar(world, core, (float) (r * 0.5), 0xB070FF, false, 140);
 			Vfx.beam(world, core, core.add(0, 900, 0), (float) (r * 0.3), 0xD0B0FF, 120);
 			Vfx.ring(world, g.add(0, 0.5, 0), (float) (r * 6), 5.0F, 0xB080FF, true, 70);
@@ -507,6 +514,7 @@ public final class CityDestructionEvents {
 				// The heartbeat speeds up as it gets closer.
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 64.0F, 0.6F + t * 0.004F);
 				Vfx.shake(world, g, 1024, 0.4F + t * 0.01F);
+				Vfx.play(world, VfxIds.EATER_PULSE, g, 0.6F + t * 0.004F);
 			}
 			int run = t - CityShapes.WORM_START;
 			if (run >= 0 && run <= CityShapes.WORM_RUN) {
@@ -518,6 +526,14 @@ public final class CityDestructionEvents {
 				}
 				above = up;
 				devour(h);
+				if (run % 2 == 0) {
+					// Out in the air its skin sheds stars; underground the earth heaves over it.
+					if (up) {
+						Vfx.play(world, VfxIds.WORM_STARS, h, 1.4F);
+					} else {
+						Vfx.play(world, VfxIds.WORM_HEAVE, new Vec3d(h.x, surface, h.z), 1.2F);
+					}
+				}
 				if (run % 10 == 0) {
 					Kit.sound(world, h, ModSounds.NUKE_RUMBLE, 48.0F, 0.3F);
 					Vfx.shake(world, h, 300, 1.0F);
@@ -552,6 +568,9 @@ public final class CityDestructionEvents {
 			}
 			if (gullet != null && t > MAW && t < SNAP) {
 				int k = t - MAW;
+				if (k % 10 == 0) {
+					Vfx.play(world, VfxIds.MAW_VORTEX, g, 1.0F + k / 80.0F);
+				}
 				double pullR = Math.min(Destruction.radius(world, 150.0F), 24 + k * 1.0);
 				if (t % 2 == 0) {
 					gullet.feed(Kit.lift(world, g, pullR, 16, true, true));
@@ -577,6 +596,8 @@ public final class CityDestructionEvents {
 					gullet.release();
 				}
 				Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_BURP, 64.0F, 0.3F);
+				// Everything it swallowed lets go.
+				Vfx.play(world, VfxIds.MAW_SNAP, g, 1.0F);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.3F);
 				frames(world, g, 0, 1, 0);
 				Vfx.shake(world, g, 100000, 3.0F);
@@ -619,7 +640,7 @@ public final class CityDestructionEvents {
 						MathHelper.floor(at.y) - 1, com.armageddon.destruction.world.Devastation.VOID);
 				breaches.add(j);
 			}
-			Vfx.ring(world, at.add(0, 0.5, 0), 40.0F, 3.0F, 0x8A7A70, true, 40);
+			Vfx.play(world, VfxIds.WORM_BREACH, at, 1.0F);
 			Vfx.fov(world, at, 8.0F, 14);
 			Kit.sound(world, at, out ? SoundEvents.ENTITY_WARDEN_ROAR : SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.35F);
 			Kit.sound(world, at, SoundEvents.ENTITY_RAVAGER_ROAR, 64.0F, 0.3F);
@@ -899,6 +920,16 @@ public final class CityDestructionEvents {
 				world.setWeather(0, 1200, true, true);
 			}
 			double fury = fury(t);
+			if (t % 40 == 0 && t < END) {
+				// Ash and embers falling over the land, the whole time.
+				Vfx.play(world, VfxIds.RAGNAROK_ASH, g, 1.0F);
+			}
+			if (columns != null && t > STRIKE && t < END && t % 20 == 0) {
+				// The halves: embers rising over the fire, snow falling over the frost.
+				Vec3d side = new Vec3d(-fwd.z, 0, fwd.x).multiply(reach * 0.5);
+				Vfx.play(world, VfxIds.FIRE_SIDE, Kit.ground(world, g.x + side.x, g.z + side.z), 1.0F);
+				Vfx.play(world, VfxIds.FROST_SIDE, Kit.ground(world, g.x - side.x, g.z - side.z), 1.0F);
+			}
 			if (t < STRIKE) {
 				storm(g, t, fury);
 			}
@@ -958,6 +989,7 @@ public final class CityDestructionEvents {
 					Vec3d at = Kit.ground(world, g.x + fwd.x * along * sgn, g.z + fwd.z * along * sgn);
 					// Fire, not blast: the ground along the wound melts and runs.
 					Vfx.pillar(world, at, 5.0F, 0xFF4010, false, 60);
+					Vfx.play(world, VfxIds.FIRE_GEYSER, at, 1.3F);
 					Kit.damage(world, at, 9, 30.0F, ModDamageTypes.NUCLEAR_BLAST, null, owner());
 					com.armageddon.event.Ruin.melt(world, at, 9, 1.5);
 					if (Destruction.enabled(world)) {
@@ -981,7 +1013,7 @@ public final class CityDestructionEvents {
 				Vec3d hit = com.armageddon.event.Climax.around(world, g, 20, reach * 1.6);
 				double size = 4 + world.random.nextDouble() * 3;
 				com.armageddon.event.Climax.fall(world, hit, 240, 0xFF7030, 2.0F, 9, () -> {
-					Vfx.ring(world, hit.add(0, 0.4, 0), (float) size * 3, 1.5F, 0xFF6020, false, 26);
+					Vfx.play(world, VfxIds.STAR_IMPACT, hit, (float) size / 5.0F);
 					Kit.sound(world, hit, SoundEvents.ENTITY_GENERIC_BURN, 24.0F, 0.5F);
 					Kit.damage(world, hit, size * 2, 30.0F, ModDamageTypes.NUCLEAR_BLAST, null, owner());
 					com.armageddon.event.Ruin.melt(world, hit, size, 1.2);
@@ -1028,6 +1060,7 @@ public final class CityDestructionEvents {
 					world.spawnEntity(bolt);
 				}
 				Vfx.beam(world, p, p.add(world.random.nextGaussian() * 8, 120, world.random.nextGaussian() * 8), 1.6F, 0xD8E8FF, 5);
+				Vfx.play(world, VfxIds.STORM_STRIKE, p, 1.4F);
 			}
 			if (world.random.nextFloat() < 0.3F + fury * 0.4F) {
 				Vfx.flash(world, g.add(0, 120, 0), 0.25F, 2000, 0xD0E0FF);
@@ -1038,6 +1071,9 @@ public final class CityDestructionEvents {
 		private void quake(Vec3d g, int k) {
 			Vfx.shake(world, g, 100000, 2.2F);
 			Vfx.custom(world, FxType.QUAKE, g, g, (float) reach, 0x8A6A50, 0, 0, 0, 60, Vfx.FAR);
+			for (int i = 0; i < 6; i++) {
+				Vfx.play(world, VfxIds.QUAKE_GEYSER, CityDestructionEvents.around(world, g, reach * 0.8), 1.2F);
+			}
 			Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 64.0F, 0.3F);
 			Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.3F);
 			frames(world, g, 0);
@@ -1060,6 +1096,7 @@ public final class CityDestructionEvents {
 		private void erupt(Vec3d at, boolean first) {
 			if (first) {
 				Kit.boom(world, at, 6.0F, 0xFF5010, owner(), true);
+				Vfx.play(world, VfxIds.VENT_BURST, at, 1.2F);
 				Vfx.pillar(world, at, 5.0F, 0xFF6020, false, END - age());
 				Kit.sound(world, at, SoundEvents.BLOCK_LAVA_POP, 64.0F, 0.3F);
 				if (Destruction.enabled(world)) {
@@ -1079,8 +1116,7 @@ public final class CityDestructionEvents {
 				}
 				return;
 			}
-			world.spawnParticles(ParticleTypes.LAVA, at.x, at.y + 1, at.z, 12, 1.5, 1, 1.5, 0.0);
-			world.spawnParticles(ParticleTypes.LARGE_SMOKE, at.x, at.y + 3, at.z, 10, 2, 4, 2, 0.05);
+			Vfx.play(world, VfxIds.VENT_SPIT, at, 1.2F);
 			if (world.random.nextInt(3) == 0 && Destruction.enabled(world) && Kit.debrisBudget(world, at) > 0) {
 				// A lava bomb: a molten block lobbed out of the vent.
 				FallingBlockEntity fb = FallingBlockEntity.spawnFromBlock(world, BlockPos.ofFloored(at).up(2), Blocks.MAGMA_BLOCK.getDefaultState());
@@ -1094,6 +1130,7 @@ public final class CityDestructionEvents {
 		private void strike(Vec3d g) {
 			frames(world, g, 3, 2, 0, 2);
 			Kit.boom(world, g.add(0, 2, 0), 18.0F, 0xFF6020, owner(), false);
+			Vfx.play(world, VfxIds.SURTR_STRIKE, g, 1.2F);
 			Vfx.flash(world, g, 1.0F, 100000, 0xFFB060);
 			Vfx.shake(world, g, 100000, 3.0F);
 			Vfx.fov(world, g, 20.0F, 30);
@@ -1140,7 +1177,7 @@ public final class CityDestructionEvents {
 					Vfx.streak(world, top, hit, 2.0F, col, 12);
 					DetonationManager.schedule(world, 12, () -> {
 						// Each piece of the bridge lands as a cluster of its own colour, rings, and shatters.
-						Vfx.ring(world, hit.add(0, 0.4, 0), 18.0F, 2.0F, col, false, 30);
+						Vfx.play(world, VfxIds.PRISM_SHATTER, hit, new Vec3d(0, 1, 0), 1.0F, col);
 						Kit.damage(world, hit, 6, 24.0F, ModDamageTypes.SHRAPNEL, null, owner());
 						com.armageddon.event.Ruin.crystallize(world, hit.add(0, 1, 0), 3.5, glass(col), 10, 40);
 					});

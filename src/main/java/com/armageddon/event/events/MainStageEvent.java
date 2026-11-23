@@ -9,6 +9,7 @@ import com.armageddon.network.Vfx;
 import com.armageddon.detonation.Detonations;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.util.MainStageSet;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.StairsBlock;
@@ -86,6 +87,7 @@ public class MainStageEvent extends WorldEvent {
 			if (t == MainStageSet.lampOn(i)) {
 				Vec3d l = MainStageSet.lamp(g, fwd, i);
 				Kit.sound(world, l, SoundEvents.BLOCK_ANVIL_LAND, 64.0F, 0.45F);
+				Vfx.play(world, VfxIds.LAMP_CHUNK, l, 1.0F);
 				Kit.sound(world, l, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.6F);
 				Vfx.shake(world, g, 300, 0.6F);
 			}
@@ -96,6 +98,10 @@ public class MainStageEvent extends WorldEvent {
 				Kit.sound(world, g, SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, 32.0F, 0.4F);
 				Vfx.shake(world, g, 300, 0.5F);
 			}
+		}
+		if (t == MainStageSet.SCORCH) {
+			// Stage haze over the whole floor, for the spotlights to cut through.
+			Vfx.play(world, VfxIds.STAGE_HAZE, g, 1.0F);
 		}
 		if (t >= MainStageSet.SCORCH && t < MainStageSet.SCORCH_END) {
 			scorch(g, t);
@@ -114,6 +120,7 @@ public class MainStageEvent extends WorldEvent {
 			// Showtime: a drum roll, a fanfare, fireworks over the stage.
 			Vec3d st = g.add(fwd.multiply(MainStageSet.STAGE_AT)).add(0, MainStageSet.ARCH_H, 0);
 			Kit.sound(world, g, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 64.0F, 1.0F);
+			Vfx.play(world, VfxIds.SHOWTIME, st, 1.0F);
 			Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_LEVELUP, 64.0F, 0.8F);
 			for (int i = 0; i < 8; i++) {
 				Vfx.firework(world, st.add(right.multiply((i - 3.5) * 5)).add(0, 6 + (i % 3) * 4, 0), 3.0F, i % 5, 0xFFC040 + i * 0x101010);
@@ -221,6 +228,7 @@ public class MainStageEvent extends WorldEvent {
 			com.armageddon.detonation.DetonationManager.schedule(world, 30, () -> {
 				Kit.boom(world, st.add(0, 4, 0), 18.0F, 0xFFB050, owner(), true);
 				Vfx.flash(world, st, 1.0F, 1200, 0xFFF0D0);
+				Vfx.play(world, VfxIds.FINALE_GLITTER, st, 1.0F);
 				Vfx.ring(world, st, 500.0F, 10.0F, 0xFFD080, true, 100);
 				Vfx.dome(world, st, 200.0F, 0xFFB050, 60);
 				Vfx.pillar(world, st, 20.0F, 0xFFE0A0, false, 120);
@@ -257,6 +265,7 @@ public class MainStageEvent extends WorldEvent {
 	private void lightCrash(Vec3d l) {
 		Vec3d p = Kit.ground(world, l.x, l.z);
 		Vfx.layeredBlast(world, p, 4.0F, 0xFFF0C0);
+		Vfx.play(world, VfxIds.LAMP_SHATTER, p, 1.0F);
 		Vfx.flash(world, p, 0.35F, 120, 0xFFF4E0);
 		Vfx.shake(world, p, 160, 1.6F);
 		Vfx.ring(world, p.add(0, 0.3, 0), 18.0F, 1.5F, 0xFFE8C0, true, 30);
@@ -382,8 +391,7 @@ public class MainStageEvent extends WorldEvent {
 			BlockPos top = Kit.surface(world, x, z);
 			Vec3d hit = Vec3d.ofCenter(top.up());
 			if (t % 2 == 0) {
-				world.spawnParticles(ParticleTypes.LARGE_SMOKE, hit.x, hit.y, hit.z, 3, 0.6, 0.2, 0.6, 0.02);
-				world.spawnParticles(ParticleTypes.LAVA, hit.x, hit.y, hit.z, 1, 0.4, 0.1, 0.4, 0.0);
+				Vfx.play(world, VfxIds.SPOT_SCORCH, hit, 1.0F);
 			}
 			if (Destruction.enabled(world)) {
 				for (int dx = -1; dx <= 1; dx++) {

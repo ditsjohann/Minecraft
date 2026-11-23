@@ -9,11 +9,11 @@ import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.EternalTree;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.Direction;
@@ -79,7 +79,7 @@ public class EternalSaplingEvent extends WorldEvent {
 		}
 		budget = BUDGET;
 		if (t < EternalTree.TREE1_START && t % 15 == 0) {
-			world.spawnParticles(ParticleTypes.HAPPY_VILLAGER, baseV.x, baseV.y + 0.5, baseV.z, 12, 0.4, 0.4, 0.4, 0.02);
+			Vfx.play(world, VfxIds.SAPLING_SPROUT, baseV.add(0, 0.5, 0), 1.0F);
 			Kit.sound(world, baseV, SoundEvents.ITEM_BONE_MEAL_USE, 3.0F, 0.6F + t * 0.01F);
 		}
 		for (int i = 0; i < EternalTree.STAGES; i++) {
@@ -95,6 +95,7 @@ public class EternalSaplingEvent extends WorldEvent {
 				Vfx.ring(world, baseV.add(0, 0.3, 0), (float) (h * 0.9 + 4), 0.5F + i * 0.3F, 0x80FF90, i >= 2, 20 + i * 4);
 				Vfx.shake(world, baseV, 60 + h * 4, 0.2F + i * 0.12F);
 				Vfx.light(world, baseV.add(0, h * 0.7, 0), 0.6F + i * 0.06F, 0xA0FF90);
+				Vfx.play(world, VfxIds.TREE_STAGE, baseV.add(0, h * 0.6, 0), (float) MathHelper.clamp(h / 12.0, 0.5, 4.0));
 			}
 		}
 		if (t == EternalTree.WORLD_START) {
@@ -106,6 +107,7 @@ public class EternalSaplingEvent extends WorldEvent {
 		drain(t);
 		if (t > EternalTree.WORLD_START && t < EternalTree.WORLD_END) {
 			if (t % 10 == 0) {
+				Vfx.play(world, VfxIds.TREE_FIREFLIES, baseV, (float) Math.max(0.6, s));
 				Vfx.shake(world, baseV, 260, 0.5F + 0.6F * (t - EternalTree.WORLD_START) / (EternalTree.WORLD_END - EternalTree.WORLD_START));
 				Kit.sound(world, baseV.add(0, EternalTree.front(s, t), 0), SoundEvents.BLOCK_WOOD_PLACE, 24.0F, 0.3F);
 			}
@@ -567,7 +569,7 @@ public class EternalSaplingEvent extends WorldEvent {
 		Vfx.shake(world, e, 300, 1.6F);
 		Vfx.fov(world, e, 5.0F, 10);
 		Vfx.light(world, e.add(0, 4, 0), 0.9F, 0xFFD8A0);
-		world.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, e.x, e.y + 1, e.z, 40, 6, 1.5, 6, 0.04);
+		Vfx.play(world, VfxIds.ROOT_SLAM, e, (float) (1 + s * 0.5));
 		Kit.sound(world, e, ModSounds.TITAN_LANDING, 32.0F, 0.5F);
 		Kit.sound(world, e, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 24.0F, 0.55F);
 		if (slams == 1 || slams == EternalTree.ROOTS) {
@@ -577,7 +579,6 @@ public class EternalSaplingEvent extends WorldEvent {
 		Vfx.ring(world, e.add(0, 0.6, 0), (float) (18 + 16 * s), 1.5F, 0x60D060, false, 50);
 		Kit.sound(world, e, SoundEvents.BLOCK_MOSS_PLACE, 32.0F, 0.5F);
 		Kit.sound(world, e, SoundEvents.BLOCK_AZALEA_LEAVES_PLACE, 32.0F, 0.5F);
-		world.spawnParticles(ParticleTypes.HAPPY_VILLAGER, e.x, e.y + 1, e.z, 120, 10, 2, 10, 0.05);
 	}
 
 	/**
@@ -633,6 +634,7 @@ public class EternalSaplingEvent extends WorldEvent {
 		double reach = Destruction.radius(world, (float) (190 * Math.max(0.6, s)));
 		if (t == BLOOM) {
 			Vfx.flash(world, crown, 0.7F, 100000, 0xD0FFB0);
+			Vfx.play(world, VfxIds.TREE_BLOOM, crown, (float) Math.max(0.6, s));
 			Vfx.light(world, crown, 1.4F, 0xC0FF90);
 			Vfx.ring(world, baseV.add(0, 0.5, 0), (float) reach, 4.0F, 0x90FF70, true, 80);
 			Vfx.skyTint(world, baseV, 100000, 0x3A8A4A, 0.55F);
@@ -655,7 +657,7 @@ public class EternalSaplingEvent extends WorldEvent {
 				Vfx.light(world, hit.add(0, 2, 0), 0.4F, 0xA0FF80);
 				Kit.sound(world, hit, SoundEvents.BLOCK_AZALEA_LEAVES_PLACE, 16.0F, 0.6F);
 				Kit.sound(world, hit, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 16.0F, 0.9F);
-				world.spawnParticles(ParticleTypes.HAPPY_VILLAGER, hit.x, hit.y + 1, hit.z, 30, 3, 1, 3, 0.05);
+				Vfx.play(world, VfxIds.SEED_SPROUT, hit, 1.0F);
 				if (Destruction.enabled(world)) {
 					forest(hit, 6 + world.random.nextInt(6), 700 + world.random.nextInt(1000));
 				}

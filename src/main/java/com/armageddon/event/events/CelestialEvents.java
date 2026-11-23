@@ -12,6 +12,7 @@ import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModGameRules;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.CelestialTimeline;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.PillarBlock;
@@ -872,6 +873,10 @@ public final class CelestialEvents {
 				if (t == 60) {
 					Vfx.gravityFlip(world, g, r, 240);
 				}
+				if (t % 20 == 0) {
+					// Rain, dust and pebbles falling up toward the sphere.
+					Vfx.play(world, VfxIds.INVERT_RAIN, g, 1.0F);
+				}
 				if (t % 10 == 0) {
 					for (LivingEntity e : Kit.living(world, g, r)) {
 						if (!Kit.creativeOrSpectator(e)) {
@@ -908,6 +913,9 @@ public final class CelestialEvents {
 					if (t % 12 == 0) {
 						rising.addAll(Kit.lift(world, new Vec3d(g.x, gy - 4, g.z), pit * 0.8, 40, false, true));
 					}
+				}
+				if (t % 6 == 0) {
+					Vfx.play(world, VfxIds.ACCRETION, sphere, 1.0F);
 				}
 				if (t % 20 == 0) {
 					Vfx.shake(world, g, 2048, 0.8F + (t - 80) * 0.004F);
@@ -957,6 +965,7 @@ public final class CelestialEvents {
 				// Overfed, the black hole combusts into a cosmic beam of light that drives into the world.
 				Vec3d floor = new Vec3d(cx + 0.5, gy + 1, cz + 0.5);
 				Vfx.custom(world, FxType.SUPERNOVA, sphere, sphere, 70.0F, 0xF0E0FF, 0, 0, 0, 0, Vfx.FAR);
+				Vfx.play(world, VfxIds.COSMIC_NOVA, sphere, 1.0F);
 				Kit.boom(world, sphere, 16.0F, 0xE0C0FF, owner(), false);
 				Vfx.beam(world, floor, sphere.add(0, 900, 0), 26.0F, 0xF4E8FF, 200);
 				Vfx.pillar(world, floor, pit * 0.8F, 0xE8D8FF, true, 200);
@@ -975,12 +984,15 @@ public final class CelestialEvents {
 			if (t == CelestialTimeline.FE_BREAK) {
 				Kit.vanish(rising);
 				Vfx.orb(world, sphere, 40.0F, 0.1F, 0x100008, 2, 24);
+				Vfx.play(world, VfxIds.VOID_COLLAPSE, sphere, 1.0F);
 				Kit.sound(world, g, ModSounds.BLACK_HOLE_COLLAPSE, 64.0F, 0.3F);
 				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
 				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 64.0F, 0.3F);
 			}
 			if (t == CelestialTimeline.FE_FALL) {
 				floorFalls(g);
+				// Stardust drifting down the bottomless pit, a faint glow breathing up from below.
+				Vfx.play(world, VfxIds.ABYSS_MOTES, new Vec3d(cx + 0.5, gy, cz + 0.5), pit / 30.0F);
 			}
 			if (layer != Integer.MIN_VALUE && layer != Integer.MAX_VALUE) {
 				for (int i = 0; i < 5 && layer >= bottom; i++) {
