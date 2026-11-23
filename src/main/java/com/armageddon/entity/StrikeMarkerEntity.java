@@ -239,6 +239,9 @@ public class StrikeMarkerEntity extends Entity {
 			world.playSound(null, getX(), getY(), getZ(), ModSounds.NUKE_RUMBLE, SoundCategory.BLOCKS, 10.0F, 0.5F + random.nextFloat() * 0.2F);
 		}
 		double r = maxR * this.age / duration;
+		if (this.age % 5 == 0 && r > 2) {
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.TECTONIC_FRONT, getPos(), (float) (r / 20.0));
+		}
 		boolean grief = Detonations.blockDamage(world);
 		if (this.age % 3 == 0) {
 			int n = (int) (6 + r * 0.9);
@@ -300,6 +303,8 @@ public class StrikeMarkerEntity extends Entity {
 			if (BEATS[i] == this.age) {
 				float radius = 10 + i * 2.5F;
 				ModNetworking.sendFx(world, getPos(), 512, new FxPayload(FxType.BASS_PULSE, getPos(), getPos(), radius, 0xFFFFFF, i));
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.BASS_THUMP, getPos(), new Vec3d(0, 1, 0), radius / 10.0F,
+						java.awt.Color.HSBtoRGB(i * 0.13F, 0.75F, 1.0F) & 0xFFFFFF);
 				world.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), SoundCategory.BLOCKS, 6.0F, 0.5F + (i % 4) * 0.12F);
 				world.playSound(null, getX(), getY(), getZ(), ModSounds.DUBSTEP_WUB, SoundCategory.BLOCKS, 6.0F, 0.6F + i * 0.04F);
 				for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, new Box(getPos(), getPos()).expand(radius), LivingEntity::isAlive)) {
@@ -317,6 +322,7 @@ public class StrikeMarkerEntity extends Entity {
 		if (this.age == DROP_AT) {
 			Vec3d c = getPos();
 			ModNetworking.sendFx(world, c, 1024, new FxPayload(FxType.BASS_DROP, c, 48.0F, 0xFFFFFF));
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.DROP_FINALE, c, 1.0F);
 			world.playSound(null, c.x, c.y, c.z, ModSounds.DUBSTEP_DROP, SoundCategory.BLOCKS, 16.0F, 0.6F);
 			world.playSound(null, c.x, c.y, c.z, ModSounds.NUKE_DETONATE, SoundCategory.BLOCKS, 16.0F, 0.8F);
 			world.createExplosion(null, c.x, c.y, c.z, 12.0F, false, Detonations.blockDamage(world) ? World.ExplosionSourceType.TNT : World.ExplosionSourceType.NONE);

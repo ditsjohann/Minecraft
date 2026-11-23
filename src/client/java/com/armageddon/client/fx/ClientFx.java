@@ -253,6 +253,7 @@ public final class ClientFx {
 			case FxType.NUKE -> nuke(world, a, s);
 			case FxType.ANTIMATTER -> {
 				add(new Effects.Antimatter(a, s));
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.ANTI_ANNIHILATE, a.x, a.y, a.z, 0, 1, 0, s / 30.0F, 0, world.random.nextLong());
 				add(new Effects.Ring(a, s * 6, 0xD090FF, 90, s * 0.6, true));
 				shockArrival(a, s, 2.0F, 0.8F);
 			}
@@ -262,14 +263,13 @@ public final class ClientFx {
 				add(new Effects.Ring(a, s, 0x7CFF2E, 70, 3.0, false));
 				add(new Effects.Ring(a, s * 0.6, 0xC8FFA0, 50, 1.5, false));
 				shake(a, s * 2, 1.0F);
-				burst(world, a, ModParticles.RADIATION, 120, 1.2);
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.NEUTRON_PULSE, a.x, a.y, a.z, 0, 1, 0, s / 110.0F, 0, world.random.nextLong());
 			}
 			case FxType.CRYO_WAVE -> {
 				flash(a, s * 3, 0.35F, 0xD8F4FF);
 				add(new Effects.Ring(a, s, 0xA8E8FF, 40, Math.max(1.0, s * 0.12), false));
 				add(new Effects.Fireball(a, s * 0.25, 4, 18, 0xFFFFFF, 0x6AC8FF));
-				burst(world, a, ModParticles.CRYO_MIST, (int) (30 + s * 6), 0.15 + s * 0.02);
-				burst(world, a, ParticleTypes.SNOWFLAKE, (int) (40 + s * 4), 0.4 + s * 0.03);
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.CRYO_NOVA, a.x, a.y, a.z, 0, 1, 0, s / 36.0F, 0, world.random.nextLong());
 				shake(a, s * 2, Math.min(1.5F, s * 0.1F));
 			}
 			case FxType.FIREBALL -> {
@@ -298,7 +298,7 @@ public final class ClientFx {
 				add(new Effects.Ring(a, s * 4, 0xC080FF, 40, 1.5, false));
 				flash(a, s * 20, 0.6F, 0xE0C8FF);
 				shake(a, s * 8, 1.5F);
-				burst(world, a, ModParticles.VOID_SPARK, 150, 0.8);
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.HOLE_POP, a.x, a.y, a.z, 0, 1, 0, s, 0, world.random.nextLong());
 			}
 			case FxType.PLASMA_BURST -> {
 				add(new Effects.Fireball(a, 0.6 * s, 2, 8, 0xFFFFFF, p.color()));
@@ -462,8 +462,10 @@ public final class ClientFx {
 				(float) Math.min(220, radius * 4.2 + 20) / 32.0F, 0, world.random.nextLong());
 		add(new Effects.Ring(at, radius * 9, 0xFFE0B0, (int) (radius * 9 / 4.0), radius * 0.4, true));
 		add(new Effects.Ring(at, radius * 3, 0xFFFFFF, 30, radius * 0.25, false));
-		for (int i = 0; i < 4; i++) {
-			world.addImportantParticle(ParticleTypes.EXPLOSION_EMITTER, true, at.x, at.y, at.z, 0, 0, 0);
+		// Under the cloud a base surge; a hydrogen-sized blast adds its second stage.
+		com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.NUKE_SURGE, at.x, at.y, at.z, 0, 1, 0, radius / 26.0F, 0, world.random.nextLong());
+		if (radius >= 45) {
+			com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.HYDROGEN_STAGE, at.x, at.y, at.z, 0, 1, 0, radius / 52.0F, 0, world.random.nextLong());
 		}
 		add(new InsaneEffects.Dome(at, radius * 7, (int) (radius * 7 / 5.0) + 10, 0xFFE8C8));
 		add(new Lightning(at, radius));

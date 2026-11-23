@@ -6,7 +6,6 @@ import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModEntities;
-import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.block.BombBlock;
 import net.minecraft.block.BlockState;
@@ -24,7 +23,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.EntityTrackerEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -86,6 +84,9 @@ public class BlackHoleEntity extends Entity {
 		return (int) Math.max(0, getWorld().getTime() - this.dataTracker.get(START));
 	}
 
+	/** The last tick the client renderer drew this hole's infall for; client-side bookkeeping only. */
+	public int fxTick = -1;
+
 	public float getBaseRadius() {
 		return this.dataTracker.get(RADIUS);
 	}
@@ -120,22 +121,7 @@ public class BlackHoleEntity extends Entity {
 		Vec3d c = getPos();
 
 		if (world.isClient) {
-			int n = 2 + (int) (r * 1.5F);
-			for (int i = 0; i < n; i++) {
-				double dist = r * (2.0 + random.nextDouble() * 2.5);
-				double a = random.nextDouble() * Math.PI * 2;
-				double yo = (random.nextDouble() - 0.5) * r * 0.6;
-				double x = c.x + Math.cos(a) * dist;
-				double z = c.z + Math.sin(a) * dist;
-				// Tangential + inward velocity → spiral.
-				double speed = 0.12 + 0.05 * r;
-				double vx = (-Math.sin(a) * speed) - Math.cos(a) * speed * 0.6;
-				double vz = (Math.cos(a) * speed) - Math.sin(a) * speed * 0.6;
-				world.addParticle(ModParticles.VOID_SPARK, x, c.y + yo, z, vx, -yo * 0.03, vz);
-			}
-			if (random.nextInt(3) == 0) {
-				world.addParticle(ParticleTypes.REVERSE_PORTAL, c.x + random.nextGaussian() * r, c.y + random.nextGaussian() * r, c.z + random.nextGaussian() * r, 0, 0, 0);
-			}
+			// The infall is drawn by the renderer with the particle engine.
 			return;
 		}
 

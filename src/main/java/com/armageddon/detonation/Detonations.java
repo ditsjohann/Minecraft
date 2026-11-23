@@ -322,7 +322,8 @@ public final class Detonations {
 	// ------------------------------------------------------------------ tactical
 
 	public static void thermobaric(ServerWorld world, Vec3d pos, @Nullable Entity cause, float power) {
-		ModNetworking.sendFx(world, pos, 512, new FxPayload(FxType.FIREBALL, pos, power, 0xFF6622));
+		Vfx.play(world, com.armageddon.vfx.VfxIds.THERMO_BLAST, pos, power / 11.0F);
+		Vfx.shake(world, pos, power * 6, Math.min(1.6F, power * 0.15F));
 		ModNetworking.sendFx(world, pos, 512, new FxPayload(FxType.SHOCKWAVE, pos, power * 3.0F, 0xFFAA66));
 		world.createExplosion(cause, pos.x, pos.y, pos.z, power, true, blockDamage(world) ? World.ExplosionSourceType.TNT : World.ExplosionSourceType.NONE);
 		blast(world, pos, power * 2.5, power * 2.0F, ModDamageTypes.NUCLEAR_BLAST, cause, power * 2.5, 1.0);
@@ -337,7 +338,8 @@ public final class Detonations {
 	}
 
 	public static void demolition(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
-		highExplosive(world, pos, cause, 6.0F, false);
+		highExplosive(world, pos, cause, 6.0F, false, true);
+		Vfx.play(world, com.armageddon.vfx.VfxIds.DEMO_BLAST, pos, 1.0F);
 	}
 
 	public static void highExplosive(ServerWorld world, Vec3d pos, @Nullable Entity cause, float power, boolean fire) {

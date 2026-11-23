@@ -286,6 +286,18 @@ public final class VfxIds {
 	public static final String SPOT_SCORCH = "spot_scorch";
 	public static final String SHOWTIME = "showtime";
 	public static final String FINALE_GLITTER = "finale_glitter";
+	public static final String DEMO_BLAST = "demo_blast";
+	public static final String THERMO_BLAST = "thermo_blast";
+	public static final String CRYO_NOVA = "cryo_nova";
+	public static final String HOLE_INFALL = "hole_infall";
+	public static final String HOLE_POP = "hole_pop";
+	public static final String NEUTRON_PULSE = "neutron_pulse";
+	public static final String NUKE_SURGE = "nuke_surge";
+	public static final String HYDROGEN_STAGE = "hydrogen_stage";
+	public static final String ANTI_ANNIHILATE = "anti_annihilate";
+	public static final String TECTONIC_FRONT = "tectonic_front";
+	public static final String BASS_THUMP = "bass_thump";
+	public static final String DROP_FINALE = "drop_finale";
 	public static final String SMASH_IMPACT = "smash_impact";
 	public static final String SMASH_BELL = "smash_bell";
 	public static final String STAR_LAND = "star_land";
@@ -350,7 +362,8 @@ public final class VfxIds {
 			FROST_SIDE, STAR_IMPACT, PRISM_SHATTER, INVERT_RAIN, ACCRETION, VOID_COLLAPSE, COSMIC_NOVA, ABYSS_MOTES, DIRT_SPURT,
 			ANT_SKITTER, TERMITE_SWARM, MUD_FLING, TERMITE_CAVE, SAPLING_SPROUT, TREE_STAGE, TREE_FIREFLIES, ROOT_SLAM, TREE_BLOOM,
 			SEED_SPROUT, LAMP_CHUNK, LAMP_SHATTER, STAGE_HAZE, SPOT_SCORCH, SHOWTIME, FINALE_GLITTER,
-			SMASH_IMPACT, SMASH_BELL, STAR_LAND, HEART_NOVA, SMASH_DUST, TICK_BEAT, TICK_BOOM, FIELD_BLAST, TICK_FINAL, TICK_CHIME, TIME_STILL, TIME_SNAP, ALIEN_EMP, EMP_CRAWL, RAY_COLUMN, RAY_IMPACT, TERRA_PULSE, HARVEST_LIFT, HARVEST_CUT, BLOOM_SPORES, SHAFT_MOTES, SUN_BEAM, SUN_FROST, CORPSE_SHED, SUN_IMPACT, DAWN_MOTES, MIRROR_GLINT, LANCE_CUT, LANCE_DRILL, HAMMER_BLOW, CREST_SPRAY);
+			SMASH_IMPACT, SMASH_BELL, STAR_LAND, HEART_NOVA, SMASH_DUST, TICK_BEAT, TICK_BOOM, FIELD_BLAST, TICK_FINAL, TICK_CHIME, TIME_STILL, TIME_SNAP, ALIEN_EMP, EMP_CRAWL, RAY_COLUMN, RAY_IMPACT, TERRA_PULSE, HARVEST_LIFT, HARVEST_CUT, BLOOM_SPORES, SHAFT_MOTES, SUN_BEAM, SUN_FROST, CORPSE_SHED, SUN_IMPACT, DAWN_MOTES, MIRROR_GLINT, LANCE_CUT, LANCE_DRILL, HAMMER_BLOW, CREST_SPRAY,
+			DEMO_BLAST, THERMO_BLAST, CRYO_NOVA, HOLE_INFALL, HOLE_POP, NEUTRON_PULSE, NUKE_SURGE, HYDROGEN_STAGE, ANTI_ANNIHILATE, TECTONIC_FRONT, BASS_THUMP, DROP_FINALE);
 
 	private VfxIds() {
 	}

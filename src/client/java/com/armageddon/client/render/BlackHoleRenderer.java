@@ -37,6 +37,12 @@ public class BlackHoleRenderer extends EntityRenderer<BlackHoleEntity> {
 			return;
 		}
 		float time = entity.age + tickDelta;
+		if (entity.fxTick != entity.age) {
+			// Once a tick: dust and light spiralling in, stretching as they go.
+			entity.fxTick = entity.age;
+			Vec3d c = entity.getPos();
+			com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.HOLE_INFALL, c.x, c.y, c.z, 0, 1, 0, r, 0, entity.age * 7919L + entity.getId());
+		}
 		Vec3d eye = this.dispatcher.camera.getPos().subtract(entity.getLerpedPos(tickDelta));
 		Vec3d[] cb = FxDraw.cameraBasis(this.dispatcher.camera.getYaw(), this.dispatcher.camera.getPitch());
 		Vec3d view = eye.lengthSquared() > 1.0E-6 ? eye.normalize() : new Vec3d(0, 0, 1);
