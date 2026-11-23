@@ -284,6 +284,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		Vec3d fwd = flat.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : flat.normalize();
 		Vec3d side = new Vec3d(-fwd.z, 0, fwd.x);
 		ModNetworking.sendFx(world, getPos(), 512, new FxPayload(FxType.FIREBALL, getPos(), 2.0F, 0xFFC830));
+		Vfx.play(world, VfxIds.MIDAS_BURST, getPos(), 1.2F);
 		world.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, SoundCategory.PLAYERS, 6.0F, 0.5F);
 		for (int i = 0; i < 7; i++) {
 			double a = i * 0.9;
@@ -518,6 +519,10 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case METEOR -> Vfx.play(world, VfxIds.METEOR_IMPACT, at, 1.0F);
 			case ROD -> Vfx.play(world, VfxIds.ROD_IMPACT, at, 1.0F);
 			case AIR_BOMB -> Vfx.play(world, VfxIds.GRENADE_BLAST, at, 1.5F);
+			case PARTY_ROCKET -> Vfx.play(world, VfxIds.BOUNCE_BURST, at.add(0, 1, 0), 1.6F);
+			case SIEGE_MISSILE -> Vfx.play(world, VfxIds.SIEGE_BLAST, at, 1.0F);
+			case MIDAS -> Vfx.play(world, VfxIds.MIDAS_BURST, at, 1.4F);
+			case MIDAS_SPHERE -> Vfx.play(world, VfxIds.MIDAS_BURST, at, 0.8F + 0.1F * power);
 			case BOUNCE_BOMB -> Vfx.play(world, VfxIds.BOUNCE_BURST, at, 1.0F);
 			case LOOT_TORNADO -> Vfx.play(world, VfxIds.LOOT_BURST, at, 1.0F);
 			case MOONWALK_MINE -> Vfx.play(world, VfxIds.MOON_BURST, at, 1.0F);

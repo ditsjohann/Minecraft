@@ -163,6 +163,24 @@ public final class VfxIds {
 	public static final String STORM_CLOUDS = "storm_clouds";
 	public static final String STORM_STRIKE = "storm_strike";
 
+	// support and mid-tier weapons
+	public static final String WARDEN_SEAL = "warden_seal";
+	public static final String PARTY_TRAIL = "party_trail";
+	public static final String HONK_BLAST = "honk_blast";
+	public static final String MICRO_IMPACT = "micro_impact";
+	public static final String TETHER_PULL = "tether_pull";
+	public static final String SIEGE_TRAIL = "siege_trail";
+	public static final String SIEGE_BLAST = "siege_blast";
+	public static final String RESONANCE_WAVE = "resonance_wave";
+	public static final String SUNLANCE_CHARGE = "sunlance_charge";
+	public static final String SUNLANCE_LINE = "sunlance_line";
+	public static final String SUNLANCE_IMPACT = "sunlance_impact";
+	public static final String SPLIT_SLAM = "split_slam";
+	public static final String SPLIT_FISSURE = "split_fissure";
+	public static final String SPLIT_FINALE = "split_finale";
+	public static final String MIDAS_TRAIL = "midas_trail";
+	public static final String MIDAS_BURST = "midas_burst";
+
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD,
@@ -182,7 +200,9 @@ public final class VfxIds {
 			LOOT_BURST, MOON_BURST, HOLO_BURST, MAGNET_PULSE, PAINT_SPLASH, LANCE_CHARGE, LANCE_MUZZLE, LANCE_TRAIL,
 			ANTIMATTER_FLASH, BLADE_HIT, BLADE_DASH, GATLING_MUZZLE, WUB_RING, WUB_HIT, BASS_DROP,
 			BOMBLET_TRAIL, SINGULARITY_TRAIL, MORTAR_TRAIL, METEOR_TRAIL, METEOR_IMPACT, ROD_TRAIL, ROD_IMPACT, BOMB_WHISTLE,
-			TARGET_LOCK, ORBITAL_IMPACT, STORM_CLOUDS, STORM_STRIKE);
+			TARGET_LOCK, ORBITAL_IMPACT, STORM_CLOUDS, STORM_STRIKE,
+			WARDEN_SEAL, PARTY_TRAIL, HONK_BLAST, MICRO_IMPACT, TETHER_PULL, SIEGE_TRAIL, SIEGE_BLAST, RESONANCE_WAVE,
+			SUNLANCE_CHARGE, SUNLANCE_LINE, SUNLANCE_IMPACT, SPLIT_SLAM, SPLIT_FISSURE, SPLIT_FINALE, MIDAS_TRAIL, MIDAS_BURST);
 
 	private VfxIds() {
 	}

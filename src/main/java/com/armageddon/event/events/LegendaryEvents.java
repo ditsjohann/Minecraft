@@ -14,6 +14,7 @@ import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModBlocks;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -46,6 +47,8 @@ public final class LegendaryEvents {
 		Vfx.shake(world, from, 64, 1.0F);
 		Vfx.light(world, to, 1.0F, 0xFFC040);
 		Vfx.layeredBlast(world, to, 4.0F, 0xFFC040);
+		Vfx.play(world, VfxIds.SUNLANCE_LINE, from, to.subtract(from), 1.0F, 0);
+		Vfx.play(world, VfxIds.SUNLANCE_IMPACT, to, 1.2F);
 		Kit.sound(world, from, ModSounds.DEATH_RAY, 6.0F, 0.7F);
 		Kit.sound(world, to, ModSounds.NUKE_DETONATE, 5.0F, 1.6F);
 		if (Destruction.enabled(world)) {
@@ -133,6 +136,7 @@ public final class LegendaryEvents {
 			Vec3d c = center();
 			if (t == 0) {
 				Vfx.ring(world, c, 26.0F, 2.0F, 0xFFD070, true, 25);
+				Vfx.play(world, VfxIds.SPLIT_SLAM, c, 1.0F);
 				Vfx.shake(world, c, 128, 2.2F);
 				Kit.sound(world, c, ModSounds.GRAVITY_SLAM, 8.0F, 0.5F);
 				float yaw = data.getFloat("Yaw");
@@ -140,6 +144,7 @@ public final class LegendaryEvents {
 					Vec3d d = Kit.dir(yaw + i * 45);
 					Kit.fissure(world, c.add(d.multiply(2)), d, 18 + world.random.nextInt(8), 6, 3, ModBlocks.GOLD_FISSURE.getDefaultState());
 					Vfx.streak(world, c, c.add(d.multiply(24)), 1.0F, 0xFFC040, 15);
+					Vfx.play(world, VfxIds.SPLIT_FISSURE, c.add(d.multiply(2)), d.multiply(22), 1.0F, 0);
 				}
 				lifted = Kit.lift(world, c, 10, 120, true, false);
 				// Put back whatever was torn out from under the wielder's feet.
@@ -174,6 +179,7 @@ public final class LegendaryEvents {
 			}
 			if (t == 38) {
 				Vfx.ring(world, c, 34.0F, 2.5F, 0xFFB000, true, 25);
+				Vfx.play(world, VfxIds.SPLIT_FINALE, c, 1.0F);
 				Vfx.layeredBlast(world, c, 5.0F, 0xFFC040);
 				Vfx.shake(world, c, 160, 2.8F);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 8.0F, 1.6F);

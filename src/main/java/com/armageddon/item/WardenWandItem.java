@@ -3,6 +3,7 @@ package com.armageddon.item;
 import com.armageddon.destruction.ProtectedRegions;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModComponents;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
@@ -39,6 +40,7 @@ public class WardenWandItem extends WmdItem {
 		BlockPos first = stack.get(ModComponents.CORNER);
 		if (first == null) {
 			stack.set(ModComponents.CORNER, pos);
+			Vfx.play(world, VfxIds.WARDEN_SEAL, Vec3d.ofBottomCenter(pos.up()), 0.7F);
 			player.sendMessage(Text.translatable("message.armageddon.warden.first", pos.toShortString()).formatted(Formatting.AQUA), true);
 			world.playSound(null, pos, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.PLAYERS, 1.0F, 1.2F);
 			return ActionResult.SUCCESS;
@@ -49,6 +51,8 @@ public class WardenWandItem extends WmdItem {
 		ProtectedRegions regions = ProtectedRegions.get(world);
 		String name = "zone_" + (regions.regions().size() + 1);
 		regions.add(name, a, b);
+		Vfx.play(world, VfxIds.WARDEN_SEAL, Vec3d.ofBottomCenter(first.up()), 1.3F);
+		Vfx.play(world, VfxIds.WARDEN_SEAL, Vec3d.ofBottomCenter(pos.up()), 1.3F);
 		Vfx.wirebox(world, new Vec3d(Math.min(a.getX(), b.getX()), pos.getY() - 4, Math.min(a.getZ(), b.getZ())),
 				new Vec3d(Math.max(a.getX(), b.getX()) + 1, pos.getY() + 12, Math.max(a.getZ(), b.getZ()) + 1), 0x40FFA0, 100);
 		player.sendMessage(Text.translatable("message.armageddon.warden.created", name).formatted(Formatting.GREEN), false);

@@ -6,6 +6,7 @@ import com.armageddon.event.EventEntity;
 import com.armageddon.event.Kit;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
@@ -24,6 +25,7 @@ public final class Strikes {
 	/** 27 Siegebreaker Array: six missiles rise from behind you and converge on the target. */
 	public static void siegebreaker(ServerWorld world, PlayerEntity player, Vec3d target) {
 		Vfx.grid(world, target.add(0, 0.1, 0), new Vec3d(0, 1, 0), 6.0F, 0xB070FF, 0, 60);
+		Vfx.play(world, VfxIds.TARGET_LOCK, target, new Vec3d(0, 1, 0), 1.2F, 0xB070FF);
 		Vec3d back = Kit.dir(player.getYaw()).multiply(-6);
 		for (int i = 0; i < 6; i++) {
 			double side = (i - 2.5) * 2.2;

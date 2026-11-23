@@ -5,6 +5,7 @@ import com.armageddon.event.Kit;
 import com.armageddon.event.WorldEvent;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -58,6 +59,7 @@ public final class UncommonEvents {
 			}
 			if (t == 32) {
 				Vfx.firework(world, c.add(0, 11, 0), 3.0F, 3, 0xFF3A6A);
+				Vfx.play(world, VfxIds.BOUNCE_BURST, c.add(0, 11, 0), 2.0F);
 				Kit.sound(world, c, SoundEvents.ENTITY_PLAYER_LEVELUP, 3.0F, 1.2F);
 			}
 			return t > 40;

@@ -11,6 +11,7 @@ import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -259,6 +260,7 @@ public final class RareEvents {
 				Vfx.streak(world, sky, target, 0.6F, 0x7AC8FF, 5);
 				com.armageddon.detonation.DetonationManager.schedule(world, 5, () -> {
 					Vfx.layeredBlast(world, target, 2.5F, 0x7AC8FF);
+					Vfx.play(world, VfxIds.MICRO_IMPACT, target, 1.3F);
 					Vfx.pillar(world, target, 1.0F, 0x7AC8FF, false, 12);
 					Destruction.explode(world, player, target.x, target.y, target.z, 2.6F, false);
 					Kit.damage(world, target, 4, 14.0F, ModDamageTypes.PLASMA, null, player);
@@ -304,6 +306,9 @@ public final class RareEvents {
 				owner.fallDistance = 0;
 			}
 			Vfx.continuousBeam(world, hand, anchor, 0.12F + 0.05F * MathHelper.sin(t * 0.8F), 0x5AA8FF);
+			if (t % 2 == 0) {
+				Vfx.play(world, VfxIds.TETHER_PULL, anchor, hand.subtract(anchor), 1.0F, 0);
+			}
 			return false;
 		}
 	}

@@ -4,10 +4,10 @@ import com.armageddon.event.events.LegendaryEvents;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModItems;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.hit.BlockHitResult;
@@ -40,12 +40,9 @@ public class SunlanceItem extends GunItem {
 			if (used % 10 == 0 && used <= chargeTicks()) {
 				server.playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.ORBITAL_CHARGE, SoundCategory.PLAYERS, 0.8F, 0.6F + used * 0.02F);
 			}
-		} else {
-			// Motes of light stream in from all around.
-			Vec3d m = muzzle(p, 1.0);
-			for (int i = 0; i < 3; i++) {
-				Vec3d o = new Vec3d(world.random.nextGaussian(), world.random.nextGaussian(), world.random.nextGaussian()).normalize().multiply(3);
-				world.addParticle(ParticleTypes.END_ROD, m.x + o.x, m.y + o.y, m.z + o.z, -o.x * 0.12, -o.y * 0.12, -o.z * 0.12);
+			// Motes of sunlight stream in from all around, wider as it fills.
+			if (used % 2 == 0) {
+				Vfx.play(server, VfxIds.SUNLANCE_CHARGE, muzzle(p, 1.0), p.getRotationVec(1.0F), 0.6F + Math.min(1, used / (float) chargeTicks()), 0);
 			}
 		}
 	}
