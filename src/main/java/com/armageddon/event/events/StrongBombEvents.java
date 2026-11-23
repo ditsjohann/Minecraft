@@ -668,11 +668,6 @@ public final class StrongBombEvents {
 				}
 				if (t % 5 == 0) {
 					bite(g, front);
-					// The nuptial flight: winged swarms boiling along the front.
-					for (int i = 0; i < 2; i++) {
-						double a = world.random.nextDouble() * MathHelper.TAU;
-						Vfx.play(world, VfxIds.TERMITE_SWARM, Kit.ground(world, g.x + Math.cos(a) * front, g.z + Math.sin(a) * front).add(0, 4 + world.random.nextDouble() * 8, 0), 1.3F);
-					}
 				}
 				if (t % 8 == 0) {
 					double a = world.random.nextDouble() * MathHelper.TAU;

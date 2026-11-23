@@ -329,6 +329,14 @@ final class CityVfx {
 						.color(PLASMA).build())
 				.emit(EmitterDef.builder("glow").burst(4).shape(Shape.ring(30, 12)).velocity(Velocity.swirl(0.6F, 0.9F)).module(Module.vortex(0.04F, 0.03F))
 						.life(20, 35).size(6, 9).sprite(FxSprites.GLOW).color(0xFF60FF).alpha(0.25F).alphaOverLife(Curve.BELL).build())
+				// The photon ring: light bent all the way round, a thin blazing circle hugging the horizon.
+				.emit(EmitterDef.builder("photon").priority(Priority.HERO).burst(1).size(50, 50).life(7, 7).sprite(FxSprites.RING).color(0xFFE8FF)
+						.alpha(0.45F).alphaOverLife(Curve.BELL).build())
+				// Relativistic jets out of both poles.
+				.emit(EmitterDef.builder("jet_up").priority(Priority.HERO).burst(5).shape(Shape.sphere(2)).velocity(Velocity.up(2.5F, 3.5F, 0.04F))
+						.life(14, 24).size(0.5F, 0.8F).mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK).color(PLASMA).build())
+				.emit(EmitterDef.builder("jet_down").priority(Priority.HERO).burst(5).shape(Shape.sphere(2)).velocity(Velocity.up(-3.5F, -2.5F, 0.04F))
+						.life(14, 24).size(0.5F, 0.8F).mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK).color(PLASMA).build())
 				.build());
 
 		// Overfed, it collapses: everything rushes into one point.
@@ -381,6 +389,24 @@ final class CityVfx {
 				.emit(EmitterDef.builder("bodies").burst(20).shape(Shape.sphere(6)).velocity(Velocity.random(0.1F, 0.25F)).module(Module.curl(5, 0.04F))
 						.module(Module.jitter(0.02F)).life(40, 80).size(0.1F, 0.14F).layer(Layer.SMOKE).sprite(FxSprites.DUST, 2).color(0x2A1A10).shade(1)
 						.build())
+				.emit(smoke("haze").burst(1).shape(Shape.sphere(6)).velocity(Velocity.random(0.05F, 0.12F)).module(Module.curl(8, 0.02F)).life(40, 70)
+						.size(5, 8).color(0x2A1E16).alpha(0.3F).shade(0.9F).build())
+				.build());
+
+		// Where the front chews through the town: sawdust and splinters thrown up.
+		FxEngine.register(EffectDef.builder(VfxIds.TERMITE_SAWDUST).lod(160, 1200)
+				.emit(smoke("sawdust").burst(3).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.08F, 0.2F, 0.3F)).life(40, 70).size(1.8F, 3)
+						.sizeOverLife(Curve.keys(0, 0.6F, 1, 2.2F)).color(Gradient.of(0, 0xB89466, 1, 0xC8B090)).alpha(0.55F).build())
+				.emit(EmitterDef.builder("splinters").burst(6).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.2F, 0.45F, 0.6F)).gravity(0.04F)
+						.life(20, 40).size(0.08F, 0.12F).mode(Mode.STRETCHED).sprite(FxSprites.STREAK).color(0x8A6A40).build())
+				.build());
+
+		// Spoil thrown off the top of the rising mound.
+		FxEngine.register(EffectDef.builder(VfxIds.TERMITE_SPOIL).lod(200, 1600)
+				.emit(smoke("plume").burst(4).shape(Shape.disc(4)).velocity(Velocity.up(0.15F, 0.35F, 0.3F)).drag(0.02F).life(60, 100).size(4, 7)
+						.sizeOverLife(Curve.keys(0, 0.6F, 1, 2.2F)).color(Gradient.of(0, 0xA08060, 1, 0xB8A080)).alpha(0.5F).module(Module.wind(1)).build())
+				.emit(EmitterDef.builder("clods").burst(6).shape(Shape.disc(4)).velocity(Velocity.up(0.3F, 0.6F, 0.7F)).gravity(0.05F).life(30, 50)
+						.size(0.25F, 0.4F).layer(Layer.SMOKE).sprite(FxSprites.DUST, 2).color(MUD).spin(0.1F, 0.3F).build())
 				.build());
 
 		// Mud flung up the mound as the builders work.

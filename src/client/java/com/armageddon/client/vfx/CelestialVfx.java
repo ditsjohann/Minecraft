@@ -185,17 +185,20 @@ final class CelestialVfx {
 	// ------------------------------------------------------------------ UFO Invasion
 
 	private static void ufo() {
-		// Under the tractor beam (spread up the beam's length): motes and dust lifting, light rings climbing it.
-		FxEngine.register(EffectDef.builder(VfxIds.UFO_BEAM).lod(160, 1200)
-				.emit(EmitterDef.builder("motes").burst(6).span().shape(Shape.disc(3)).velocity(Velocity.up(0.3F, 0.6F, 0)).life(20, 40)
-						.size(0.1F, 0.16F).sprite(FxSprites.FLARE).color(BEAM).alphaOverLife(TWINKLE).build())
-				.emit(EmitterDef.builder("ring").burst(1).mode(Mode.FLAT).fixedRotation().size(6, 6).velocity(Velocity.up(0.8F, 0.8F, 0)).life(30, 30)
-						.sprite(FxSprites.RING).color(BEAM).alpha(0.5F).alphaOverLife(Curve.FADE_OUT).build())
-				.emit(smoke("swirl").burst(3).onGround().shape(Shape.ring(6, 2)).velocity(Velocity.swirl(0.3F, 0.5F)).velocity(Velocity.up(0.05F, 0.12F, 0.2F))
-						.module(Module.vortex(0.02F, 0.02F)).life(30, 50).size(1.2F, 2).color(Gradient.of(0, 0x7A6E60, 1, 0xA0B8C8)).alpha(0.5F).build())
-				.emit(EmitterDef.builder("pebbles").priority(Priority.DETAIL).burst(1).onGround().shape(Shape.disc(4)).velocity(Velocity.up(0.15F, 0.25F, 0.1F))
-						.module(Module.jitter(0.004F)).life(60, 90).size(0.15F, 0.25F).layer(Layer.SMOKE).sprite(FxSprites.DUST, 2).color(EARTH)
-						.spin(0.05F, 0.15F).build())
+		// The tractor beam, driven by the ship's client effect every tick and laid from the ground up to the hull (scale 1
+		// = the mothership): light shimmering in the column, motes streaming up it, rings of light climbing it, the
+		// ground's loose dust and stones lifting off at its foot and swirling into it.
+		FxEngine.register(EffectDef.builder(VfxIds.UFO_BEAM).lod(300, 2400)
+				.emit(EmitterDef.builder("shimmer").priority(Priority.HERO).burst(6).span().shape(Shape.disc(14)).life(6, 12).size(6, 10)
+						.sprite(FxSprites.GLOW).color(0x80C8FF).alpha(0.12F).alphaOverLife(FLICKER).build())
+				.emit(EmitterDef.builder("motes").priority(Priority.HERO).burst(8).span().shape(Shape.disc(16)).velocity(Velocity.along(0.8F, 1.5F, 0.05F))
+						.life(30, 60).size(0.4F, 0.7F).sprite(FxSprites.FLARE).color(BEAM).alphaOverLife(TWINKLE).build())
+				.emit(EmitterDef.builder("rings").burst(0.35F).mode(Mode.FLAT).fixedRotation().size(50, 50).velocity(Velocity.along(1.0F, 1.0F, 0))
+						.life(150, 150).sprite(FxSprites.RING).color(BEAM).alpha(0.4F).alphaOverLife(Curve.BELL).build())
+				.emit(EmitterDef.builder("lift").burst(3).onGround().shape(Shape.disc(20)).velocity(Velocity.up(0.25F, 0.5F, 0.1F)).module(Module.jitter(0.004F))
+						.life(60, 100).size(0.4F, 0.8F).layer(Layer.SMOKE).sprite(FxSprites.DUST, 2).color(EARTH).spin(0.05F, 0.2F).build())
+				.emit(smoke("swirl").burst(2).onGround().shape(Shape.ring(22, 6)).velocity(Velocity.swirl(0.4F, 0.7F)).velocity(Velocity.up(0.05F, 0.15F, 0.2F))
+						.module(Module.vortex(0.03F, 0.03F)).life(40, 60).size(4, 6).color(Gradient.of(0, 0x7A6E60, 1, 0xA0B8C8)).alpha(0.45F).build())
 				.build());
 
 		// The mothership's drive: a cold blue haze and sparkle sinking from under the hull, left behind as it passes.

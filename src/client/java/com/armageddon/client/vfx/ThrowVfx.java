@@ -79,6 +79,7 @@ final class ThrowVfx {
 		LegendVfx.register();
 		CelestialVfx.register();
 		CityVfx.register();
+		SetPieceVfx.register();
 	}
 
 	// ------------------------------------------------------------------ throw and warning light

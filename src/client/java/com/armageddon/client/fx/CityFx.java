@@ -2,7 +2,6 @@ package com.armageddon.client.fx;
 
 import com.armageddon.client.render.FxDraw;
 import com.armageddon.client.render.FxRenderLayers;
-import com.armageddon.client.render.FxSprites;
 import com.armageddon.network.FxPayload;
 import com.armageddon.util.CityShapes;
 import net.minecraft.client.MinecraftClient;
@@ -565,21 +564,11 @@ public final class CityFx {
 				ClientFx.shake = 9.0F;
 				ClientFx.light(c.add(0, 40, 0), 1.6F, 0xFF8030);
 			}
-			if (age >= strike && age < strike + 160) {
-				for (int i = 0; i < 14; i++) {
-					double h = world.random.nextDouble() * 220;
-					Vec3d p = c.add(side.multiply(world.random.nextGaussian() * 3)).add(fwd.multiply(world.random.nextGaussian() * 1.2)).add(0, h, 0);
-					world.addImportantParticle(ParticleTypes.FLAME, true, p.x, p.y, p.z, world.random.nextGaussian() * 0.1, 0.25, world.random.nextGaussian() * 0.1);
-					if (i % 3 == 0) {
-						world.addImportantParticle(com.armageddon.registry.ModParticles.EMBER, true, p.x, p.y, p.z, world.random.nextGaussian() * 0.3, 0.4, world.random.nextGaussian() * 0.3);
-					}
-				}
-			} else if (age < strike && age % 2 == 0) {
+			// The blade burns: fire, embers and heat smoke shed all along it (left behind as it falls: a wake).
+			float alive = 1 - (float) clamp01((age - strike - 140) / 60.0);
+			if (alive > 0.02F) {
 				Vec3d tip = c.add(0, point(age), 0);
-				for (int i = 0; i < 6; i++) {
-					world.addImportantParticle(ParticleTypes.FLAME, true, tip.x + world.random.nextGaussian() * 4, tip.y + 30 + world.random.nextDouble() * 160,
-							tip.z + world.random.nextGaussian() * 4, 0, 0.8, 0);
-				}
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.SWORD_FLAME, tip.x, tip.y, tip.z, 0, 230, 0, alive, 0, age * 2269L);
 			}
 			return super.tick(world);
 		}
@@ -618,17 +607,6 @@ public final class CityFx {
 				float flick = 0.7F + 0.3F * MathHelper.sin(a * 0.9F + i * 1.7F);
 				FxDraw.ribbon(glow, m, p0, p1, Vec3d.ZERO, width * 0.22, 0xFFF0B0, 0.85F * flick * alive, 0.85F * flick * alive);
 			}
-			for (int k = 0; k < 18; k++) {
-				double u = Solids.hash(k, 3);
-				double life = ((a * 0.03 + Solids.hash(k, 4)) % 1.0);
-				Vec3d base = tip.add(up.multiply(blade * u)).add(side.multiply((Solids.hash(k, 5) - 0.5) * width));
-				Vec3d lick = base.add(side.multiply((Solids.hash(k, 6) - 0.5) * 20 * life)).add(0, 30 * life, 0);
-				FxDraw.ribbon(glow, m, base, lick, Vec3d.ZERO, 6 * (1 - life), life < 0.5 ? 0xFFA030 : 0xFF4010, 0.7F * (float) (1 - life) * alive, 0.0F);
-				if (k % 2 == 0) {
-					FxSprites.billboard(FxKit.glow(consumers), m, base.lerp(lick, 0.5), cb, 7 * (1 - life) + 2, Solids.hash(k, 7) * 6 + a * 0.05,
-							FxSprites.FIRE + (k & 1), life < 0.5 ? 0xFFB040 : 0xFF5010, 0.75F * (float) (1 - life) * alive, FxSprites.FULL_BRIGHT);
-				}
-			}
 			// Crossguard, grip and pommel.
 			Solids.tube(solid, m, guard.subtract(side.multiply(38)), guard.add(side.multiply(38)), 4.5, 4.5, 8, 0x3A1A0A, 1.0F, true);
 			FxDraw.ribbon(glow, m, guard.subtract(side.multiply(40)), guard.add(side.multiply(40)), Vec3d.ZERO, 3.0, 0xFF8030, 0.8F * alive, 0.8F * alive);
@@ -648,7 +626,6 @@ public final class CityFx {
 			if (a < strike) {
 				// Falling: a burning wake streaming up from the blade.
 				float k = (float) clamp01(a / strike);
-				FxDraw.beam(glow, m, guard, guard.add(0, 300, 0), Vec3d.ZERO, width * 0.7, 0xFF6020, 0.4F * k);
 				Solids.dot(glow, m, tip, cb, width * 1.6, 0xFFC060, 0.6F * k);
 				// The target burns ahead of it: a ring of fire marking the strike.
 				FxDraw.ring(glow, m, g.add(0, 0.6, 0), side, fwd, 24 * (1 - k * 0.6), 30 * (1 - k * 0.6), 0xFF6020, 0.0F, 0.8F * k, 0.0F, 48);

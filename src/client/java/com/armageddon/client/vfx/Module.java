@@ -134,6 +134,33 @@ public interface Module {
 		};
 	}
 
+	/**
+	 * A tornado funnel standing on the emitter: particles are held to a wall whose radius grows from {@code r0} at the
+	 * ground to {@code r1} at {@code height} (shaped by {@code power}), and driven round it at {@code spin} blocks a
+	 * tick, faster toward the top. They carry most of the funnel's own motion, so the upper parts lag and it leans
+	 * into its track.
+	 */
+	static Module funnel(float height, float r0, float r1, float power, float spin, float pull) {
+		return (em, p) -> {
+			float s = em.scale, top = height * s, cvx = em.fx.cvx * 0.85F, cvz = em.fx.cvz * 0.85F;
+			for (int i = 0; i < p.count; i++) {
+				float dx = p.x[i] - em.ox, dz = p.z[i] - em.oz;
+				float d = (float) Math.sqrt(dx * dx + dz * dz);
+				if (d < 1.0E-3F) {
+					dx = 1.0E-3F;
+					d = 1.0E-3F;
+				}
+				float h = Math.max(0, Math.min(1, (p.y[i] - em.oy) / top));
+				float wall = (r0 + (r1 - r0) * (float) Math.pow(h, power)) * s;
+				float ux = dx / d, uz = dz / d;
+				float tan = spin * em.scaleSpeed * (0.6F + 0.4F * h), rad = (wall - d) * pull;
+				float tx = -uz * tan + ux * rad + cvx, tz = ux * tan + uz * rad + cvz;
+				p.vx[i] += (tx - p.vx[i]) * 0.2F;
+				p.vz[i] += (tz - p.vz[i]) * 0.2F;
+			}
+		};
+	}
+
 	/** Pull toward the emitter's centre; particles that arrive within {@code killRadius} (at scale 1) die. */
 	static Module attract(float strength, float killRadius) {
 		return (em, p) -> {

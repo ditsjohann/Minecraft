@@ -283,6 +283,14 @@ final class SciFx {
 
 		@Override
 		public boolean tick(ClientWorld world) {
+			if (age >= Tesla.ORB && age < Tesla.DISCHARGE + 3) {
+				// The ball lightning is alive: a particle plasma ball, growing on the crown until it discharges.
+				float k = MathHelper.clamp((age - Tesla.ORB) / (float) (Tesla.DISCHARGE - Tesla.ORB), 0.0F, 1.0F);
+				double r = 2 + k * 11;
+				Vec3d orb = Tesla.crown(g, age).add(0, 4 + r * 0.6, 0);
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.BALL_LIGHTNING, orb.x, orb.y, orb.z, 0, 1, 0, (float) (r / 6.0), 0,
+						age * 6151L);
+			}
 			if (age >= Tesla.STORM && age < Tesla.DISCHARGE && age % 3 == 0) {
 				ClientFx.light(Tesla.crown(g, age), 0.4F, 0x90D0FF);
 			}
@@ -360,14 +368,8 @@ final class SciFx {
 				double r = 2 + k * 11;
 				Vec3d orb = crown.add(0, 4 + r * 0.6, 0);
 				float boom = a > Tesla.DISCHARGE ? fadeOut(a, Tesla.DISCHARGE, 6) : 1.0F;
-				FxDraw.sphere(glow, m, orb, r, Vec3d.ZERO, 0xE8F8FF, 0.7F * boom, 0.3F * boom, 14, 20);
+				// The ball itself is particles (BALL_LIGHTNING, played in tick); this is the light it throws around.
 				FxKit.halo(consumers, m, cb, orb, r * 2.4, 0x70B8FF, 0.3F * boom);
-				for (int j = 0; j < 10; j++) {
-					Vec3d d = Cinematics.sphereDir(j + (int) (a * 0.7F) * 13, 41);
-					Vec3d p = orb.add(d.multiply(r));
-					Vec3d q = p.add(d.multiply(r * 0.8)).add(cb[1].multiply(Math.sin(a + j) * 2));
-					FxDraw.ribbon(glow, m, p, q, Vec3d.ZERO, 0.35, 0xFFFFFF, 0.8F * boom, 0.0F);
-				}
 			}
 			if (a >= Tesla.DISCHARGE && a < Tesla.DISCHARGE + 40) {
 				float e = a - Tesla.DISCHARGE;

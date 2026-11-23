@@ -8,7 +8,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Heightmap;
@@ -79,31 +78,12 @@ public class EternalTreeFx extends FxEffect {
 		boolean near = cam.squaredDistanceTo(base) < 360 * 360;
 		float fade = (float) Cinematics.clamp01((lifetime - age) / 200.0);
 		if (near && fade > 0) {
-			double h = height(age);
-			if (age < EternalTree.WORLD_START) {
-				if (age % 3 == 0) {
-					world.addImportantParticle(ParticleTypes.HAPPY_VILLAGER, true, base.x + (world.random.nextDouble() - 0.5) * h,
-							base.y + world.random.nextDouble() * h, base.z + (world.random.nextDouble() - 0.5) * h, 0, 0.02, 0);
-				}
-			} else {
-				double crown = Math.max(20, h * 0.8);
-				double spread = 45 * s;
-				int n = (int) (6 * fade);
-				for (int i = 0; i < n; i++) {
-					double x = base.x + world.random.nextGaussian() * spread * 0.5, z = base.z + world.random.nextGaussian() * spread * 0.5;
-					double y = base.y + crown + world.random.nextGaussian() * 10 * s;
-					world.addImportantParticle(i % 3 == 0 ? ParticleTypes.CHERRY_LEAVES : ParticleTypes.SPORE_BLOSSOM_AIR, true, x, y, z, 0, -0.02, 0);
-				}
-				double ang = world.random.nextDouble() * MathHelper.TAU;
-				double y = world.random.nextDouble() * h;
-				double r = trunkR(age, y) + 0.8;
-				world.addImportantParticle(ParticleTypes.END_ROD, true, base.x + Math.cos(ang) * r, base.y + y, base.z + Math.sin(ang) * r, 0, 0.25, 0);
-				// Petals drifting down around whoever is standing under the canopy.
-				if (h > EternalTree.height(s) * 0.75 && Math.hypot(cam.x - base.x, cam.z - base.z) < 60 * s + 10) {
-					for (int i = 0; i < 3; i++) {
-						world.addImportantParticle(ParticleTypes.CHERRY_LEAVES, true, cam.x + world.random.nextGaussian() * 10,
-								cam.y + 6 + world.random.nextDouble() * 10, cam.z + world.random.nextGaussian() * 10, 0, -0.02, 0);
-					}
+			if (age >= EternalTree.WORLD_START) {
+				// The canopy is alive once the crown is up: fireflies, pollen, petals and leaves (CANOPY).
+				double top = Math.min(EternalTree.height(s), EternalTree.front(s, age)), crownY = EternalTree.height(s) * 0.72;
+				if (top > crownY && age % 4 == 0) {
+					com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.CANOPY, base.x, base.y + EternalTree.height(s) * 0.7, base.z, 0, 1, 0,
+							(float) Math.max(0.6, s) * fade, 0, age * 4271L);
 				}
 			}
 		}
@@ -154,7 +134,6 @@ public class EternalTreeFx extends FxEffect {
 			if (top > crownY) {
 				float grown = (float) Cinematics.clamp01((top - crownY) / 30.0) * fade;
 				godRays(glow, m, b, a, grown);
-				fireflies(glow, m, cb, b, a, grown);
 			}
 		}
 		// Each root, as it lands, sends a pulse of light racing down its length.
@@ -207,19 +186,6 @@ public class EternalTreeFx extends FxEffect {
 			float flicker = (float) (0.55 + 0.45 * Math.sin(a * 0.035 + i * 1.7));
 			Solids.tube(glow, m, top, bottom, 1.2 * s + 0.6, 3.6 * s + 1.2, 8, 0xFFF0C0, 0.05F * k * flicker, false);
 			FxDraw.disc(glow, m, bottom.add(0, 0.2, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 4 * s + 1.5, 0xFFF0C0, 0.25F * k * flicker, 0.0F, 14);
-		}
-	}
-
-	/** Fireflies and pollen sparks drifting lazily through and under the canopy. */
-	private void fireflies(VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d b, float a, float k) {
-		double crown = EternalTree.height(s) * 0.7;
-		for (int i = 0; i < 70; i++) {
-			double ang = Solids.hash(i, 81) * MathHelper.TAU + a * 0.004 * (1 + Solids.hash(i, 82));
-			double r = 10 + 45 * s * Solids.hash(i, 83);
-			double y = crown * (0.15 + 0.85 * Solids.hash(i, 84)) + Math.sin(a * 0.05 + i) * 2.5;
-			Vec3d p = b.add(Math.cos(ang) * r, y, Math.sin(ang) * r);
-			float blink = (float) Math.max(0, Math.sin(a * 0.09 + i * 2.3));
-			Solids.dot(glow, m, p, cb, 0.35 + 0.3 * s, i % 5 == 0 ? 0xFFE080 : 0xC8FF70, 0.9F * k * blink);
 		}
 	}
 }

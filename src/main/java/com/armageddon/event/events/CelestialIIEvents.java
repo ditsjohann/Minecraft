@@ -1293,9 +1293,6 @@ public final class CelestialIIEvents {
 			// Far out of view the beam only paints the sky: carving unloaded chunks would load them (lag) and hit bedrock.
 			if (on && world.isChunkLoaded(BlockPos.ofFloored(b))) {
 				Vec3d g = Kit.ground(world, b.x, b.z);
-				if (t % 2 == 0) {
-					Vfx.play(world, VfxIds.UFO_BEAM, g, new Vec3d(0, ship.y - g.y, 0), 1.0F, 0);
-				}
 				// The scorched trail: a ribbon of blue glass with light buried under its spine.
 				BlockPos bp = BlockPos.ofFloored(g);
 				for (int dx = -1; dx <= 1; dx++) {

@@ -240,6 +240,14 @@ public final class VfxIds {
 	public static final String EATER_PULSE = "eater_pulse";
 	public static final String WORM_HEAVE = "worm_heave";
 	public static final String WORM_SKIN = "worm_skin";
+	// set pieces
+	public static final String TWISTER_FUNNEL = "twister_funnel";
+	public static final String WALL_CLOUD = "wall_cloud";
+	public static final String BALL_LIGHTNING = "ball_lightning";
+	public static final String SWORD_FLAME = "sword_flame";
+	public static final String TERMITE_SAWDUST = "termite_sawdust";
+	public static final String TERMITE_SPOIL = "termite_spoil";
+	public static final String CANOPY = "canopy";
 	public static final String WORM_MOUTH = "worm_mouth";
 	public static final String WORM_BREACH = "worm_breach";
 	public static final String MAW_VORTEX = "maw_vortex";
@@ -304,7 +312,7 @@ public final class VfxIds {
 			COW_SHADOW, COW_SHADOW_BIG, COW_STREAK, MILK_SPLASH, COW_DOOM, MILK_RAINBOW, TWISTER_BASE, TWISTER_RAIN, TWISTER_CALM,
 			UFO_BEAM, UFO_DRIVE, CROP_PULSE, ABDUCT_LIFT, FORK_HUM, DUST_DANCE, CASCADE_FRONT, FORK_SHATTER,
 			TESLA_HIT, TESLA_CORONA, BALL_FEED, TESLA_NOVA, TOWER_DUST, GRAVITY_HUM, GRAVITY_FLOAT, GRAVITY_SLAM,
-			MOON_TIDE, MOON_POCK, MOON_LANDING, MOON_SETTLE, MOON_GEODE, EATER_PULSE, WORM_HEAVE, WORM_SKIN, WORM_MOUTH, WORM_BREACH,
+			MOON_TIDE, MOON_POCK, MOON_LANDING, MOON_SETTLE, MOON_GEODE, EATER_PULSE, WORM_HEAVE, WORM_SKIN, WORM_MOUTH, TWISTER_FUNNEL, WALL_CLOUD, BALL_LIGHTNING, SWORD_FLAME, TERMITE_SAWDUST, TERMITE_SPOIL, CANOPY, WORM_BREACH,
 			MAW_VORTEX, MAW_SNAP, RAGNAROK_ASH, QUAKE_GEYSER, VENT_BURST, VENT_SPIT, SURTR_STRIKE, FIRE_GEYSER, FIRE_SIDE,
 			FROST_SIDE, STAR_IMPACT, PRISM_SHATTER, INVERT_RAIN, ACCRETION, VOID_COLLAPSE, COSMIC_NOVA, ABYSS_MOTES, DIRT_SPURT,
 			ANT_SKITTER, TERMITE_SWARM, MUD_FLING, TERMITE_CAVE, SAPLING_SPROUT, TREE_STAGE, TREE_FIREFLIES, ROOT_SLAM, TREE_BLOOM,

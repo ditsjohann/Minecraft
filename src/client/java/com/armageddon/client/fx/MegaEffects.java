@@ -8,7 +8,6 @@ import com.armageddon.util.Paths;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Heightmap;
@@ -42,12 +41,25 @@ public final class MegaEffects {
 
 		private Vec3d at(ClientWorld world, double t) {
 			Vec3d p = Paths.twister(start, dir, speed, t);
-			return new Vec3d(p.x, ground(world, p.x, p.z), p.z);
+			return new Vec3d(p.x, world == null ? start.y : ground(world, p.x, p.z), p.z);
 		}
 
 		@Override
 		public boolean tick(ClientWorld world) {
 			base = at(world, age);
+			// The funnel is a particle vortex riding the twister: smoke, streaks and debris held to its wall, and the wall
+			// cloud turning over it. Both carry the twister's motion, so the top lags and it leans into its track.
+			float env = ArsenalEffects.envelope(age, lifetime, 30, 40);
+			if (env > 0.05F) {
+				Vec3d v = at(world, age + 1).subtract(base);
+				com.armageddon.client.vfx.FxEngine.playMoving(com.armageddon.vfx.VfxIds.TWISTER_FUNNEL, base.x, base.y, base.z, 0, 1, 0,
+						(float) (radius / 24.0) * env, 0, age * 7919L, (float) v.x, 0, (float) v.z);
+				if (age % 3 == 0) {
+					Vec3d top = center(H, age);
+					com.armageddon.client.vfx.FxEngine.playMoving(com.armageddon.vfx.VfxIds.WALL_CLOUD, top.x, top.y, top.z, 0, 1, 0,
+							(float) (radius / 24.0), 0, age * 104729L, (float) v.x, 0, (float) v.z);
+				}
+			}
 			Vec3d cam = ClientFx.cameraPos();
 			double d = Math.hypot(cam.x - base.x, cam.z - base.z);
 			double reach = radius * 7;
@@ -60,14 +72,6 @@ public final class MegaEffects {
 				ClientFx.playGlobal(ModSounds.NUKE_RUMBLE, (float) MathHelper.clamp(1.0 - d / 400.0, 0.05, 1.0), 0.45F);
 			}
 			ClientFx.tintSky(0x2A323A, Math.min(0.85F, age / 60.0F) * (age > lifetime - 40 ? (lifetime - age) / 40.0F : 1.0F));
-			for (int i = 0; i < 14; i++) {
-				double ang = world.random.nextDouble() * MathHelper.TAU;
-				double h = world.random.nextDouble() * H;
-				double r = radius * (0.2 + 0.8 * Math.pow(h / H, 1.2)) * 1.1;
-				Vec3d c = center(h, age);
-				world.addImportantParticle(i % 3 == 0 ? ModParticles.SHOCK_DUST : ParticleTypes.CLOUD, true,
-						c.x + Math.cos(ang) * r, c.y, c.z + Math.sin(ang) * r, -Math.sin(ang) * 1.6, 0.5, Math.cos(ang) * 1.6);
-			}
 			if (age % 2 == 0) {
 				double h = world.random.nextDouble() * H * 0.9;
 				Vec3d a = center(h, age), b = center(Math.min(H, h + 40), age).add(world.random.nextGaussian() * radius * 0.5, 0, world.random.nextGaussian() * radius * 0.5);
@@ -79,64 +83,17 @@ public final class MegaEffects {
 		}
 
 		private Vec3d center(double h, double a) {
-			return base.add(Math.sin(h * 0.045 + a * 0.07) * h * 0.10, h, Math.cos(h * 0.04 + a * 0.05) * h * 0.10);
+			return base.add(0, h, 0);
 		}
 
 		@Override
 		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
 			float a = age + td;
 			float env = ArsenalEffects.envelope(a, lifetime, 30, 40);
-			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
-			Vec3d x = new Vec3d(1, 0, 0), z = new Vec3d(0, 0, 1);
 			boolean far = cam.distanceTo(base) > 420;
-			int layers = far ? 18 : 40;
-			int strands = far ? 6 : 12;
-			Vec3d[] prev = new Vec3d[strands];
-			Vec3d[] prevIn = new Vec3d[strands];
-			// The funnel wall: billows of dust and cloud spiralling up it, drawn back to front as real smoke.
-			java.util.List<Effects.Puff> funnel = FxKit.puffs();
-			for (int k = 0; k <= layers; k++) {
-				double h = H * k / layers;
-				float hf = (float) (h / H);
-				double r = 5 + (radius - 5) * Math.pow(hf, 1.4);
-				Vec3d c = center(h, a).subtract(cam);
-				int lit = hf < 0.25F ? Effects.fade(0x8A7660, 0x6E747C, hf / 0.25F) : Effects.fade(0x6E747C, 0xC4CCD4, (hf - 0.25F) / 0.75F);
-				int per = far ? 5 : 8;
-				for (int s = 0; s < per; s++) {
-					double ang = s * MathHelper.TAU / per + a * (0.3 + h * 0.0015) + h * 0.05 + Solids.hash(k, s) * 0.5;
-					Vec3d p = c.add(Math.cos(ang) * r * 0.82, (Solids.hash(k, s + 9) - 0.5) * H / layers, Math.sin(ang) * r * 0.82);
-					funnel.add(new Effects.Puff(p, r * 0.55 + 2, lit, Solids.scale(lit, 0.55), 0.55F * env));
-				}
-			}
-			FxKit.flush(funnel, consumers, m, cb);
-			for (int k = 0; k <= layers; k++) {
-				double h = H * k / layers;
-				float hf = (float) (h / H);
-				double r = 5 + (radius - 5) * Math.pow(hf, 1.4);
-				Vec3d c = center(h, a).subtract(cam);
-				// Dusty brown at the ground, slate in the middle, pale where it meets the storm.
-				int col = hf < 0.25F ? Effects.fade(0x5A4A3A, 0x464C54, hf / 0.25F) : Effects.fade(0x464C54, 0xA8B2BC, (hf - 0.25F) / 0.75F);
-				FxDraw.ring(shade, m, c, x, z, r * 0.2, r * 0.6, Solids.scale(col, 0.6), 0.0F, 0.2F * env, 0.0F, far ? 12 : 20);
-				for (int s = 0; s < strands; s++) {
-					double spin = a * (0.32 + h * 0.0016) + h * 0.05;
-					double ang = s * MathHelper.TAU / strands + spin;
-					Vec3d p = c.add(Math.cos(ang) * r, 0, Math.sin(ang) * r);
-					Vec3d q = c.add(Math.cos(ang + 0.9) * r * 0.62, 0, Math.sin(ang + 0.9) * r * 0.62);
-					if (prev[s] != null) {
-						int sc = Effects.fade(0x7A848E, 0xE4EAF0, hf);
-						FxDraw.ribbon(shade, m, prev[s], p, Vec3d.ZERO, r * 0.12, sc, 0.3F * env, 0.3F * env);
-						FxDraw.ribbon(shade, m, prevIn[s], q, Vec3d.ZERO, r * 0.08, Solids.scale(sc, 0.7), 0.22F * env, 0.22F * env);
-					}
-					prev[s] = p;
-					prevIn[s] = q;
-				}
-				if (k % 5 == 0) {
-					FxDraw.ring(glow, m, c, x, z, r * 0.95, r * 1.03, 0xB8C8FF, 0.0F, 0.1F * env, 0.0F, 28);
-				}
-			}
 			// Debris bands: chunks of the world orbiting at three heights.
 			if (!far) {
 				for (int band = 0; band < 3; band++) {
@@ -154,33 +111,7 @@ public final class MegaEffects {
 					}
 				}
 			}
-			// Dust skirt rolling out around the base.
-			Vec3d g = base.subtract(cam);
-			java.util.List<Effects.Puff> skirt = FxKit.puffs();
-			FxKit.dustRing(m, cb, g, radius * 1.05 + Math.sin(a * 0.1) * 2, radius * 0.5, 0x9A8668, 0x4E4232, 0.6F * env, 3, skirt);
-			FxKit.dustRing(m, cb, g, radius * 1.6, radius * 0.35, 0x8A7860, 0x4A4030, 0.35F * env, 4, skirt);
-			// Wall cloud: a dark rotating shelf of billows with spiral bands feeding the funnel.
 			Vec3d top = center(H, a).subtract(cam);
-			for (int i = 0; i < (far ? 14 : 26); i++) {
-				double ang = i * 2.39996 + a * 0.02;
-				double rr = radius * 3.0 * Math.sqrt((i + 0.5) / (far ? 14 : 26));
-				skirt.add(new Effects.Puff(top.add(Math.cos(ang) * rr, (Solids.hash(i, 71) - 0.5) * 6, Math.sin(ang) * rr), radius * 0.9,
-						0x6A7078, 0x26292E, 0.6F * env));
-			}
-			FxKit.flush(skirt, consumers, m, cb);
-			for (int arm = 0; arm < 4; arm++) {
-				Vec3d p0 = null;
-				for (int s2 = 0; s2 <= 16; s2++) {
-					double t = s2 / 16.0;
-					double ang = arm * MathHelper.TAU / 4 + t * 2.4 + a * 0.05;
-					double rr = radius * (0.4 + 2.6 * t);
-					Vec3d p = top.add(Math.cos(ang) * rr, 2 - t * 4, Math.sin(ang) * rr);
-					if (p0 != null) {
-						FxDraw.ribbon(shade, m, p0, p, new Vec3d(0, 400, 0), radius * 0.5 * (1 - t * 0.5), 0x5A6068, 0.4F * env * (float) (1 - t), 0.4F * env * (float) (1 - t));
-					}
-					p0 = p;
-				}
-			}
 			// Lightning flickering inside the wall cloud.
 			if (((int) (a * 0.7F) * 31 + (int) a) % 9 == 0) {
 				double ang = Solids.hash((int) a, 5) * MathHelper.TAU;
@@ -236,12 +167,10 @@ public final class MegaEffects {
 				if (bd < 160) {
 					ClientFx.shake = Math.max(ClientFx.shake, (float) (1 - bd / 160) * 4.0F);
 				}
-				for (int i = 0; i < 12; i++) {
-					double ang = world.random.nextDouble() * MathHelper.TAU;
-					double r = world.random.nextDouble() * radius * 0.3;
-					world.addImportantParticle(ModParticles.PLASMA_SPARK, true, lastBeam.x + Math.cos(ang) * r, lastBeam.y + 0.5, lastBeam.z + Math.sin(ang) * r,
-							Math.cos(ang) * 0.6, 0.8 + world.random.nextDouble(), Math.sin(ang) * 0.6);
-				}
+				// The beam's life is particles laid from the ground up to the hull: shimmer, rising motes, climbing rings, lifted dust.
+				Vec3d up = ship.add(0, -radius * 0.2, 0).subtract(lastBeam);
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.UFO_BEAM, lastBeam.x, lastBeam.y, lastBeam.z, (float) up.x,
+						(float) up.y, (float) up.z, (float) (radius / 95.0), 0, age * 3343L);
 			}
 			return super.tick(world);
 		}
@@ -318,27 +247,7 @@ public final class MegaEffects {
 				Solids.tube(glow, m, under, target, R * 0.08, R * 0.2, 14, 0x2080FF, 0.22F * rmp, false);
 				Solids.tube(glow, m, under, target, R * 0.03, R * 0.08, 10, 0x80C8FF, 0.5F * rmp, false);
 				FxDraw.beam(glow, m, under, target, Vec3d.ZERO, R * 0.05, 0xDFF4FF, rmp);
-				// Rings sliding down the beam, and motes rising up it.
-				Vec3d axis = target.subtract(under);
-				Vec3d[] bb = ArsenalEffects.basis(axis);
-				for (int k = 0; k < 6; k++) {
-					double t = ((a * 0.025 + k / 6.0) % 1.0);
-					Vec3d c = under.add(axis.multiply(t));
-					double rr = MathHelper.lerp(t, R * 0.12, R * 0.34);
-					FxDraw.ring(glow, m, c, bb[0], bb[1], rr * 0.8, rr, 0xA0D8FF, 0.0F, 0.5F * rmp * (float) Math.sin(t * Math.PI), 0.0F, 32);
-				}
-				for (int k = 0; k < 14; k++) {
-					double t = 1 - ((a * 0.015 + k / 14.0) % 1.0);
-					double ang = k * 2.4 + a * 0.1;
-					double rr = MathHelper.lerp(t, R * 0.1, R * 0.3) * (0.3 + 0.7 * Solids.hash(k, 3));
-					Vec3d c = under.add(axis.multiply(t)).add(bb[0].multiply(Math.cos(ang) * rr)).add(bb[1].multiply(Math.sin(ang) * rr));
-					Solids.dot(glow, m, c, cb, R * 0.02, 0xFFFFFF, 0.8F * rmp);
-				}
-				Vec3d groundC = target.add(0, 0.7, 0);
-				for (int k = 0; k < 3; k++) {
-					double rr = ((a * 3 + k * 20) % 60) / 60.0 * R * 0.35 + 2;
-					FxDraw.ring(glow, m, groundC, x, z, rr * 0.85, rr, 0x80C8FF, 0.0F, 0.8F * rmp, 0.0F, 40);
-				}
+				// The rings, motes and lifted ground in the beam are particles (UFO_BEAM, played in tick).
 				FxDraw.disc(glow, m, target.add(0, 0.8, 0), x, z, R * 0.3, 0xBFE8FF, 0.8F * rmp, 0.0F, 32);
 				FxDraw.disc(glow, m, target.add(0, 0.6, 0), x, z, R * 0.55, 0xFF7A30, 0.3F * rmp, 0.0F, 32);
 				Solids.dot(glow, m, target.add(0, 3, 0), cb, R * 0.25, 0xE0F4FF, 0.6F * rmp);

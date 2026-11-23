@@ -427,10 +427,27 @@ public final class NewFx {
 					oz[i] = pz[i];
 				}
 			}
+			// What the colony throws up, as particles: sawdust and splinters at the chewing front, spoil off the rising
+			// mound, and in the nuptial flight a dark cloud of wings rolling out over the land.
+			java.util.Random rnd = new java.util.Random(age * 31L);
 			if (t > Termite.EMERGE && t < Termite.EAT_END && age % 2 == 0) {
-				double a = world.random.nextDouble() * MathHelper.TAU;
-				double x = g.x + Math.cos(a) * front, z = g.z + Math.sin(a) * front;
-				world.addParticle(ParticleTypes.ASH, x, ground(x, z) + 0.3, z, 0, 0.05, 0);
+				for (int i = 0; i < 3; i++) {
+					double a = rnd.nextDouble() * MathHelper.TAU;
+					double x = g.x + Math.cos(a) * front, z = g.z + Math.sin(a) * front;
+					com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.TERMITE_SAWDUST, x, ground(x, z), z, 0, 1, 0, 1.0F, 0, age * 17L + i);
+				}
+			}
+			if (t > Termite.BUILD && t < Termite.BUILD_END && age % 3 == 0) {
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.TERMITE_SPOIL, g.x, g.y + hillH, g.z, 0, 1, 0, 1.0F, 0, age * 19L);
+			}
+			if (t > Termite.FLIGHT && t < Termite.FLIGHT_END && age % 2 == 0) {
+				double fly = Math.max(10, Termite.flightFront(t) * Math.min(1.0, (t - Termite.FLIGHT) / 120.0));
+				for (int i = 0; i < 3; i++) {
+					double a = rnd.nextDouble() * MathHelper.TAU, rr = fly * (0.78 + 0.22 * rnd.nextDouble());
+					double x = g.x + Math.cos(a) * rr, z = g.z + Math.sin(a) * rr;
+					com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.TERMITE_SWARM, x, ground(x, z) + 8 + rnd.nextDouble() * 20, z, 0, 1, 0,
+							1.6F, 0, age * 23L + i);
+				}
 			}
 			return super.tick(world);
 		}
@@ -462,50 +479,6 @@ public final class NewFx {
 				double twitch = Math.sin((age + tickDelta) * 1.7 + i) * 0.03;
 				FxDraw.ribbon(shade, m, p.add(head.multiply(0.12 * s)), p.add(head.multiply((0.26 + twitch) * s)), Vec3d.ZERO, 0.14 * s, col, fade, fade);
 			}
-			renderDust(consumers, m, cam, age + tickDelta, FxDraw.cameraBasis(camYaw, camPitch), fade);
-		}
-
-		/**
-		 * What the colony throws up: sawdust and splinters where the front is chewing through the town, plumes of spoil
-		 * off the mound while it is raised, and in the nuptial flight a dark cloud of wings rolling out over the land.
-		 */
-		private void renderDust(VertexConsumerProvider consumers, Matrix4f m, Vec3d cam, float a, Vec3d[] cb, float fade) {
-			java.util.List<Effects.Puff> dust = FxKit.puffs();
-			Vec3d gc = g.subtract(cam);
-			if (a > Termite.EMERGE && a < Termite.EAT_END + 30) {
-				double front = Termite.front(a);
-				float k = fade * (a > Termite.EAT_END ? 1 - (a - Termite.EAT_END) / 30.0F : 1.0F);
-				int n = 18 + (int) Math.min(30, front * 0.4);
-				for (int i = 0; i < n; i++) {
-					double ang = i * MathHelper.TAU / n + NewBombShapes.hash(i, 20) * 0.3;
-					double life = (a * 0.025 + NewBombShapes.hash(i, 21)) % 1.0;
-					double x = g.x + Math.cos(ang) * front, z = g.z + Math.sin(ang) * front;
-					Vec3d p = new Vec3d(x - cam.x, ground(x, z) - cam.y + 0.8 + life * 7, z - cam.z);
-					dust.add(new Effects.Puff(p, 1.8 + life * 4.5, 0xB89466, 0x3A2A1A, 0.55F * k * (float) (1 - life)));
-				}
-			}
-			if (a > Termite.BUILD && a < Termite.BUILD_END + 40) {
-				float k = fade * (a > Termite.BUILD_END ? 1 - (a - Termite.BUILD_END) / 40.0F : 1.0F);
-				double top = Termite.built(a) * Termite.HILL_H;
-				FxKit.column(gc.add(0, top, 0), 16 + top * 0.6, 4 + top * 0.12, a, 0xA08060, 0x302218, 0.5F * k, 251, dust);
-				FxKit.dustRing(m, cb, gc.add(0, 0.5, 0), Termite.HILL_R + 6, 5, 0x9A7A58, 0x2A2016, 0.45F * k, 252, dust);
-			}
-			if (a > Termite.FLIGHT && a < Termite.FLIGHT_END + 40) {
-				float k = fade * (a > Termite.FLIGHT_END ? 1 - (a - Termite.FLIGHT_END) / 40.0F : 1.0F) * Math.min(1.0F, (a - Termite.FLIGHT) / 40.0F);
-				double fly = Math.max(10, Termite.flightFront(a) * Math.min(1.0, (a - Termite.FLIGHT) / 120.0));
-				int n = 40;
-				for (int i = 0; i < n; i++) {
-					double ang = i * MathHelper.TAU / n + a * 0.004 + NewBombShapes.hash(i, 22) * 0.2;
-					double rr = fly * (0.78 + 0.22 * NewBombShapes.hash(i, 23));
-					Vec3d p = gc.add(Math.cos(ang) * rr, 8 + NewBombShapes.hash(i, 24) * 20 + Math.sin(a * 0.05 + i) * 2, Math.sin(ang) * rr);
-					dust.add(new Effects.Puff(p, 5 + rr * 0.05, 0x5A4A38, 0x140C08, 0.32F * k));
-				}
-				if (a < Termite.FLIGHT + 220) {
-					double top = Termite.built(a) * Termite.HILL_H;
-					FxKit.column(gc.add(0, top, 0), 50, 7, a, 0x5A4A38, 0x140C08, 0.55F * (1 - (a - Termite.FLIGHT) / 220.0F) * fade, 253, dust);
-				}
-			}
-			FxKit.flush(dust, consumers, m, cb);
 		}
 	}
 

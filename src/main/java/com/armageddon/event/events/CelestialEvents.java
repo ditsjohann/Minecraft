@@ -900,9 +900,7 @@ public final class CelestialEvents {
 				snapshotIslands();
 			}
 			if (t == 80) {
-				// The dark sphere becomes a black hole: an accretion disc spins up around it.
-				Vfx.spiral(world, sphere, 70.0F, 14.0F, 0xFF60FF, CelestialTimeline.FE_BREAK - 80);
-				Vfx.ring(world, sphere, 55.0F, 6.0F, 0xFFB0FF, false, CelestialTimeline.FE_BREAK - 80);
+				// The dark sphere becomes a black hole: its accretion disc, photon ring and jets are particles (ACCRETION).
 			}
 			if (t >= 80 && t < CelestialTimeline.FE_BREAK) {
 				if (t % 6 == 0) {
@@ -915,7 +913,9 @@ public final class CelestialEvents {
 					}
 				}
 				if (t % 6 == 0) {
-					Vfx.play(world, VfxIds.ACCRETION, sphere, 1.0F);
+					// Sized to the horizon (the orb grows from 2 to 40 blocks by the collapse).
+					float horizon = 2.0F + 38.0F * t / CelestialTimeline.FE_BREAK;
+					Vfx.play(world, VfxIds.ACCRETION, sphere, Math.max(0.6F, horizon / 20.0F));
 				}
 				if (t % 20 == 0) {
 					Vfx.shake(world, g, 2048, 0.8F + (t - 80) * 0.004F);
