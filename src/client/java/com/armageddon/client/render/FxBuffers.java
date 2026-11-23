@@ -77,7 +77,8 @@ public final class FxBuffers implements VertexConsumerProvider {
 
 	/** Draw order: opaque bodies first, then smoke, then everything additive. */
 	private static final List<RenderLayer> ORDER = List.of(FxRenderLayers.SOLID, SOLID_LIT, FxRenderLayers.VOID, FxRenderLayers.SHADE, SHADE_LIT,
-			FxSprites.SMOKE_LAYER, FxRenderLayers.GLOW, GLOW_LIT, FxSprites.GLOW_LAYER, FxRenderLayers.GLOW_NO_DEPTH, GLOW_TOP_LIT, FxSprites.GLOW_TOP_LAYER);
+			FxSprites.SMOKE_LAYER, FxSprites.BLEND_LAYER, FxRenderLayers.GLOW, GLOW_LIT, FxSprites.GLOW_LAYER, FxRenderLayers.GLOW_NO_DEPTH, GLOW_TOP_LIT,
+			FxSprites.GLOW_TOP_LAYER, FxSprites.BLEND_TOP_LAYER);
 
 	private static FxBuffers current;
 	private static Method irisInstance, irisInUse;
@@ -85,7 +86,8 @@ public final class FxBuffers implements VertexConsumerProvider {
 
 	private final VertexConsumerProvider.Immediate immediate;
 	private final Map<VertexConsumer, RenderLayer> owners = new IdentityHashMap<>();
-	private boolean shaders;
+	private boolean shaders, blend;
+	private Premultiplied smoke, glow, glowTop;
 
 	private FxBuffers() {
 		LinkedHashMap<RenderLayer, BufferAllocator> fixed = new LinkedHashMap<>();
@@ -102,6 +104,9 @@ public final class FxBuffers implements VertexConsumerProvider {
 		}
 		current.owners.clear();
 		current.shaders = shaderPack();
+		// One sorted premultiplied pass for smoke and glow, unless a shader pack is in charge (it wants vanilla programs).
+		current.blend = !current.shaders && FxSprites.blendReady();
+		current.smoke = current.glow = current.glowTop = null;
 		return current;
 	}
 
@@ -143,6 +148,21 @@ public final class FxBuffers implements VertexConsumerProvider {
 			out = new LitQuads(immediate.getBuffer(GLOW_LIT), true, false);
 		} else if (shaders && layer == FxRenderLayers.GLOW_NO_DEPTH) {
 			out = new LitQuads(immediate.getBuffer(GLOW_TOP_LIT), true, false);
+		} else if (blend && layer == FxSprites.SMOKE_LAYER) {
+			if (smoke == null) {
+				smoke = new Premultiplied(immediate.getBuffer(FxSprites.BLEND_LAYER), false);
+			}
+			out = smoke;
+		} else if (blend && layer == FxSprites.GLOW_LAYER) {
+			if (glow == null) {
+				glow = new Premultiplied(immediate.getBuffer(FxSprites.BLEND_LAYER), true);
+			}
+			out = glow;
+		} else if (blend && layer == FxSprites.GLOW_TOP_LAYER) {
+			if (glowTop == null) {
+				glowTop = new Premultiplied(immediate.getBuffer(FxSprites.BLEND_TOP_LAYER), true);
+			}
+			out = glowTop;
 		} else {
 			out = immediate.getBuffer(layer);
 		}
@@ -156,6 +176,54 @@ public final class FxBuffers implements VertexConsumerProvider {
 		}
 		immediate.draw();
 		owners.clear();
+	}
+
+	/**
+	 * Writes sprite quads into {@link FxSprites#BLEND_LAYER} with premultiplied colour: smoke keeps its alpha (it
+	 * covers what is behind it), glow gets alpha 0 (it only adds light). Both end up in one buffer that the game sorts
+	 * back to front, so they layer correctly against each other.
+	 */
+	static final class Premultiplied implements VertexConsumer {
+		private final VertexConsumer out;
+		private final boolean additive;
+
+		Premultiplied(VertexConsumer out, boolean additive) {
+			this.out = out;
+			this.additive = additive;
+		}
+
+		@Override
+		public VertexConsumer vertex(float x, float y, float z) {
+			out.vertex(x, y, z);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer color(int red, int green, int blue, int alpha) {
+			out.color(red * alpha / 255, green * alpha / 255, blue * alpha / 255, additive ? 0 : alpha);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer texture(float u, float v) {
+			out.texture(u, v);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer overlay(int u, int v) {
+			return this;
+		}
+
+		@Override
+		public VertexConsumer light(int u, int v) {
+			return this;
+		}
+
+		@Override
+		public VertexConsumer normal(float x, float y, float z) {
+			return this;
+		}
 	}
 
 	/** True if an Iris shader pack is rendering (looked up reflectively, so Iris stays optional). */

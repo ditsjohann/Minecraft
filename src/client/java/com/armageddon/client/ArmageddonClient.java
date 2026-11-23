@@ -67,6 +67,16 @@ public class ArmageddonClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(ClientEvents::tick);
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(FxWorldRenderer::render);
+		// The effects' own program. If it ever fails to load, effects fall back to the vanilla textured program.
+		net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback.EVENT.register(ctx -> {
+			try {
+				ctx.register(com.armageddon.Armageddon.id("fx"), net.minecraft.client.render.VertexFormats.POSITION_TEXTURE_COLOR,
+						com.armageddon.client.render.FxSprites::setProgram);
+			} catch (java.io.IOException | RuntimeException e) {
+				com.armageddon.client.render.FxSprites.setProgram(null);
+				com.armageddon.Armageddon.LOGGER.error("Armageddon effect shader failed to load; using the fallback", e);
+			}
+		});
 		WorldRenderEvents.LAST.register(com.armageddon.client.fx.Vision::render);
 		WorldRenderEvents.LAST.register(PostFx::updateLens);
 		HudRenderCallback.EVENT.register(WmdHud::render);

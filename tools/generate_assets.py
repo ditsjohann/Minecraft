@@ -588,6 +588,23 @@ def gen_shaders():
         "vertex": "sobel", "fragment": "armageddon_vision", "attributes": ["Position"],
         "samplers": [{"name": "DiffuseSampler"}, {"name": "DepthSampler"}], "uniforms": vu})
     shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), "armageddon_vision.fsh"), os.path.join(prog, "armageddon_vision.fsh"))
+    # The particle engine's own core program (registered by the client): premultiplied, unclipped, fogged.
+    core = os.path.join(ASSETS, "shaders", "core")
+    os.makedirs(core, exist_ok=True)
+    mat = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+    write_json(os.path.join(core, "fx.json"), {
+        "vertex": "armageddon:fx", "fragment": "armageddon:fx",
+        "samplers": [{"name": "Sampler0"}],
+        "uniforms": [{"name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": mat},
+                     {"name": "ProjMat", "type": "matrix4x4", "count": 16, "values": mat},
+                     {"name": "ColorModulator", "type": "float", "count": 4, "values": [1.0, 1.0, 1.0, 1.0]},
+                     {"name": "FogStart", "type": "float", "count": 1, "values": [0.0]},
+                     {"name": "FogEnd", "type": "float", "count": 1, "values": [1.0]},
+                     {"name": "FogColor", "type": "float", "count": 4, "values": [0.0, 0.0, 0.0, 0.0]},
+                     {"name": "FogShape", "type": "int", "count": 1, "values": [0]}]})
+    here = os.path.dirname(os.path.abspath(__file__))
+    shutil.copy(os.path.join(here, "armageddon_fx_core.vsh"), os.path.join(core, "fx.vsh"))
+    shutil.copy(os.path.join(here, "armageddon_fx_core.fsh"), os.path.join(core, "fx.fsh"))
 
 
 def gen_lang():

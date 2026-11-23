@@ -29,6 +29,10 @@ public abstract class RenderPhase {
 		public Transparency(String name) {
 			super(name, null, null);
 		}
+
+		public Transparency(String name, Runnable begin, Runnable end) {
+			super(name, null, null);
+		}
 	}
 
 	public static class WriteMaskState extends RenderPhase {

@@ -248,10 +248,40 @@ public final class PreviewMain {
 			return Mode.ALPHA;
 		}
 
+		/**
+		 * Like the game: opaque first, then the old flat shade, then the particle sprites (smoke and glow) together,
+		 * sorted back to front as the effect pass draws them, then the old flat glow, then what draws over everything.
+		 */
 		void drawInto(Raster r) {
+			Sink smoke = byLayer.get(FxSprites.SMOKE_LAYER), glow = byLayer.get(FxSprites.GLOW_LAYER);
 			for (Mode m : Mode.values()) {
+				if (m == Mode.ADD) {
+					List<float[][]> quads = new ArrayList<>();
+					List<Mode> modes = new ArrayList<>();
+					for (Sink s : new Sink[]{smoke, glow}) {
+						if (s == null) {
+							continue;
+						}
+						for (int i = 0; i + 3 < s.verts.size(); i += 4) {
+							quads.add(new float[][]{s.verts.get(i), s.verts.get(i + 1), s.verts.get(i + 2), s.verts.get(i + 3)});
+							modes.add(s.mode);
+						}
+					}
+					Integer[] order = new Integer[quads.size()];
+					double[] dist = new double[quads.size()];
+					for (int i = 0; i < order.length; i++) {
+						order[i] = i;
+						float[][] q = quads.get(i);
+						double x = (q[0][0] + q[2][0]) / 2, y = (q[0][1] + q[2][1]) / 2, z = (q[0][2] + q[2][2]) / 2;
+						dist[i] = x * x + y * y + z * z;
+					}
+					java.util.Arrays.sort(order, (p, q) -> Double.compare(dist[q], dist[p]));
+					for (int i : order) {
+						r.poly(quads.get(i), modes.get(i), true);
+					}
+				}
 				for (Sink s : sinks) {
-					if (s.mode == m) {
+					if (s.mode == m && s != smoke && s != glow) {
 						s.drawInto(r);
 					}
 				}

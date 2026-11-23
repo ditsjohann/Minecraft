@@ -135,5 +135,20 @@ def build():
     return Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8), "RGBA")
 
 
+def premultiply(img):
+    """The same atlas with colour multiplied by alpha, for the effect shader's premultiplied blending."""
+    from PIL import Image
+    px = img.convert("RGBA").load()
+    out = Image.new("RGBA", img.size)
+    po = out.load()
+    for y in range(img.size[1]):
+        for x in range(img.size[0]):
+            cr, cg, cb, ca = px[x, y]
+            po[x, y] = (cr * ca // 255, cg * ca // 255, cb * ca // 255, ca)
+    return out
+
+
 def write(path):
-    build().save(path)
+    img = build()
+    img.save(path)
+    premultiply(img).save(path.replace("atlas.png", "atlas_pm.png"))

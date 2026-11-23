@@ -1,6 +1,9 @@
 package com.armageddon.client.render;
 
 import com.armageddon.Armageddon;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.RenderLayer;
@@ -26,8 +29,58 @@ public final class FxSprites {
 	public static final int SMOKE = 0, DUST = 6, FIRE = 8, GLOW = 10, FLARE = 11, RING = 12, STREAK = 13, SHOCK = 14, WISP = 15;
 	public static final int FULL_BRIGHT = LightmapTextureManager.MAX_LIGHT_COORDINATE;
 
-	/** Textured colour without a cut-off: soft edges fade all the way out (the particle shader discards below 10%). */
+	/** Textured colour (the fallback path: it discards anything under 10% alpha, so soft edges are clipped). */
 	private static final RenderPhase.ShaderProgram PARTICLE = new RenderPhase.ShaderProgram(net.minecraft.client.render.GameRenderer::getPositionTexColorProgram);
+
+	public static final Identifier ATLAS_PM = Armageddon.id("textures/fx/atlas_pm.png");
+	/** The effect program, {@code armageddon:fx}; null until resources load, or if it failed to compile. */
+	private static ShaderProgram fxProgram;
+	private static final RenderPhase.ShaderProgram FX = new RenderPhase.ShaderProgram(() -> fxProgram);
+	/** Premultiplied alpha: alpha is how much of what is behind is covered, and colour is added on top. */
+	private static final RenderPhase.Transparency PREMULTIPLIED = new RenderPhase.Transparency("armageddon_premultiplied", () -> {
+		RenderSystem.enableBlend();
+		RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA,
+				GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
+	}, () -> {
+		RenderSystem.disableBlend();
+		RenderSystem.defaultBlendFunc();
+	});
+
+	/**
+	 * Smoke and glow together in one pass, sorted back to front, with the effect program: smoke in front of a fire
+	 * veils it, fire in front of smoke shines over it, soft edges are never clipped and distant effects take the fog.
+	 * Smoke goes in with its alpha, glow with alpha 0 (see {@link FxBuffers}).
+	 */
+	public static final RenderLayer BLEND_LAYER = RenderLayer.of("armageddon_fx_blend", VertexFormats.POSITION_TEXTURE_COLOR,
+			VertexFormat.DrawMode.QUADS, 262144, false, true,
+			RenderLayer.MultiPhaseParameters.builder()
+					.program(FX)
+					.texture(new RenderPhase.Texture(ATLAS_PM, true, false))
+					.transparency(PREMULTIPLIED)
+					.writeMaskState(RenderPhase.COLOR_MASK)
+					.cull(RenderPhase.DISABLE_CULLING)
+					.build(false));
+
+	/** The same, drawn through everything: the {@link #GLOW_TOP_LAYER} cores. */
+	public static final RenderLayer BLEND_TOP_LAYER = RenderLayer.of("armageddon_fx_blend_top", VertexFormats.POSITION_TEXTURE_COLOR,
+			VertexFormat.DrawMode.QUADS, 16384, false, true,
+			RenderLayer.MultiPhaseParameters.builder()
+					.program(FX)
+					.texture(new RenderPhase.Texture(ATLAS_PM, true, false))
+					.transparency(PREMULTIPLIED)
+					.writeMaskState(RenderPhase.COLOR_MASK)
+					.depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
+					.cull(RenderPhase.DISABLE_CULLING)
+					.build(false));
+
+	public static void setProgram(ShaderProgram program) {
+		fxProgram = program;
+	}
+
+	/** True once the effect program has loaded: then smoke and glow go through {@link #BLEND_LAYER}. */
+	public static boolean blendReady() {
+		return fxProgram != null;
+	}
 
 	/** Alpha-blended, lit by the world: smoke, dust, ash. */
 	public static final RenderLayer SMOKE_LAYER = RenderLayer.of("armageddon_fx_smoke", VertexFormats.POSITION_TEXTURE_COLOR,
