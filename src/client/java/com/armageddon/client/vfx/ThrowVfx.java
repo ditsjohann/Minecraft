@@ -82,6 +82,7 @@ final class ThrowVfx {
 		SetPieceVfx.register();
 		WorldVfx.register();
 		BombVfx.register();
+		BombVfx2.register();
 	}
 
 	// ------------------------------------------------------------------ throw and warning light

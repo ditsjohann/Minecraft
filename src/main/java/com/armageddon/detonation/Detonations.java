@@ -167,6 +167,7 @@ public final class Detonations {
 	public static void omega(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
 		int radius = 78;
 		ModNetworking.sendFx(world, pos, 4096, new FxPayload(FxType.OMEGA, pos, radius, 0xFF3020));
+		Vfx.play(world, com.armageddon.vfx.VfxIds.OMEGA_CRACK, pos, 1.0F);
 		ModNetworking.sendFx(world, pos, 4096, new FxPayload(FxType.NUKE, pos, radius, 0xFFDD88));
 		debris(world, pos, radius, 220);
 		blast(world, pos, radius * 3.5, 2000.0F, ModDamageTypes.ANNIHILATION, cause, radius * 3.0, 6.0);
@@ -222,7 +223,8 @@ public final class Detonations {
 
 	/** Cluster nuke: pops, then flings eight warheads that rain down in a ring. */
 	public static void clusterNuke(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
-		highExplosive(world, pos, cause, 4.0F, false);
+		highExplosive(world, pos, cause, 4.0F, false, true);
+		Vfx.play(world, com.armageddon.vfx.VfxIds.CLUSTER_POP, pos.add(0, 1.5, 0), 1.0F);
 		world.playSound(null, pos.x, pos.y, pos.z, ModSounds.NUKE_LAUNCH, SoundCategory.BLOCKS, 10.0F, 0.6F);
 		for (int i = 0; i < 8; i++) {
 			double a = Math.PI * 2 * i / 8 + world.random.nextDouble() * 0.3;

@@ -118,18 +118,15 @@ public final class CelestialEvents {
 			if (t == CelestialTimeline.LL_EXHALE) {
 				exhale(g);
 			}
-			if (t > CelestialTimeline.LL_EXHALE && t < CelestialTimeline.LL_END && t % 3 == 0) {
-				for (int i = 0; i < 8; i++) {
-					double a = world.random.nextDouble() * Math.PI * 2;
-					double d = Math.sqrt(world.random.nextDouble()) * r;
-					world.spawnParticles(ParticleTypes.WHITE_ASH, g.x + Math.cos(a) * d, g.y + world.random.nextDouble() * 24, g.z + Math.sin(a) * d,
-							1, 0.2, 0.2, 0.2, 0.01);
-				}
+			if (t > CelestialTimeline.LL_EXHALE && t < CelestialTimeline.LL_END && t % 8 == 0) {
+				// White ash falling in the silence.
+				Vfx.play(world, VfxIds.LL_ASH, g, (float) (r / 60.0));
 			}
 			if (t == CelestialTimeline.LL_END) {
 				// The dead star goes out with one last detonation in the sky.
 				Vfx.custom(world, FxType.SUPERNOVA, star, star, (float) (r * 0.45), 0xFFF0C0, 0, 0, 0, 0, Vfx.FAR);
-				Kit.boom(world, star, 12.0F, 0xFFF4E0, owner(), false);
+				Kit.blast(world, star, 12.0F, owner(), false);
+				Vfx.play(world, VfxIds.LL_DEATH, star, 1.0F);
 				Vfx.ring(world, g.add(0, 1, 0), (float) (r * 1.6), 4.0F, 0xFFF4E0, true, 50);
 				Vfx.flash(world, star, 1.0F, 3000, 0xFFFFFF);
 				Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.5F);
@@ -148,6 +145,7 @@ public final class CelestialEvents {
 			Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 56.0F, 0.5F + k * 0.04F);
 			Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 24.0F, 0.6F + k * 0.1F);
 			Vfx.shake(world, g, r * 3, 0.3F + k * 0.04F);
+			Vfx.play(world, VfxIds.LL_BEAT, g, (float) (r1 / 20.0));
 			for (LivingEntity e : Kit.living(world, g, r1 + 2)) {
 				double d = Math.hypot(e.getX() - g.x, e.getZ() - g.z);
 				if (d < r0 - 2) {
@@ -329,6 +327,9 @@ public final class CelestialEvents {
 			Vec3d cc = Vec3d.ofCenter(c);
 			if (t < CelestialTimeline.ZP_SNAP) {
 				freeze(cc);
+				if (t % 6 == 0) {
+					Vfx.play(world, VfxIds.ZP_HUSH, cc, r / 30.0F);
+				}
 				for (int k : CLOCK) {
 					if (t == k) {
 						Kit.sound(world, cc, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 24.0F, 1.3F - k * 0.006F);
@@ -348,12 +349,9 @@ public final class CelestialEvents {
 			}
 			if (t == CelestialTimeline.ZP_SNAP + 3) {
 				// Time restarts with a slight, icy burst out of the pinhole.
-				Kit.boom(world, cc, 4.5F, 0x9FEFFF, owner(), false);
+				Kit.blast(world, cc, 4.5F, owner(), false);
+				Vfx.play(world, VfxIds.ZP_SNAP, cc, r / 30.0F);
 				Vfx.ring(world, cc, r * 1.4F, 2.0F, 0xCFF8FF, true, 30);
-				world.spawnParticles(ParticleTypes.SNOWFLAKE, cc.x, cc.y, cc.z, 200, 1, 1, 1, 0.8);
-			}
-			if (t > CelestialTimeline.ZP_SNAP && t < CelestialTimeline.ZP_SNAP + 120 && t % 8 == 0) {
-				world.spawnParticles(ParticleTypes.SNOWFLAKE, cc.x, cc.y, cc.z, 40, r * 0.5, r * 0.5, r * 0.5, 0.01);
 			}
 			return t > CelestialTimeline.ZP_SNAP + 130;
 		}
@@ -512,6 +510,12 @@ public final class CelestialEvents {
 					ptr++;
 				}
 				Vec3d plane = new Vec3d(cx + 0.5 + dir.x * s, gy + 1, cz + 0.5 + dir.z * s);
+				if (t % 2 == 0 && Math.abs(s) < r) {
+					// The pass itself: the world coming apart into rising scanlines along the sweep line.
+					double half = Math.sqrt(r * r - s * s);
+					Vec3d side = new Vec3d(-dir.z, 0, dir.x);
+					Vfx.play(world, VfxIds.UM_PLANE, plane.subtract(side.multiply(half)), side.multiply(2 * half), 1.0F, 0);
+				}
 				if (t % 4 == 0) {
 					hitPlane(s);
 				}

@@ -338,6 +338,9 @@ public class StrikeMarkerEntity extends Entity {
 		if (this.age % 5 == 0) {
 			Detonations.pull(world, c, 90, 0.35);
 		}
+		if (this.age % 10 == 0 && this.age < OMEGA_CHARGE - 10) {
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.OMEGA_DRAW, c, 1.0F);
+		}
 		if (this.age % 20 == 0) {
 			world.playSound(null, c.x, c.y, c.z, ModSounds.BLACK_HOLE, SoundCategory.BLOCKS, 16.0F, 0.3F + this.age * 0.006F);
 		}

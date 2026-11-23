@@ -101,6 +101,9 @@ public final class LegendaryEvents {
 						Kit.damage(world, g, 3, 12.0F, ModDamageTypes.PLASMA, null, owner());
 					}
 				}
+				if (s % 6 == 0) {
+					Vfx.play(world, VfxIds.CROWN_RING, c, (float) (r / 20.0));
+				}
 				if (s % 12 == 0) {
 					Kit.sound(world, c, SoundEvents.BLOCK_BEACON_POWER_SELECT, 6.0F, 0.6F + s * 0.008F);
 				}
@@ -108,6 +111,7 @@ public final class LegendaryEvents {
 			if (t == 140) {
 				Vec3d g = c;
 				Vfx.pillar(world, g, 6.0F, 0xFFF0B0, false, 50);
+				Vfx.play(world, VfxIds.CROWN_BURST, g, 1.0F);
 				Vfx.dome(world, g, 30.0F, GOLD, 40);
 				Vfx.flash(world, g, 1.0F, 512, 0xFFF0B0);
 				Vfx.shake(world, g, 256, 2.6F);
@@ -320,7 +324,8 @@ public final class LegendaryEvents {
 			int wave = (t - 20) / 30;
 			if (t >= 20 && (t - 20) % 30 == 0 && wave < 5) {
 				double r = 10 + wave * 11;
-				Vfx.ring(world, c, (float) r * 1.6F, 2.0F, 0xFFA020, true, 30);
+				Vfx.ring(world, c, (float) r * 1.6F, 2.0F, 0xFFA020, false, 30);
+				Vfx.play(world, VfxIds.CONTINENT_HEAVE, c, (float) (r / 20.0));
 				Vfx.shake(world, c, 256, 1.4F + wave * 0.4F);
 				Kit.sound(world, c, ModSounds.GRAVITY_SLAM, 10.0F, 0.5F + wave * 0.1F);
 				Kit.ringCrack(world, c, r, 3 + wave, ModBlocks.GOLD_FISSURE.getDefaultState(), 0.75F);
@@ -373,6 +378,9 @@ public final class LegendaryEvents {
 					Kit.velocity(fb, target.subtract(fb.getPos()).multiply(0.15));
 				}
 			}
+			if (t % 10 == 0 && t > 40 && t < LIFE - 10) {
+				Vfx.play(world, VfxIds.DAWN_GATHER, star, 1.0F);
+			}
 			if (t % 20 == 0 && t > 40 && t < LIFE) {
 				if (Destruction.enabled(world)) {
 					Detonations.ignite(world, g, 14, 0.05F);
@@ -394,7 +402,7 @@ public final class LegendaryEvents {
 			}
 			if (t == LIFE) {
 				Kit.vanish(debris);
-				Vfx.layeredBlast(world, g, 14.0F, 0xFFD040);
+				Vfx.play(world, VfxIds.DAWN_RISE, g, 1.0F);
 				Vfx.dome(world, g, 40.0F, 0xFFC040, 40);
 				Vfx.ring(world, g, 70.0F, 3.0F, 0xFFE0A0, true, 40);
 				Vfx.flash(world, g, 1.0F, 768, 0xFFFFFF);

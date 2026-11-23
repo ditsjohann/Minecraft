@@ -50,11 +50,16 @@ public final class MythicEvents {
 				Vfx.screen(world, g, 256, 0, 0.4F, LIFE);
 				Kit.sound(world, g, ModSounds.ANTIMATTER, 16.0F, 0.4F);
 			}
+			if (t > 30 && t < LIFE - 40 && t % 4 == 0) {
+				// It weeps the whole time.
+				Vfx.play(world, VfxIds.BLOOD_RAIN, star, 1.0F);
+			}
 			if (t > 30 && t < LIFE && t % 6 == 0) {
 				double a = world.random.nextDouble() * Math.PI * 2;
 				double d = 6 + world.random.nextDouble() * 34;
 				Vec3d hit = Kit.ground(world, g.x + Math.cos(a) * d, g.z + Math.sin(a) * d);
 				Vfx.arc(world, star, hit, 0.8F, 0xFF3030);
+				Vfx.play(world, VfxIds.BLOOD_STRIKE, hit, 1.0F);
 				Kit.sound(world, hit, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 8.0F, 0.5F);
 				Kit.damage(world, hit, 3, 14.0F, ModDamageTypes.ELECTROCUTION, null, owner());
 				if (world.random.nextInt(3) == 0) {
@@ -68,13 +73,15 @@ public final class MythicEvents {
 				Vfx.shake(world, g, 256, 1.6F);
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 10.0F, 0.6F);
 			}
+			if (t == LIFE - 20) {
+				Vfx.play(world, VfxIds.BLOOD_NOVA, g.add(0, 6, 0), 1.0F);
+			}
 			if (t == LIFE - 40) {
 				Vfx.orb(world, star, 7.0F, 0.5F, CRIMSON, 2, 40);
 				Vfx.charge(world, host.getId(), star, 30.0F, CRIMSON, 40);
 				Kit.sound(world, g, ModSounds.BLACK_HOLE_COLLAPSE, 16.0F, 0.5F);
 			}
 			if (t == LIFE) {
-				Vfx.layeredBlast(world, g, 18.0F, CRIMSON);
 				Vfx.dome(world, g, 48.0F, 0xFF3030, 50);
 				Vfx.ring(world, g, 110.0F, 4.0F, 0xFF5050, true, 50);
 				Vfx.flash(world, g, 1.0F, 1024, 0xFF4040);

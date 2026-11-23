@@ -6,7 +6,6 @@ import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModEntities;
-import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
 import net.minecraft.block.AbstractFireBlock;
 import net.minecraft.block.Block;
@@ -101,13 +100,6 @@ public class StarEntity extends Entity {
 		int t = getAgeTicks();
 		World world = getWorld();
 		if (world.isClient) {
-			if (t > RISE && t < RISE + BURN) {
-				for (int i = 0; i < 6; i++) {
-					Vec3d d = new Vec3d(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).normalize();
-					Vec3d p = getPos().add(d.multiply(6.5));
-					world.addImportantParticle(ModParticles.EMBER, true, p.x, p.y, p.z, d.x * 0.3, d.y * 0.3, d.z * 0.3);
-				}
-			}
 			return;
 		}
 		ServerWorld server = (ServerWorld) world;
@@ -120,6 +112,10 @@ public class StarEntity extends Entity {
 			}
 			if (t % 2 == 0) {
 				heatRay(server);
+			}
+			if (t % 3 == 0) {
+				// Solar prominences: loops of fire thrown off the surface and pulled back in.
+				com.armageddon.network.Vfx.play(server, com.armageddon.vfx.VfxIds.NOVA_PROMINENCE, getPos(), 1.0F);
 			}
 			for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, new Box(getPos(), getPos()).expand(26, 40, 26), LivingEntity::isAlive)) {
 				e.setOnFireFor(4.0F);
@@ -155,6 +151,7 @@ public class StarEntity extends Entity {
 		int y = world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z);
 		Vec3d hit = new Vec3d(x + 0.5, y, z + 0.5);
 		ModNetworking.sendFx(world, getPos(), 1024, new FxPayload(FxType.HEAT_RAY, getPos(), hit, 0.6F, 0xFFB040, 0));
+		com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.NOVA_SCORCH, hit, 1.0F);
 		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, new Box(hit, hit).expand(3), LivingEntity::isAlive)) {
 			e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA, this, owner), 8.0F);
 			e.setOnFireFor(8.0F);
