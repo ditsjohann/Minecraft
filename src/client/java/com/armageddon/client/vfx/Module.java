@@ -69,6 +69,56 @@ public interface Module {
 		};
 	}
 
+	/**
+	 * A rolling vortex ring, as in a mushroom cap: every particle is eased toward the group's mean motion plus a
+	 * circulation around the ring the group itself forms (its mean height and mean distance from the axis), so smoke
+	 * climbs through the middle, rolls outward over the top and tucks back under the rim. The ring follows the group,
+	 * so it rises and slows with it. {@code speed}: circulation in blocks per tick at scale 1; {@code core}: radius of
+	 * the rolling tube; {@code grow}: how fast the ring widens.
+	 */
+	static Module roll(float speed, float core, float grow) {
+		return (em, p) -> {
+			int n = p.count;
+			if (n < 4) {
+				return;
+			}
+			float sr = 0, sy = 0, svx = 0, svy = 0, svz = 0;
+			for (int i = 0; i < n; i++) {
+				float dx = p.x[i] - em.ox, dz = p.z[i] - em.oz;
+				sr += (float) Math.sqrt(dx * dx + dz * dz);
+				sy += p.y[i];
+				svx += p.vx[i];
+				svy += p.vy[i];
+				svz += p.vz[i];
+			}
+			float ringR = sr / n, cy = sy / n, mvx = svx / n, mvy = svy / n, mvz = svz / n;
+			float a = core * em.scale, a2 = a * a;
+			float s = speed * em.scaleSpeed, g = grow * em.scaleSpeed;
+			for (int i = 0; i < n; i++) {
+				float dx = p.x[i] - em.ox, dz = p.z[i] - em.oz;
+				float h = (float) Math.sqrt(dx * dx + dz * dz);
+				if (h < 1.0E-3F) {
+					continue;
+				}
+				float ux = dx / h, uz = dz / h;
+				float dr = h - ringR, dy = p.y[i] - cy;
+				// Strongest one tube-radius from the core, gentle at the centre and far outside.
+				float f = 2 * s / (a * (1 + (dr * dr + dy * dy) / a2));
+				float out = dy * f + g, up = -dr * f;
+				// Smoke that wanders off the tube is drawn back onto it, so the cap stays a ring and not a ball.
+				float d = (float) Math.sqrt(dr * dr + dy * dy);
+				if (d > a) {
+					float pull = (d - a) / d * 0.04F;
+					out -= dr * pull;
+					up -= dy * pull;
+				}
+				p.vx[i] += (mvx + ux * out - p.vx[i]) * 0.08F;
+				p.vy[i] += (mvy + up - p.vy[i]) * 0.08F;
+				p.vz[i] += (mvz + uz * out - p.vz[i]) * 0.08F;
+			}
+		};
+	}
+
 	/** Pull toward the emitter's centre; particles that arrive within {@code killRadius} (at scale 1) die. */
 	static Module attract(float strength, float killRadius) {
 		return (em, p) -> {

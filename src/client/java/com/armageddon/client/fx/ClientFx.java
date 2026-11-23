@@ -457,7 +457,9 @@ public final class ClientFx {
 		// Light travels instantly.
 		flash(at, radius * 40, 1.0F, 0xFFF6E0);
 		add(new Effects.Fireball(at, radius * 1.15, 18, 110, 0xFFFFF0, 0xFF5A10));
-		add(new Effects.MushroomCloud(at, radius));
+		// The mushroom cloud is a particle-engine effect with several looks; its cap climbs to about 30 blocks at scale 1.
+		com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.MUSHROOM, at.x, at.y, at.z, 0, 1, 0,
+				(float) Math.min(220, radius * 4.2 + 20) / 32.0F, 0, world.random.nextLong());
 		add(new Effects.Ring(at, radius * 9, 0xFFE0B0, (int) (radius * 9 / 4.0), radius * 0.4, true));
 		add(new Effects.Ring(at, radius * 3, 0xFFFFFF, 30, radius * 0.25, false));
 		for (int i = 0; i < 4; i++) {

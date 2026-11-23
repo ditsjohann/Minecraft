@@ -21,6 +21,7 @@ import java.util.Map;
  */
 public final class FxEngine {
 	private static final Map<String, EffectDef> DEFS = new HashMap<>();
+	private static final Map<String, EffectDef[]> VARIANTS = new HashMap<>();
 	private static final List<EffectInstance> ACTIVE = new ArrayList<>();
 	private static EffectInstance[] drawOrder = new EffectInstance[16];
 	private static double[] drawDist = new double[16];
@@ -39,7 +40,26 @@ public final class FxEngine {
 		DEFS.put(def.name, def);
 	}
 
+	/**
+	 * Registers looks that share one name: each play picks one from its seed, so the same effect does not repeat
+	 * itself. Each is also reachable as {@code name#index}.
+	 */
+	public static void registerVariants(String name, EffectDef... defs) {
+		VARIANTS.put(name, defs);
+		for (EffectDef d : defs) {
+			register(d);
+		}
+	}
+
 	public static EffectDef get(String name) {
+		return resolve(name, 0);
+	}
+
+	static EffectDef resolve(String name, long seed) {
+		EffectDef[] v = VARIANTS.get(name);
+		if (v != null) {
+			return v[(int) Math.floorMod(seed ^ (seed >>> 29), (long) v.length)];
+		}
 		return DEFS.get(name);
 	}
 
@@ -57,7 +77,7 @@ public final class FxEngine {
 
 	/** Starts an effect on this client. Unknown names are ignored (a newer server talking to an older client). */
 	public static EffectInstance play(String name, double x, double y, double z, float dx, float dy, float dz, float scale, int color, long seed) {
-		EffectDef def = DEFS.get(name);
+		EffectDef def = resolve(name, seed);
 		if (def == null) {
 			Armageddon.LOGGER.debug("Unknown particle effect {}", name);
 			return null;

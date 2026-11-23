@@ -21,6 +21,8 @@ public final class VfxIds {
 	public static final String FIREWORK = "firework";
 	public static final String MUZZLE_FLASH = "muzzle_flash";
 	public static final String NUKE = "nuke";
+	/** The mushroom cloud alone (it has several looks; each blast picks one). */
+	public static final String MUSHROOM = "mushroom";
 
 	// goo bomb
 	public static final String GOO_DRIP = "goo_drip";
@@ -203,7 +205,7 @@ public final class VfxIds {
 	public static final String EXTINCTION_WALL = "extinction_wall";
 
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
-			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE,
+			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE, MUSHROOM,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD,
 			CACTUS_DUST, CACTUS_SPIKE, SPIKE_IMPACT, FORGE_STRIKE, FORGE_SHOCK,
 			SOUL_FLARE, SOUL_PILLAR, SOUL_VORTEX, SOUL_TRAIL, SOUL_SWEEP, INFRIT_IMPACT, INFRIT_BURST,

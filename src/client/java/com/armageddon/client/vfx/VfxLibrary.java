@@ -51,6 +51,7 @@ public final class VfxLibrary {
 		FxEngine.register(firework());
 		FxEngine.register(muzzleFlash());
 		FxEngine.register(nuke());
+		NukeVfx.register();
 		WildVfx.register();
 		WeaponVfx.register();
 		for (String id : VfxIds.ALL) {
@@ -330,47 +331,28 @@ public final class VfxLibrary {
 	}
 
 	/**
-	 * A nuclear detonation (fireball radius ~5 at scale 1): flash, rising fireball, shock ring and condensation
-	 * shell, a vortex stem, a mushroom cap lit from inside, a dust wall running out along the ground, falling
-	 * embers, then ash. The boom and the shake arrive at the speed of sound.
+	 * A nuclear detonation: flash, core glow, shock ring and condensation shell, a dust wall running out along the
+	 * ground and ash, around a mushroom cloud ({@link NukeVfx}, one of several looks). The boom and the shake arrive at
+	 * the speed of sound.
 	 */
 	static EffectDef nuke() {
 		return EffectDef.builder(VfxIds.NUKE).lod(200, 1400).maxAge(1100)
 				.emit(flash("flash", 25, 6, 0xFFE0B0).layer(Layer.GLOW_TOP).build())
 				.emit(EmitterDef.builder("core").priority(Priority.HERO).burst(1).size(18, 18).life(40, 40).sprite(FxSprites.GLOW)
 						.color(Gradient.of(0, 0xFFFFF0, 0.3F, 0xFFD080, 1, 0xFF6020)).alphaOverLife(Curve.FADE_OUT).build())
-				.emit(EmitterDef.builder("fireball").priority(Priority.HERO).rate(14, 30, Curve.FALL).shape(Shape.sphere(5))
-						.velocity(Velocity.radial(0.05F, 0.15F)).life(30, 50).size(2.5F, 4).spin(0.005F, 0.02F)
-						.module(Module.buoyancy(0.03F)).drag(0.1F).module(Module.curl(12, 0.01F))
-						.sprite(FxSprites.FIRE, 2).color(FIRE).sizeOverLife(Curve.POP).alphaOverLife(Curve.FADE).build())
 				.emit(2, EmitterDef.builder("shock").priority(Priority.HERO).burst(1).onGround().mode(Mode.FLAT).fixedRotation()
 						.size(60, 60).life(40, 40).sprite(FxSprites.SHOCK).sizeOverLife(Curve.EASE_OUT).alpha(0.6F)
 						.alphaOverLife(Curve.FADE_OUT).color(0xFFF0E0).build())
 				.emit(4, EmitterDef.builder("condensation").priority(Priority.HERO).burst(1).size(14, 14).life(24, 24).layer(Layer.SMOKE)
 						.sprite(FxSprites.RING).fixedRotation().sizeOverLife(Curve.keys(0, 0.5F, 1, 1.4F))
 						.alphaOverLife(Curve.keys(0, 0, 0.1F, 0.6F, 1, 0)).emissive(Curve.ONE).color(0xF4F4F8).build())
-				.emit(15, smoke("stem").priority(Priority.HERO).rate(6, 320, Curve.keys(0, 1, 0.4F, 0.8F, 1, 0)).shape(Shape.column(1.6F, 4))
-						.velocity(Velocity.up(0.25F, 0.35F, 0.08F)).module(Module.vortex(0.01F, 0.004F)).module(Module.buoyancy(0.02F))
-						.drag(0.04F).life(70, 110).size(1.6F, 2.6F).sizeOverLife(Curve.keys(0, 0.6F, 1, 1.6F)).alpha(0.9F).shade(0.6F)
-						.color(Gradient.of(0, 0x3A2A22, 0.5F, 0x6A5A50, 1, 0x8A8078)).emissive(Curve.keys(0, 1, 0.25F, 0.6F, 0.5F, 0)).build())
-				.emit(35, EmitterDef.builder("cap_fire").rate(4, 100, Curve.FALL).offset(0, 20, 0).shape(Shape.ring(3, 3))
-						.velocity(Velocity.radial(0.02F, 0.05F)).life(20, 40).size(2, 3).module(Module.buoyancy(0.005F))
-						.sprite(FxSprites.FIRE, 2).color(FIRE).alphaOverLife(Curve.FADE).build())
-				.emit(40, smoke("cap").priority(Priority.HERO).rate(8, 300, Curve.keys(0, 1, 0.5F, 0.6F, 1, 0)).offset(0, 20, 0)
-						.shape(Shape.ring(4, 3)).velocity(Velocity.radial(0.04F, 0.1F)).velocity(Velocity.up(0.02F, 0.05F, 0.4F))
-						.life(260, 400).size(3, 5).sizeOverLife(Curve.keys(0, 0.5F, 0.3F, 1.6F, 1, 2.8F)).alpha(0.9F)
-						.color(Gradient.of(0, 0x5A4038, 0.5F, 0x8A7A70, 1, 0xA09080)).emissive(Curve.keys(0, 0.9F, 0.3F, 0.4F, 0.6F, 0))
-						.module(Module.buoyancy(0.006F)).module(Module.wind(0.5F)).module(Module.curl(20, 0.004F)).drag(0.03F).build())
 				.emit(6, smoke("dust_wall").rate(30, 40).onGround().shape(Shape.ring(6, 2)).velocity(Velocity.radial(1.2F, 1.5F))
 						.life(50, 90).size(2, 3.5F).sprite(FxSprites.DUST, 2).sizeOverLife(Curve.keys(0, 0.5F, 1, 3)).color(DUST).alpha(0.8F)
 						.drag(0.035F).gravity(0.002F).shade(0.8F).build())
-				.emit(60, EmitterDef.builder("embers").priority(Priority.DETAIL).rate(6, 200).offset(0, 20, 0).shape(Shape.ring(8, 10))
-						.velocity(Velocity.random(0.01F, 0.04F)).gravity(0.006F).drag(0.03F).module(Module.jitter(0.002F))
-						.life(60, 120).size(0.08F, 0.12F).mode(Mode.STRETCHED).sprite(FxSprites.STREAK)
-						.color(Gradient.of(0, 0xFFD070, 0.6F, 0xFF5010, 1, argb(0x200000, 0))).alphaOverLife(Curve.FADE).build())
 				.emit(200, smoke("ash").priority(Priority.DETAIL).rate(3, 400).offset(0, 30, 0).shape(Shape.disc(30))
 						.gravity(0.003F).drag(0.05F).module(Module.jitter(0.003F)).module(Module.wind(1)).life(200, 300).size(0.06F, 0.1F)
 						.sprite(FxSprites.DUST, 2).sizeOverLife(Curve.ONE).color(0x3A3632).alpha(0.8F).build())
+				.cue(0, EffectDef.chain(VfxIds.MUSHROOM))
 				.cue(0, EffectDef.flash(0.38F, 400, 0xFFF0D0))
 				.cue(0, EffectDef.light(1.5F, 0xFFB060))
 				.sonic(0, EffectDef.shake(0.9F, 400))

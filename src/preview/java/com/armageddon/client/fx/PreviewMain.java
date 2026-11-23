@@ -116,7 +116,6 @@ public final class PreviewMain {
 			case "twister" -> new MegaEffects.Twister(a, h, 26, 0.35, 600);
 			case "ufo" -> new MegaEffects.Ufo(a.add(-200, 70, 0), a.add(200, 70, 0), 60, 600);
 			case "moon" -> new ArsenalEffects.Moon(a, 40, 500, 0xC8C8D0, 400);
-			case "nuke" -> new Effects.MushroomCloud(a, 30);
 			case "fireball" -> new Effects.Fireball(a.add(0, 6, 0), 12, 6, 60, 0xFFFFFF, 0xFF7020);
 			default -> throw new IllegalArgumentException("unknown scene " + name);
 		};

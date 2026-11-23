@@ -61,6 +61,24 @@ public interface Shape {
 		};
 	}
 
+	/**
+	 * A doughnut lying flat: points in a tube of radius {@code tube} around a horizontal ring of radius {@code radius}.
+	 * Outward is away from the ring's axis, so radial velocities widen it. Mushroom caps are born like this.
+	 */
+	static Shape torus(float radius, float tube) {
+		return (r, s, o) -> {
+			double a = r.next() * Math.PI * 2, b = r.next() * Math.PI * 2;
+			float t = tube * (float) Math.sqrt(r.next());
+			float ring = (radius + t * (float) Math.cos(b)) * s;
+			o[3] = (float) Math.cos(a);
+			o[4] = 0;
+			o[5] = (float) Math.sin(a);
+			o[0] = o[3] * ring;
+			o[1] = t * (float) Math.sin(b) * s;
+			o[2] = o[5] * ring;
+		};
+	}
+
 	/** A filled disc on the ground plane (uniform in area). */
 	static Shape disc(float radius) {
 		return (r, s, o) -> {
