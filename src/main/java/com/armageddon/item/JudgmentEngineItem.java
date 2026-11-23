@@ -6,6 +6,7 @@ import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModComponents;
 import com.armageddon.registry.ModItems;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -57,6 +58,7 @@ public class JudgmentEngineItem extends GunItem {
 				stack.set(ModComponents.HEAT, 0);
 				player.getItemCooldownManager().set(this, 100);
 				Vfx.steam(world, muzzle(player, 0.8), 2.0F);
+				Vfx.play(world, VfxIds.JUDGMENT_VENT, muzzle(player, 0.8), 1.0F);
 				world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.PLAYERS, 2.0F, 0.6F);
 				player.setOnFireFor(2);
 			}

@@ -181,6 +181,27 @@ public final class VfxIds {
 	public static final String MIDAS_TRAIL = "midas_trail";
 	public static final String MIDAS_BURST = "midas_burst";
 
+	// legendary and mythic callers
+	public static final String VERDICT_COUNT = "verdict_count";
+	public static final String VERDICT_STRIKE = "verdict_strike";
+	public static final String TITAN_TRAIL = "titan_trail";
+	public static final String TITAN_BUILDUP = "titan_buildup";
+	public static final String SHEAR_PLANE = "shear_plane";
+	public static final String SHEAR_CUT = "shear_cut";
+	public static final String JUDGMENT_TRAIL = "judgment_trail";
+	public static final String JUDGMENT_HIT = "judgment_hit";
+	public static final String JUDGMENT_VENT = "judgment_vent";
+	public static final String RIFT_MAW = "rift_maw";
+	public static final String RIFT_HIT = "rift_hit";
+	public static final String RIFT_COLLAPSE = "rift_collapse";
+	public static final String RIFT_BLAST = "rift_blast";
+	public static final String SPINDLE_SHAFT = "spindle_shaft";
+	public static final String SPINDLE_SWEEP = "spindle_sweep";
+	public static final String SPINDLE_PULSE = "spindle_pulse";
+	public static final String EXTINCTION_ASH = "extinction_ash";
+	public static final String IMPACTOR_STREAK = "impactor_streak";
+	public static final String EXTINCTION_WALL = "extinction_wall";
+
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD,
@@ -202,7 +223,9 @@ public final class VfxIds {
 			BOMBLET_TRAIL, SINGULARITY_TRAIL, MORTAR_TRAIL, METEOR_TRAIL, METEOR_IMPACT, ROD_TRAIL, ROD_IMPACT, BOMB_WHISTLE,
 			TARGET_LOCK, ORBITAL_IMPACT, STORM_CLOUDS, STORM_STRIKE,
 			WARDEN_SEAL, PARTY_TRAIL, HONK_BLAST, MICRO_IMPACT, TETHER_PULL, SIEGE_TRAIL, SIEGE_BLAST, RESONANCE_WAVE,
-			SUNLANCE_CHARGE, SUNLANCE_LINE, SUNLANCE_IMPACT, SPLIT_SLAM, SPLIT_FISSURE, SPLIT_FINALE, MIDAS_TRAIL, MIDAS_BURST);
+			SUNLANCE_CHARGE, SUNLANCE_LINE, SUNLANCE_IMPACT, SPLIT_SLAM, SPLIT_FISSURE, SPLIT_FINALE, MIDAS_TRAIL, MIDAS_BURST,
+			VERDICT_COUNT, VERDICT_STRIKE, TITAN_TRAIL, TITAN_BUILDUP, SHEAR_PLANE, SHEAR_CUT, JUDGMENT_TRAIL, JUDGMENT_HIT, JUDGMENT_VENT,
+			RIFT_MAW, RIFT_HIT, RIFT_COLLAPSE, RIFT_BLAST, SPINDLE_SHAFT, SPINDLE_SWEEP, SPINDLE_PULSE, EXTINCTION_ASH, IMPACTOR_STREAK, EXTINCTION_WALL);
 
 	private VfxIds() {
 	}

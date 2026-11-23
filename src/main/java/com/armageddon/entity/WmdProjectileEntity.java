@@ -522,6 +522,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case PARTY_ROCKET -> Vfx.play(world, VfxIds.BOUNCE_BURST, at.add(0, 1, 0), 1.6F);
 			case SIEGE_MISSILE -> Vfx.play(world, VfxIds.SIEGE_BLAST, at, 1.0F);
 			case MIDAS -> Vfx.play(world, VfxIds.MIDAS_BURST, at, 1.4F);
+			case JUDGMENT_BOLT -> Vfx.play(world, VfxIds.JUDGMENT_HIT, at, 0.8F + power / 100.0F);
 			case MIDAS_SPHERE -> Vfx.play(world, VfxIds.MIDAS_BURST, at, 0.8F + 0.1F * power);
 			case BOUNCE_BOMB -> Vfx.play(world, VfxIds.BOUNCE_BURST, at, 1.0F);
 			case LOOT_TORNADO -> Vfx.play(world, VfxIds.LOOT_BURST, at, 1.0F);

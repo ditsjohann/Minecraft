@@ -13,6 +13,7 @@ import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModBlocks;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -106,6 +107,7 @@ public final class MythicEvents {
 				warn(this, world, g, "message.armageddon.riftfall");
 				for (int i = 0; i < 4; i++) {
 					Vfx.portal(world, rift(i), new Vec3d(0, -1, 0), 10.0F, 0xFF3060, 280);
+					Vfx.play(world, VfxIds.RIFT_MAW, rift(i), 1.0F);
 				}
 				Vfx.skyTint(world, g, 384, 0x401020, 0.7F);
 				Kit.sound(world, g, ModSounds.BLACK_HOLE, 16.0F, 0.5F);
@@ -114,6 +116,7 @@ public final class MythicEvents {
 			if (t >= 40 && t < 100 && t % 3 == 0) {
 				Vec3d hit = Kit.ground(world, g.x + world.random.nextGaussian() * 18, g.z + world.random.nextGaussian() * 18);
 				Vfx.beam(world, rift(i), hit, 1.0F, 0xFF3060, 8);
+				Vfx.play(world, VfxIds.RIFT_HIT, hit, 1.0F);
 				Destruction.explode(world, null, hit.x, hit.y, hit.z, 3.0F, true);
 				Kit.damage(world, hit, 4, 16.0F, ModDamageTypes.PLASMA, null, owner());
 				Kit.sound(world, hit, ModSounds.PLASMA_IMPACT, 6.0F, 0.6F);
@@ -128,17 +131,20 @@ public final class MythicEvents {
 				Vec3d hit = Kit.ground(world, g.x + Math.cos(t) * 20, g.z + Math.sin(t) * 20);
 				Vfx.streak(world, rift((t / 10) % 4), hit, 1.5F, 0xFF8040, 8);
 				Detonations.nuke(world, hit, owner(), 6, false);
+				Vfx.play(world, VfxIds.NUKE, hit, 0.6F);
 			}
 			if (t == 240) {
 				for (int k = 0; k < 4; k++) {
 					Vfx.beam(world, rift(k), g, 3.0F, 0xFF3060, 30);
 				}
 				Vfx.orb(world, g, 18.0F, 0.0F, 0x200010, 1, 30);
+				Vfx.play(world, VfxIds.RIFT_COLLAPSE, g, 1.0F);
 				Vfx.screen(world, g, 256, 4, 0.8F, 10);
 				Kit.sound(world, g, ModSounds.BLACK_HOLE_COLLAPSE, 16.0F, 0.6F);
 			}
 			if (t == 270) {
 				Vfx.layeredBlast(world, g, 12.0F, 0xFF3060);
+				Vfx.play(world, VfxIds.RIFT_BLAST, g, 1.0F);
 				Vfx.flash(world, g, 1.0F, 768, 0xFFFFFF);
 				Vfx.shake(world, g, 384, 3.0F);
 				Kit.sound(world, g, ModSounds.ANTIMATTER, 16.0F, 0.8F);
@@ -167,6 +173,7 @@ public final class MythicEvents {
 			if (t == 40) {
 				Vfx.beam(world, top.add(0, 200, 0), g.add(0, -40, 0), 5.0F, 0xFF3020, 160);
 				Vfx.shake(world, g, 256, 2.4F);
+				Vfx.play(world, VfxIds.SPINDLE_SHAFT, g, 1.0F);
 				Kit.sound(world, g, ModSounds.DEATH_RAY, 16.0F, 0.4F);
 				if (Destruction.enabled(world)) {
 					DetonationManager.add(new LineCarveJob(world, g.add(0, 4, 0), g.add(0, -40, 0), 5.0, ModBlocks.MOLTEN_CORE.getDefaultState(), 0.5F, 0));
@@ -179,6 +186,9 @@ public final class MythicEvents {
 				Vfx.beam(world, top, p, 1.4F, 0xFF4030, 3);
 				Kit.sphere(world, BlockPos.ofFloored(p), 2.6, net.minecraft.block.Blocks.AIR.getDefaultState());
 				Kit.damage(world, p, 4, 40.0F, ModDamageTypes.PLASMA, null, owner());
+				if (t % 2 == 0) {
+					Vfx.play(world, VfxIds.SPINDLE_SWEEP, p, 1.0F);
+				}
 				if (t % 4 == 0) {
 					Kit.sound(world, p, ModSounds.FLAMETHROWER, 6.0F, 0.5F);
 				}
@@ -186,6 +196,7 @@ public final class MythicEvents {
 			if (t == 195) {
 				Vfx.ring(world, g, 80.0F, 3.0F, CRIMSON, true, 40);
 				Vfx.layeredBlast(world, top, 10.0F, CRIMSON);
+				Vfx.play(world, VfxIds.SPINDLE_PULSE, g, 1.0F);
 				Vfx.flash(world, g, 1.0F, 768, 0xFF6060);
 				Vfx.shake(world, g, 384, 3.0F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 16.0F, 0.7F);
@@ -207,6 +218,7 @@ public final class MythicEvents {
 				warn(this, world, g, "message.armageddon.extinction");
 				Vfx.skyCrack(world, g, 1.0F, 0xFF6020, 0, 320);
 				Vfx.skyTint(world, g, 512, 0x502010, 0.8F);
+				Vfx.play(world, VfxIds.EXTINCTION_ASH, g, 1.0F);
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 16.0F, 0.4F);
 			}
 			int wave = (t - 30) / 40;
@@ -220,11 +232,15 @@ public final class MythicEvents {
 			if (t == 200) {
 				Vfx.streak(world, g.add(-120, 260, -60), g, 8.0F, 0xFF7020, 40);
 				Vfx.orb(world, g.add(-120, 260, -60), 6.0F, 10.0F, 0xFF5010, 0, 40);
+				// Scale 1.9 also widens the send range to reach players on the ground under the sky crack.
+				Vfx.play(world, VfxIds.IMPACTOR_STREAK, g.add(-120, 260, -60), new Vec3d(120, -260, 60), 1.9F, 0);
 				Kit.title(world, g, 384, Text.translatable("message.armageddon.impact").formatted(Formatting.DARK_RED, Formatting.BOLD), Text.empty());
 				Kit.sound(world, g, ModSounds.JET_FLYBY, 16.0F, 0.3F);
 			}
 			if (t == 240) {
 				Vfx.layeredBlast(world, g, 20.0F, 0xFF6020);
+				Vfx.play(world, VfxIds.NUKE, g, 2.0F);
+				Vfx.play(world, VfxIds.EXTINCTION_WALL, g, 1.0F);
 				Vfx.dome(world, g, 60.0F, 0xFF8040, 60);
 				Vfx.ring(world, g, 130.0F, 4.0F, 0xFFA060, true, 60);
 				Vfx.flash(world, g, 1.0F, 1024, 0xFFE0C0);

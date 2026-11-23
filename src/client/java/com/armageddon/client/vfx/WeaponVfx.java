@@ -79,6 +79,8 @@ public final class WeaponVfx {
 			case PARTY_ROCKET -> VfxIds.PARTY_TRAIL;
 			case SIEGE_MISSILE -> VfxIds.SIEGE_TRAIL;
 			case MIDAS, MIDAS_SPHERE -> VfxIds.MIDAS_TRAIL;
+			case TITAN_MISSILE -> VfxIds.TITAN_TRAIL;
+			case JUDGMENT_BOLT -> VfxIds.JUDGMENT_TRAIL;
 			case SEISMIC_MINE -> VfxIds.SEISMIC_HUM;
 			case ION_FOG -> VfxIds.ION_GLOW;
 			case STASIS -> VfxIds.STASIS_HEX;
