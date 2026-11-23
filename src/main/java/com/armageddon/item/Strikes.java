@@ -44,7 +44,6 @@ public final class Strikes {
 		Vec3d start = target.subtract(dir.multiply(80)).add(0, 180, 0);
 		Vec3d v = target.subtract(start).normalize().multiply(4.0);
 		Kit.projectile(world, ProjectileKind.TITAN_MISSILE, start, v, player);
-		Vfx.streak(world, start, target, 2.0F, 0xFF9040, 50);
 		Vfx.warning(world, target, 0);
 		Kit.sound(world, target, ModSounds.JET_FLYBY, 10.0F, 0.4F);
 	}

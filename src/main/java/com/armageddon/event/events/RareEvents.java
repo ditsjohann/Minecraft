@@ -259,7 +259,7 @@ public final class RareEvents {
 				Vec3d sky = target.add(world.random.nextGaussian() * 2, 60, world.random.nextGaussian() * 2);
 				Vfx.streak(world, sky, target, 0.6F, 0x7AC8FF, 5);
 				com.armageddon.detonation.DetonationManager.schedule(world, 5, () -> {
-					Vfx.layeredBlast(world, target, 2.5F, 0x7AC8FF);
+					Vfx.shake(world, target, 48, 0.8F);
 					Vfx.play(world, VfxIds.MICRO_IMPACT, target, 1.3F);
 					Vfx.pillar(world, target, 1.0F, 0x7AC8FF, false, 12);
 					Destruction.explode(world, player, target.x, target.y, target.z, 2.6F, false);

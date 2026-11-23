@@ -8,6 +8,7 @@ import com.armageddon.registry.ModEntities;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModEffects;
 import com.armageddon.registry.ModGameRules;
@@ -56,7 +57,18 @@ public final class Detonations {
 	}
 
 	public static void nuke(ServerWorld world, Vec3d pos, @Nullable Entity cause, int radius, boolean leaveFallout) {
-		ModNetworking.sendFx(world, pos, STRATEGIC_FX_RANGE, new FxPayload(FxType.NUKE, pos, radius, 0xFFDD88));
+		nuke(world, pos, cause, radius, leaveFallout, false);
+	}
+
+	/** As above; {@code drawn} means the caller draws the cloud with the particle engine, so only the screen cues are sent. */
+	public static void nuke(ServerWorld world, Vec3d pos, @Nullable Entity cause, int radius, boolean leaveFallout, boolean drawn) {
+		if (drawn) {
+			Vfx.flash(world, pos, 1.0F, radius * 40, 0xFFF6E0);
+			Vfx.skyTint(world, pos, radius * 40, 0xFF6A20, 0.6F);
+			Vfx.shake(world, pos, radius * 16, Math.min(3.0F, 0.3F * radius));
+		} else {
+			ModNetworking.sendFx(world, pos, STRATEGIC_FX_RANGE, new FxPayload(FxType.NUKE, pos, radius, 0xFFDD88));
+		}
 		if (radius >= 8) {
 			debris(world, pos, radius * 1.1, Math.min(140, radius * 3));
 		}
@@ -169,7 +181,7 @@ public final class Detonations {
 
 	/** Heavy missile impact that gouges along its flight direction. */
 	public static void directional(ServerWorld world, Vec3d pos, Vec3d velocity, @Nullable Entity cause, float radius) {
-		ModNetworking.sendFx(world, pos, 512, new FxPayload(FxType.LAYERED_BLAST, pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, radius, 0xB070FF, 0, 0, 0, 0));
+		Vfx.shake(world, pos, radius * 12, Math.min(2.0F, 0.2F * radius));
 		blast(world, pos, radius * 2.5, 40.0F, ModDamageTypes.NUCLEAR_BLAST, cause, radius, 1.8);
 		if (blockDamage(world)) {
 			DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(pos), radius, CraterJob.Mode.DIRECTIONAL).withAxis(velocity));
@@ -180,7 +192,7 @@ public final class Detonations {
 	/** One of the Midas Cascade's escalating golden spheres. */
 	public static void midas(ServerWorld world, Vec3d pos, @Nullable Entity cause, int index) {
 		float size = 2.0F + index * 0.9F;
-		ModNetworking.sendFx(world, pos, 768, new FxPayload(FxType.LAYERED_BLAST, pos.x, pos.y, pos.z, pos.x, pos.y, pos.z, size, 0xFFC830, 0, 0, 0, 0));
+		Vfx.shake(world, pos, size * 12, Math.min(2.0F, 0.2F * size));
 		world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 4.0F + index, 1.3F - index * 0.1F);
 		blast(world, pos, size * 2.5, 10.0F + index * 6, ModDamageTypes.NUCLEAR_BLAST, cause, size, 1.2);
 		if (index >= 6) {
@@ -198,7 +210,6 @@ public final class Detonations {
 	/** Judgment Engine plasma bolt; hotter barrels hit harder. */
 	public static void judgment(ServerWorld world, Vec3d pos, @Nullable Entity source, int heat) {
 		float power = 1.4F + heat / 45.0F;
-		ModNetworking.sendFx(world, pos, 256, new FxPayload(FxType.FIREBALL, pos, power, 0xFFB020));
 		com.armageddon.destruction.Destruction.explode(world, source, pos.x, pos.y, pos.z, power, false);
 		com.armageddon.destruction.EnergyFields.emit(world, com.armageddon.destruction.EnergyFields.Energy.SOLAR, pos, 3, 60, source);
 	}
@@ -230,8 +241,7 @@ public final class Detonations {
 
 	/** Meteor strike: fiery crater, burning splatter, shockwave. */
 	public static void meteorImpact(ServerWorld world, Vec3d pos, @Nullable Entity cause) {
-		ModNetworking.sendFx(world, pos, 512, new FxPayload(FxType.FIREBALL, pos, 6.0F, 0xFF5010));
-		ModNetworking.sendFx(world, pos, 512, new FxPayload(FxType.SHOCKWAVE, pos, 18.0F, 0xFF9050));
+		Vfx.shake(world, pos, 72, 1.2F);
 		world.createExplosion(null, pos.x, pos.y, pos.z, 5.0F, true, blockDamage(world) ? World.ExplosionSourceType.TNT : World.ExplosionSourceType.NONE);
 		blast(world, pos, 10, 30.0F, ModDamageTypes.NUCLEAR_BLAST, cause, 8, 1.6);
 		if (blockDamage(world)) {
@@ -331,15 +341,23 @@ public final class Detonations {
 	}
 
 	public static void highExplosive(ServerWorld world, Vec3d pos, @Nullable Entity cause, float power, boolean fire) {
-		ModNetworking.sendFx(world, pos, 256, new FxPayload(FxType.FIREBALL, pos, power, 0xFF9944));
-		if (power >= 4.0F) {
-			ModNetworking.sendFx(world, pos, 256, new FxPayload(FxType.SHOCKWAVE, pos, power * 2.0F, 0xFFCC88));
+		highExplosive(world, pos, cause, power, fire, false);
+	}
+
+	/** As above; {@code drawn} means the caller draws the blast with the particle engine, so only a shake is sent. */
+	public static void highExplosive(ServerWorld world, Vec3d pos, @Nullable Entity cause, float power, boolean fire, boolean drawn) {
+		if (drawn) {
+			Vfx.shake(world, pos, power * 6, Math.min(1.2F, power * 0.15F));
+		} else {
+			ModNetworking.sendFx(world, pos, 256, new FxPayload(FxType.FIREBALL, pos, power, 0xFF9944));
+			if (power >= 4.0F) {
+				ModNetworking.sendFx(world, pos, 256, new FxPayload(FxType.SHOCKWAVE, pos, power * 2.0F, 0xFFCC88));
+			}
 		}
 		world.createExplosion(cause, pos.x, pos.y, pos.z, power, fire, blockDamage(world) ? World.ExplosionSourceType.TNT : World.ExplosionSourceType.NONE);
 	}
 
 	public static void incendiary(ServerWorld world, Vec3d pos, @Nullable Entity cause, int radius) {
-		ModNetworking.sendFx(world, pos, 256, new FxPayload(FxType.FIREBALL, pos, radius * 0.8F, 0xFF5500));
 		world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 3.0F, 0.6F);
 		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, new Box(pos, pos).expand(radius), LivingEntity::isAlive)) {
 			if (e.getPos().distanceTo(pos) <= radius) {

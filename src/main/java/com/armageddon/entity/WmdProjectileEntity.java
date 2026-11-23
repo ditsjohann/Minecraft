@@ -283,7 +283,6 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		Vec3d flat = new Vec3d(v.x, 0, v.z);
 		Vec3d fwd = flat.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : flat.normalize();
 		Vec3d side = new Vec3d(-fwd.z, 0, fwd.x);
-		ModNetworking.sendFx(world, getPos(), 512, new FxPayload(FxType.FIREBALL, getPos(), 2.0F, 0xFFC830));
 		Vfx.play(world, VfxIds.MIDAS_BURST, getPos(), 1.2F);
 		world.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, SoundCategory.PLAYERS, 6.0F, 0.5F);
 		for (int i = 0; i < 7; i++) {
@@ -442,21 +441,21 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			return;
 		}
 		switch (k) {
-			case MINI_NUKE -> Detonations.nuke(world, at, owner, 8);
-			case POCKET_NUKE -> Detonations.nuke(world, at, owner, 5);
-			case ROCKET, MIRV -> Detonations.highExplosive(world, at, this, 4.0F, false);
-			case BOMBLET -> Detonations.highExplosive(world, at, this, 2.6F, false);
+			case MINI_NUKE -> Detonations.nuke(world, at, owner, 8, true, true);
+			case POCKET_NUKE -> Detonations.nuke(world, at, owner, 5, true, true);
+			case ROCKET, MIRV -> Detonations.highExplosive(world, at, this, 4.0F, false, true);
+			case BOMBLET -> Detonations.highExplosive(world, at, this, 2.6F, false, true);
 			case PLASMA -> {
 				world.playSound(null, at.x, at.y, at.z, ModSounds.PLASMA_IMPACT, SoundCategory.PLAYERS, 1.0F, 1.0F + random.nextFloat() * 0.3F);
 			}
 			case CRYO -> Detonations.freezeBurst(world, at, owner, 5);
 			case SINGULARITY -> Detonations.singularity(world, at, owner, 4.0F, 180, true);
 			case FRAG -> {
-				Detonations.highExplosive(world, at, this, 2.8F, false);
+				Detonations.highExplosive(world, at, this, 2.8F, false, true);
 				Detonations.blast(world, at, 7, 10.0F, ModDamageTypes.SHRAPNEL, owner, 0, 0.4);
 			}
 			case PLASMA_GRENADE -> {
-				Detonations.highExplosive(world, at, this, 3.4F, false);
+				Detonations.highExplosive(world, at, this, 3.4F, false, true);
 				Detonations.blast(world, at, 5, 12.0F, ModDamageTypes.PLASMA, owner, 5, 0.6);
 			}
 			case CRYO_GRENADE -> Detonations.freezeBurst(world, at, owner, 6);
@@ -467,8 +466,8 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case ROD -> Detonations.kineticImpact(world, at, owner);
 			case BFG -> Detonations.bfgBurst(world, at, owner);
 			case GATLING_NUKE -> Detonations.nuke(world, at, owner, 3, false);
-			case FALLING_NUKE -> Detonations.nuke(world, at, owner, 7, false);
-			case AIR_BOMB -> Detonations.highExplosive(world, at, this, 4.5F, true);
+			case FALLING_NUKE -> Detonations.nuke(world, at, owner, 7, false, true);
+			case AIR_BOMB -> Detonations.highExplosive(world, at, this, 4.5F, true, true);
 			case SIEGE_MISSILE -> Detonations.directional(world, at, getVelocity(), owner, 7.0F);
 			case MIDAS_SPHERE -> Detonations.midas(world, at, owner, power);
 			case JUDGMENT_BOLT -> Detonations.judgment(world, at, this, power);
@@ -516,14 +515,14 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case BOMBLET -> Vfx.play(world, VfxIds.GRENADE_BLAST, at, 0.9F);
 			case SINGULARITY -> Vfx.play(world, VfxIds.GRAVITY_WELL, at, 1.6F);
 			case MORTAR -> Vfx.play(world, VfxIds.GRENADE_BLAST, at, 1.8F);
-			case METEOR -> Vfx.play(world, VfxIds.METEOR_IMPACT, at, 1.0F);
+			case METEOR -> Vfx.play(world, VfxIds.METEOR_IMPACT, at, 1.6F);
 			case ROD -> Vfx.play(world, VfxIds.ROD_IMPACT, at, 1.0F);
 			case AIR_BOMB -> Vfx.play(world, VfxIds.GRENADE_BLAST, at, 1.5F);
 			case PARTY_ROCKET -> Vfx.play(world, VfxIds.BOUNCE_BURST, at.add(0, 1, 0), 1.6F);
-			case SIEGE_MISSILE -> Vfx.play(world, VfxIds.SIEGE_BLAST, at, 1.0F);
-			case MIDAS -> Vfx.play(world, VfxIds.MIDAS_BURST, at, 1.4F);
+			case SIEGE_MISSILE -> Vfx.play(world, VfxIds.SIEGE_BLAST, at, 1.6F);
+			case MIDAS -> Vfx.play(world, VfxIds.MIDAS_BURST, at, 1.8F);
 			case JUDGMENT_BOLT -> Vfx.play(world, VfxIds.JUDGMENT_HIT, at, 0.8F + power / 100.0F);
-			case MIDAS_SPHERE -> Vfx.play(world, VfxIds.MIDAS_BURST, at, 0.8F + 0.1F * power);
+			case MIDAS_SPHERE -> Vfx.play(world, VfxIds.MIDAS_BURST, at, 1.0F + 0.25F * power);
 			case BOUNCE_BOMB -> Vfx.play(world, VfxIds.BOUNCE_BURST, at, 1.0F);
 			case LOOT_TORNADO -> Vfx.play(world, VfxIds.LOOT_BURST, at, 1.0F);
 			case MOONWALK_MINE -> Vfx.play(world, VfxIds.MOON_BURST, at, 1.0F);

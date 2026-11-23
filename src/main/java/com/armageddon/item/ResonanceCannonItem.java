@@ -33,7 +33,6 @@ public class ResonanceCannonItem extends GunItem {
 		Vec3d from = muzzle(player, 0.9);
 		Vec3d look = player.getRotationVec(1.0F);
 		Vec3d end = from.add(look.multiply(RANGE));
-		Vfx.soundwave(world, from, end, 2.5F, 0x70E0FF, 0.7F);
 		Vfx.play(world, VfxIds.RESONANCE_WAVE, from, end.subtract(from), 1.0F, 0);
 		world.playSound(null, from.x, from.y, from.z, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, SoundCategory.PLAYERS, 3.0F, 0.6F);
 		world.playSound(null, from.x, from.y, from.z, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 1.5F, 1.6F);

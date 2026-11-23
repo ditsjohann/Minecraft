@@ -46,7 +46,6 @@ public final class LegendaryEvents {
 		Vfx.flash(world, from, 0.5F, 96, 0xFFE070);
 		Vfx.shake(world, from, 64, 1.0F);
 		Vfx.light(world, to, 1.0F, 0xFFC040);
-		Vfx.layeredBlast(world, to, 4.0F, 0xFFC040);
 		Vfx.play(world, VfxIds.SUNLANCE_LINE, from, to.subtract(from), 1.0F, 0);
 		Vfx.play(world, VfxIds.SUNLANCE_IMPACT, to, 1.2F);
 		Kit.sound(world, from, ModSounds.DEATH_RAY, 6.0F, 0.7F);
@@ -135,7 +134,6 @@ public final class LegendaryEvents {
 			int t = age();
 			Vec3d c = center();
 			if (t == 0) {
-				Vfx.ring(world, c, 26.0F, 2.0F, 0xFFD070, true, 25);
 				Vfx.play(world, VfxIds.SPLIT_SLAM, c, 1.0F);
 				Vfx.shake(world, c, 128, 2.2F);
 				Kit.sound(world, c, ModSounds.GRAVITY_SLAM, 8.0F, 0.5F);
@@ -178,9 +176,7 @@ public final class LegendaryEvents {
 				Kit.drop(lifted, new Vec3d(0, -1.6, 0));
 			}
 			if (t == 38) {
-				Vfx.ring(world, c, 34.0F, 2.5F, 0xFFB000, true, 25);
 				Vfx.play(world, VfxIds.SPLIT_FINALE, c, 1.0F);
-				Vfx.layeredBlast(world, c, 5.0F, 0xFFC040);
 				Vfx.shake(world, c, 160, 2.8F);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 8.0F, 1.6F);
 				Detonations.blast(world, c, 26, 70.0F, ModDamageTypes.SHRAPNEL, owner(), 0, 2.6, owner());
@@ -210,7 +206,6 @@ public final class LegendaryEvents {
 				int n = 5 - t / 20;
 				Kit.title(world, c, 128, Text.literal(String.valueOf(n)).formatted(Formatting.GOLD, Formatting.BOLD),
 						Text.translatable("message.armageddon.verdict_sub").formatted(Formatting.YELLOW));
-				Vfx.ring(world, c, 28.0F - t * 0.2F, 0.8F, GOLD, false, 20);
 				Vfx.play(world, VfxIds.VERDICT_COUNT, c, (28.0F - t * 0.2F) / 14.0F);
 				Kit.sound(world, c, ModSounds.BOMB_BEEP, 8.0F, 0.6F + (100 - t) * 0.006F);
 			}
@@ -224,8 +219,6 @@ public final class LegendaryEvents {
 					g = Kit.ground(world, c.x + Math.cos(a) * 12, c.z + Math.sin(a) * 12);
 				}
 				Vfx.beam(world, g.add(0, 200, 0), g, k == 8 ? 4.0F : 2.0F, 0xFFF0A0, 20);
-				Vfx.pillar(world, g, k == 8 ? 5.0F : 2.5F, GOLD, false, 30);
-				Vfx.layeredBlast(world, g, k == 8 ? 6.0F : 3.5F, 0xFFC040);
 				Vfx.play(world, VfxIds.VERDICT_STRIKE, g, k == 8 ? 1.8F : 1.0F);
 				Vfx.flash(world, g, k == 8 ? 0.9F : 0.4F, 256, 0xFFF0B0);
 				Vfx.shake(world, g, 128, k == 8 ? 2.4F : 1.0F);
@@ -250,7 +243,6 @@ public final class LegendaryEvents {
 			Vec3d c = center();
 			Vec3d v = new Vec3d(data.getDouble("Vx"), -1, data.getDouble("Vz"));
 			if (t == 0) {
-				Vfx.layeredBlast(world, c, 7.0F, 0xFF9030);
 				Vfx.play(world, VfxIds.METEOR_IMPACT, c, 3.0F);
 				Vfx.flash(world, c, 0.7F, 256, 0xFFD090);
 				Vfx.shake(world, c, 160, 2.2F);
@@ -262,15 +254,11 @@ public final class LegendaryEvents {
 				Detonations.debris(world, c, 10, 60);
 			}
 			if (t > 0 && t < 40 && t % 8 == 0) {
-				Vfx.charge(world, host.getId(), c, 4.0F + t * 0.2F, 0xFF6020, 10);
 				Vfx.play(world, VfxIds.TITAN_BUILDUP, c, 1.0F + t * 0.02F);
 				Kit.sound(world, c, ModSounds.BOMB_BEEP, 6.0F, 0.6F + t * 0.03F);
 			}
 			if (t == 45) {
-				Vfx.layeredBlast(world, c, 11.0F, 0xFF6020);
 				Vfx.play(world, VfxIds.NUKE, c, 0.9F);
-				Vfx.dome(world, c, 24.0F, 0xFF9040, 30);
-				Vfx.ring(world, c, 50.0F, 3.0F, 0xFFB070, true, 30);
 				Vfx.flash(world, c, 1.0F, 512, 0xFFF0D0);
 				Vfx.shake(world, c, 256, 3.0F);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 14.0F, 0.8F);
@@ -294,7 +282,6 @@ public final class LegendaryEvents {
 			Vec3d normal = new Vec3d(-look.z, 0, look.x);
 			if (t == 0) {
 				Vfx.slice(world, c, normal, 32, 64, 0xE0F0FF, 60);
-				Vfx.glitch(world, c, 16, 0xFFFFFF, 50);
 				Vfx.play(world, VfxIds.SHEAR_PLANE, c.subtract(look.multiply(32)), look.multiply(64), 1.0F, 0);
 				Kit.sound(world, c, ModSounds.RAILGUN_CHARGE, 8.0F, 0.5F);
 			}

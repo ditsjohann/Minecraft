@@ -55,7 +55,6 @@ public class AntimatterLanceItem extends GunItem {
 		Vec3d end = r.end();
 		Vfx.beam(world, from, end, 0.9F, 0xE070FF, 18);
 		Vfx.beam(world, from, end, 0.35F, 0xFFFFFF, 20);
-		Vfx.layeredBlast(world, end, 4.0F, 0xE070FF);
 		Vfx.orb(world, end, 4.5F, 0.0F, 0x100018, 1, 20);
 		Vfx.play(world, VfxIds.LANCE_MUZZLE, from, dir, 1.0F, 0);
 		Vfx.play(world, VfxIds.LANCE_TRAIL, from, end.subtract(from), 1.0F, 0);

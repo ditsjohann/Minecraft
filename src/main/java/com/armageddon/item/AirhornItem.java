@@ -33,7 +33,6 @@ public class AirhornItem extends WmdItem {
 			Vec3d from = GunItem.muzzle(user, 0.8);
 			double range = deep ? 14 : 10;
 			Vfx.play(server, VfxIds.HONK_BLAST, from, look, deep ? 1.4F : 1.0F, 0);
-			Vfx.soundwave(server, from, from.add(look.multiply(range)), deep ? 3.0F : 2.0F, 0xFFE040, pitch);
 			server.playSound(null, from.x, from.y, from.z, SoundEvents.EVENT_RAID_HORN.value(), SoundCategory.PLAYERS, 2.0F, pitch * 1.4F);
 			server.playSound(null, from.x, from.y, from.z, SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(), SoundCategory.PLAYERS, 3.0F, pitch);
 			double cone = deep ? 0.6 : 0.75;

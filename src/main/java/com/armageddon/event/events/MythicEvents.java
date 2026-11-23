@@ -130,7 +130,7 @@ public final class MythicEvents {
 			if (t >= 180 && t < 220 && t % 10 == 0) {
 				Vec3d hit = Kit.ground(world, g.x + Math.cos(t) * 20, g.z + Math.sin(t) * 20);
 				Vfx.streak(world, rift((t / 10) % 4), hit, 1.5F, 0xFF8040, 8);
-				Detonations.nuke(world, hit, owner(), 6, false);
+				Detonations.nuke(world, hit, owner(), 6, false, true);
 				Vfx.play(world, VfxIds.NUKE, hit, 0.6F);
 			}
 			if (t == 240) {
@@ -143,7 +143,6 @@ public final class MythicEvents {
 				Kit.sound(world, g, ModSounds.BLACK_HOLE_COLLAPSE, 16.0F, 0.6F);
 			}
 			if (t == 270) {
-				Vfx.layeredBlast(world, g, 12.0F, 0xFF3060);
 				Vfx.play(world, VfxIds.RIFT_BLAST, g, 1.0F);
 				Vfx.flash(world, g, 1.0F, 768, 0xFFFFFF);
 				Vfx.shake(world, g, 384, 3.0F);
@@ -194,8 +193,6 @@ public final class MythicEvents {
 				}
 			}
 			if (t == 195) {
-				Vfx.ring(world, g, 80.0F, 3.0F, CRIMSON, true, 40);
-				Vfx.layeredBlast(world, top, 10.0F, CRIMSON);
 				Vfx.play(world, VfxIds.SPINDLE_PULSE, g, 1.0F);
 				Vfx.flash(world, g, 1.0F, 768, 0xFF6060);
 				Vfx.shake(world, g, 384, 3.0F);
@@ -238,16 +235,13 @@ public final class MythicEvents {
 				Kit.sound(world, g, ModSounds.JET_FLYBY, 16.0F, 0.3F);
 			}
 			if (t == 240) {
-				Vfx.layeredBlast(world, g, 20.0F, 0xFF6020);
 				Vfx.play(world, VfxIds.NUKE, g, 2.0F);
 				Vfx.play(world, VfxIds.EXTINCTION_WALL, g, 1.0F);
-				Vfx.dome(world, g, 60.0F, 0xFF8040, 60);
-				Vfx.ring(world, g, 130.0F, 4.0F, 0xFFA060, true, 60);
 				Vfx.flash(world, g, 1.0F, 1024, 0xFFE0C0);
 				Vfx.screen(world, g, 256, 1, 0.9F, 25);
 				Vfx.shake(world, g, 768, 4.0F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 24.0F, 0.5F);
-				Detonations.nuke(world, g, owner(), 20, false);
+				Detonations.nuke(world, g, owner(), 20, false, true);
 				Detonations.debris(world, g, 20, 120);
 				return true;
 			}

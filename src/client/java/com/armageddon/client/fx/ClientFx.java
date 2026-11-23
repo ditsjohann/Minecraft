@@ -314,22 +314,16 @@ public final class ClientFx {
 				shake(a, 600, 0.6F);
 			}
 			case FxType.KINETIC_IMPACT -> {
-				add(new InsaneEffects.DustColumn(a, s));
-				add(new InsaneEffects.Dome(a, s * 4, 30, 0xFFF0D0));
-				add(new Effects.Ring(a, s * 6, 0xFFE0B0, 40, 2.0, true));
-				add(new Effects.Fireball(a, s * 0.6, 3, 16, 0xFFFFFF, 0xFF8040));
+				// The rod's flash, ring, debris and dust plume are particle-engine effects (rod_impact); these are the cues.
 				flash(a, 300, 0.6F, 0xFFF4E0);
 				shockArrival(a, s, 2.5F, 1.4F);
 				skyFlash(3);
 			}
 			case FxType.BFG_BURST -> {
-				add(new Effects.Fireball(a, s, 4, 30, 0xEFFFE0, 0x30FF20));
-				add(new InsaneEffects.Dome(a, s * 3, 24, 0x5AFF3A));
-				add(new Effects.Ring(a, s * 3, 0x5AFF3A, 30, 1.5, true));
+				// The blast itself is a particle-engine effect (bfg_blast); these are the cues.
 				flash(a, s * 20, 0.7F, 0xC8FFB0);
 				tintSky(0x20FF30, 0.5F);
 				light(a, 0.9F, 0x80FF60);
-				burst(world, a, ModParticles.RADIATION, 200, 1.2);
 				shake(a, s * 10, 2.0F);
 			}
 			case FxType.DUBSTEP_BEAM -> add(new InsaneEffects.DubstepBeam(a, b, s, p.seed()));
