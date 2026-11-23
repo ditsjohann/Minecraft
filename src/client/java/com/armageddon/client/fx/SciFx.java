@@ -206,6 +206,10 @@ final class SciFx {
 		@Override
 		public boolean tick(ClientWorld world) {
 			if (age > Resonance.HUM && age < Resonance.CASCADE_END) {
+				if ((age - Resonance.HUM) % 18 == 0) {
+					// A pressure wave rolling out over the ground, the dirt jumping as it passes.
+					com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.RESONANCE_RING, g.x, g.y, g.z, 0, 1, 0, 1.0F, 0, age * 557L);
+				}
 				ClientFx.shake = Math.max(ClientFx.shake, (float) Resonance.hum(age) * 0.8F);
 			}
 			return super.tick(world);
@@ -235,37 +239,8 @@ final class SciFx {
 					FxDraw.ribbon(glow, m, root, tip, Vec3d.ZERO, 2.2 * hum, 0xA0F0FF, 0.25F * (float) hum, 0.4F * (float) hum);
 				}
 			}
-			// Pressure rings rolling out of the fork, rippled by the note.
-			if (a > Resonance.HUM && a < Resonance.CASCADE_END) {
-				Vec3d gc = c.add(0, 0.3, 0);
-				for (int k = 0; k < 6; k++) {
-					double rr = ((a - Resonance.HUM) * 2.2 + k * 18) % (Resonance.R + 10);
-					float fa = (float) (0.35 * hum * (1 - rr / (Resonance.R + 10)));
-					Vec3d prev = null;
-					for (int i = 0; i <= 64; i++) {
-						double ang = i * MathHelper.TAU / 64;
-						double wob = rr + Math.sin(ang * 9 + a * 0.4) * 1.2 * hum;
-						Vec3d p = gc.add(Math.cos(ang) * wob, Math.sin(ang * 5 + a * 0.3) * 0.6 * hum, Math.sin(ang) * wob);
-						if (prev != null) {
-							FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 0.5, 0xB0F4FF, fa, fa);
-						}
-						prev = p;
-					}
-				}
-			}
-			// The collapse front: a churning wall of dust where the buildings are coming down.
-			if (a >= Resonance.CASCADE && a < Resonance.END) {
-				double front = Resonance.front(a);
-				float k = fadeOut(a, Resonance.CASCADE_END, 60);
-				java.util.List<Effects.Puff> dust = FxKit.puffs();
-				FxKit.dustRing(m, cb, c, Math.max(4, front - 3), 8, 0xA09484, 0x3A342C, 0.55F * k, 501, dust);
-				FxKit.dustRing(m, cb, c, Math.max(2, front * 0.6), 14, 0x8A8070, 0x2A2620, 0.3F * k, 502, dust);
-				FxKit.flush(dust, consumers, m, cb);
-			}
-			if (a >= Resonance.SHATTER && a < Resonance.SHATTER + 30) {
-				float e = a - Resonance.SHATTER;
-				FxKit.sparks(consumers, m, c.add(0, Resonance.FORK_H * 0.7, 0), 20, 80, 0xD0F0FF, e / 30.0F, fadeOut(e, 5, 25), 503);
-			}
+			// The pressure waves, the collapse front's dust and the shattering are particles (RESONANCE_RING, played in
+			// tick, and the server's CASCADE_FRONT and FORK_SHATTER).
 		}
 	}
 
@@ -505,6 +480,16 @@ final class SciFx {
 		}
 
 		@Override
+		public boolean tick(ClientWorld world) {
+			if (age > Gravity.HUM && age < Gravity.SLAM && age % 2 == 0) {
+				// The generator's field: motes in orbit, wisps drawn in, the core bending the light. Grows as it winds up.
+				float k = Math.min(1.0F, (age - Gravity.HUM) / (float) (Gravity.OFF - Gravity.HUM));
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.GRAVITY_CORE, g.x, g.y + 5, g.z, 0, 1, 0, 0.6F + 0.6F * k, 0, age * 389L);
+			}
+			return super.tick(world);
+		}
+
+		@Override
 		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
 			float a = age + td;
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
@@ -543,15 +528,6 @@ final class SciFx {
 					cube(solid, m, p, 0.5 + SciShapes.hash(i, 4) * 0.35, spin + i, spin * 0.7 + i * 2, EARTH[i % EARTH.length]);
 				}
 				FxDraw.sphere(glow, m, g.subtract(cam), Gravity.R, Vec3d.ZERO, 0x8070FF, 0.0F, 0.06F * alive, 16, 24);
-			}
-			if (a >= Gravity.SLAM && a < Gravity.SLAM + 60) {
-				float e = a - Gravity.SLAM;
-				Vec3d gc = g.subtract(cam).add(0, 0.5, 0);
-				FxKit.groundShock(consumers, m, gc, 10 + e * 6, 0xC8C0B0, fadeOut(e, 10, 50));
-				java.util.List<Effects.Puff> dust = FxKit.puffs();
-				FxKit.dustRing(m, cb, gc, Math.min(Gravity.R, 10 + e * 5), 10, 0xA09888, 0x3A3630, 0.6F * fadeOut(e, 20, 40), 701, dust);
-				FxKit.dustRing(m, cb, gc, Gravity.R * 0.5, 16, 0x8A8274, 0x2A2824, 0.45F * fadeOut(e, 20, 40), 702, dust);
-				FxKit.flush(dust, consumers, m, cb);
 			}
 		}
 	}

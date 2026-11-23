@@ -142,7 +142,7 @@ public final class CelestialIIEvents {
 		private void splat(CowEntity cow, float scale) {
 			Vec3d p = cow.getPos();
 			double rb = 1.2 + scale * 1.6;
-			fx(world, MILK_CROWN, p, p, (float) (rb * 1.5), 0, 0, 0, (int) (34 + rb * 3));
+			// The crown, droplets and puddle are the engine's MILK_SPLASH (the sculpted crown is kept for the giant cow).
 			Vfx.shake(world, p, 48 + rb * 10, Math.min(1.6F, 0.2F + scale * 0.2F));
 			Vfx.play(world, VfxIds.MILK_SPLASH, p, 0.5F + scale * 0.6F);
 			Kit.sound(world, p, SoundEvents.ENTITY_COW_HURT, 6.0F + scale, Math.max(0.3F, 1.4F - scale * 0.15F));

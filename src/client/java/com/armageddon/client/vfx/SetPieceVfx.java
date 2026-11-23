@@ -22,6 +22,8 @@ final class SetPieceVfx {
 		ballLightning();
 		sword();
 		canopy();
+		resonance();
+		gravity();
 	}
 
 	// ------------------------------------------------------------------ Deadly Twister
@@ -114,6 +116,41 @@ final class SetPieceVfx {
 				.emit(EmitterDef.builder("leaves").burst(2).offset(0, -5, 0).shape(Shape.disc(45)).gravity(0.004F).module(Module.jitter(0.008F))
 						.module(Module.wind(1)).life(140, 220).size(0.3F, 0.45F).layer(Layer.SMOKE).sprite(FxSprites.DUST, 2)
 						.color(Gradient.of(0, 0x50A040, 1, 0x70C050)).spin(0.05F, 0.2F).build())
+				.build());
+	}
+
+	// ------------------------------------------------------------------ Resonance Cascade
+
+	private static void resonance() {
+		// A pressure wave rolling out from the fork across the ground: a ring of disturbed air, dirt jumping as it
+		// passes, the air glinting along it. Reaches the event's 95-block radius in 45 ticks.
+		Gradient air = Gradient.of(0, 0xE0FAFF, 1, argb(0x70D0F0, 0));
+		FxEngine.register(EffectDef.builder(VfxIds.RESONANCE_RING).lod(300, 2400).maxAge(90)
+				.emit(EmitterDef.builder("ring").priority(Priority.HERO).burst(1).onGround().mode(Mode.FLAT).fixedRotation().size(190, 190).life(45, 45)
+						.sprite(FxSprites.RING).sizeOverLife(Curve.keys(0, 0.03F, 1, 1)).color(0xB0F4FF).alpha(0.45F).alphaOverLife(Curve.keys(0, 0.4F, 0.15F, 1, 1, 0))
+						.build())
+				.emit(EmitterDef.builder("grains").priority(Priority.DETAIL).rate(30, 45).onGround().shape(Shape.ring(3, 1)).expand(2.1F)
+						.velocity(Velocity.up(0.15F, 0.3F, 0.15F)).gravity(0.04F).collide(0.5F, 0.8F, 2).life(15, 30).size(0.15F, 0.22F).layer(Layer.SMOKE)
+						.sprite(FxSprites.DUST, 2).color(0x8A7A62).build())
+				.emit(EmitterDef.builder("glints").rate(10, 45).onGround().shape(Shape.ring(3, 1)).expand(2.1F).velocity(Velocity.up(0.05F, 0.15F, 0.2F))
+						.life(10, 20).size(0.25F, 0.4F).sprite(FxSprites.FLARE).color(air).alphaOverLife(VfxLibrary.TWINKLE).build())
+				.build());
+	}
+
+	// ------------------------------------------------------------------ Gravity Killswitch
+
+	private static void gravity() {
+		// The generator's field, played on it every other tick: violet motes orbiting it like a gyroscope, wisps drawn
+		// into it and the core flickering where it bends the light.
+		Gradient violet = Gradient.of(0, 0xE8E0FF, 0.5F, 0xB0A0FF, 1, argb(0x5030A0, 0));
+		FxEngine.register(EffectDef.builder(VfxIds.GRAVITY_CORE).lod(200, 1600)
+				.emit(EmitterDef.builder("orbit").priority(Priority.HERO).burst(6).shape(Shape.ring(5.5F, 1)).velocity(Velocity.swirl(0.4F, 0.6F))
+						.module(Module.vortex(0.06F, 0.03F)).life(20, 40).size(0.2F, 0.35F).sprite(FxSprites.FLARE).color(violet)
+						.alphaOverLife(VfxLibrary.TWINKLE).build())
+				.emit(EmitterDef.builder("wisps").burst(2).shape(Shape.shell(9)).module(Module.attract(0.06F, 1.5F)).life(20, 40).size(1, 1.5F)
+						.sprite(FxSprites.WISP).color(violet).alpha(0.5F).alphaOverLife(Curve.BELL).build())
+				.emit(EmitterDef.builder("lens").burst(1).shape(Shape.sphere(2)).life(4, 6).size(3, 4).sprite(FxSprites.GLOW).color(0x8070E0).alpha(0.3F)
+						.alphaOverLife(VfxLibrary.FLICKER).build())
 				.build());
 	}
 }
