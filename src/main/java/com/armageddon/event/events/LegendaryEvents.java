@@ -258,7 +258,7 @@ public final class LegendaryEvents {
 				Kit.sound(world, c, ModSounds.BOMB_BEEP, 6.0F, 0.6F + t * 0.03F);
 			}
 			if (t == 45) {
-				Vfx.play(world, VfxIds.NUKE, c, 0.9F);
+				Vfx.play(world, VfxIds.NUKE, c, 1.5F);
 				Vfx.flash(world, c, 1.0F, 512, 0xFFF0D0);
 				Vfx.shake(world, c, 256, 3.0F);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 14.0F, 0.8F);

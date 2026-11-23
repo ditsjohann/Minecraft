@@ -235,7 +235,7 @@ public final class MythicEvents {
 				Kit.sound(world, g, ModSounds.JET_FLYBY, 16.0F, 0.3F);
 			}
 			if (t == 240) {
-				Vfx.play(world, VfxIds.NUKE, g, 2.0F);
+				Vfx.play(world, VfxIds.NUKE, g, 3.0F);
 				Vfx.play(world, VfxIds.EXTINCTION_WALL, g, 1.0F);
 				Vfx.flash(world, g, 1.0F, 1024, 0xFFE0C0);
 				Vfx.screen(world, g, 256, 1, 0.9F, 25);
