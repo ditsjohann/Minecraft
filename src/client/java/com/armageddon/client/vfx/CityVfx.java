@@ -150,12 +150,28 @@ final class CityVfx {
 						.color(DIRT).alpha(0.6F).build())
 				.build());
 
-		// When it is out in the air its night-sky skin sheds stars and void.
-		FxEngine.register(EffectDef.builder(VfxIds.WORM_STARS).lod(200, 1600)
-				.emit(EmitterDef.builder("stars").burst(22).shape(Shape.sphere(9)).velocity(Velocity.random(0.02F, 0.08F)).module(Module.jitter(0.004F))
-						.life(40, 80).size(0.35F, 0.55F).sprite(FxSprites.FLARE).color(VOID).alphaOverLife(TWINKLE).build())
-				.emit(smoke("void").burst(1.5F).shape(Shape.sphere(8)).velocity(Velocity.random(0.02F, 0.05F)).life(30, 50).size(2, 3)
-						.color(0x2A1440).alpha(0.35F).emissive(Curve.constant(0.4F)).shade(1).build())
+		// The worm's living skin, laid along a stretch of its body and carried with it: a glowing nebula envelope,
+		// stars set in it, aurora wisps riding along, and stardust peeling off behind into a fading wake.
+		FxEngine.register(EffectDef.builder(VfxIds.WORM_SKIN).lod(256, 2000)
+				.emit(smoke("nebula").priority(Priority.HERO).burst(3).span().shape(Shape.sphere(8)).inherit(1).life(10, 18).size(7, 10)
+						.color(Gradient.of(0, 0x40208A, 0.5F, 0x6A2CA8, 1, 0x2A1458)).emissive(Curve.constant(0.85F)).alpha(0.28F).shade(0.85F)
+						.alphaOverLife(Curve.BELL).build())
+				.emit(EmitterDef.builder("stars").priority(Priority.HERO).burst(11).span().shape(Shape.sphere(8.5F)).inherit(1).life(12, 24)
+						.size(0.35F, 0.7F).sprite(FxSprites.FLARE).color(STARDUST).alphaOverLife(TWINKLE).build())
+				.emit(EmitterDef.builder("aurora").burst(2).span().shape(Shape.sphere(8)).inherit(1).module(Module.curl(6, 0.02F)).life(14, 22)
+						.size(3, 4.5F).sprite(FxSprites.WISP).color(Gradient.of(0, 0xC070FF, 1, 0x50E0FF)).alpha(0.6F).alphaOverLife(Curve.BELL).build())
+				.emit(EmitterDef.builder("wake").burst(2).span().shape(Shape.sphere(9)).inherit(0.4F).velocity(Velocity.random(0.02F, 0.06F))
+						.module(Module.jitter(0.003F)).life(50, 90).size(0.25F, 0.45F).sprite(FxSprites.FLARE).color(VOID).alphaOverLife(TWINKLE).build())
+				.build());
+
+		// The maw: light and stars streaming into the mouth from all round, and a throat that pulses.
+		FxEngine.register(EffectDef.builder(VfxIds.WORM_MOUTH).lod(256, 2000)
+				.emit(EmitterDef.builder("inrush").priority(Priority.HERO).burst(10).shape(Shape.shell(26)).inherit(1).module(Module.attract(0.16F, 3))
+						.life(16, 26).size(0.25F, 0.4F).mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK).color(VOID).build())
+				.emit(EmitterDef.builder("throat").priority(Priority.HERO).burst(1).inherit(1).life(4, 4).size(11, 13).sprite(FxSprites.GLOW).color(0x8040FF)
+						.alpha(0.45F).alphaOverLife(VfxLibrary.FLICKER).build())
+				.emit(EmitterDef.builder("glints").burst(4).shape(Shape.sphere(6)).inherit(1).velocity(Velocity.random(0.05F, 0.15F)).life(8, 14)
+						.size(0.3F, 0.5F).sprite(FxSprites.FLARE).color(0xFFFFFF).alphaOverLife(TWINKLE).build())
 				.build());
 
 		// It breaches: earth and rock thrown sky-high and a spray of the void inside it.

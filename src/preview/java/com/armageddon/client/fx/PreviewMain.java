@@ -113,6 +113,7 @@ public final class PreviewMain {
 			case "cactus" -> NewFx.create(payload(FxType.NEW_FX, a, a, 34, 0x5AA040, 50, 0, 0, com.armageddon.util.WildShapes.Cactus.SOLID + 4));
 			case "forge" -> NewFx.create(payload(FxType.NEW_FX, a, a, 135, 0xFF5A1A, 51, 0, 0, com.armageddon.util.WildShapes.Forge.END));
 			case "infrit" -> NewFx.create(payload(FxType.NEW_FX, a, a, 42, 0x40C8FF, 52, 4242, 0, com.armageddon.util.WildShapes.Infrit.END));
+			case "worm" -> CityFx.create(payload(FxType.CITY_FX, a, a, 64, 0xA060FF, 8, 0.6F, 0, 700));
 			case "twister" -> new MegaEffects.Twister(a, h, 26, 0.35, 600);
 			case "ufo" -> new MegaEffects.Ufo(a.add(-200, 70, 0), a.add(200, 70, 0), 60, 600);
 			case "moon" -> new ArsenalEffects.Moon(a, 40, 500, 0xC8C8D0, 400);

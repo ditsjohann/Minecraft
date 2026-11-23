@@ -526,13 +526,9 @@ public final class CityDestructionEvents {
 				}
 				above = up;
 				devour(h);
-				if (run % 2 == 0) {
-					// Out in the air its skin sheds stars; underground the earth heaves over it.
-					if (up) {
-						Vfx.play(world, VfxIds.WORM_STARS, h, 1.4F);
-					} else {
-						Vfx.play(world, VfxIds.WORM_HEAVE, new Vec3d(h.x, surface, h.z), 1.2F);
-					}
+				if (run % 2 == 0 && !up) {
+					// Underground the earth heaves over it (in the air, its body draws its own skin, client-side).
+					Vfx.play(world, VfxIds.WORM_HEAVE, new Vec3d(h.x, surface, h.z), 1.2F);
 				}
 				if (run % 10 == 0) {
 					Kit.sound(world, h, ModSounds.NUKE_RUMBLE, 48.0F, 0.3F);

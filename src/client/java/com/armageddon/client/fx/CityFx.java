@@ -311,23 +311,41 @@ public final class CityFx {
 				return super.tick(world);
 			}
 			Vec3d h = at(age);
+			skin(h);
 			Vec3d cam = ClientFx.cameraPos();
 			double d = cam.distanceTo(h);
 			ClientFx.shake = Math.max(ClientFx.shake, (float) MathHelper.clamp(1 - d / 160, 0, 1) * 3.0F);
-			double gy = groundY(h.x, h.z, base.y);
-			if (Math.abs(h.y - gy) < CityShapes.WORM_R + 4) {
-				// Where it breaks the surface the ground erupts around it.
-				for (int i = 0; i < 10; i++) {
-					double ang = world.random.nextDouble() * MathHelper.TAU;
-					double r = CityShapes.WORM_R * (1 + world.random.nextDouble());
-					world.addImportantParticle(com.armageddon.registry.ModParticles.SHOCK_DUST, true, h.x + Math.cos(ang) * r, gy + 0.5, h.z + Math.sin(ang) * r,
-							Math.cos(ang) * 0.6, 0.6 + world.random.nextDouble() * 0.8, Math.sin(ang) * 0.6);
-				}
-			}
 			if (age % 3 == 0) {
 				ClientFx.light(h, 0.6F, 0xA060FF);
 			}
 			return super.tick(world);
+		}
+
+		/**
+		 * The body is a living night sky. Every tick a few stretches of it (a different few each tick, so the whole body
+		 * is covered every {@code STEP} ticks) are dressed in particles that ride along with them: nebula, stars,
+		 * aurora, and stardust peeling off into a wake. Only what is above ground is dressed; the maw pulls light in.
+		 */
+		private void skin(Vec3d h) {
+			int n = CityShapes.WORM_SEGMENTS, step = 7;
+			double lag = CityShapes.WORM_LAG;
+			for (int i = age % step; i < n; i += step) {
+				Vec3d p = at(age - i * lag);
+				double r = radius(i);
+				if (p.y < groundY(p.x, p.z, base.y) - r) {
+					continue;
+				}
+				Vec3d span = at(age - (i + step) * lag).subtract(p);
+				Vec3d v = p.subtract(at(age - 1 - i * lag));
+				com.armageddon.client.vfx.FxEngine.playMoving(com.armageddon.vfx.VfxIds.WORM_SKIN, p.x, p.y, p.z, (float) span.x, (float) span.y,
+						(float) span.z, (float) (r / CityShapes.WORM_R), 0, age * 131L + i, (float) v.x, (float) v.y, (float) v.z);
+			}
+			if (age % 2 == 0 && h.y > groundY(h.x, h.z, base.y) - CityShapes.WORM_R) {
+				Vec3d dir = h.subtract(at(age - 1));
+				Vec3d mouth = h.add(dir.normalize().multiply(CityShapes.WORM_R * 0.35));
+				com.armageddon.client.vfx.FxEngine.playMoving(com.armageddon.vfx.VfxIds.WORM_MOUTH, mouth.x, mouth.y, mouth.z, (float) dir.x,
+						(float) dir.y, (float) dir.z, 1.0F, 0, age * 977L, (float) dir.x, (float) dir.y, (float) dir.z);
+			}
 		}
 
 		@Override
@@ -345,7 +363,8 @@ public final class CityFx {
 			for (int i = 0; i < n; i++) {
 				Vec3d next = at(a - (i + 1) * CityShapes.WORM_LAG).subtract(cam);
 				double r0 = radius(i), r1 = radius(i + 1);
-				Solids.tube(solid, m, prev, next, r0, r1, 14, 2, sky, true, 1.0F);
+				// A slimmer solid core for its mass and silhouette; the nebula skin around it is particles (see skin()).
+				Solids.tube(solid, m, prev, next, r0 * 0.78, r1 * 0.78, 14, 2, sky, true, 1.0F);
 				Vec3d axis = prev.subtract(next);
 				if (axis.lengthSquared() > 1.0E-4) {
 					Vec3d[] sb = ArsenalEffects.basis(axis);
@@ -356,11 +375,6 @@ public final class CityFx {
 						Vec3d upish = sb[1].y < 0 ? sb[1].multiply(-1) : sb[1];
 						Solids.tube(solid, m, prev.add(upish.multiply(r0 * 0.9)), prev.add(upish.multiply(r0 * 1.7)).subtract(axis.normalize().multiply(r0 * 0.4)),
 								r0 * 0.22, 0.2, 6, 0xE0D8C4, 1.0F, true);
-					}
-					for (int k = 0; k < 3; k++) {
-						double ang = Solids.hash(i, k + 40) * MathHelper.TAU;
-						Vec3d sp = prev.add(sb[0].multiply(Math.cos(ang) * r0 * 1.02)).add(sb[1].multiply(Math.sin(ang) * r0 * 1.02));
-						Solids.dot(glow, m, sp, cb, 0.35 + Solids.hash(i, k + 50) * 0.5, 0xFFFFFF, 0.7F + 0.3F * MathHelper.sin(a * 0.3F + i + k));
 					}
 				}
 				prev = next;
@@ -396,17 +410,12 @@ public final class CityFx {
 			Solids.dot(glow, m, mouth.subtract(dir.multiply(R * 0.3)), cb, R * 0.35, 0xFFFFFF, 0.9F);
 			Solids.dot(glow, m, mouth, cb, R * 2.2, 0x8040FF, 0.25F);
 			FxKit.halo(consumers, m, cb, h, R * 4.0, 0x6020C0, 0.2F);
-			// Where it breaks the surface, the ground boils up around it.
+			// Where it breaks the surface, a violet shock rolls out over the ground (the debris is the server's breach).
 			Vec3d hw = at(a);
 			double gy = groundY(hw.x, hw.z, base.y);
 			if (Math.abs(hw.y - gy) < R * 2.5) {
 				float near = (float) (1 - Math.abs(hw.y - gy) / (R * 2.5));
-				java.util.List<Effects.Puff> dust = FxKit.puffs();
-				Vec3d breach = new Vec3d(hw.x, gy, hw.z).subtract(cam);
-				FxKit.dustRing(m, cb, breach, R * 1.6, R * 0.9, 0x8C7860, 0x3A3026, 0.6F * near, (int) (a / 10), dust);
-				FxKit.column(breach, R * 3, R * 1.2, a, 0x7A6A58, 0x2E2620, 0.4F * near, 121, dust);
-				FxKit.flush(dust, consumers, m, cb);
-				FxKit.groundShock(consumers, m, breach, R * (1.5 + (a % 20) * 0.15), 0xA060FF, 0.5F * near);
+				FxKit.groundShock(consumers, m, new Vec3d(hw.x, gy, hw.z).subtract(cam), R * (1.5 + (a % 20) * 0.15), 0xA060FF, 0.5F * near);
 			}
 			for (int k = 0; k < 6; k++) {
 				double ang = k * MathHelper.TAU / 6 + 0.3;
