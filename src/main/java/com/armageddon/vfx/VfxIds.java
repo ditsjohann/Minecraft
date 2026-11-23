@@ -149,6 +149,20 @@ public final class VfxIds {
 	public static final String WUB_HIT = "wub_hit";
 	public static final String BASS_DROP = "bass_drop";
 
+	// launchers and strikes
+	public static final String BOMBLET_TRAIL = "bomblet_trail";
+	public static final String SINGULARITY_TRAIL = "singularity_trail";
+	public static final String MORTAR_TRAIL = "mortar_trail";
+	public static final String METEOR_TRAIL = "meteor_trail";
+	public static final String METEOR_IMPACT = "meteor_impact";
+	public static final String ROD_TRAIL = "rod_trail";
+	public static final String ROD_IMPACT = "rod_impact";
+	public static final String BOMB_WHISTLE = "bomb_whistle";
+	public static final String TARGET_LOCK = "target_lock";
+	public static final String ORBITAL_IMPACT = "orbital_impact";
+	public static final String STORM_CLOUDS = "storm_clouds";
+	public static final String STORM_STRIKE = "storm_strike";
+
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD,
@@ -166,7 +180,9 @@ public final class VfxIds {
 			HORIZON_COLLAPSE, MIRROR_FLASH, SNOW_GLOBE_BURST, SLIME_BURST,
 			BOUNCE_TRAIL, LOOT_GLINT, MOON_DUST, HOLO_FLICKER, MAGNET_SPARKS, PAINT_DRIP, NUKE_ROUND_TRAIL, BOUNCE_BURST,
 			LOOT_BURST, MOON_BURST, HOLO_BURST, MAGNET_PULSE, PAINT_SPLASH, LANCE_CHARGE, LANCE_MUZZLE, LANCE_TRAIL,
-			ANTIMATTER_FLASH, BLADE_HIT, BLADE_DASH, GATLING_MUZZLE, WUB_RING, WUB_HIT, BASS_DROP);
+			ANTIMATTER_FLASH, BLADE_HIT, BLADE_DASH, GATLING_MUZZLE, WUB_RING, WUB_HIT, BASS_DROP,
+			BOMBLET_TRAIL, SINGULARITY_TRAIL, MORTAR_TRAIL, METEOR_TRAIL, METEOR_IMPACT, ROD_TRAIL, ROD_IMPACT, BOMB_WHISTLE,
+			TARGET_LOCK, ORBITAL_IMPACT, STORM_CLOUDS, STORM_STRIKE);
 
 	private VfxIds() {
 	}

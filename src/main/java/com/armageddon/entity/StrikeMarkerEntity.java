@@ -4,9 +4,11 @@ import com.armageddon.detonation.Detonations;
 import com.armageddon.network.FxPayload;
 import com.armageddon.network.FxType;
 import com.armageddon.network.ModNetworking;
+import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModEntities;
 import com.armageddon.registry.ModSounds;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -73,6 +75,19 @@ public class StrikeMarkerEntity extends Entity {
 		e.owner = owner;
 		e.heading = owner != null ? owner.getYaw() : world.random.nextFloat() * 360.0F;
 		world.spawnEntity(e);
+		int lock = switch (mode) {
+			case ORBITAL -> 0xFF3322;
+			case KINETIC -> 0xFFE070;
+			case BARRAGE -> 0x7CFF2E;
+			case METEOR -> 0xFF8030;
+			default -> 0;
+		};
+		if (lock != 0) {
+			Vfx.play(world, VfxIds.TARGET_LOCK, pos, new Vec3d(0, 1, 0), 1.0F, lock);
+		}
+		if (mode == STORM) {
+			Vfx.play(world, VfxIds.STORM_CLOUDS, pos, 1.0F);
+		}
 		switch (mode) {
 			case ORBITAL -> {
 				ModNetworking.sendFx(world, pos, 1024, new FxPayload(FxType.ORBITAL_TARGET, pos, ORBITAL_DELAY, 0xFF3322));
@@ -132,6 +147,7 @@ public class StrikeMarkerEntity extends Entity {
 			world.playSound(null, getX(), getY(), getZ(), ModSounds.ORBITAL_CHARGE, SoundCategory.PLAYERS, 8.0F, 1.2F);
 		}
 		if (this.age >= ORBITAL_DELAY) {
+			Vfx.play(world, VfxIds.ORBITAL_IMPACT, getPos(), 1.5F);
 			Detonations.orbitalStrike(world, getPos(), owner);
 			discard();
 		}
@@ -143,6 +159,7 @@ public class StrikeMarkerEntity extends Entity {
 			LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(world);
 			if (bolt != null) {
 				bolt.refreshPositionAfterTeleport(g);
+				Vfx.play(world, VfxIds.STORM_STRIKE, g, 1.0F);
 				if (owner instanceof ServerPlayerEntity player) {
 					bolt.setChanneler(player);
 				}

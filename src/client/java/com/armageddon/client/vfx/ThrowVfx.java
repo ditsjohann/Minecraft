@@ -74,6 +74,7 @@ final class ThrowVfx {
 		detonations();
 		ThrowVfx2.register();
 		ThrowVfx3.register();
+		StrikeVfx.register();
 	}
 
 	// ------------------------------------------------------------------ throw and warning light

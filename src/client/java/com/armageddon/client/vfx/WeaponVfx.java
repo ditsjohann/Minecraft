@@ -69,7 +69,13 @@ public final class WeaponVfx {
 			case HOLOGRAM -> VfxIds.HOLO_FLICKER;
 			case MAGNET -> VfxIds.MAGNET_SPARKS;
 			case PAINT_BOMB -> VfxIds.PAINT_DRIP;
-			case GATLING_NUKE -> VfxIds.NUKE_ROUND_TRAIL;
+			case GATLING_NUKE, MINI_NUKE, FALLING_NUKE -> VfxIds.NUKE_ROUND_TRAIL;
+			case BOMBLET -> VfxIds.BOMBLET_TRAIL;
+			case SINGULARITY -> VfxIds.SINGULARITY_TRAIL;
+			case MORTAR -> VfxIds.MORTAR_TRAIL;
+			case METEOR -> VfxIds.METEOR_TRAIL;
+			case ROD -> VfxIds.ROD_TRAIL;
+			case AIR_BOMB -> VfxIds.BOMB_WHISTLE;
 			case SEISMIC_MINE -> VfxIds.SEISMIC_HUM;
 			case ION_FOG -> VfxIds.ION_GLOW;
 			case STASIS -> VfxIds.STASIS_HEX;

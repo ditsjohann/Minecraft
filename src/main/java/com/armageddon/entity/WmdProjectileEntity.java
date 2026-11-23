@@ -333,7 +333,7 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 
 	/**
 	 * Set by the client: draws this projectile's trail with the particle engine, returning false for kinds it leaves to
-	 * the vanilla particles below (kinds it draws have no case of their own there).
+	 * the plain smoke below.
 	 */
 	public static java.util.function.Predicate<WmdProjectileEntity> clientTrail = e -> false;
 
@@ -341,38 +341,9 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 		if (clientTrail.test(this)) {
 			return;
 		}
-		World w = getWorld();
-		Vec3d v = getVelocity();
-		Vec3d tail = getPos().subtract(v.lengthSquared() > 1.0E-4 ? v.normalize().multiply(0.6) : Vec3d.ZERO);
-		switch (kind) {
-			case METEOR -> {
-				for (int i = 0; i < 4; i++) {
-					w.addImportantParticle(ModParticles.NAPALM_FLAME, true, getX() + random.nextGaussian() * 0.5, getY() + random.nextGaussian() * 0.5,
-							getZ() + random.nextGaussian() * 0.5, -v.x * 0.2, -v.y * 0.2, -v.z * 0.2);
-				}
-				w.addImportantParticle(ParticleTypes.CAMPFIRE_SIGNAL_SMOKE, true, tail.x, tail.y, tail.z, 0, 0.02, 0);
-				w.addParticle(ModParticles.EMBER, getX(), getY(), getZ(), random.nextGaussian() * 0.2, random.nextGaussian() * 0.2, random.nextGaussian() * 0.2);
-			}
-			case ROD -> {
-				w.addImportantParticle(ModParticles.PLASMA_SPARK, true, getX(), getY() + 1, getZ(), random.nextGaussian() * 0.1, 0.3, random.nextGaussian() * 0.1);
-				w.addImportantParticle(ParticleTypes.CLOUD, true, getX(), getY() + 2, getZ(), 0, 0.1, 0);
-			}
-			case MINI_NUKE, BOMBLET, FALLING_NUKE, AIR_BOMB -> {
-				w.addParticle(ParticleTypes.FLAME, tail.x, tail.y, tail.z, -v.x * 0.1, -v.y * 0.1, -v.z * 0.1);
-				w.addParticle(ModParticles.EMBER, tail.x, tail.y, tail.z, 0, 0, 0);
-				w.addImportantParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, true, tail.x, tail.y, tail.z, 0, 0.01, 0);
-			}
-			case SINGULARITY -> {
-				for (int i = 0; i < 3; i++) {
-					w.addParticle(ModParticles.VOID_SPARK, getX() + random.nextGaussian() * 0.6, getY() + random.nextGaussian() * 0.6, getZ() + random.nextGaussian() * 0.6, 0, 0, 0);
-				}
-				w.addParticle(ParticleTypes.REVERSE_PORTAL, getX(), getY(), getZ(), 0, 0, 0);
-			}
-			default -> {
-				if (age % 4 == 0) {
-					w.addParticle(ParticleTypes.SMOKE, getX(), getY() + 0.1, getZ(), 0, 0.02, 0);
-				}
-			}
+		// Anything the engine does not draw trails a little smoke.
+		if (age % 4 == 0) {
+			getWorld().addParticle(ParticleTypes.SMOKE, getX(), getY() + 0.1, getZ(), 0, 0.02, 0);
 		}
 	}
 
@@ -539,6 +510,14 @@ public class WmdProjectileEntity extends ThrownItemEntity {
 			case SHATTERFROST -> Vfx.play(world, VfxIds.SHATTER_BURST, at, 1.0F);
 			case ARCFLASH -> Vfx.play(world, VfxIds.ARC_BURST, at, 2.0F);
 			case EMP -> Vfx.play(world, VfxIds.EMP_PULSE, at, 1.0F);
+			case MINI_NUKE -> Vfx.play(world, VfxIds.NUKE, at, 0.7F);
+			case FALLING_NUKE -> Vfx.play(world, VfxIds.NUKE, at, 0.8F);
+			case BOMBLET -> Vfx.play(world, VfxIds.GRENADE_BLAST, at, 0.9F);
+			case SINGULARITY -> Vfx.play(world, VfxIds.GRAVITY_WELL, at, 1.6F);
+			case MORTAR -> Vfx.play(world, VfxIds.GRENADE_BLAST, at, 1.8F);
+			case METEOR -> Vfx.play(world, VfxIds.METEOR_IMPACT, at, 1.0F);
+			case ROD -> Vfx.play(world, VfxIds.ROD_IMPACT, at, 1.0F);
+			case AIR_BOMB -> Vfx.play(world, VfxIds.GRENADE_BLAST, at, 1.5F);
 			case BOUNCE_BOMB -> Vfx.play(world, VfxIds.BOUNCE_BURST, at, 1.0F);
 			case LOOT_TORNADO -> Vfx.play(world, VfxIds.LOOT_BURST, at, 1.0F);
 			case MOONWALK_MINE -> Vfx.play(world, VfxIds.MOON_BURST, at, 1.0F);
