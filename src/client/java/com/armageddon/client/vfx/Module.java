@@ -17,6 +17,21 @@ public interface Module {
 		};
 	}
 
+	/**
+	 * Gravity that is off until the effect is {@code atTick} old and then pulls with {@code g}: things drifting
+	 * weightless that are all slammed down at the same moment.
+	 */
+	static Module gravityAt(int atTick, float g) {
+		return (em, p) -> {
+			if (em.fx.age < atTick) {
+				return;
+			}
+			for (int i = 0; i < p.count; i++) {
+				p.vy[i] -= g;
+			}
+		};
+	}
+
 	/** Air resistance: velocity loses {@code k} of itself per tick (exponential, so it never reverses). */
 	static Module drag(float k) {
 		float f = (float) Math.exp(-k);

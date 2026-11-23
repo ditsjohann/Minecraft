@@ -13,6 +13,7 @@ import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.CelestialIIShapes;
 import com.armageddon.util.Paths;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -129,6 +130,8 @@ public final class CelestialIIEvents {
 			cow.setPersistent();
 			cow.setVelocity(world.random.nextGaussian() * 0.05, -0.9, world.random.nextGaussian() * 0.05);
 			world.spawnEntity(cow);
+			// Its shadow swells on the ground where it is going to land.
+			Vfx.play(world, scale >= 12 ? VfxIds.COW_SHADOW_BIG : VfxIds.COW_SHADOW, Kit.ground(world, x, z), scale >= 12 ? 12.0F : 0.6F + scale * 0.8F);
 			cows.put(cow, age());
 			scales.put(cow, scale);
 			world.playSound(null, x, cow.getY(), z, SoundEvents.ENTITY_COW_AMBIENT, net.minecraft.sound.SoundCategory.HOSTILE,
@@ -141,8 +144,7 @@ public final class CelestialIIEvents {
 			double rb = 1.2 + scale * 1.6;
 			fx(world, MILK_CROWN, p, p, (float) (rb * 1.5), 0, 0, 0, (int) (34 + rb * 3));
 			Vfx.shake(world, p, 48 + rb * 10, Math.min(1.6F, 0.2F + scale * 0.2F));
-			world.spawnParticles(ParticleTypes.SPLASH, p.x, p.y + 0.6, p.z, (int) (40 + rb * 12), rb, 0.4, rb, 0.6);
-			world.spawnParticles(ParticleTypes.CLOUD, p.x, p.y + 0.5, p.z, (int) (6 + rb * 2), rb * 0.6, 0.3, rb * 0.6, 0.06);
+			Vfx.play(world, VfxIds.MILK_SPLASH, p, 0.5F + scale * 0.6F);
 			Kit.sound(world, p, SoundEvents.ENTITY_COW_HURT, 6.0F + scale, Math.max(0.3F, 1.4F - scale * 0.15F));
 			Kit.sound(world, p, SoundEvents.ENTITY_SLIME_SQUISH, 6.0F + scale * 2, Math.max(0.3F, 0.9F - scale * 0.08F));
 			Kit.sound(world, p, SoundEvents.BLOCK_BELL_USE, 4.0F + scale, Math.max(0.5F, 1.6F - scale * 0.15F));
@@ -204,12 +206,13 @@ public final class CelestialIIEvents {
 			Kit.sound(world, p, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.5F);
 			Kit.sound(world, p, SoundEvents.ENTITY_SLIME_SQUISH, 64.0F, 0.25F);
 			Detonations.blast(world, p, 90, 800.0F, ModDamageTypes.NUCLEAR_BLAST, owner(), 0, 4.0);
-			world.spawnParticles(ParticleTypes.SPLASH, p.x, p.y + 2, p.z, 1500, 40, 6, 40, 1.0);
+			Vfx.play(world, VfxIds.COW_DOOM, p, 1.0F);
+			// Once the spray hangs in the air, the sun comes through it.
+			com.armageddon.detonation.DetonationManager.schedule(world, 60, () -> Vfx.play(world, VfxIds.MILK_RAINBOW, p, 1.0F));
 			// Boom: the last cow goes off like a warhead of milk.
 			Kit.boom(world, p.add(0, 3, 0), 15.0F, 0xFFF6E8, owner(), false);
 			Vfx.dome(world, p, 60.0F, 0xFFFFFF, 40);
 			Vfx.flash(world, p, 0.8F, 2000, 0xFFFFFF);
-			world.spawnParticles(ParticleTypes.SNOWFLAKE, p.x, p.y + 4, p.z, 800, 18, 10, 18, 0.6);
 			int salt = (int) (Math.abs(p.x) * 13 + Math.abs(p.z) * 7);
 			double s = 17;
 			Vec3d f = Kit.dir(cow.getYaw()), side = new Vec3d(-f.z, 0, f.x);
@@ -349,7 +352,9 @@ public final class CelestialIIEvents {
 				}
 				float sc = scales.get(cow);
 				boolean landed = fall(cow, sc);
-				world.spawnParticles(ParticleTypes.CLOUD, cow.getX(), cow.getY() + sc, cow.getZ(), 1 + (int) sc, sc * 0.3, sc * 0.3, sc * 0.3, 0.01);
+				if ((t + cow.getId()) % 4 == 0) {
+					Vfx.play(world, VfxIds.COW_STREAK, cow.getPos().add(0, sc * 0.7, 0), new Vec3d(0, 1, 0), Math.max(0.5F, sc), 0);
+				}
 				if (landed || t - en.getValue() > 260) {
 					if (sc >= 12) {
 						imprint(cow);
@@ -570,10 +575,19 @@ public final class CelestialIIEvents {
 			}
 			if (t == LIFE - 30) {
 				funnel(c);
+				// The calm after: leaves drifting down through slanting sun.
+				Vfx.play(world, VfxIds.TWISTER_CALM, c, new Vec3d(0.3, -1, 0.2), 1.0F, 0);
 				Kit.sound(world, c, SoundEvents.ENTITY_ENDER_DRAGON_FLAP, 64.0F, 0.4F);
 			}
 			if (t % 6 == 0) {
 				Vfx.shake(world, c, 620, (float) (1.4 * ramp));
+			}
+			if (t % 2 == 0 && t < LIFE - 30) {
+				Vfx.play(world, VfxIds.TWISTER_BASE, c, (float) (0.4 + 0.6 * ramp));
+			}
+			if (t % 30 == 0 && t < LIFE - 60) {
+				// Rain driven along the storm's track.
+				Vfx.play(world, VfxIds.TWISTER_RAIN, c, new Vec3d(dir.x * 0.5, -1, dir.z * 0.5), 1.0F, 0);
 			}
 			if (t % 14 == 0) {
 				Kit.sound(world, c, SoundEvents.ITEM_ELYTRA_FLYING, 24.0F, 0.3F);
@@ -581,7 +595,9 @@ public final class CelestialIIEvents {
 			}
 			if (t % 10 == 0) {
 				Vec3d bolt = c.add(world.random.nextGaussian() * 20, 0, world.random.nextGaussian() * 20);
-				Vfx.arc(world, c.add(0, 90, 0), Kit.ground(world, bolt.x, bolt.z), 0.8F, 0xE0F0FF);
+				Vec3d hit = Kit.ground(world, bolt.x, bolt.z);
+				Vfx.arc(world, c.add(0, 90, 0), hit, 0.8F, 0xE0F0FF);
+				Vfx.play(world, VfxIds.STORM_STRIKE, hit, 1.0F);
 			}
 			if (t >= LIFE) {
 				Kit.drop(blocks, new Vec3d(0, 0.3, 0));
@@ -1175,12 +1191,14 @@ public final class CelestialIIEvents {
 				}
 				Vec3d g = Kit.ground(world, b.x, b.z);
 				Kit.boom(world, g.add(0, 0.5, 0), 2.6F + world.random.nextFloat() * 0.8F, 0x60B8FF, owner(), true);
+				Vfx.play(world, VfxIds.PLASMA_IMPACT, g.add(0, 0.5, 0), new Vec3d(0, 1, 0), 1.6F, 0x60B8FF);
 				world.spawnParticles(ParticleTypes.FLAME, g.x, g.y + 1, g.z, 20, 2, 1, 2, 0.08);
 			}
 		}
 
 		private void cropCircle(Vec3d g, int index) {
 			fx(world, CROP_STAMP, g, g, 1.0F, index, 0, 0, 240);
+			Vfx.play(world, VfxIds.CROP_PULSE, g, 1.0F);
 			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 48.0F, 0.6F);
 			Kit.sound(world, g, SoundEvents.BLOCK_CONDUIT_ACTIVATE, 48.0F, 0.8F);
 			List<CelestialIIShapes.Mark> marks = CelestialIIShapes.crop(index);
@@ -1210,6 +1228,7 @@ public final class CelestialIIEvents {
 		private void abduct(Vec3d g, double shipY) {
 			double r = 3.6;
 			fx(world, ABDUCTION, g, g, (float) r, 0x80D8FF, (float) Math.max(20, shipY - g.y), 0, 110);
+			Vfx.play(world, VfxIds.ABDUCT_LIFT, g, new Vec3d(0, Math.max(20, shipY - g.y), 0), 1.0F, 0);
 			Kit.sound(world, g, SoundEvents.BLOCK_END_PORTAL_FRAME_FILL, 48.0F, 0.4F);
 			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 48.0F, 0.5F);
 			BlockPos b = BlockPos.ofFloored(g);
@@ -1261,6 +1280,10 @@ public final class CelestialIIEvents {
 				scouts(t);
 			}
 			Vec3d ship = Paths.ufo(from, to, t, LIFE);
+			if (t % 4 == 0 && t < LIFE) {
+				// The drive's cold haze, shed under the hull as it passes.
+				Vfx.play(world, VfxIds.UFO_DRIVE, ship.add(0, -12, 0), 3.5F);
+			}
 			if (t % 20 == 0) {
 				Kit.sound(world, new Vec3d(ship.x, c.y, ship.z), ModSounds.DEATH_RAY, 64.0F, 0.35F);
 				Vfx.shake(world, new Vec3d(ship.x, c.y, ship.z), 500, 0.8F);
@@ -1270,6 +1293,9 @@ public final class CelestialIIEvents {
 			// Far out of view the beam only paints the sky: carving unloaded chunks would load them (lag) and hit bedrock.
 			if (on && world.isChunkLoaded(BlockPos.ofFloored(b))) {
 				Vec3d g = Kit.ground(world, b.x, b.z);
+				if (t % 2 == 0) {
+					Vfx.play(world, VfxIds.UFO_BEAM, g, new Vec3d(0, ship.y - g.y, 0), 1.0F, 0);
+				}
 				// The scorched trail: a ribbon of blue glass with light buried under its spine.
 				BlockPos bp = BlockPos.ofFloored(g);
 				for (int dx = -1; dx <= 1; dx++) {

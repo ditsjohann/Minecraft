@@ -79,6 +79,23 @@ public interface Shape {
 		};
 	}
 
+	/**
+	 * A standing semicircle in the x-y plane, {@code thickness} deep in its radius: rainbows, arches. Outward is away
+	 * from the arch's centre.
+	 */
+	static Shape arch(float radius, float thickness) {
+		return (r, s, o) -> {
+			double a = r.next() * Math.PI;
+			float d = (radius + (r.next() - 0.5F) * thickness) * s;
+			o[3] = (float) Math.cos(a);
+			o[4] = (float) Math.sin(a);
+			o[5] = 0;
+			o[0] = o[3] * d;
+			o[1] = o[4] * d;
+			o[2] = (r.next() - 0.5F) * thickness * 0.3F * s;
+		};
+	}
+
 	/** A filled disc on the ground plane (uniform in area). */
 	static Shape disc(float radius) {
 		return (r, s, o) -> {

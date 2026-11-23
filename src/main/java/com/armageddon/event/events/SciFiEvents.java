@@ -19,6 +19,7 @@ import com.armageddon.util.SciShapes.Ion;
 import com.armageddon.util.SciShapes.Resonance;
 import com.armageddon.util.SciShapes.Tesla;
 import com.armageddon.util.SciShapes.Wave;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -271,6 +272,11 @@ public final class SciFiEvents {
 				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 64.0F, 0.5F + (float) hum * 1.4F);
 				Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.4F + (float) hum);
 				Vfx.shake(world, g, 300, 0.3F + (float) hum * 1.2F);
+				Vfx.play(world, VfxIds.FORK_HUM, g.add(0, Resonance.FORK_H * 0.85, 0), 0.5F + (float) hum);
+			}
+			if (t >= Resonance.HUM && t < Resonance.CASCADE_END && t % 8 == 0 && hum > 0.05) {
+				// The ground shivering like a speaker cone: dirt hopping wherever the note reaches.
+				Vfx.play(world, VfxIds.DUST_DANCE, g, (float) Math.max(0.15, hum));
 			}
 			if (t >= Resonance.HUM && t < Resonance.CASCADE && t % 4 == 0 && Destruction.enabled(world)) {
 				// Before the cascade: dust and loose pieces shaken off the buildings.
@@ -288,6 +294,7 @@ public final class SciFiEvents {
 				CityDestructionEvents.frames(world, g, 0);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 1.2F);
 				sweep = new StrongBombEvents.RingSweep((int) Resonance.R);
+				Vfx.play(world, VfxIds.CASCADE_FRONT, g, 1.0F);
 			}
 			if (sweep != null && t <= Resonance.CASCADE_END + 4) {
 				double front = Resonance.front(t);
@@ -308,6 +315,7 @@ public final class SciFiEvents {
 			}
 			if (t == Resonance.SHATTER) {
 				CityDestructionEvents.frames(world, g, 3);
+				Vfx.play(world, VfxIds.FORK_SHATTER, g.add(0, Resonance.FORK_H * 0.7, 0), 1.0F);
 				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
 				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 64.0F, 0.5F);
 				Vfx.shake(world, g, 400, 1.6F);
@@ -377,6 +385,9 @@ public final class SciFiEvents {
 				Kit.sound(world, g, SoundEvents.BLOCK_COPPER_PLACE, 48.0F, 0.5F);
 				Kit.sound(world, g, ModSounds.NUKE_RUMBLE, 48.0F, 0.6F);
 			}
+			if (t >= Tesla.RISEN && t < Tesla.FALL && t % 4 == 0) {
+				Vfx.play(world, VfxIds.TESLA_CORONA, crown, 1.0F);
+			}
 			if (t >= Tesla.STORM && t < Tesla.DISCHARGE) {
 				int every = Math.max(2, 9 - (t - Tesla.STORM) / 50);
 				if (t % every == 0) {
@@ -391,10 +402,16 @@ public final class SciFiEvents {
 				if (t % 5 == 0) {
 					com.armageddon.detonation.Detonations.pull(world, g, 60, 0.06);
 				}
+				if (t % 3 == 0) {
+					// Sparks pulled out of the air into the ball lightning (it sits where the client draws it).
+					float k = (t - Tesla.ORB) / (float) (Tesla.DISCHARGE - Tesla.ORB);
+					Vfx.play(world, VfxIds.BALL_FEED, crown.add(0, 4 + (2 + k * 11) * 0.6, 0), 0.6F + k);
+				}
 			}
 			if (t == Tesla.DISCHARGE) {
 				CityDestructionEvents.frames(world, g, 3, 1, 3);
 				Vfx.flash(world, crown, 0.4F, 100000, 0xC0E8FF);
+				Vfx.play(world, VfxIds.TESLA_NOVA, crown, 1.0F);
 				Vfx.shake(world, g, 100000, 2.6F);
 				Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.5F);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.8F);
@@ -423,7 +440,7 @@ public final class SciFiEvents {
 					Vec3d at = Kit.ground(world, g.x + dir.x * i, g.z + dir.z * i);
 					int d = i;
 					DetonationManager.schedule(world, i / 12, () -> {
-						Vfx.ring(world, at.add(0, 0.4, 0), 8.0F, 1.0F, 0x6A6E78, true, 20);
+						Vfx.play(world, VfxIds.TOWER_DUST, at, 1.0F);
 						if (Destruction.enabled(world)) {
 							plough(at.x, at.z, Math.atan2(dir.z, dir.x) + Math.PI / 2, 4, 0);
 							plough(at.x, at.z, Math.atan2(dir.z, dir.x) - Math.PI / 2, 4, 0);
@@ -452,6 +469,7 @@ public final class SciFiEvents {
 		private void strikeAt(Vec3d g, Vec3d crown, Vec3d hit, int length) {
 			Vfx.arc(world, crown, hit, 2.2F, 0xA8E0FF);
 			Vfx.light(world, hit, 0.6F, 0xA0D8FF);
+			Vfx.play(world, VfxIds.TESLA_HIT, hit, 1.0F);
 			LightningEntity bolt = EntityType.LIGHTNING_BOLT.create(world);
 			if (bolt != null) {
 				bolt.refreshPositionAfterTeleport(hit);
@@ -690,6 +708,7 @@ public final class SciFiEvents {
 			if (t > Gravity.HUM && t < Gravity.OFF && t % 10 == 0) {
 				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_AMBIENT, 64.0F, 0.5F + t * 0.01F);
 				Vfx.shake(world, g, 300, 0.2F + t * 0.01F);
+				Vfx.play(world, VfxIds.GRAVITY_HUM, g.add(0, 5, 0), 0.6F + 0.6F * t / Gravity.OFF);
 			}
 			if (t == Gravity.OFF) {
 				CityDestructionEvents.frames(world, g, 1);
@@ -697,6 +716,8 @@ public final class SciFiEvents {
 				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.4F);
 				Kit.sound(world, g, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 64.0F, 0.4F);
 				sweep = new StrongBombEvents.RingSweep((int) Gravity.R);
+				// Everything loose starts drifting up; the effect drops it all again at the slam (SLAM - OFF ticks later).
+				Vfx.play(world, VfxIds.GRAVITY_FLOAT, g, 1.0F);
 			}
 			if (t > Gravity.OFF && t < Gravity.SLAM) {
 				double front = Gravity.R * Math.min(1.0, (t - Gravity.OFF) / 90.0);
@@ -719,6 +740,7 @@ public final class SciFiEvents {
 			if (t == Gravity.SLAM) {
 				CityDestructionEvents.frames(world, g, 0, 2, 0);
 				Vfx.screen(world, g, 100000, 0, 0.0F, 1);
+				Vfx.play(world, VfxIds.GRAVITY_SLAM, g, 1.0F);
 				Vfx.shake(world, g, 100000, 3.0F);
 				Vfx.fov(world, g, 18.0F, 30);
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.3F);

@@ -204,6 +204,33 @@ public final class VfxIds {
 	public static final String IMPACTOR_STREAK = "impactor_streak";
 	public static final String EXTINCTION_WALL = "extinction_wall";
 
+	// celestial bombs
+	public static final String COW_SHADOW = "cow_shadow";
+	public static final String COW_SHADOW_BIG = "cow_shadow_big";
+	public static final String COW_STREAK = "cow_streak";
+	public static final String MILK_SPLASH = "milk_splash";
+	public static final String COW_DOOM = "cow_doom";
+	public static final String MILK_RAINBOW = "milk_rainbow";
+	public static final String TWISTER_BASE = "twister_base";
+	public static final String TWISTER_RAIN = "twister_rain";
+	public static final String TWISTER_CALM = "twister_calm";
+	public static final String UFO_BEAM = "ufo_beam";
+	public static final String UFO_DRIVE = "ufo_drive";
+	public static final String CROP_PULSE = "crop_pulse";
+	public static final String ABDUCT_LIFT = "abduct_lift";
+	public static final String FORK_HUM = "fork_hum";
+	public static final String DUST_DANCE = "dust_dance";
+	public static final String CASCADE_FRONT = "cascade_front";
+	public static final String FORK_SHATTER = "fork_shatter";
+	public static final String TESLA_HIT = "tesla_hit";
+	public static final String TESLA_CORONA = "tesla_corona";
+	public static final String BALL_FEED = "ball_feed";
+	public static final String TESLA_NOVA = "tesla_nova";
+	public static final String TOWER_DUST = "tower_dust";
+	public static final String GRAVITY_HUM = "gravity_hum";
+	public static final String GRAVITY_FLOAT = "gravity_float";
+	public static final String GRAVITY_SLAM = "gravity_slam";
+
 	public static final List<String> ALL = List.of(SPARKS, GRENADE_BLAST, PLASMA_IMPACT, NAPALM, SMOKE_COLUMN, CRYO_BURST,
 			VOID_IMPLOSION, TOXIC_CLOUD, ARC_BURST, RADIATION, EMBER_RAIN, FIREWORK, MUZZLE_FLASH, NUKE, MUSHROOM,
 			GOO_DRIP, GOO_PULSE, GOO_BURST, GOO_GLOB, GOO_SPLAT, RAY_CHARGE, RAY_MUZZLE, RAY_HEAD,
@@ -227,7 +254,10 @@ public final class VfxIds {
 			WARDEN_SEAL, PARTY_TRAIL, HONK_BLAST, MICRO_IMPACT, TETHER_PULL, SIEGE_TRAIL, SIEGE_BLAST, RESONANCE_WAVE,
 			SUNLANCE_CHARGE, SUNLANCE_LINE, SUNLANCE_IMPACT, SPLIT_SLAM, SPLIT_FISSURE, SPLIT_FINALE, MIDAS_TRAIL, MIDAS_BURST,
 			VERDICT_COUNT, VERDICT_STRIKE, TITAN_TRAIL, TITAN_BUILDUP, SHEAR_PLANE, SHEAR_CUT, JUDGMENT_TRAIL, JUDGMENT_HIT, JUDGMENT_VENT,
-			RIFT_MAW, RIFT_HIT, RIFT_COLLAPSE, RIFT_BLAST, SPINDLE_SHAFT, SPINDLE_SWEEP, SPINDLE_PULSE, EXTINCTION_ASH, IMPACTOR_STREAK, EXTINCTION_WALL);
+			RIFT_MAW, RIFT_HIT, RIFT_COLLAPSE, RIFT_BLAST, SPINDLE_SHAFT, SPINDLE_SWEEP, SPINDLE_PULSE, EXTINCTION_ASH, IMPACTOR_STREAK, EXTINCTION_WALL,
+			COW_SHADOW, COW_SHADOW_BIG, COW_STREAK, MILK_SPLASH, COW_DOOM, MILK_RAINBOW, TWISTER_BASE, TWISTER_RAIN, TWISTER_CALM,
+			UFO_BEAM, UFO_DRIVE, CROP_PULSE, ABDUCT_LIFT, FORK_HUM, DUST_DANCE, CASCADE_FRONT, FORK_SHATTER,
+			TESLA_HIT, TESLA_CORONA, BALL_FEED, TESLA_NOVA, TOWER_DUST, GRAVITY_HUM, GRAVITY_FLOAT, GRAVITY_SLAM);
 
 	private VfxIds() {
 	}

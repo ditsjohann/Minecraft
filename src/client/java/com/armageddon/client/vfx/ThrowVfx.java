@@ -77,6 +77,7 @@ final class ThrowVfx {
 		StrikeVfx.register();
 		GearVfx.register();
 		LegendVfx.register();
+		CelestialVfx.register();
 	}
 
 	// ------------------------------------------------------------------ throw and warning light
