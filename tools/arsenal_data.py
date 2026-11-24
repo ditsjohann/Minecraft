@@ -119,10 +119,12 @@ NEW_BOMBS.update({
     "ion_scythe": "ION SCYTHE", "resonance_cascade": "RESONANCE CASCADE", "tesla_dominion": "TESLA DOMINION",
     "dyson_lance": "DYSON LANCE", "gravity_killswitch": "GRAVITY KILLSWITCH", "seismic_tsunami": "SEISMIC TSUNAMI",
     "goo_bomb": "Goo Bomb", "cactus_bomb": "Cactus Bomb", "blackforge": "BLACKFORGE", "blue_infrit": "BLUE INFRIT",
+    "plasma_koi": "PLASMA KOI",
 })
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
+    "plasma_koi": "A pond of liquid light opens in the ground and seven koi made of plasma circle beneath its surface. One by one they leap out on wilder and wilder arcs, scorching wherever they land. Then they leap together, braid into a dragon, and dive back in: the pond erupts and plasma rains on the land. Light twice.",
     "goo_bomb": "An alien goo oozes out and swells, throbbing faster and faster, eating into the ground, until it bursts. Acid globs fly everywhere, and whatever they land on turns to goo and dissolves.",
     "cactus_bomb": "A cactus the size of a tower grows out of the ground and spins faster and faster until its spikes tear off and fly in every direction, blowing holes wherever they land. Then it blooms, and a red sandstorm turns the land to desert.",
     "blackforge": "Anvils start falling out of the sky: a few, then more, faster and faster, until it pours anvils. Then a hammer as tall as a tower slams the ground: every anvil turns to iron, and the land around breaks into tectonic plates that heave and sink. Light twice.",
@@ -321,6 +323,8 @@ def bomb_recipes3(shaped):
                                                "N": "minecraft:nether_star", "B": "minecraft:blackstone"}, category=cat)
     shaped("blue_infrit", ["CSC", "FKF", "CSC"], {"C": "celestial_core", "S": "minecraft:soul_lantern", "F": "minecraft:soul_campfire",
                                                 "K": "minecraft:wither_skeleton_skull"}, category=cat)
+    shaped("plasma_koi", ["SFS", "PNP", "SFS"], {"S": "minecraft:sea_lantern", "F": "minecraft:tropical_fish", "P": "minecraft:prismarine_crystals",
+                                               "N": "minecraft:nether_star"}, category=cat)
 
 
 def bomb_recipes(shaped):

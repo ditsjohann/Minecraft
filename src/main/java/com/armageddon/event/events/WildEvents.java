@@ -3,6 +3,7 @@ package com.armageddon.event.events;
 import com.armageddon.destruction.Destruction;
 import com.armageddon.destruction.world.TerrainJob;
 import com.armageddon.detonation.DetonationManager;
+import com.armageddon.detonation.Detonations;
 import com.armageddon.event.Climax;
 import com.armageddon.event.Kit;
 import com.armageddon.event.Ruin;
@@ -14,6 +15,7 @@ import com.armageddon.util.WildShapes.Cactus;
 import com.armageddon.util.WildShapes.Forge;
 import com.armageddon.util.WildShapes.Goo;
 import com.armageddon.util.WildShapes.Infrit;
+import com.armageddon.util.WildShapes.Koi;
 import com.armageddon.vfx.VfxIds;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -48,7 +50,7 @@ public final class WildEvents {
 	}
 
 	/** Effect ids for {@link com.armageddon.network.FxType#NEW_FX} (client: WildFx). */
-	public static final int FX_CACTUS = 50, FX_FORGE = 51, FX_INFRIT = 52;
+	public static final int FX_CACTUS = 50, FX_FORGE = 51, FX_INFRIT = 52, FX_KOI = 53;
 
 	private static final Vec3d UP = new Vec3d(0, 1, 0);
 
@@ -786,6 +788,142 @@ public final class WildEvents {
 				if (col.noise(13) < 0.14 && col.get(surf + 1).isAir()) {
 					col.set(surf + 1, Blocks.SOUL_FIRE.getDefaultState());
 				}
+			}
+		}
+	}
+
+	// ====================================================================== PLASMA KOI
+
+	/**
+	 * PLASMA KOI (mythic). A pond of liquid light opens in the ground and seven koi made of plasma circle under its
+	 * surface. One by one they leap out, on longer and wilder arcs, and each comes down in a scorching splash. Then
+	 * they all leap at once, braid into a dragon that climbs and circles over the pond, and dive back in: the pond
+	 * erupts into a geyser and plasma rains over the land.
+	 */
+	public static class PlasmaKoi extends SciFiEvents.Base {
+		private double surface;
+
+		@Override
+		public boolean tick() {
+			int t = age();
+			Vec3d c = center();
+			if (t == 0) {
+				surface = Kit.ground(world, c.x, c.z).y - 0.4;
+				CelestialEvents.announce(world, c, "block.armageddon.plasma_koi");
+				Vfx.newFx(world, FX_KOI, new Vec3d(c.x, surface, c.z), c, (float) Koi.POND_R, 0x60F0FF, (float) surface, 0, Koi.END);
+				Vfx.play(world, VfxIds.KOI_POND, new Vec3d(c.x, surface, c.z), 1.0F);
+				Vfx.skyTint(world, c, 100000, 0x081830, 0.45F);
+				Kit.sound(world, c, SoundEvents.BLOCK_BEACON_ACTIVATE, 48.0F, 0.6F);
+				Kit.sound(world, c, SoundEvents.AMBIENT_UNDERWATER_ENTER, 48.0F, 0.6F);
+			}
+			Vec3d pond = new Vec3d(c.x, surface, c.z);
+			if (t < Koi.OPEN && Destruction.enabled(world)) {
+				dig(c, Koi.POND_R * t / Koi.OPEN, Koi.POND_R * (t + 1) / Koi.OPEN);
+			}
+			if (t >= Koi.OPEN && t < Koi.GEYSER) {
+				if (t % 10 == 0) {
+					// The pond itself burns: anything wading in it.
+					Kit.damage(world, pond, Koi.POND_R, 5.0F, ModDamageTypes.PLASMA, null, owner());
+				}
+				if (t % 40 == 0) {
+					Kit.sound(world, pond, SoundEvents.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 32.0F, 0.6F);
+					Kit.sound(world, pond, SoundEvents.BLOCK_BEACON_AMBIENT, 32.0F, 0.8F);
+				}
+			}
+			for (int j = 0; j < Koi.LEAPS; j++) {
+				int s = Koi.leapStart(j);
+				if (t == s) {
+					Vec3d from = pond.add(Koi.swim(Koi.koiOf(j), s));
+					Vfx.play(world, VfxIds.KOI_BREACH, new Vec3d(from.x, surface, from.z), 1.0F + j * 0.04F);
+					Kit.sound(world, from, SoundEvents.ENTITY_DOLPHIN_JUMP, 32.0F, 0.6F);
+					Kit.sound(world, from, ModSounds.PLASMA_IMPACT, 24.0F, 1.4F);
+				}
+				if (t == s + Koi.flight(j)) {
+					Vec3d l = pond.add(Koi.landing(j));
+					splash(Kit.ground(world, l.x, l.z), 1.0F + j * 0.06F);
+				}
+			}
+			if (t == Koi.GATHER) {
+				Vfx.play(world, VfxIds.KOI_BREACH, pond, 2.5F);
+				Kit.sound(world, pond, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 64.0F, 1.2F);
+				Kit.sound(world, pond, SoundEvents.ENTITY_DOLPHIN_JUMP, 48.0F, 0.4F);
+			}
+			if (t > Koi.GATHER && t < Koi.GEYSER && t % 20 == 0) {
+				Kit.sound(world, pond.add(Koi.spine(t)), SoundEvents.ENTITY_PHANTOM_FLAP, 48.0F, 0.5F);
+				Vfx.shake(world, pond, 200, 0.4F + (t - Koi.GATHER) * 0.006F);
+			}
+			if (t == Koi.GEYSER - 10) {
+				Kit.sound(world, pond, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 64.0F, 0.6F);
+			}
+			if (t == Koi.GEYSER) {
+				geyser(pond);
+			}
+			if (t > Koi.GEYSER + 8 && t < Koi.RAIN_END && t % 3 == 0) {
+				// The plasma it threw up comes down over the land.
+				Vec3d p = Climax.around(world, c, 16, 70);
+				Vfx.play(world, VfxIds.KOI_RAIN, p, 1.0F);
+				Kit.damage(world, p, 2.5, 6.0F, ModDamageTypes.PLASMA, null, owner());
+				if (Destruction.enabled(world) && world.random.nextInt(3) == 0) {
+					Detonations.ignite(world, p, 2, 0.3F);
+				}
+			}
+			stepJobs(4000);
+			return t >= Koi.END && jobs.isEmpty();
+		}
+
+		/** One ring of the pond: hollowed to its plasma bed, a floor of glowing glass. */
+		private void dig(Vec3d c, double r0, double r1) {
+			int R = (int) Math.ceil(r1);
+			int top = MathHelper.floor(surface + 0.4), floor = top - (int) Koi.DEPTH;
+			for (int dx = -R; dx <= R; dx++) {
+				for (int dz = -R; dz <= R; dz++) {
+					double d = Math.sqrt(dx * dx + dz * dz);
+					if (d < r0 || d >= r1) {
+						continue;
+					}
+					int x = MathHelper.floor(c.x) + dx, z = MathHelper.floor(c.z) + dz;
+					if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+						continue;
+					}
+					int bed = floor + (d > Koi.POND_R - 2 ? 1 : 0);
+					for (int y = bed + 1; y <= top + 6; y++) {
+						Destruction.set(world, new BlockPos(x, y, z), AIR, Kit.FLAGS);
+					}
+					double h = Koi.hash(x, z);
+					Destruction.set(world, new BlockPos(x, bed, z), (h < 0.3 ? Blocks.SEA_LANTERN : Blocks.LIGHT_BLUE_STAINED_GLASS).getDefaultState(), Kit.FLAGS);
+				}
+			}
+		}
+
+		/** A koi comes down: a scorching splash of plasma, a little crater, fire. */
+		private void splash(Vec3d at, float k) {
+			Vfx.play(world, VfxIds.KOI_SPLASH, at, k);
+			Kit.sound(world, at, ModSounds.PLASMA_IMPACT, 32.0F, 0.7F);
+			Kit.sound(world, at, SoundEvents.ENTITY_GENERIC_SPLASH, 32.0F, 0.5F);
+			Kit.damage(world, at, 4.5 * k, 16.0F * k, ModDamageTypes.PLASMA, null, owner());
+			for (LivingEntity e : Kit.living(world, at, 4 * k)) {
+				e.setOnFireFor(5);
+			}
+			if (Destruction.enabled(world)) {
+				Kit.sphere(world, BlockPos.ofFloored(at).down(1), 2.0 * k, AIR);
+				Detonations.ignite(world, at, (int) (3 * k), 0.25F);
+			}
+		}
+
+		/** The dragon dives home and the pond erupts. */
+		private void geyser(Vec3d pond) {
+			Vfx.play(world, VfxIds.KOI_GEYSER, pond, 1.0F);
+			Vfx.flash(world, pond, 0.6F, 600, 0xC0F8FF);
+			Vfx.shake(world, pond, 600, 2.6F);
+			Vfx.fov(world, pond, 14.0F, 24);
+			Vfx.light(world, pond.add(0, 10, 0), 1.5F, 0x80F0FF);
+			Kit.sound(world, pond, ModSounds.NUKE_DETONATE, 64.0F, 0.9F);
+			Kit.sound(world, pond, SoundEvents.ENTITY_GENERIC_SPLASH, 64.0F, 0.3F);
+			Kit.sound(world, pond, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.8F);
+			Detonations.blast(world, pond, 45, 260.0F, ModDamageTypes.PLASMA, owner(), 20, 3.0);
+			if (Destruction.enabled(world)) {
+				DetonationManager.add(new com.armageddon.detonation.CraterJob(world, BlockPos.ofFloored(pond), Destruction.radius(world, 18.0F),
+						com.armageddon.detonation.CraterJob.Mode.GLASSED).withLining(Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState()));
 			}
 		}
 	}

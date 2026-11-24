@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "SFS",
+    "PNP",
+    "SFS"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:sea_lantern"
+    },
+    "F": {
+      "item": "minecraft:tropical_fish"
+    },
+    "P": {
+      "item": "minecraft:prismarine_crystals"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "id": "armageddon:plasma_koi",
+    "count": 1
+  }
+}

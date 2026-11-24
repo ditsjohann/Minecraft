@@ -102,7 +102,9 @@ public enum BombType {
 	GOO_BOMB(100, 0x80FF30),
 	CACTUS_BOMB(120, 0x5AA040),
 	BLACKFORGE(200, 0xFF5A1A),
-	BLUE_INFRIT(300, 0x40C8FF);
+	BLUE_INFRIT(300, 0x40C8FF),
+	// plasma
+	PLASMA_KOI(200, 0x60F0FF);
 
 	public final int fuse;
 	public final int color;

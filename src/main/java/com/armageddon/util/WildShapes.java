@@ -408,4 +408,131 @@ public final class WildShapes {
 			return 0.2 + 0.8 * (1 - smooth((local - 45) / 6.0));
 		}
 	}
+
+	// ====================================================================== PLASMA KOI
+
+	/**
+	 * A pond of liquid plasma opens; koi made of light circle under its surface, then leap out one at a time on wider
+	 * and wilder arcs, each landing in a scorching splash. At last they all leap together, braid into a dragon that
+	 * climbs and circles over the pond, and dive back in: the pond erupts. Positions are relative to the centre of
+	 * the pond's surface; the leaps end at surface height, and the client and server both add the landing's ground.
+	 */
+	public static final class Koi {
+		public static final int KOI = 7, LEAPS = 16;
+		public static final int OPEN = 30, LEAP0 = 120, GATHER = 420, RISE_END = 490, GEYSER = 525, RAIN_END = 610, END = 690;
+		public static final double POND_R = 14, DEPTH = 3;
+		/** Each koi's colour: cyan, magenta, gold, white, violet, mint, coral. */
+		public static final int[] COLORS = {0x20C8FF, 0xFF30B0, 0xFFA010, 0x90C8FF, 0x7040FF, 0x30FF80, 0xFF5030};
+
+		private Koi() {
+		}
+
+		public static double hash(int i, int k) {
+			double v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453;
+			return v - Math.floor(v);
+		}
+
+		/** Where koi {@code k} swims at tick {@code t}: slow loops just under the surface. */
+		public static Vec3d swim(int k, double t) {
+			double dir = k % 2 == 0 ? 1 : -1;
+			double a = hash(k, 1) * MathHelper.TAU + t * (0.035 + 0.02 * hash(k, 2)) * dir;
+			double r = 4 + 7 * hash(k, 3) + 1.5 * Math.sin(t * 0.05 + k);
+			return new Vec3d(Math.cos(a) * r, -0.9 + 0.25 * Math.sin(t * 0.13 + k), Math.sin(a) * r);
+		}
+
+		/** Tick leap {@code j} starts: the gaps shrink as they get wilder. */
+		public static int leapStart(int j) {
+			double t = LEAP0;
+			for (int i = 0; i < j; i++) {
+				t += Math.max(8, 26 - 1.4 * i);
+			}
+			return (int) t;
+		}
+
+		public static int flight(int j) {
+			return 22 + j;
+		}
+
+		public static int koiOf(int j) {
+			return j % KOI;
+		}
+
+		/** Where leap {@code j} comes down, relative to the pond's centre, at surface height. */
+		public static Vec3d landing(int j) {
+			Vec3d from = swim(koiOf(j), leapStart(j));
+			double a = Math.atan2(from.z, from.x) + (hash(j, 4) - 0.5) * 0.8;
+			double d = 22 + j * 2.4 + hash(j, 5) * 8;
+			return new Vec3d(Math.cos(a) * d, 0, Math.sin(a) * d);
+		}
+
+		public static double apex(int j) {
+			return 10 + j * 1.2 + hash(j, 6) * 6;
+		}
+
+		/** Leap {@code j} at tick {@code t}; {@code landDy} is the landing ground's height relative to the surface. */
+		public static Vec3d leap(int j, double t, double landDy) {
+			Vec3d from = swim(koiOf(j), leapStart(j));
+			Vec3d to = landing(j);
+			double u = MathHelper.clamp((t - leapStart(j)) / flight(j), 0.0, 1.0);
+			double y = from.y + (landDy - from.y) * u + 4 * apex(j) * u * (1 - u);
+			return new Vec3d(from.x + (to.x - from.x) * u, y, from.z + (to.z - from.z) * u);
+		}
+
+		/** The leap koi {@code k} is in at tick {@code t}, or -1. */
+		public static int leapOf(int k, double t) {
+			for (int j = k; j < LEAPS; j += KOI) {
+				int s = leapStart(j);
+				if (t >= s && t <= s + flight(j)) {
+					return j;
+				}
+			}
+			return -1;
+		}
+
+		/** True while koi {@code k} is gone from the pond after a landing, before it swims back in. */
+		public static boolean resting(int k, double t) {
+			for (int j = k; j < LEAPS; j += KOI) {
+				double e = leapStart(j) + flight(j);
+				if (t > e && t < e + 14) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/** The dragon's spine: climbing round the pond, then circling, then diving straight back in. */
+		public static Vec3d spine(double t) {
+			double a = (t - GATHER) * 0.09;
+			if (t < RISE_END) {
+				double u = smooth((t - GATHER) / (RISE_END - GATHER));
+				return new Vec3d(Math.cos(a) * 8, 3 + 50 * u, Math.sin(a) * 8);
+			}
+			double u = MathHelper.clamp((t - RISE_END) / (GEYSER - RISE_END), 0.0, 1.0);
+			double r = 8 * (1 - u);
+			return new Vec3d(Math.cos(a) * r, 53 - 55 * u * u, Math.sin(a) * r);
+		}
+
+		/** Koi {@code k} in the dragon: braided round the spine, blending in from where it was swimming. */
+		public static Vec3d dragon(int k, double t) {
+			double b = k * MathHelper.TAU / KOI + t * 0.5;
+			Vec3d p = spine(t).add(Math.cos(b) * 3.0, Math.sin(b * 1.3) * 1.6, Math.sin(b) * 3.0);
+			double blend = smooth((t - GATHER) / 15.0);
+			return swim(k, GATHER).multiply(1 - blend).add(p.multiply(blend));
+		}
+
+		/** Where koi {@code k} is at tick {@code t} (null when it is not there to draw). */
+		public static Vec3d at(int k, double t, double landDy) {
+			if (t < OPEN || t >= GEYSER) {
+				return null;
+			}
+			if (t >= GATHER) {
+				return dragon(k, t);
+			}
+			int j = leapOf(k, t);
+			if (j >= 0) {
+				return leap(j, t, landDy);
+			}
+			return resting(k, t) ? null : swim(k, t);
+		}
+	}
 }

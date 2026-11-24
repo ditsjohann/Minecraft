@@ -87,6 +87,7 @@ final class ThrowVfx {
 		BombVfx4.register();
 		BombVfx5.register();
 		BombVfx6.register();
+		PlasmaVfx.register();
 	}
 
 	// ------------------------------------------------------------------ throw and warning light

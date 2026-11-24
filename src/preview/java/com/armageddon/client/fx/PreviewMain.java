@@ -112,6 +112,7 @@ public final class PreviewMain {
 			case "halo" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(0.3, 0, 0), 34, 0xFF5030, 49, 0, 0, 260));
 			case "cactus" -> NewFx.create(payload(FxType.NEW_FX, a, a, 34, 0x5AA040, 50, 0, 0, com.armageddon.util.WildShapes.Cactus.SOLID + 4));
 			case "forge" -> NewFx.create(payload(FxType.NEW_FX, a, a, 135, 0xFF5A1A, 51, 0, 0, com.armageddon.util.WildShapes.Forge.END));
+			case "koi" -> NewFx.create(payload(FxType.NEW_FX, a, a, 14, 0x60F0FF, 53, 0, 0, com.armageddon.util.WildShapes.Koi.END));
 			case "infrit" -> NewFx.create(payload(FxType.NEW_FX, a, a, 42, 0x40C8FF, 52, 4242, 0, com.armageddon.util.WildShapes.Infrit.END));
 			case "sword" -> CityFx.create(payload(FxType.CITY_FX, a, new Vec3d(1, 0, 0), 90, 0xFF6020, 9, 60, 0, 300));
 			case "worm" -> CityFx.create(payload(FxType.CITY_FX, a, a, 64, 0xA060FF, 8, 0.6F, 0, 700));

@@ -1507,6 +1507,26 @@ def blue_infrit():
 BOMBS.update({"goo_bomb": goo_bomb, "cactus_bomb": cactus_bomb, "blackforge": blackforge, "blue_infrit": blue_infrit})
 
 
+def plasma_koi():
+    # A dark stone basin holding a dome of liquid plasma, two koi of light circling outside it.
+    m = [B(1, 0, 1, 15, 1.4, 15, "gunmetal"), B(2, 1.4, 2, 14, 2.2, 14, "steel")]
+    m += ring_y(8, 2.25, 8, 6.4, "glow_cyan", 0.4, segs=24)
+    m += [B(3.4, 2.2, 3.4, 12.6, 2.5, 12.6, "glow_cyan")]
+    m += vsphere(8, 6.6, 8, 4.2, 1.0, "glass_cyan")
+    m += [B(7.4, 10.8, 7.4, 8.6, 11.8, 8.6, "glow_white")]
+    # A magenta koi swimming across the front, nose right, its tail fanned.
+    m += [B(5.0, 5.0, 2.0, 9.6, 6.4, 3.2, "glow_pink"), B(9.6, 5.3, 2.2, 10.8, 6.1, 3.0, "glow_pink"),
+          B(3.6, 4.6, 2.3, 5.0, 6.8, 2.9, "glow_pink"), B(9.9, 5.8, 1.95, 10.3, 6.2, 2.05, "glow_white")]
+    m += [B(6.6, 6.4, 2.3, 7.8, 7.2, 2.9, "glow_pink")]
+    # A gold koi climbing the right side the other way.
+    m += [B(12.8, 7.4, 6.0, 14.0, 8.8, 10.4, "glow_gold"), B(13.0, 7.7, 4.8, 13.8, 8.5, 6.0, "glow_gold"),
+          B(13.1, 7.0, 10.4, 13.7, 9.2, 11.8, "glow_gold"), B(13.95, 8.2, 5.2, 14.05, 8.6, 5.6, "glow_white")]
+    return m
+
+
+BOMBS.update({"plasma_koi": plasma_koi})
+
+
 def hyperbeam_raygun():
     # A chunky retro raygun: a bulbous charge chamber with fins, a wide bell emitter and a glowing coil.
     m = [B(5.5, 7, 6, 10.5, 12.5, 18, "white")]

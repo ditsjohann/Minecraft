@@ -132,6 +132,7 @@ public final class Events {
 		EVENTS.put("hyperbeam", com.armageddon.event.events.WildEvents.Hyperbeam::new);
 		EVENTS.put("cactus_bomb", com.armageddon.event.events.WildEvents.CactusBomb::new);
 		EVENTS.put("blackforge", com.armageddon.event.events.WildEvents.Blackforge::new);
+		EVENTS.put("plasma_koi", com.armageddon.event.events.WildEvents.PlasmaKoi::new);
 		EVENTS.put("blue_infrit", com.armageddon.event.events.WildEvents.BlueInfrit::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);

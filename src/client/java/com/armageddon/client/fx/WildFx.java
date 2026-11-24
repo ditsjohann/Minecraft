@@ -9,6 +9,7 @@ import com.armageddon.util.SciShapes;
 import com.armageddon.util.WildShapes.Cactus;
 import com.armageddon.util.WildShapes.Forge;
 import com.armageddon.util.WildShapes.Infrit;
+import com.armageddon.util.WildShapes.Koi;
 import com.armageddon.vfx.VfxIds;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -37,6 +38,7 @@ public final class WildFx {
 			case 50 -> new CactusFx(a, p.duration());
 			case 51 -> new ForgeFx(a, p.duration());
 			case 52 -> new InfritFx(a, (int) p.p1(), p.duration());
+			case 53 -> new KoiFx(a, p.duration());
 			default -> null;
 		};
 	}
@@ -444,6 +446,190 @@ public final class WildFx {
 		/** A point in the head's own frame (x right, y up, z forward), scaled. */
 		private static Vec3d at(Vec3d pos, Vec3d r, Vec3d u, Vec3d f, double x, double y, double z, double s) {
 			return pos.add(r.multiply(x * s)).add(u.multiply(y * s)).add(f.multiply(z * s));
+		}
+	}
+
+	// ====================================================================== PLASMA KOI
+
+	/**
+	 * The pond of liquid light and its koi: each fish a tapered ribbon of plasma with a white-hot core, fins and a tail
+	 * fan, dimmer under the surface; leaping on the server's arcs; braided into a dragon at the end. The particles
+	 * (ripples, drips, trails) come from the engine as they move.
+	 */
+	static final class KoiFx extends FxEffect {
+		private final Vec3d c;
+		private final double[] landDy = new double[Koi.LEAPS];
+		private final boolean[] known = new boolean[Koi.LEAPS];
+
+		KoiFx(Vec3d c, int life) {
+			super(Math.max(40, life));
+			this.c = c;
+		}
+
+		private static double ground(ClientWorld w, double x, double z, double fallback) {
+			if (w == null) {
+				return fallback;
+			}
+			int y = w.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, MathHelper.floor(x), MathHelper.floor(z));
+			return y > w.getBottomY() + 1 ? y : fallback;
+		}
+
+		/** Koi {@code k} relative to the pond at time {@code t}, or null. */
+		private Vec3d pos(int k, double t) {
+			if (t < Koi.OPEN || t >= Koi.GEYSER) {
+				return null;
+			}
+			if (t >= Koi.GATHER) {
+				return Koi.dragon(k, t);
+			}
+			int j = Koi.leapOf(k, t);
+			if (j >= 0) {
+				return Koi.leap(j, t, landDy[j]);
+			}
+			return Koi.resting(k, t) ? null : Koi.swim(k, t);
+		}
+
+		@Override
+		public boolean tick(ClientWorld world) {
+			int t = age;
+			for (int j = 0; j < Koi.LEAPS; j++) {
+				if (!known[j] && t >= Koi.leapStart(j) - 4 && world != null) {
+					Vec3d l = c.add(Koi.landing(j));
+					landDy[j] = ground(world, l.x, l.z, c.y) - c.y;
+					known[j] = true;
+				}
+			}
+			if (t >= Koi.OPEN && t < Koi.GEYSER && t % 6 == 0) {
+				FxEngine.play(VfxIds.KOI_SHIMMER, c.x, c.y, c.z, 0, 1, 0, 1.0F, 0, t * 131L);
+			}
+			for (int k = 0; k < Koi.KOI; k++) {
+				Vec3d p = pos(k, t), q = pos(k, t - 1);
+				if (p == null) {
+					continue;
+				}
+				Vec3d w = c.add(p);
+				int col = Koi.COLORS[k];
+				boolean flying = t >= Koi.GATHER || Koi.leapOf(k, t) >= 0;
+				if (flying && q != null) {
+					Vec3d v = p.subtract(q);
+					FxEngine.playMoving(VfxIds.KOI_TRAIL, w.x, w.y, w.z, 0, 1, 0, t >= Koi.GATHER ? 1.3F : 1.0F, col, t * 977L + k,
+							(float) v.x, (float) v.y, (float) v.z);
+				} else if (t % 8 == k) {
+					FxEngine.play(VfxIds.KOI_RIPPLE, w.x, c.y + 0.05, w.z, 0, 1, 0, 1.0F, col, t * 389L + k);
+				}
+			}
+			if (t % 10 == 0 && t < Koi.GEYSER + 30) {
+				ClientFx.light(c.add(0, 2, 0), 0.6F, 0x60F0FF);
+			}
+			return super.tick(world);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			Vec3d o = c.subtract(cam);
+			// The pond: a disc of liquid light with caustic ripples running out over it.
+			float open = (float) MathHelper.clamp(a / Koi.OPEN, 0.0, 1.0);
+			float fade = a < Koi.GEYSER ? 1.0F : (float) Math.max(0, 1 - (a - Koi.GEYSER) / 25.0);
+			if (fade > 0) {
+				double r = Koi.POND_R * (1 - (1 - open) * (1 - open));
+				float pulse = 0.85F + 0.15F * MathHelper.sin(a * 0.11F);
+				FxDraw.disc(glow, m, o.add(0, 0.02, 0), X, Z, r, 0x50E0FF, 0.55F * fade * pulse, 0.3F * fade, 48);
+				FxDraw.disc(glow, m, o.add(0, 0.04, 0), X, Z, r * 0.55, 0xC0FFFF, 0.25F * fade * pulse, 0.0F, 32);
+				for (int i = 0; i < 4; i++) {
+					double rr = (a * 0.12 + i * r / 4) % r;
+					FxDraw.ring(glow, m, o.add(0, 0.06, 0), X, Z, Math.max(0, rr - 0.25), rr + 0.25, 0xE0FFFF, 0.0F,
+							0.35F * (float) (1 - rr / r) * fade, 0.0F, 48);
+				}
+			}
+			boolean dragon = a >= Koi.GATHER;
+			int n = dragon ? 34 : 12;
+			// The body is sampled by distance, not time, so a fish stays fish-length however fast it is moving.
+			double seg = dragon ? 0.8 : 0.45;
+			Vec3d[] pts = new Vec3d[n];
+			for (int k = 0; k < Koi.KOI; k++) {
+				int col = Koi.COLORS[k];
+				Vec3d head = pos(k, a);
+				if (head == null) {
+					continue;
+				}
+				int len = 0;
+				pts[len++] = o.add(head);
+				double tt = a;
+				Vec3d last = head;
+				for (int guard = 0; len < n && guard < 400; guard++) {
+					tt -= 0.05;
+					Vec3d p = pos(k, tt);
+					if (p == null) {
+						break;
+					}
+					if (p.squaredDistanceTo(last) >= seg * seg) {
+						pts[len++] = o.add(p);
+						last = p;
+					}
+				}
+				if (len < 3) {
+					continue;
+				}
+				float alpha = pts[0].y - o.y < -0.25 ? 0.6F : 1.0F;
+				double thick = dragon ? 2.2 : 1.4;
+				for (int s = 0; s < len - 1; s++) {
+					double u = (s + 1) / (double) (len + 1);
+					double w = (0.25 + 0.95 * Math.pow(Math.sin(Math.PI * Math.min(1, u * 1.4)), 0.7)) * thick;
+					float al = alpha * (float) (1 - 0.4 * s / len);
+					FxDraw.ribbon(glow, m, pts[s], pts[s + 1], Vec3d.ZERO, w, col, al, al * 0.9F);
+					FxDraw.ribbon(glow, m, pts[s], pts[s + 1], Vec3d.ZERO, w * 0.2, 0xFFFFFF, al * 0.6F, al * 0.5F);
+				}
+				// Pectoral fins and the tail fan.
+				Vec3d d = pts[0].subtract(pts[2]);
+				if (d.lengthSquared() > 1.0E-4) {
+					d = d.normalize();
+					Vec3d side = d.crossProduct(new Vec3d(0, 1, 0));
+					side = side.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : side.normalize();
+					float flap = 0.8F + 0.4F * MathHelper.sin(a * 0.6F + k);
+					for (int sgn = -1; sgn <= 1; sgn += 2) {
+						Vec3d root = pts[1];
+						FxDraw.ribbon(glow, m, root, root.add(side.multiply(sgn * 1.3 * flap * thick)).subtract(d.multiply(0.7)), Vec3d.ZERO, 0.5 * thick, col,
+								0.6F * alpha, 0.1F * alpha);
+					}
+					Vec3d tail = pts[len - 1], back = tail.subtract(pts[len - 2]);
+					if (back.lengthSquared() > 1.0E-4) {
+						FxDraw.ribbon(glow, m, tail, tail.add(back.normalize().multiply(1.6 * thick)), Vec3d.ZERO, 1.5 * thick, col, 0.5F * alpha, 0.0F);
+					}
+				}
+				FxKit.halo(consumers, m, cb, pts[0], 1.6 * thick, col, 0.45F * alpha);
+			}
+			if (dragon && a < Koi.GEYSER) {
+				// The dragon's body: a glowing spine the braid winds round, thick at the shoulders, thin at the tail.
+				Vec3d prevS = null;
+				for (int s = 0; s < 40; s++) {
+					double ts = a - s * 0.9;
+					if (ts < Koi.GATHER) {
+						break;
+					}
+					Vec3d sp = o.add(Koi.spine(ts));
+					if (prevS != null) {
+						double w = 4.5 * (1 - s / 44.0);
+						FxDraw.ribbon(glow, m, prevS, sp, Vec3d.ZERO, w, 0x40C8FF, 0.32F, 0.3F);
+					}
+					prevS = sp;
+				}
+				// The dragon's head leading the braid: a white-hot glow and two whiskers trailing back.
+				Vec3d head = o.add(Koi.spine(a)), prev = o.add(Koi.spine(a - 1.5));
+				FxKit.halo(consumers, m, cb, head, 8, 0x80E8FF, 0.6F);
+				Vec3d d = head.subtract(prev);
+				if (d.lengthSquared() > 1.0E-4) {
+					d = d.normalize();
+					Vec3d side = d.crossProduct(new Vec3d(0, 1, 0));
+					side = side.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : side.normalize();
+					for (int sgn = -1; sgn <= 1; sgn += 2) {
+						Vec3d tip = head.add(side.multiply(sgn * 3)).subtract(d.multiply(5)).add(0, MathHelper.sin(a * 0.3F + sgn) * 1.5, 0);
+						FxDraw.ribbon(glow, m, head, tip, Vec3d.ZERO, 0.35, 0xE0FFFF, 0.8F, 0.0F);
+					}
+				}
+			}
 		}
 	}
 }
