@@ -148,6 +148,9 @@ public final class ModBlocks {
 	public static final BombBlock CACTUS_BOMB = tiered(bomb("cactus_bomb", BombType.CACTUS_BOMB, Rarity.EPIC), Tier.LEGENDARY);
 	public static final BombBlock BLACKFORGE = tiered(bomb("blackforge", BombType.BLACKFORGE, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock PLASMA_KOI = tiered(bomb("plasma_koi", BombType.PLASMA_KOI, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock DIMENSION_SHIFT = tiered(bomb("dimension_shift", BombType.DIMENSION_SHIFT, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock FIREWORK_HAVOC = tiered(bomb("firework_havoc", BombType.FIREWORK_HAVOC, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock CHINESE_LANTERN = tiered(bomb("chinese_lantern", BombType.CHINESE_LANTERN, Rarity.UNCOMMON), Tier.FUN);
 	public static final BombBlock BLUE_INFRIT = tiered(bomb("blue_infrit", BombType.BLUE_INFRIT, Rarity.EPIC), Tier.CELESTIAL);
 
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks

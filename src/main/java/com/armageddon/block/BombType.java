@@ -104,7 +104,10 @@ public enum BombType {
 	BLACKFORGE(200, 0xFF5A1A),
 	BLUE_INFRIT(300, 0x40C8FF),
 	// plasma
-	PLASMA_KOI(200, 0x60F0FF);
+	PLASMA_KOI(200, 0x60F0FF),
+	DIMENSION_SHIFT(200, 0x8030FF),
+	FIREWORK_HAVOC(100, 0xFF60C0),
+	CHINESE_LANTERN(80, 0xFF4020);
 
 	public final int fuse;
 	public final int color;

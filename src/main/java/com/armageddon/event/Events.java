@@ -133,6 +133,9 @@ public final class Events {
 		EVENTS.put("cactus_bomb", com.armageddon.event.events.WildEvents.CactusBomb::new);
 		EVENTS.put("blackforge", com.armageddon.event.events.WildEvents.Blackforge::new);
 		EVENTS.put("plasma_koi", com.armageddon.event.events.WildEvents.PlasmaKoi::new);
+		EVENTS.put("dimension_shift", com.armageddon.event.events.WonderEvents.DimensionShift::new);
+		EVENTS.put("firework_havoc", com.armageddon.event.events.WonderEvents.FireworkHavoc::new);
+		EVENTS.put("chinese_lantern", com.armageddon.event.events.WonderEvents.ChineseLantern::new);
 		EVENTS.put("blue_infrit", com.armageddon.event.events.WildEvents.BlueInfrit::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);

@@ -90,6 +90,7 @@ public final class Showcase {
 			case BOMBS -> 0xFF6030;
 			case CATACLYSMS -> 0xFF40FF;
 			case GEAR -> 0xC8D0D8;
+			case NEW -> 0x80FFB0;
 		};
 	}
 

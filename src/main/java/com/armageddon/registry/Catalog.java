@@ -34,7 +34,9 @@ public final class Catalog {
 		EXPLOSIVES("explosives"),
 		BOMBS("bombs"),
 		CATACLYSMS("cataclysms"),
-		GEAR("gear");
+		GEAR("gear"),
+		/** The newest bombs, gathered in their own tab for now. */
+		NEW("new");
 
 		public final String key;
 
@@ -45,6 +47,12 @@ public final class Catalog {
 
 	private Catalog() {
 	}
+
+	/** The bombs made most recently: they live in the "New" tab until it is folded back into the others. */
+	private static final Set<com.armageddon.block.BombType> NEWEST = Set.of(
+			com.armageddon.block.BombType.GOO_BOMB, com.armageddon.block.BombType.CACTUS_BOMB, com.armageddon.block.BombType.BLACKFORGE,
+			com.armageddon.block.BombType.BLUE_INFRIT, com.armageddon.block.BombType.PLASMA_KOI, com.armageddon.block.BombType.DIMENSION_SHIFT,
+			com.armageddon.block.BombType.FIREWORK_HAVOC, com.armageddon.block.BombType.CHINESE_LANTERN);
 
 	private static Set<Item> ammo() {
 		return Set.of(ModItems.MINI_NUKE, ModItems.ROCKET, ModItems.PLASMA_CELL, ModItems.RAILGUN_SLUG, ModItems.BULLET_BELT,
@@ -63,6 +71,9 @@ public final class Catalog {
 	public static Category category(Item item) {
 		if (item instanceof BlockItem bi) {
 			if (bi.getBlock() instanceof BombBlock bomb) {
+				if (NEWEST.contains(bomb.getBombType())) {
+					return Category.NEW;
+				}
 				return bomb.getBombType().isCelestial() ? Category.CATACLYSMS : Category.BOMBS;
 			}
 			return Category.GEAR;

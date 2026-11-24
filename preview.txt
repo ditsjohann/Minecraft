@@ -57,3 +57,6 @@ vfx:forge_strike:1.6 8 -45 15 -45 0 8 0
 vfx:infrit_impact:2.5 6 -30 12 -30 0 4 0
 koi 330 -20 10 -20 0 4 0
 koi 470 -28 22 -28 0 28 0
+lantern 300 -50 15 -50 0 25 0
+vfx:havoc_burst 20 -45 25 -45 0 10 0
+vfx:dim_rift 25 -14 6 -14 0 4 0

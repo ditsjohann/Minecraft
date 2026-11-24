@@ -49,12 +49,12 @@ deadly it is.
 
 | Tier | Reach | Examples |
 | --- | --- | --- |
-| Fun | harmless or temporary | Disco Ball, Balloon, Party Popper |
+| Fun | harmless or temporary | Disco Ball, Balloon, Party Popper, Chinese Lantern |
 | Uncommon | under 5 blocks | Frag, Incendiary, Gravity Grenade, Flamethrower |
 | Rare | 5 to 12 blocks, gadgets | Thermobaric, Thermite, Sinkhole, Pocket Nuke, Rocket Launcher, Plasma Rifle |
 | Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun |
-| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb |
-| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi |
+| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc |
+| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift |
 | Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit |
 | City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence |
 | World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami |
@@ -74,6 +74,15 @@ lava, before blue fire sweeps the country).
 PLASMA KOI (mythic): a pond of liquid light opens and seven koi made of plasma circle beneath its surface. One by one
 they leap out on wilder and wilder arcs, each landing in a scorching splash; then they leap together, braid into a
 dragon that climbs and circles over the pond, and dive back in. The pond erupts into a geyser and plasma rains down.
+
+DIMENSION SHIFT (mythic): a rift tears open and a wave runs out from it, shifting everything it passes into the Nether:
+nylium and netherrack, soul sand, crimson and warped trees, lava where the water was, a red sky and falling ash; then the
+locals arrive. FIREWORK HAVOC (legendary): one giant firework climbs and bursts, setting off a cascade of real fireworks at
+every angle while fountains go off across the ground, ending in a golden willow. CHINESE LANTERN (fun): hundreds of paper
+lanterns rise and fill the sky while a translucent golden dragon flies over them to a flute tune, then bursts into gold.
+
+The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern) sit
+in their own creative tab, "Armageddon: New", for now.
 
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-4]`, to build a city of
 skyscrapers, roads, street lights and parks (with villagers) to destroy. `/armageddon purge` clears fallout,

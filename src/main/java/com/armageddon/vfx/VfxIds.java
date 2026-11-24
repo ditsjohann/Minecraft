@@ -286,6 +286,18 @@ public final class VfxIds {
 	public static final String SPOT_SCORCH = "spot_scorch";
 	public static final String SHOWTIME = "showtime";
 	public static final String FINALE_GLITTER = "finale_glitter";
+	public static final String DIM_RIFT = "dim_rift";
+	public static final String DIM_FRONT = "dim_front";
+	public static final String DIM_ASH = "dim_ash";
+	public static final String DIM_CLOSE = "dim_close";
+	public static final String HAVOC_LAUNCH = "havoc_launch";
+	public static final String HAVOC_TRAIL = "havoc_trail";
+	public static final String HAVOC_BURST = "havoc_burst";
+	public static final String HAVOC_FOUNTAIN = "havoc_fountain";
+	public static final String HAVOC_WILLOW = "havoc_willow";
+	public static final String LANTERN_RISE = "lantern_rise";
+	public static final String LANTERN_SPARKLE = "lantern_sparkle";
+	public static final String LANTERN_BURST = "lantern_burst";
 	public static final String KOI_POND = "koi_pond";
 	public static final String KOI_SHIMMER = "koi_shimmer";
 	public static final String KOI_RIPPLE = "koi_ripple";
@@ -495,7 +507,8 @@ public final class VfxIds {
 			TSUNAMI_CREST, VOLCANO_RISE, VOLCANO_OPEN, VOLCANO_PLUME, VOLCANO_BURST, ICE_FRONT, ICE_BLIZZARD, SPIRE_CRACK, HELL_CRACK, HELL_OPEN, HELL_GEYSER, HELL_THROAT, HELL_ERUPT, CYCLONE_WEDGE, HOUR_MARK, CLOCK_HAND, HOUR_STRIKE, MIDNIGHT, BANG_BIRTH, BANG_STARS, PLANET_FORM, CHRONO_SHELL, CHRONO_SAND, CHRONO_SNAP, SPEAR_HERALD, SPEAR_IMPACT, SPEAR_DRILL, CORE_GEYSER, ZOMBIE_CLAW, GIANT_RISE, GIANT_STOMP, GIANT_BURST, ZOMBIE_DUST,
 			CHUNK_REROLL, GRID_FANFARE, CHUNK_SWAP, CORNER_GEYSER, BEAM_SPARKLE, DISCO_DROP, FLOOR_PULSE, LIDAR_HIT, LIDAR_OVERLOAD, VOID_SWALLOW, VOID_EXHALE, ICE_ERUPT, SHARD_LAND, SONAR_SHATTER, SONAR_BOOM, PIXEL_BURST, MAG_LIFT, MAG_GRIND, MAG_JET_HIT, MAG_COLLAPSE, COMIC_BLAST, AURORA_STRIKE, AURORA_CROWN,
 			SEASON_SPRING, SEASON_SUMMER, SEASON_AUTUMN, SEASON_WINTER, CENTURY_WAVE, PRISM_SCORCH, PRISM_NOVA, GEODE_HUM, GEODE_SHARD, GEODE_SHATTER, FOSSIL_HEAVE, FOSSIL_ROAR, LAMP_SIMMER, LAMP_CRACK, LAMP_BURST, LAMP_SPLAT, ION_CARVE, ION_CHARGE, ION_IGNITE, ACID_STORM, SUPERBLOOM, FORGE_SPARKFALL,
-			KOI_POND, KOI_SHIMMER, KOI_RIPPLE, KOI_TRAIL, KOI_BREACH, KOI_SPLASH, KOI_GEYSER, KOI_RAIN);
+			KOI_POND, KOI_SHIMMER, KOI_RIPPLE, KOI_TRAIL, KOI_BREACH, KOI_SPLASH, KOI_GEYSER, KOI_RAIN,
+			DIM_RIFT, DIM_FRONT, DIM_ASH, DIM_CLOSE, HAVOC_LAUNCH, HAVOC_TRAIL, HAVOC_BURST, HAVOC_FOUNTAIN, HAVOC_WILLOW, LANTERN_RISE, LANTERN_SPARKLE, LANTERN_BURST);
 
 	private VfxIds() {
 	}

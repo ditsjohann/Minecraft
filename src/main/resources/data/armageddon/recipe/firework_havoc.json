@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "RFR",
+    "FTF",
+    "RFR"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:firework_rocket"
+    },
+    "F": {
+      "item": "minecraft:firework_star"
+    },
+    "T": {
+      "item": "minecraft:tnt"
+    }
+  },
+  "result": {
+    "id": "armageddon:firework_havoc",
+    "count": 1
+  }
+}

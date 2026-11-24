@@ -12,13 +12,14 @@ import net.minecraft.text.Text;
 
 import java.util.function.Supplier;
 
-/** Five creative tabs; contents and order come from {@link Catalog}. */
+/** Six creative tabs; contents and order come from {@link Catalog}. */
 public final class ModItemGroups {
 	public static final ItemGroup WEAPONS = tab(Catalog.Category.WEAPONS, () -> ModItems.JUDGMENT_ENGINE);
 	public static final ItemGroup EXPLOSIVES = tab(Catalog.Category.EXPLOSIVES, () -> ModItems.POCKET_NUKE);
 	public static final ItemGroup BOMBS = tab(Catalog.Category.BOMBS, () -> ModBlocks.HYDROGEN_BOMB);
 	public static final ItemGroup CATACLYSMS = tab(Catalog.Category.CATACLYSMS, () -> ModBlocks.GALACTIC_SMASH);
 	public static final ItemGroup GEAR = tab(Catalog.Category.GEAR, () -> ModItems.JUGGERNAUT_CHESTPLATE);
+	public static final ItemGroup NEW = tab(Catalog.Category.NEW, () -> ModBlocks.PLASMA_KOI);
 
 	private static ItemGroup tab(Catalog.Category category, Supplier<ItemConvertible> icon) {
 		return Registry.register(Registries.ITEM_GROUP, Armageddon.id(category.key),

@@ -1527,6 +1527,48 @@ def plasma_koi():
 BOMBS.update({"plasma_koi": plasma_koi})
 
 
+def dimension_shift():
+    # A crying-obsidian portal frame standing on scorched crimson, its window full of swirling violet.
+    m = [B(1, 0, 1, 15, 1.4, 15, "obsidian"), B(2, 1.4, 2, 14, 2.0, 14, "crimson")]
+    m += [B(3, 2, 6.5, 13, 4, 9.5, "obsidian"), B(3, 14, 6.5, 13, 16, 9.5, "obsidian")]
+    m += [B(3, 4, 6.5, 5, 14, 9.5, "obsidian"), B(11, 4, 6.5, 13, 14, 9.5, "obsidian")]
+    m += [B(5, 4, 7.4, 11, 14, 8.6, "glass_purple"), B(6.5, 6, 7.2, 9.5, 12, 8.8, "glow_purple")]
+    for (x, y) in ((3.4, 6), (12.2, 10), (6, 14.4), (10, 2.4)):
+        m += [B(x, y, 6.3, x + 0.6, y + 0.6, 6.5, "glow_purple"), B(x, y, 9.5, x + 0.6, y + 0.6, 9.7, "glow_purple")]
+    m += [B(2.5, 2.0, 2.5, 4.5, 2.6, 4.5, "glow_red"), B(11.2, 2.0, 11.8, 13.4, 2.4, 13.6, "glow_orange")]
+    return m
+
+
+def firework_havoc():
+    # A firework the size of a tree on its launch stand: striped tube, gold nose cone, a fuse.
+    m = [B(1, 0, 1, 15, 1.2, 15, "gunmetal"), B(2, 1.2, 2, 3, 6, 3, "steel"), B(13, 1.2, 2, 14, 6, 3, "steel"),
+         B(2, 1.2, 13, 3, 6, 14, "steel"), B(13, 1.2, 13, 14, 6, 14, "steel")]
+    for i in range(5):
+        y0 = 2 + i * 2.2
+        m += [B(5, y0, 5, 11, y0 + 1.1, 11, "red"), B(5, y0 + 1.1, 5, 11, y0 + 2.2, 11, "white")]
+    m += [B(5.8, 13, 5.8, 10.2, 14.4, 10.2, "gold"), B(6.8, 14.4, 6.8, 9.2, 15.4, 9.2, "gold"), B(7.6, 15.4, 7.6, 8.4, 16, 8.4, "glow_gold")]
+    m += [B(7.7, 0.8, 7.7, 8.3, 2, 8.3, "black"), B(7.6, 0.4, 7.6, 8.4, 0.8, 8.4, "glow_orange")]
+    for (x, z, c) in ((4.6, 7, "glow_magenta"), (11, 8, "glow_cyan"), (7, 4.6, "glow_gold"), (8, 11, "glow_green")):
+        m += [B(x, 6.6, z, x + 0.4, 7.2, z + 0.4, c)]
+    return m
+
+
+def chinese_lantern():
+    # A red paper lantern with gold caps, ribs and a tassel, glowing from inside.
+    m = [B(6, 0, 6, 10, 1, 10, "gold"), B(7.5, 1, 7.5, 8.5, 2, 8.5, "gold")]
+    m += [B(4, 3, 4, 12, 12, 12, "red"), B(3.4, 5, 3.4, 12.6, 10, 12.6, "red")]
+    m += [B(5, 2, 5, 11, 3, 11, "gold"), B(5, 12, 5, 11, 13, 11, "gold"), B(7.6, 13, 7.6, 8.4, 16, 8.4, "gold")]
+    for x in (5.5, 8, 10.5):
+        m += [B(x - 0.15, 3, 3.3, x + 0.15, 12, 3.4, "gold"), B(x - 0.15, 3, 12.6, x + 0.15, 12, 12.7, "gold")]
+        m += [B(3.3, 3, x - 0.15, 3.4, 12, x + 0.15, "gold"), B(12.6, 3, x - 0.15, 12.7, 12, x + 0.15, "gold")]
+    m += [B(5.5, 5.5, 3.3, 10.5, 9.5, 3.35, "glow_orange"), B(5.5, 5.5, 12.65, 10.5, 9.5, 12.7, "glow_orange")]
+    m += [B(3.3, 5.5, 5.5, 3.35, 9.5, 10.5, "glow_orange"), B(12.65, 5.5, 5.5, 12.7, 9.5, 10.5, "glow_orange")]
+    return m
+
+
+BOMBS.update({"dimension_shift": dimension_shift, "firework_havoc": firework_havoc, "chinese_lantern": chinese_lantern})
+
+
 def hyperbeam_raygun():
     # A chunky retro raygun: a bulbous charge chamber with fins, a wide bell emitter and a glowing coil.
     m = [B(5.5, 7, 6, 10.5, 12.5, 18, "white")]

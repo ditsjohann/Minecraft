@@ -120,10 +120,14 @@ NEW_BOMBS.update({
     "dyson_lance": "DYSON LANCE", "gravity_killswitch": "GRAVITY KILLSWITCH", "seismic_tsunami": "SEISMIC TSUNAMI",
     "goo_bomb": "Goo Bomb", "cactus_bomb": "Cactus Bomb", "blackforge": "BLACKFORGE", "blue_infrit": "BLUE INFRIT",
     "plasma_koi": "PLASMA KOI",
+    "dimension_shift": "DIMENSION SHIFT", "firework_havoc": "Firework Havoc", "chinese_lantern": "Chinese Lantern",
 })
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
+    "dimension_shift": "A rift tears open in the air and a wave runs out from it, shifting everything it passes into the Nether: nylium and netherrack, soul sand, crimson and warped trees, lava where the water was, a red sky and falling ash. Then the locals arrive. Light twice.",
+    "firework_havoc": "One firework the size of a tower climbs screaming into the sky and bursts, setting off a cascade of fireworks at every angle while fountains and roman candles go off all over the ground. Ends in a golden willow.",
+    "chinese_lantern": "Hundreds of paper lanterns rise and fill the sky while a golden dragon flies slowly round over them to a flute tune, and at the end climbs and bursts into gold. Harmless.",
     "plasma_koi": "A pond of liquid light opens in the ground and seven koi made of plasma circle beneath its surface. One by one they leap out on wilder and wilder arcs, scorching wherever they land. Then they leap together, braid into a dragon, and dive back in: the pond erupts and plasma rains on the land. Light twice.",
     "goo_bomb": "An alien goo oozes out and swells, throbbing faster and faster, eating into the ground, until it bursts. Acid globs fly everywhere, and whatever they land on turns to goo and dissolves.",
     "cactus_bomb": "A cactus the size of a tower grows out of the ground and spins faster and faster until its spikes tear off and fly in every direction, blowing holes wherever they land. Then it blooms, and a red sandstorm turns the land to desert.",
@@ -205,6 +209,7 @@ EXTRA = {
     "itemGroup.armageddon.bombs": "Armageddon: Bombs",
     "itemGroup.armageddon.cataclysms": "Armageddon: Cataclysms",
     "itemGroup.armageddon.gear": "Armageddon: Gear & Materials",
+    "itemGroup.armageddon.new": "Armageddon: New",
     "tier.armageddon.city_destruction": "CITY DESTRUCTION",
     "tier.armageddon.world_destruction": "WORLD DESTRUCTION",
     "message.armageddon.world_destruction": "Cutscene event — it will not be subtle",
@@ -323,6 +328,10 @@ def bomb_recipes3(shaped):
                                                "N": "minecraft:nether_star", "B": "minecraft:blackstone"}, category=cat)
     shaped("blue_infrit", ["CSC", "FKF", "CSC"], {"C": "celestial_core", "S": "minecraft:soul_lantern", "F": "minecraft:soul_campfire",
                                                 "K": "minecraft:wither_skeleton_skull"}, category=cat)
+    shaped("dimension_shift", ["OGO", "CNC", "OGO"], {"O": "minecraft:crying_obsidian", "G": "minecraft:ghast_tear", "C": "minecraft:crimson_nylium",
+                                                    "N": "minecraft:nether_star"}, category=cat)
+    shaped("firework_havoc", ["RFR", "FTF", "RFR"], {"R": "minecraft:firework_rocket", "F": "minecraft:firework_star", "T": "minecraft:tnt"}, category=cat)
+    shaped("chinese_lantern", ["PGP", "PLP", "PGP"], {"P": "minecraft:paper", "G": "minecraft:gold_nugget", "L": "minecraft:lantern"}, category=cat)
     shaped("plasma_koi", ["SFS", "PNP", "SFS"], {"S": "minecraft:sea_lantern", "F": "minecraft:tropical_fish", "P": "minecraft:prismarine_crystals",
                                                "N": "minecraft:nether_star"}, category=cat)
 

@@ -10,6 +10,7 @@ import com.armageddon.util.WildShapes.Cactus;
 import com.armageddon.util.WildShapes.Forge;
 import com.armageddon.util.WildShapes.Infrit;
 import com.armageddon.util.WildShapes.Koi;
+import com.armageddon.util.WonderShapes.Lantern;
 import com.armageddon.vfx.VfxIds;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -39,6 +40,7 @@ public final class WildFx {
 			case 51 -> new ForgeFx(a, p.duration());
 			case 52 -> new InfritFx(a, (int) p.p1(), p.duration());
 			case 53 -> new KoiFx(a, p.duration());
+			case 54 -> new LanternFx(a, p.duration());
 			default -> null;
 		};
 	}
@@ -629,6 +631,135 @@ public final class WildFx {
 						FxDraw.ribbon(glow, m, head, tip, Vec3d.ZERO, 0.35, 0xE0FFFF, 0.8F, 0.0F);
 					}
 				}
+			}
+		}
+	}
+
+	// ====================================================================== CHINESE LANTERN
+
+	/**
+	 * The golden dragon over the lanterns: a long translucent serpent of gold with a pearly core, glints running along
+	 * its scales, four legs with claws, horns, whiskers that wave, and a glowing head with a pearl. The lanterns and
+	 * the glitter are the engine's.
+	 */
+	static final class LanternFx extends FxEffect {
+		private static final int N = 60;
+		private static final double SEG = 0.8;
+		private final Vec3d c;
+
+		LanternFx(Vec3d c, int life) {
+			super(Math.max(40, life));
+			this.c = c;
+		}
+
+		@Override
+		public boolean tick(ClientWorld world) {
+			int t = age;
+			if (t < Lantern.RISE && t % 2 == 0) {
+				FxEngine.play(VfxIds.LANTERN_RISE, c.x, c.y, c.z, 0, 1, 0, 1.0F, 0, t * 7919L);
+			}
+			if (t < Lantern.BURST) {
+				Vec3d h = c.add(Lantern.head(t)), v = h.subtract(c.add(Lantern.head(t - 1)));
+				FxEngine.playMoving(VfxIds.LANTERN_SPARKLE, h.x, h.y, h.z, 0, 1, 0, 1.0F, 0, t * 131L, (float) v.x, (float) v.y, (float) v.z);
+				if (t % 3 == 0) {
+					Vec3d b = c.add(Lantern.head(t - 22));
+					FxEngine.play(VfxIds.LANTERN_SPARKLE, b.x, b.y, b.z, 0, 1, 0, 1.4F, 0, t * 977L);
+				}
+				if (t % 10 == 0) {
+					ClientFx.light(h, 0.5F, 0xFFC040);
+				}
+			}
+			if (t == Lantern.BURST) {
+				Vec3d h = c.add(Lantern.head(t));
+				FxEngine.play(VfxIds.LANTERN_BURST, h.x, h.y, h.z, 0, 1, 0, 1.0F, 0, 4242L);
+			}
+			return super.tick(world);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			if (a >= Lantern.BURST) {
+				return;
+			}
+			float in = (float) MathHelper.clamp(a / 40.0, 0.0, 1.0);
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			Vec3d o = c.subtract(cam);
+			// The body, sampled by distance back along its flight.
+			Vec3d[] pts = new Vec3d[N];
+			Vec3d head = Lantern.head(a);
+			pts[0] = o.add(head);
+			int len = 1;
+			double tt = a;
+			Vec3d last = head;
+			for (int guard = 0; len < N && guard < 2000; guard++) {
+				tt -= 0.1;
+				Vec3d p = Lantern.head(tt);
+				if (p.squaredDistanceTo(last) >= SEG * SEG) {
+					pts[len++] = o.add(p);
+					last = p;
+				}
+			}
+			for (int s = 0; s < len - 1; s++) {
+				double u = s / (double) N;
+				double w = (s < 4 ? 1.6 + s * 0.25 : 2.6 * (1 - Math.pow(u, 1.6)) + 0.35);
+				float al = 0.36F * in;
+				// Translucent gold glass over a glowing core.
+				FxDraw.ribbon(shade, m, pts[s], pts[s + 1], Vec3d.ZERO, w, 0xE0A020, al * 1.4F, al * 1.4F);
+				FxDraw.ribbon(glow, m, pts[s], pts[s + 1], Vec3d.ZERO, w * 0.3, 0xFFD870, al * 0.8F, al * 0.8F);
+				if (s % 3 == 0) {
+					// Scales catching the light, a glint running down the body.
+					float glint = 0.5F + 0.5F * MathHelper.sin(a * 0.25F - s * 0.6F);
+					FxKit.halo(consumers, m, cb, pts[s], 0.9 + glint * 0.5, 0xFFC040, 0.3F * glint * in);
+				}
+			}
+			// Legs with claws, hanging below the shoulders and hips.
+			for (int s : new int[]{8, 14, 34, 40}) {
+				if (s + 1 >= len) {
+					continue;
+				}
+				Vec3d d = pts[s].subtract(pts[s + 1]);
+				if (d.lengthSquared() < 1.0E-4) {
+					continue;
+				}
+				d = d.normalize();
+				Vec3d side = d.crossProduct(new Vec3d(0, 1, 0));
+				side = side.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : side.normalize();
+				for (int sgn = -1; sgn <= 1; sgn += 2) {
+					float step = MathHelper.sin(a * 0.2F + s + sgn) * 0.6F;
+					Vec3d knee = pts[s].add(side.multiply(sgn * 1.4)).add(0, -1.4, 0).add(d.multiply(step));
+					Vec3d foot = knee.add(0, -1.3, 0).subtract(d.multiply(0.6 + step));
+					FxDraw.ribbon(shade, m, pts[s], knee, Vec3d.ZERO, 0.45, 0xE0A020, 0.55F * in, 0.55F * in);
+					FxDraw.ribbon(shade, m, knee, foot, Vec3d.ZERO, 0.35, 0xF0B830, 0.55F * in, 0.45F * in);
+					for (int cl = -1; cl <= 1; cl++) {
+						FxDraw.ribbon(glow, m, foot, foot.add(d.multiply(0.6)).add(side.multiply(cl * 0.3)).add(0, -0.2, 0), Vec3d.ZERO, 0.12, 0xFFF0C0,
+								0.6F * in, 0.1F * in);
+					}
+				}
+			}
+			// The head: horns sweeping back, whiskers waving, a pearl it chases just ahead of its jaws.
+			Vec3d d = pts[0].subtract(pts[Math.min(2, len - 1)]);
+			if (d.lengthSquared() > 1.0E-4) {
+				d = d.normalize();
+				Vec3d side = d.crossProduct(new Vec3d(0, 1, 0));
+				side = side.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : side.normalize();
+				Vec3d up = side.crossProduct(d).normalize();
+				FxKit.halo(consumers, m, cb, pts[0], 3.4, 0xFFA020, 0.35F * in);
+				for (int sgn = -1; sgn <= 1; sgn += 2) {
+					Vec3d hornTip = pts[0].add(up.multiply(2.2)).add(side.multiply(sgn * 0.9)).subtract(d.multiply(2.6));
+					FxDraw.ribbon(glow, m, pts[0].add(up.multiply(0.6)), hornTip, Vec3d.ZERO, 0.35, 0xFFE8A0, 0.6F * in, 0.1F * in);
+					Vec3d prev = pts[0].add(d.multiply(0.8)).add(side.multiply(sgn * 0.5));
+					for (int k = 1; k <= 6; k++) {
+						double wave = MathHelper.sin(a * 0.3F + k * 0.9F + sgn) * 0.5;
+						Vec3d nxt = pts[0].add(d.multiply(0.8 - k * 1.0)).add(side.multiply(sgn * (0.5 + k * 0.6))).add(up.multiply(wave - k * 0.15));
+						FxDraw.ribbon(glow, m, prev, nxt, Vec3d.ZERO, 0.14, 0xFFF0C0, 0.6F * in * (1 - k / 7.0F), 0.6F * in * (1 - (k + 1) / 7.0F));
+						prev = nxt;
+					}
+				}
+				float pearl = 0.8F + 0.2F * MathHelper.sin(a * 0.4F);
+				FxKit.halo(consumers, m, cb, pts[0].add(d.multiply(3.2)), 1.6 * pearl, 0xFFFFF0, 0.7F * in);
 			}
 		}
 	}

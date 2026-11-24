@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "OGO",
+    "CNC",
+    "OGO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "G": {
+      "item": "minecraft:ghast_tear"
+    },
+    "C": {
+      "item": "minecraft:crimson_nylium"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "result": {
+    "id": "armageddon:dimension_shift",
+    "count": 1
+  }
+}
