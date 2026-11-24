@@ -91,6 +91,7 @@ final class ThrowVfx {
 		WonderVfx.register();
 		RedoVfx.register();
 		FossilVfx.register();
+		XenoVfx.register();
 	}
 
 	// ------------------------------------------------------------------ throw and warning light

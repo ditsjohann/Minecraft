@@ -57,7 +57,7 @@ deadly it is.
 | Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil |
 | Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit |
 | City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence |
-| World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami |
+| World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami, Xenoform |
 
 Bombs of Mythic tier and up must be lit twice; Celestial and up are gated by `armageddonAllowCelestial` and live in
 the Cataclysms tab.
@@ -90,7 +90,7 @@ burst out of the ground and assemble mid-air into a pterosaur thirty blocks acro
 the land three times, then lands on a spire of bone and crumbles to dust.
 
 The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern and
-the Mammoth, Leviathan and Pterosaur fossils) sit
+the Mammoth, Leviathan and Pterosaur fossils, and Xenoform) sit
 in their own creative tab, "Armageddon: New", for now.
 
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-4]`, to build a city of
@@ -148,6 +148,15 @@ the tower topples. DYSON LANCE (World Destruction): an orbital mirror swarm focu
 three 600-block canyons through the world into a six-pointed star, then drills the centre. GRAVITY KILLSWITCH (Celestial): gravity switches off and the town floats up and tumbles, then it comes back many times over and slams
 everything down. SEISMIC TSUNAMI (World Destruction): a piston hammer slams the ground until the land becomes a wave
 of rock rolling out three hundred blocks, scraping everything behind it down to bare stone.
+
+XENOFORM (World Destruction): technology five thousand years past ours, and utterly indifferent. There is no explosion.
+A point of nothing opens in the sky and unfolds into a hypercube turning through the fourth dimension, ringed with alien
+glyphs. A plane of ruled light passes down through the land and back up, marking everything alive. Then the land is
+taken apart, block by block from the centre out: every block rises in a straight line and is sorted by colour into
+spectrum rings round the hypercube, a catalogue of the place, and everything living goes up with it and is
+disassembled. What is left is a perfectly flat black plain ruled with lines of light, cut clean at its rim. The rings
+fold into the hypercube, the hypercube folds into a 1:4:9 monolith that sets itself down in the middle with eight
+needles round it, and a column of light leaves for the sky.
 
 **Oddities (Legendary and Mythic)** — Sonar (green echo vision; every echo heaves the ground, then the converged
 boom shakes the land around it to pieces), 8-Bit (the world goes low-res on screen and in the blocks, then GAME OVER),

@@ -111,7 +111,9 @@ public enum BombType {
 	// fossils
 	MAMMOTH_FOSSIL(200, 0x9CE0FF),
 	LEVIATHAN_FOSSIL(200, 0x40E0D0),
-	PTEROSAUR_FOSSIL(160, 0xFF9040);
+	PTEROSAUR_FOSSIL(160, 0xFF9040),
+	// beyond
+	XENOFORM(300, 0xC0B0FF);
 
 	public final int fuse;
 	public final int color;

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/xenoform"
+    },
+    "facing=east": {
+      "model": "armageddon:block/xenoform",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/xenoform",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/xenoform",
+      "y": 270
+    }
+  }
+}

@@ -35,7 +35,7 @@ public final class Cinematics {
 	}
 
 	public static final int GALACTIC_SMASH = 1, BOOM_SURVEY = 2, ALIEN_LAUNCH = 3,
-			ETERNAL_SAPLING = 4, SIXTEEN_CHUNKS = 5, DISCO_BALL = 7, SCI_DYSON = 8, SCI_GRAVITY = 9, SCI_WAVE = 10;
+			ETERNAL_SAPLING = 4, SIXTEEN_CHUNKS = 5, DISCO_BALL = 7, SCI_DYSON = 8, SCI_GRAVITY = 9, SCI_WAVE = 10, XENO = 11;
 
 	public static Cine create(int scene, Vec3d anchor, Vec3d heading, int life) {
 		return switch (scene) {
@@ -44,7 +44,7 @@ public final class Cinematics {
 			case ETERNAL_SAPLING -> new EternalSaplingCine(anchor, heading, life);
 			case SIXTEEN_CHUNKS -> new SixteenChunksCine(anchor, heading, life);
 			case DISCO_BALL -> new DiscoBallCine(anchor, heading, life);
-			case SCI_DYSON, SCI_GRAVITY, SCI_WAVE -> new SciCine(scene, anchor, heading, life);
+			case SCI_DYSON, SCI_GRAVITY, SCI_WAVE, XENO -> new SciCine(scene, anchor, heading, life);
 			default -> new AlienLaunch(anchor, heading, life);
 		};
 	}
@@ -82,6 +82,12 @@ public final class Cinematics {
 						{0, off, off + 120, 60, 8, -90, 80, 30, -120, 0, 6, 0, 0, ceil * 0.5, 0, 72},
 						{1, off + 120, slam - 4, -0.8, 0.9, 110, ceil * 0.4, ceil * 0.8, 0, ceil * 0.6, 0, 66},
 						{0, slam - 4, life, 60, 10, -80, 90, 40, -130, 0, 4, 0, 0, 0, 0, 74}};
+				case XENO -> new double[][]{
+						{0, 0, 200, 34, 4, -46, 26, 10, -36, 0, 58, 0, 0, 58, 0, 62},
+						{0, 200, 330, 70, 30, -90, 100, 14, -130, 0, 30, 0, 0, 2, 0, 70},
+						{1, 330, 600, -0.6, 1.4, 170, 50, 90, 0, 35, 0, 74},
+						{0, 600, 800, 30, 3, -40, 46, 6, -60, 0, 50, 0, 0, 56, 0, 78},
+						{0, 800, life, 90, 40, -140, 110, 70, -190, 0, 15, 0, 0, 30, 0, 70}};
 				default -> new double[][]{
 						{0, 0, wave, 30, 6, -40, 36, 10, -46, 0, 14, 0, 0, 10, 0, 66},
 						{0, wave, wave + 140, 0, 40, -60, 0, 90, -170, 0, 0, 40, 0, 0, 120, 72},

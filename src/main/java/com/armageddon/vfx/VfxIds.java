@@ -308,6 +308,12 @@ public final class VfxIds {
 	public static final String PTERO_SCREECH = "ptero_screech";
 	public static final String PTERO_IMPACT = "ptero_impact";
 	public static final String PTERO_CRUMBLE = "ptero_crumble";
+	public static final String XENO_UNFOLD = "xeno_unfold";
+	public static final String XENO_TAG = "xeno_tag";
+	public static final String XENO_DEREZ = "xeno_derez";
+	public static final String XENO_FRONT = "xeno_front";
+	public static final String XENO_LAND = "xeno_land";
+	public static final String XENO_DEPART = "xeno_depart";
 	public static final String PRISM_INBEAM = "prism_inbeam";
 	public static final String BANG_INHALE = "bang_inhale";
 	public static final String BANG_CMB = "bang_cmb";
@@ -543,7 +549,8 @@ public final class VfxIds {
 			PRISM_INBEAM,
 			SPECTRAL_MOTES, SPECTRAL_WISPS, SPECTRAL_NOVA, CHUNK_STATIC, BLIGHT_AMBIENT, BLIGHT_EDGE, BLIGHT_PULSE, MAMMOTH_HEAVE, MAMMOTH_BREATH,
 			MAMMOTH_TRUMPET, MAMMOTH_FRONT, MAMMOTH_SNOW, MAMMOTH_STOMP, LEVI_BREACH, LEVI_BUBBLES, LEVI_MAELSTROM, LEVI_ROAR, PTERO_BURST, PTERO_TRAIL,
-			PTERO_SCREECH, PTERO_IMPACT, PTERO_CRUMBLE);
+			PTERO_SCREECH, PTERO_IMPACT, PTERO_CRUMBLE,
+			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART);
 
 	private VfxIds() {
 	}

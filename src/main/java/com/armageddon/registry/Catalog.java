@@ -53,7 +53,8 @@ public final class Catalog {
 			com.armageddon.block.BombType.GOO_BOMB, com.armageddon.block.BombType.CACTUS_BOMB, com.armageddon.block.BombType.BLACKFORGE,
 			com.armageddon.block.BombType.BLUE_INFRIT, com.armageddon.block.BombType.PLASMA_KOI, com.armageddon.block.BombType.DIMENSION_SHIFT,
 			com.armageddon.block.BombType.FIREWORK_HAVOC, com.armageddon.block.BombType.CHINESE_LANTERN,
-			com.armageddon.block.BombType.MAMMOTH_FOSSIL, com.armageddon.block.BombType.LEVIATHAN_FOSSIL, com.armageddon.block.BombType.PTEROSAUR_FOSSIL);
+			com.armageddon.block.BombType.MAMMOTH_FOSSIL, com.armageddon.block.BombType.LEVIATHAN_FOSSIL, com.armageddon.block.BombType.PTEROSAUR_FOSSIL,
+			com.armageddon.block.BombType.XENOFORM);
 
 	private static Set<Item> ammo() {
 		return Set.of(ModItems.MINI_NUKE, ModItems.ROCKET, ModItems.PLASMA_CELL, ModItems.RAILGUN_SLUG, ModItems.BULLET_BELT,

@@ -1649,3 +1649,34 @@ def pterosaur_fossil():
 
 
 BOMBS.update({"mammoth_fossil": mammoth_fossil, "leviathan_fossil": leviathan_fossil, "pterosaur_fossil": pterosaur_fossil})
+
+
+def xenoform():
+    # A wireframe hypercube hanging over a black plinth ruled with light: a cube inside a cube, joined corner to corner.
+    m = [B(1, 0, 1, 15, 1.4, 15, "black")]
+    for k in (3, 8, 13):
+        m += [B(k - 0.15, 1.4, 1.5, k + 0.15, 1.5, 14.5, "glow_cyan"), B(1.5, 1.4, k - 0.15, 14.5, 1.5, k + 0.15, "glow_cyan")]
+
+    def frame(x0, y0, z0, x1, y1, z1, w, mat):
+        out = []
+        for (ya, yb) in ((y0, y0 + w), (y1 - w, y1)):
+            out += [B(x0, ya, z0, x1, yb, z0 + w, mat), B(x0, ya, z1 - w, x1, yb, z1, mat),
+                    B(x0, ya, z0, x0 + w, yb, z1, mat), B(x1 - w, ya, z0, x1, yb, z1, mat)]
+        for (xa, za) in ((x0, z0), (x1 - w, z0), (x0, z1 - w), (x1 - w, z1 - w)):
+            out += [B(xa, y0, za, xa + w, y1, za + w, mat)]
+        return out
+    m += frame(3, 3.5, 3, 13, 13.5, 13, 0.55, "glow_white")
+    m += frame(6, 6.5, 6, 10, 10.5, 10, 0.45, "glow_purple")
+    # Struts joining the corners of the two cubes.
+    for (ox, ix) in ((3.3, 6.2), (12.7, 9.8)):
+        for (oz, iz) in ((3.3, 6.2), (12.7, 9.8)):
+            for (oy, iy) in ((3.8, 6.7), (13.2, 10.3)):
+                for s in range(1, 4):
+                    t = s / 4.0
+                    x, y, z = ox + (ix - ox) * t, oy + (iy - oy) * t, oz + (iz - oz) * t
+                    m += [B(x - 0.2, y - 0.2, z - 0.2, x + 0.2, y + 0.2, z + 0.2, "glow_cyan")]
+    m += [B(7.4, 7.9, 7.4, 8.6, 9.1, 8.6, "black")]
+    return m
+
+
+BOMBS.update({"xenoform": xenoform})
