@@ -89,6 +89,7 @@ public final class PreviewMain {
 			return new VfxPreviewEffect(name.substring(4), a);
 		}
 		return switch (name) {
+			case "hellgate" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(0, 0, -1), 16, 0xFF4010, 61, 777, 0, com.armageddon.util.HorrorShapes.HellGate.END));
 			case "horseman" -> NewFx.create(payload(FxType.NEW_FX, a, a, 46, 0xFF8020, 60, 4321, 0, com.armageddon.util.HorrorShapes.Horseman.END));
 			case "maniac" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 80, 0xFF2010, 59, 1234, 0, com.armageddon.util.HorrorShapes.Maniac.END));
 			case "xeno" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 110, 0xE0D8FF, 58, 0, 0, com.armageddon.util.XenoShapes.END));

@@ -8,6 +8,7 @@ import com.armageddon.event.Ruin;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.util.HorrorShapes;
+import com.armageddon.util.HorrorShapes.HellGate;
 import com.armageddon.util.HorrorShapes.Horseman;
 import com.armageddon.util.HorrorShapes.Maniac;
 import com.armageddon.vfx.VfxIds;
@@ -460,6 +461,349 @@ public final class HorrorEvents {
 				col.set(surf + 1, Blocks.SOUL_FIRE.getDefaultState());
 			} else if (n < 0.3) {
 				col.set(surf, Blocks.PODZOL.getDefaultState());
+			}
+		}
+	}
+
+	// ====================================================================== PORTAL OF HELL
+
+	/**
+	 * PORTAL OF HELL (celestial). The ground quakes and a gothic gate of blackstone the height of a cathedral heaves
+	 * itself up out of the earth, facing whoever lit it: spiked, veined with magma, rimmed with crying obsidian. Its
+	 * arch ignites into a whirling vortex of hellfire and an eye opens in it, and watches. Souls pour out, fireballs
+	 * rain on the land, lava falls from its sill and things come through. Then a clawed arm the size of a tower
+	 * reaches out of it, raises its fist and slams the ground. The eye closes, the portal implodes, and the gate is
+	 * left standing, cracked, over a scorched hellscape.
+	 */
+	public static class PortalOfHell extends SciFiEvents.Base {
+		private Vec3d base, f, side;
+		private final List<int[]> frame = new ArrayList<>();
+		private int placed;
+
+		@Override
+		public boolean tick() {
+			int t = age();
+			Vec3d c = center();
+			if (t == 0) {
+				if (!data.contains("Seed")) {
+					data.putInt("Seed", world.random.nextInt(1_000_000));
+				}
+				base = Kit.ground(world, c.x, c.z);
+				f = Kit.dir(yaw()).negate();
+				side = new Vec3d(-f.z, 0, f.x);
+				CelestialEvents.announce(world, c, "block.armageddon.portal_of_hell");
+				Vfx.newFx(world, FX_HELLGATE, base, f, (float) HellGate.W, 0xFF4010, seed(), 0, HellGate.END);
+				Kit.sound(world, c, SoundEvents.AMBIENT_NETHER_WASTES_MOOD.value(), 96.0F, 0.5F);
+				Kit.sound(world, c, SoundEvents.ENTITY_WARDEN_DIG, 96.0F, 0.4F);
+				plan();
+			}
+			if (t % 40 == 0 && t < HellGate.END - 40) {
+				Vfx.skyTint(world, c, 100000, 0x2A0402, 0.8F);
+			}
+			if (t < HellGate.RISEN && t % 8 == 0) {
+				Vfx.shake(world, base, 300, 0.4F + t * 0.004F);
+				Kit.sound(world, base, SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.4F);
+			}
+			if (t >= HellGate.RISE && t <= HellGate.RISEN) {
+				build(t);
+			}
+			if (t == HellGate.OPEN) {
+				Vec3d eye = eye();
+				Vfx.play(world, VfxIds.HELLGATE_OPEN, eye, f, 1.0F, 0);
+				Vfx.flash(world, eye, 0.35F, 400, 0xFF5010);
+				Vfx.shake(world, eye, 400, 1.2F);
+				Kit.sound(world, eye, SoundEvents.BLOCK_END_PORTAL_SPAWN, 128.0F, 0.5F);
+				Kit.sound(world, eye, SoundEvents.ENTITY_BLAZE_SHOOT, 128.0F, 0.4F);
+			}
+			if (t == HellGate.EYE) {
+				Kit.sound(world, eye(), SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 128.0F, 0.4F);
+			}
+			if (t > HellGate.OPEN && t < HellGate.IMPLODE) {
+				if (t % 6 == 0) {
+					Vfx.play(world, VfxIds.HELLGATE_SOULS, eye(), f, 1.0F, 0);
+				}
+				if (t % 40 == 0) {
+					Kit.sound(world, eye(), SoundEvents.ENTITY_GHAST_AMBIENT, 128.0F, 0.4F);
+					Kit.sound(world, eye(), SoundEvents.AMBIENT_SOUL_SAND_VALLEY_MOOD.value(), 96.0F, 0.5F);
+				}
+			}
+			for (int k = 0; k < HellGate.FIRES; k++) {
+				if (t == HellGate.fireAt(k)) {
+					Kit.sound(world, eye(), SoundEvents.ENTITY_GHAST_SHOOT, 128.0F, 0.5F);
+				}
+				if (t == HellGate.fireAt(k) + HellGate.FLIGHT) {
+					fireball(k);
+				}
+			}
+			if (t == HellGate.LAVA) {
+				lavafall();
+			}
+			for (int w = 0; w < 3; w++) {
+				if (t == HellGate.HORDE + w * 80) {
+					horde(w);
+				}
+			}
+			if (t == HellGate.ARM) {
+				Kit.sound(world, eye(), SoundEvents.ENTITY_WARDEN_EMERGE, 128.0F, 0.3F);
+			}
+			if (t == HellGate.REACH) {
+				Kit.sound(world, eye(), SoundEvents.ENTITY_RAVAGER_ROAR, 128.0F, 0.3F);
+				Vfx.shake(world, eye(), 300, 0.8F);
+			}
+			if (t == HellGate.SLAM) {
+				slam();
+			}
+			if (t == HellGate.CLOSE) {
+				Kit.sound(world, eye(), SoundEvents.ENTITY_ENDER_DRAGON_DEATH, 128.0F, 0.6F);
+			}
+			if (t == HellGate.IMPLODE) {
+				implode();
+			}
+			stepJobs(5000);
+			return t >= HellGate.END && jobs.isEmpty();
+		}
+
+		private int seed() {
+			return data.getInt("Seed");
+		}
+
+		private Vec3d local(double u, double v, double w) {
+			return base.add(side.multiply(u)).add(0, v, 0).add(f.multiply(w));
+		}
+
+		private Vec3d eye() {
+			return local(0, HellGate.EYE_Y, 0);
+		}
+
+		/** Every block of the gate, its spikes and its steps, ordered bottom up, with what each is made of. */
+		private void plan() {
+			java.util.Map<Long, int[]> m = new java.util.LinkedHashMap<>();
+			double reach = HellGate.W + HellGate.T;
+			for (double u = -reach; u <= reach; u += 0.5) {
+				for (double v = -1; v <= HellGate.APEX + HellGate.T; v += 0.5) {
+					if (!HellGate.frame(u, v) && v >= 0) {
+						continue;
+					}
+					if (v < 0 && Math.abs(u) > reach + 3) {
+						continue;
+					}
+					for (double w = -HellGate.DEPTH; w <= HellGate.DEPTH; w += 0.5) {
+						double h = HorrorShapes.hash((int) (u * 2) * 31 + (int) (w * 2), (int) (v * 2));
+						int kind = v < 0 ? 0 : HellGate.inside(u, v, 1.2) ? 3 : h < 0.07 ? 4 : h < 0.1 ? 5 : Math.abs(w) > HellGate.DEPTH - 0.6 && h < 0.4 ? 1 : 0;
+						add(m, local(u, v, w), kind);
+					}
+				}
+			}
+			// Steps of blackstone in front.
+			for (double u = -reach - 3; u <= reach + 3; u += 0.5) {
+				for (double w = HellGate.DEPTH; w <= HellGate.DEPTH + 6; w += 0.5) {
+					add(m, local(u, -1, w), 0);
+					if (w < HellGate.DEPTH + 3) {
+						add(m, local(u, 0, w), 1);
+					}
+				}
+			}
+			// Spikes along the outside of the arch.
+			double ro = 2 * HellGate.W + HellGate.T;
+			for (int sgn = -1; sgn <= 1; sgn += 2) {
+				for (double v = 5; v <= HellGate.SIDES; v += 6) {
+					spike(m, sgn * reach, v, sgn, 0.25, 5);
+				}
+				for (double th = 0.12; th < Math.PI / 3 - 0.05; th += 0.16) {
+					double u = -HellGate.W + ro * Math.cos(th), v = HellGate.SIDES + ro * Math.sin(th);
+					spike(m, sgn * u, v, sgn * Math.cos(th), Math.sin(th), 5 + (th > 0.9 ? 2 : 0));
+				}
+			}
+			spike(m, 0, HellGate.APEX + HellGate.T - 0.5, 0, 1, 10);
+			frame.addAll(m.values());
+			frame.sort((a, b) -> Integer.compare(a[1], b[1]));
+		}
+
+		private void spike(java.util.Map<Long, int[]> m, double u, double v, double nu, double nv, double len) {
+			double n = Math.hypot(nu, nv);
+			for (double s = 0; s <= len; s += 0.5) {
+				int kind = s > len - 1.5 ? 3 : 2;
+				add(m, local(u + nu / n * s, v + nv / n * s, 0), kind);
+				if (s < len * 0.4) {
+					add(m, local(u + nu / n * s, v + nv / n * s, 1), kind);
+					add(m, local(u + nu / n * s, v + nv / n * s, -1), kind);
+				}
+			}
+		}
+
+		private static void add(java.util.Map<Long, int[]> m, Vec3d p, int kind) {
+			int x = MathHelper.floor(p.x), y = MathHelper.floor(p.y), z = MathHelper.floor(p.z);
+			m.put(BlockPos.asLong(x, y, z), new int[]{x, y, z, kind});
+		}
+
+		private static BlockState mat(int k) {
+			return (switch (k) {
+				case 1 -> Blocks.CHISELED_POLISHED_BLACKSTONE;
+				case 2 -> Blocks.OBSIDIAN;
+				case 3 -> Blocks.CRYING_OBSIDIAN;
+				case 4 -> Blocks.MAGMA_BLOCK;
+				case 5 -> Blocks.GILDED_BLACKSTONE;
+				default -> Blocks.POLISHED_BLACKSTONE_BRICKS;
+			}).getDefaultState();
+		}
+
+		/** The gate heaving up out of the earth, row by row, and the arch cleared for what comes through. */
+		private void build(int t) {
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			int to = (int) (HellGate.risen(t + 1) * frame.size());
+			for (; placed < Math.min(to, frame.size()); placed++) {
+				int[] b = frame.get(placed);
+				put(new BlockPos(b[0], b[1], b[2]), mat(b[3]));
+			}
+			if (t % 4 == 0) {
+				int v = (int) (HellGate.risen(t) * (HellGate.APEX + 4));
+				Vfx.play(world, VfxIds.HELLGATE_RISE, local(0, 0, 0), 1.0F);
+				Kit.sound(world, local(0, v, 0), SoundEvents.BLOCK_DEEPSLATE_BRICKS_PLACE, 64.0F, 0.4F);
+			}
+			if (t == HellGate.RISEN) {
+				for (double u = -HellGate.W + 0.5; u < HellGate.W; u += 1) {
+					for (double v = 1; v < HellGate.APEX; v += 1) {
+						if (HellGate.opening(u, v)) {
+							for (int w = -2; w <= 2; w++) {
+								BlockPos p = BlockPos.ofFloored(local(u, v, w));
+								if (!world.getBlockState(p).isAir()) {
+									put(p, AIR);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/** A fireball lands: an explosion, flames, the ground torn up. */
+		private void fireball(int k) {
+			Vec3d tg = HellGate.target(k, seed());
+			Vec3d p = local(tg.x, 0, tg.z);
+			Vec3d hit = Kit.ground(world, p.x, p.z);
+			Vfx.play(world, VfxIds.HELLGATE_IMPACT, hit, 1.0F);
+			Vfx.shake(world, hit, 160, 0.9F);
+			Kit.sound(world, hit, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 96.0F, 0.6F);
+			for (LivingEntity e : Kit.living(world, hit, 9)) {
+				if (!Kit.creativeOrSpectator(e)) {
+					e.setOnFireFor(8);
+					e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 22.0F);
+				}
+			}
+			Destruction.explode(world, owner(), hit.x, hit.y, hit.z, 4.5F, true);
+		}
+
+		/** Lava spills over the gate's sill and runs out across the ground in front of it. */
+		private void lavafall() {
+			Kit.sound(world, local(0, 1, 3), SoundEvents.BLOCK_LAVA_AMBIENT, 128.0F, 0.5F);
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			for (int u = -3; u <= 3; u++) {
+				for (int w = 3; w <= 9; w += 3) {
+					Vec3d p = local(u, 0, w);
+					BlockPos g = Kit.surface(world, MathHelper.floor(p.x), MathHelper.floor(p.z)).up();
+					put(g, Blocks.LAVA.getDefaultState());
+				}
+			}
+		}
+
+		/** Things come through: blazes, wither skeletons, magma cubes, and once a ghast. */
+		private void horde(int wave) {
+			Vec3d door = local(0, 2, 2);
+			Kit.sound(world, door, SoundEvents.BLOCK_PORTAL_TRAVEL, 96.0F, 0.6F);
+			List<EntityType<? extends net.minecraft.entity.mob.MobEntity>> types = new ArrayList<>(List.of(EntityType.BLAZE, EntityType.BLAZE,
+					EntityType.WITHER_SKELETON, EntityType.MAGMA_CUBE, EntityType.MAGMA_CUBE));
+			if (wave == 1) {
+				types.add(EntityType.GHAST);
+			}
+			for (int i = 0; i < types.size(); i++) {
+				var mob = types.get(i).create(world);
+				if (mob == null) {
+					continue;
+				}
+				Vec3d at = local((i - types.size() / 2.0) * 3, types.get(i) == EntityType.GHAST ? HellGate.EYE_Y : 2, 3);
+				mob.refreshPositionAndAngles(at.x, at.y, at.z, (float) Math.toDegrees(Math.atan2(-f.x, f.z)), 0);
+				mob.initialize(world, world.getLocalDifficulty(BlockPos.ofFloored(at)), net.minecraft.entity.SpawnReason.EVENT, null);
+				mob.setVelocity(f.multiply(0.8).add(0, 0.3, 0));
+				world.spawnEntity(mob);
+				Vfx.play(world, VfxIds.HELLGATE_SOULS, at, f, 0.6F, 0);
+			}
+		}
+
+		/** The fist comes down: a crater, a ring of cracks, fire, and everything near it crushed. */
+		private void slam() {
+			Vec3d p = local(0, 0, HellGate.SLAM_AT);
+			Vec3d hit = Kit.ground(world, p.x, p.z);
+			Vfx.play(world, VfxIds.HELLGATE_SLAM, hit, 1.0F);
+			Vfx.flash(world, hit, 0.35F, 400, 0xFF5010);
+			Vfx.shake(world, hit, 400, 2.0F);
+			Kit.sound(world, hit, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 128.0F, 0.3F);
+			Kit.sound(world, hit, SoundEvents.ENTITY_RAVAGER_STUNNED, 128.0F, 0.3F);
+			for (LivingEntity e : Kit.living(world, hit, 26)) {
+				if (!Kit.creativeOrSpectator(e)) {
+					Vec3d away = e.getPos().subtract(hit);
+					double d = Math.max(1, away.length());
+					double k = 1 - d / 26;
+					Kit.push(e, away.normalize().multiply(2.0 * k).add(0, 1.2 * k, 0));
+					e.setOnFireFor(6);
+					e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), (float) (60 * k + 10));
+				}
+			}
+			Destruction.explode(world, owner(), hit.x, hit.y, hit.z, 11.0F, true);
+			Kit.ringCrack(world, hit, 18, 4, Blocks.MAGMA_BLOCK.getDefaultState(), 0.7F);
+		}
+
+		/** The portal collapses into itself; the gate cracks; the land round it is scorched. */
+		private void implode() {
+			Vec3d eye = eye();
+			Vfx.play(world, VfxIds.HELLGATE_IMPLODE, eye, f, 1.0F, 0);
+			Vfx.flash(world, eye, 0.45F, 400, 0xFFA060);
+			Vfx.shake(world, eye, 400, 1.6F);
+			Kit.sound(world, eye, SoundEvents.BLOCK_BEACON_DEACTIVATE, 128.0F, 0.4F);
+			Kit.sound(world, eye, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 128.0F, 0.4F);
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			for (int[] b : frame) {
+				double h = HorrorShapes.hash(b[0] * 7 + b[2], b[1] * 13);
+				BlockPos p = new BlockPos(b[0], b[1], b[2]);
+				if (h < 0.12 && b[1] > base.y + 2) {
+					put(p, AIR);
+				} else if (h < 0.22) {
+					put(p, Blocks.MAGMA_BLOCK.getDefaultState());
+				}
+			}
+			DetonationManager.add(new Ruin.Front(world, TerrainJob.disc(world, base, HellGate.SCORCH, this::scorch), 1.6));
+		}
+
+		/** Scorched earth: netherrack and magma, soul sand, fires burning; the gate's own footprint left alone. */
+		private void scorch(TerrainJob.Column col) {
+			Vec3d rel = new Vec3d(col.x + 0.5 - base.x, 0, col.z + 0.5 - base.z);
+			if (Math.abs(rel.dotProduct(side)) <= HellGate.W + HellGate.T + 4 && Math.abs(rel.dotProduct(f)) <= HellGate.DEPTH + 7) {
+				return;
+			}
+			int surf = col.surface();
+			for (int y = Math.min(col.top(), surf + 24); y > surf; y--) {
+				BlockState s = col.get(y);
+				if (s.isIn(BlockTags.LEAVES) || s.isIn(BlockTags.FLOWERS) || s.isReplaceable()) {
+					col.set(y, AIR);
+				}
+			}
+			BlockState g = col.get(surf);
+			if (!(g.isIn(BlockTags.DIRT) || g.isOf(Blocks.GRASS_BLOCK) || g.isIn(BlockTags.SAND) || g.isOf(Blocks.STONE) || g.isOf(Blocks.GRAVEL))) {
+				return;
+			}
+			double n = col.noise(29);
+			double d = Math.sqrt(rel.x * rel.x + rel.z * rel.z) / HellGate.SCORCH;
+			if (n > 0.85 - d * 0.5) {
+				return;
+			}
+			col.set(surf, (n < 0.06 ? Blocks.MAGMA_BLOCK : n < 0.16 ? Blocks.SOUL_SAND : n < 0.2 ? Blocks.BLACKSTONE : Blocks.NETHERRACK).getDefaultState());
+			if (col.noise(31) < 0.06 && col.get(surf + 1).isAir()) {
+				col.set(surf + 1, Blocks.FIRE.getDefaultState());
 			}
 		}
 	}

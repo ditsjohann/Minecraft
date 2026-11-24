@@ -165,4 +165,97 @@ public final class HorrorShapes {
 		/** How much bigger than a horse he is drawn, and the height of his raised hand over the horse's feet. */
 		public static final double BIG = 1.5, HAND = 33 * BIG;
 	}
+
+	// ====================================================================== PORTAL OF HELL
+
+	/**
+	 * A gothic gate of blackstone the height of a cathedral rises out of the ground facing whoever lit it. Its arch
+	 * ignites into a vortex of hellfire with an eye in it, souls and fireballs pour out, lava falls from its sill, and a
+	 * clawed arm reaches through and slams the ground. Then the eye closes and the portal implodes, leaving the gate
+	 * cracked and the land round it scorched.
+	 */
+	public static final class HellGate {
+		public static final int RISE = 60, RISEN = 240, OPEN = 260, EYE = 300, FIRE0 = 360, FIRES = 14, FIRE_GAP = 22, FLIGHT = 30, LAVA = 420,
+				HORDE = 440, ARM = 700, REACH = 760, RAISE = 790, SLAM = 800, WITHDRAW = 840, ARM_END = 890, CLOSE = 890, IMPLODE = 925, END = 1040;
+		/** Half-width of the opening, height of its straight sides, frame thickness, frame depth, scorch radius. */
+		public static final double W = 16, SIDES = 26, T = 4, DEPTH = 2, SCORCH = 72;
+		/** Height of the arch's apex, of the eye, and the eye's radius. */
+		public static final double APEX = SIDES + W * Math.sqrt(3), EYE_Y = SIDES * 0.8, EYE_R = 8;
+		/** How far in front of the gate the fist comes down. */
+		public static final double SLAM_AT = 34;
+
+		private HellGate() {
+		}
+
+		/** Inside the arch's opening ({@code u} across, {@code v} up from the ground). */
+		public static boolean opening(double u, double v) {
+			return inside(u, v, 0);
+		}
+
+		/** Inside the arch grown outward by {@code grow}: a pointed arch drawn from two circles. */
+		public static boolean inside(double u, double v, double grow) {
+			if (v < 0 || Math.abs(u) > W + grow) {
+				return false;
+			}
+			if (v <= SIDES) {
+				return true;
+			}
+			double r = 2 * W + grow;
+			return Math.hypot(u - W, v - SIDES) <= r && Math.hypot(u + W, v - SIDES) <= r;
+		}
+
+		/** Part of the frame: within the outer arch but not the opening. */
+		public static boolean frame(double u, double v) {
+			return inside(u, v, T) && !opening(u, v);
+		}
+
+		/** How far the gate has risen (0..1). */
+		public static double risen(double t) {
+			return smooth((t - RISE) / (RISEN - RISE));
+		}
+
+		/** How open the portal is (0..1): igniting, then imploding. */
+		public static double open(double t) {
+			return smooth((t - OPEN) / 30.0) * (1 - smooth((t - IMPLODE + 10) / 20.0));
+		}
+
+		/** Tick fireball {@code k} leaves the portal. */
+		public static int fireAt(int k) {
+			return FIRE0 + k * FIRE_GAP;
+		}
+
+		/** Where fireball {@code k} lands: in front of the gate, in local (across, 0, forward) terms. */
+		public static Vec3d target(int k, int seed) {
+			double a = (hash(seed + k, 31) - 0.5) * 2.6;
+			double r = 18 + hash(seed + k, 32) * 46;
+			return new Vec3d(Math.sin(a) * r, 0, Math.cos(a) * r);
+		}
+
+		/**
+		 * The arm's hand at tick {@code t}, in local (across, up, forward) terms: reaching out of the portal, raising
+		 * its fist, slamming it down, holding, then drawing back in.
+		 */
+		public static Vec3d hand(double t) {
+			Vec3d in = new Vec3d(0, EYE_Y, -6), out = new Vec3d(-4, EYE_Y + 4, 16), up = new Vec3d(-2, EYE_Y + 22, 24), down = new Vec3d(0, 3, SLAM_AT);
+			if (t < REACH) {
+				return in.lerp(out, smooth((t - ARM) / (REACH - ARM)));
+			}
+			if (t < RAISE) {
+				return out.lerp(up, smooth((t - REACH) / (RAISE - REACH)));
+			}
+			if (t < SLAM) {
+				double u = (t - RAISE) / (SLAM - RAISE);
+				return up.lerp(down, u * u);
+			}
+			if (t < WITHDRAW) {
+				return down;
+			}
+			return down.lerp(in, smooth((t - WITHDRAW) / (ARM_END - WITHDRAW)));
+		}
+
+		/** How tightly the hand is clenched (0 open claws .. 1 fist). */
+		public static double fist(double t) {
+			return smooth((t - REACH) / 25.0) * (1 - smooth((t - WITHDRAW) / 20.0));
+		}
+	}
 }

@@ -123,11 +123,12 @@ NEW_BOMBS.update({
     "dimension_shift": "DIMENSION SHIFT", "firework_havoc": "Firework Havoc", "chinese_lantern": "Chinese Lantern",
     "mammoth_fossil": "MAMMOTH FOSSIL", "leviathan_fossil": "LEVIATHAN FOSSIL", "pterosaur_fossil": "Pterosaur Fossil",
     "xenoform": "XENOFORM",
-    "terror_maniac": "TERROR MANIAC", "pumpkin_horseman": "PUMPKIN HORSEMAN",
+    "terror_maniac": "TERROR MANIAC", "pumpkin_horseman": "PUMPKIN HORSEMAN", "portal_of_hell": "PORTAL OF HELL",
 })
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
+    "portal_of_hell": "CELESTIAL. The ground quakes and a gothic gate of blackstone the height of a cathedral heaves up out of the earth. Its arch ignites into a vortex of hellfire with an eye in it that watches you. Souls and fireballs pour out, lava falls from its sill, things come through, and a clawed arm reaches out and slams the ground. Then the portal implodes, leaving the gate cracked over scorched land. Light twice.",
     "pumpkin_horseman": "CELESTIAL. Night falls orange and violet, and out of a geyser of ghost fire gallops a headless rider the height of a tower, scythe in one hand and a blazing jack-o'-lantern in the other. He circles the land leaving burning hoofprints, hurls the lantern six times, then charges straight through with his scythe and rides into the sky, leaving the land hallowed. Light twice.",
     "terror_maniac": "CELESTIAL. The colour drains from the world, the sky turns to old blood, and black veins crawl out pulsing with a heartbeat. A thing of roots with a cracked white mask rises from a rift, lifts everything living into the air while a bell tolls, and then breaks it. It shrieks, bursts into a storm of moths, and the land rots. Light twice.",
     "xenoform": "WORLD DESTRUCTION. Technology five thousand years past ours. No explosion: a hypercube unfolds over the land, scans it, then takes it apart block by block and sorts it by colour into rings, a catalogue of the place. Everything living goes up with it. It leaves a flat black plain ruled with light, a monolith, and a column of light leaving for the sky.",
@@ -349,6 +350,8 @@ def bomb_recipes3(shaped):
                                                   "C": "celestial_core"}, category=cat)
     shaped("pumpkin_horseman", ["JHJ", "SCS", "JHJ"], {"J": "minecraft:jack_o_lantern", "H": "minecraft:hay_block", "S": "minecraft:soul_lantern",
                                                      "C": "celestial_core"}, category=cat)
+    shaped("portal_of_hell", ["OBO", "FCF", "OBO"], {"O": "minecraft:crying_obsidian", "B": "minecraft:blaze_rod", "F": "minecraft:fire_charge",
+                                                   "C": "celestial_core"}, category=cat)
     shaped("xenoform", ["EGE", "NCN", "EGE"], {"E": "minecraft:end_crystal", "G": "minecraft:echo_shard", "N": "minecraft:nether_star",
                                              "C": "celestial_core"}, category=cat)
     shaped("pterosaur_fossil", ["MBM", "BFB", "MBM"], {"M": "minecraft:phantom_membrane", "B": "minecraft:bone_block", "F": "fossil_bomb"}, category=cat)

@@ -55,7 +55,7 @@ deadly it is.
 | Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun |
 | Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil |
 | Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil |
-| Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit |
+| Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit, Terror Maniac, Pumpkin Horseman, Portal of Hell |
 | City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence |
 | World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami, Xenoform |
 
@@ -70,6 +70,18 @@ BLACKFORGE (anvils rain from the sky, faster and faster, until a giant hammer sl
 iron and the land around breaks into shifting tectonic plates) and BLUE INFRIT (a summoning circle
 burns into the ground in blue fire, and a hound's head of blue flame dives on the land six times, leaving pits of
 lava, before blue fire sweeps the country).
+
+Three horror celestials. TERROR MANIAC: the colour drains from the world, the sky turns to old blood with red lightning
+in the clouds, and black veins crawl out pulsing with an underground heartbeat. A towering thing of roots and sinew with
+a cracked white mask, black tears and a stitched grin rises from a rift, lifts everything living into the air, twitching
+and blind while a bell tolls, and then closes its fists and breaks them. It shrieks, bursts into a storm of black moths,
+and the land rots to podzol, mud and wither roses. PUMPKIN HORSEMAN: a headless rider the height of a tower on a horse of
+night gallops round the land leaving burning hoofprints, hurls his blazing jack-o'-lantern six times (each a crater
+ringed with grinning pumpkins), then charges through the middle with his scythe and rides into the sky, leaving the land
+hallowed with pumpkins, cobwebs and soul fire. PORTAL OF HELL: a gothic gate of blackstone the height of a cathedral heaves
+out of the earth; its arch becomes a vortex of hellfire with an eye that follows you, souls and fireballs pour out, lava
+falls from its sill, Nether mobs come through, and a clawed arm reaches out and slams the ground before the portal
+implodes, leaving the cracked gate over scorched land.
 
 PLASMA KOI (mythic): a pond of liquid light opens and seven koi made of plasma circle beneath its surface. One by one
 they leap out on wilder and wilder arcs, each landing in a scorching splash; then they leap together, braid into a
@@ -90,7 +102,7 @@ burst out of the ground and assemble mid-air into a pterosaur thirty blocks acro
 the land three times, then lands on a spire of bone and crumbles to dust.
 
 The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern and
-the Mammoth, Leviathan and Pterosaur fossils, and Xenoform) sit
+the Mammoth, Leviathan and Pterosaur fossils, Xenoform, Terror Maniac, Pumpkin Horseman and Portal of Hell) sit
 in their own creative tab, "Armageddon: New", for now.
 
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-4]`, to build a city of

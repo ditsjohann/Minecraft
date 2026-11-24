@@ -326,6 +326,15 @@ public final class VfxIds {
 	public static final String HORSE_SLASH = "horse_slash";
 	public static final String HORSE_TRAIL = "horse_trail";
 	public static final String HORSE_MIST = "horse_mist";
+	public static final String HELLGATE_HEAT = "hellgate_heat";
+	public static final String HELLGATE_RISE = "hellgate_rise";
+	public static final String HELLGATE_OPEN = "hellgate_open";
+	public static final String HELLGATE_SOULS = "hellgate_souls";
+	public static final String HELLGATE_FIRE_TRAIL = "hellgate_fire_trail";
+	public static final String HELLGATE_IMPACT = "hellgate_impact";
+	public static final String HELLGATE_SLAM = "hellgate_slam";
+	public static final String HELLGATE_IMPLODE = "hellgate_implode";
+	public static final String HELLGATE_LAVA_SPLASH = "hellgate_lava_splash";
 	public static final String PRISM_INBEAM = "prism_inbeam";
 	public static final String BANG_INHALE = "bang_inhale";
 	public static final String BANG_CMB = "bang_cmb";
@@ -564,7 +573,8 @@ public final class VfxIds {
 			PTERO_SCREECH, PTERO_IMPACT, PTERO_CRUMBLE,
 			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART,
 			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER,
-			HORSE_APPEAR, HORSE_VANISH, HORSE_HOOF, HORSE_PUMPKIN, HORSE_SLASH, HORSE_TRAIL, HORSE_MIST);
+			HORSE_APPEAR, HORSE_VANISH, HORSE_HOOF, HORSE_PUMPKIN, HORSE_SLASH, HORSE_TRAIL, HORSE_MIST,
+			HELLGATE_HEAT, HELLGATE_RISE, HELLGATE_OPEN, HELLGATE_SOULS, HELLGATE_FIRE_TRAIL, HELLGATE_IMPACT, HELLGATE_SLAM, HELLGATE_IMPLODE, HELLGATE_LAVA_SPLASH);
 
 	private VfxIds() {
 	}

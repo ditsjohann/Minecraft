@@ -142,6 +142,7 @@ public final class Events {
 		EVENTS.put("xenoform", com.armageddon.event.events.XenoEvents.Xenoform::new);
 		EVENTS.put("terror_maniac", com.armageddon.event.events.HorrorEvents.TerrorManiac::new);
 		EVENTS.put("pumpkin_horseman", com.armageddon.event.events.HorrorEvents.PumpkinHorseman::new);
+		EVENTS.put("portal_of_hell", com.armageddon.event.events.HorrorEvents.PortalOfHell::new);
 		EVENTS.put("blue_infrit", com.armageddon.event.events.WildEvents.BlueInfrit::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);

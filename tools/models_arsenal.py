@@ -1727,3 +1727,27 @@ def pumpkin_horseman():
 
 
 BOMBS.update({"pumpkin_horseman": pumpkin_horseman})
+
+
+def portal_of_hell():
+    # A little gothic gate of blackstone and crying obsidian with spikes, its arch full of swirling hellfire and an eye.
+    m = [B(0, 0, 0, 16, 1.2, 16, "obsidian"), B(1, 1.2, 1, 15, 1.8, 15, "black")]
+    for (x0, x1) in ((2, 4), (12, 14)):
+        m += [B(x0, 1.8, 6.5, x1, 10, 9.5, "black")]
+    for i in range(6):
+        t = i / 5.0
+        x = 2 + t * 5.5
+        y = 10 + (1 - (1 - t) ** 2) * 4.5
+        m += [B(x, y, 6.5, x + 1.6, y + 1.6, 9.5, "black"), B(14 - x - 1.6, y, 6.5, 14 - x, y + 1.6, 9.5, "black")]
+    m += [B(7, 14.4, 6.5, 9, 16, 9.5, "black")]
+    m += [B(4, 1.8, 7.4, 12, 10, 8.6, "glow_orange"), B(5, 10, 7.4, 11, 13, 8.6, "glow_orange"), B(6.5, 13, 7.4, 9.5, 14.4, 8.6, "glow_orange")]
+    m += [B(5.5, 5.0, 7.2, 10.5, 8.0, 7.4, "glow_gold"), B(7.6, 5.2, 7.1, 8.4, 7.8, 7.2, "black")]
+    for (x, y) in ((4.0, 2.4), (11.6, 2.4), (4.0, 9.2), (11.6, 9.2)):
+        m += [B(x, y, 7.3, x + 0.4, y + 0.4, 7.4, "crimson")]
+    for (x, y, dx) in ((1.4, 4, -1), (1.4, 8, -1), (14.6, 4, 1), (14.6, 8, 1)):
+        m += [B(min(x, x + dx * 1.4), y, 7.6, max(x, x + dx * 1.4), y + 0.5, 8.4, "obsidian")]
+    m += [B(7.7, 16, 7.7, 8.3, 16, 8.3, "obsidian")]
+    return m
+
+
+BOMBS.update({"portal_of_hell": portal_of_hell})

@@ -5,6 +5,7 @@ import com.armageddon.client.render.FxRenderLayers;
 import com.armageddon.client.vfx.FxEngine;
 import com.armageddon.network.FxPayload;
 import com.armageddon.util.HorrorShapes;
+import com.armageddon.util.HorrorShapes.HellGate;
 import com.armageddon.util.HorrorShapes.Horseman;
 import com.armageddon.util.HorrorShapes.Maniac;
 import com.armageddon.vfx.VfxIds;
@@ -28,6 +29,7 @@ final class HorrorFx {
 		return switch (kind) {
 			case 59 -> new ManiacFx(a, b, (int) p.p1(), p.duration());
 			case 60 -> new HorsemanFx(a, (int) p.p1(), p.duration());
+			case 61 -> new HellGateFx(a, b, (int) p.p1(), p.duration());
 			default -> null;
 		};
 	}
@@ -593,6 +595,221 @@ final class HorrorFx {
 				prev = q;
 			}
 			FxKit.halo(consumers, m, cb, p, r * 2.6, 0xFF7020, 0.4F * fl);
+		}
+	}
+
+	// ====================================================================== PORTAL OF HELL
+
+	/**
+	 * The portal: a vortex of hellfire filling the arch with an eye in it that follows you, fireballs flying out,
+	 * lava pouring over the sill, and the arm that reaches through.
+	 */
+	static final class HellGateFx extends FxEffect {
+		private static final int ARM = 0x7A2016;
+		private static final double K = 1.7;
+		private final Vec3d c, f, s;
+		private final int seed;
+
+		HellGateFx(Vec3d c, Vec3d facing, int seed, int life) {
+			super(Math.max(40, life));
+			this.c = c;
+			this.f = facing.lengthSquared() < 1.0E-4 ? new Vec3d(0, 0, 1) : facing.normalize();
+			this.s = new Vec3d(-f.z, 0, f.x);
+			this.seed = seed;
+		}
+
+		private Vec3d local(double u, double v, double w) {
+			return c.add(s.multiply(u)).add(0, v, 0).add(f.multiply(w));
+		}
+
+		private Vec3d fireball(int k, double t) {
+			Vec3d from = local(0, HellGate.EYE_Y, 1);
+			Vec3d tg = HellGate.target(k, seed);
+			Vec3d g = local(tg.x, 0, tg.z);
+			Vec3d to = new Vec3d(g.x, NewFx.groundY(g.x, g.z, c.y) + 1, g.z);
+			double u = MathHelper.clamp((t - HellGate.fireAt(k)) / HellGate.FLIGHT, 0.0, 1.0);
+			return from.lerp(to, u).add(0, Math.sin(Math.PI * u) * 14, 0);
+		}
+
+		@Override
+		public boolean tick(ClientWorld world) {
+			int t = age;
+			if (t % 3 == 0 && t < HellGate.END - 30) {
+				Vec3d eye = camera(c);
+				FxEngine.play(VfxIds.HELLGATE_HEAT, eye.x, NewFx.groundY(eye.x, eye.z, eye.y - 1), eye.z, 0, 1, 0, 1.0F, 0, t * 433L);
+			}
+			for (int k = 0; k < HellGate.FIRES; k++) {
+				int at = HellGate.fireAt(k);
+				if (t >= at && t < at + HellGate.FLIGHT) {
+					Vec3d p = fireball(k, t), q = fireball(k, t + 1);
+					FxEngine.playMoving(VfxIds.HELLGATE_FIRE_TRAIL, p.x, p.y, p.z, 0, 1, 0, 1.0F, 0, t * 131L + k, (float) (q.x - p.x), (float) (q.y - p.y),
+							(float) (q.z - p.z));
+				}
+			}
+			if (t >= HellGate.LAVA && t < HellGate.IMPLODE && t % 4 == 0) {
+				Vec3d foot = local(0, 0, 3.5);
+				FxEngine.play(VfxIds.HELLGATE_LAVA_SPLASH, foot.x, NewFx.groundY(foot.x, foot.z, c.y), foot.z, (float) f.x, 0, (float) f.z, 1.0F, 0, t * 71L);
+			}
+			if (HellGate.open(t) > 0.05 && t % 6 == 0) {
+				ClientFx.light(local(0, HellGate.EYE_Y, 3), 1.0F, 0xFF5010);
+			}
+			return super.tick(world);
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+			double open = HellGate.open(a);
+			if (open > 0.005) {
+				vortex(glow, shade, m, cam, a, open);
+				eye(consumers, glow, shade, m, cb, cam, a, open);
+			}
+			for (int k = 0; k < HellGate.FIRES; k++) {
+				int at = HellGate.fireAt(k);
+				if (a >= at && a < at + HellGate.FLIGHT) {
+					Vec3d p = fireball(k, a).subtract(cam);
+					Solids.flare(glow, m, p, cb, 3.0, 0xFFE090, 1.0F);
+					FxKit.halo(consumers, m, cb, p, 5.5, 0xFF5010, 0.6F);
+				}
+			}
+			if (a >= HellGate.LAVA && a < HellGate.IMPLODE + 20) {
+				lavafall(glow, shade, m, cam, a);
+			}
+			if (a >= HellGate.ARM && a < HellGate.ARM_END) {
+				arm(solid, glow, m, cb, cam, a);
+			}
+		}
+
+		/** The arch filled with a whirling vortex of hellfire, black at its rim and white-hot at its heart. */
+		private void vortex(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d cam, float a, double open) {
+			double step = 1.6;
+			Vec3d ctr = local(0, HellGate.EYE_Y, 0);
+			double lid = smooth((a - HellGate.EYE) / 25.0) * (1 - smooth((a - HellGate.CLOSE) / 20.0));
+			for (double u = -HellGate.W; u < HellGate.W; u += step) {
+				for (double v = 0; v < HellGate.APEX; v += step) {
+					double[][] q = {{u, v}, {u + step, v}, {u + step, v + step}, {u, v + step}};
+					boolean any = false;
+					for (double[] p : q) {
+						any |= HellGate.opening(p[0], p[1]);
+					}
+					if (!any) {
+						continue;
+					}
+					Vec3d[] w = new Vec3d[4];
+					float[] al = new float[4];
+					int[] col = new int[4];
+					for (int i = 0; i < 4; i++) {
+						double uu = q[i][0], vv = q[i][1];
+						boolean in = HellGate.opening(uu, vv);
+						double du = uu, dv = vv - HellGate.EYE_Y;
+						double r = Math.hypot(du, dv), th = Math.atan2(dv, du);
+						// The swirl: bands of fire turning inward.
+						double band = 0.5 + 0.5 * Math.sin(th * 3 - a * 0.12 + r * 0.35) * Math.sin(r * 0.5 - a * 0.2 + th);
+						double heat = Math.max(0, 1 - r / (HellGate.W * 1.4)) * 0.7 + band * 0.5;
+						col[i] = heat > 0.85 ? 0xFFE8A0 : heat > 0.6 ? 0xFF9030 : heat > 0.35 ? 0xE03810 : 0x701008;
+						double eyeCut = lid * MathHelper.clamp((HellGate.EYE_R * 1.25 - Math.hypot(du, dv / Math.max(0.3, lid * 0.62))) / 3.0, 0.0, 1.0);
+						al[i] = in ? (float) (open * (0.25 + 0.55 * heat) * (1 - eyeCut)) : 0;
+						w[i] = local(uu, vv, -0.2 + Math.sin(r * 0.4 - a * 0.15) * 0.6 * (1 - r / 40)).subtract(cam);
+					}
+					for (int i = 0; i < 4; i++) {
+						// Dark base so the vortex hides what is behind the arch.
+						float d = al[i] > 0 ? (float) open * 0.92F : 0;
+						FxDraw.vertex(shade, m, w[i].x, w[i].y, w[i].z, 0x1A0402, d);
+					}
+					for (int i = 0; i < 4; i++) {
+						FxDraw.vertex(glow, m, w[i].x, w[i].y, w[i].z, col[i], al[i]);
+					}
+				}
+			}
+			FxDraw.ring(glow, m, ctr.subtract(cam), s, UP, 2, HellGate.W * 0.9, 0xFFB050, (float) open * 0.2F, (float) open * 0.1F, 0.0F, 40);
+		}
+
+		/** The eye: an amber eye with a slit pupil that turns to follow the camera, blinking, and closing at the end. */
+		private void eye(VertexConsumerProvider consumers, VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d cam, float a, double open) {
+			double lid = smooth((a - HellGate.EYE) / 25.0) * (1 - smooth((a - HellGate.CLOSE) / 20.0));
+			double blink = Math.max(0, Math.sin(a * 0.05) - 0.97) / 0.03;
+			lid *= 1 - blink;
+			if (lid <= 0.02) {
+				return;
+			}
+			Vec3d ctr = local(0, HellGate.EYE_Y, 0.6).subtract(cam);
+			double R = HellGate.EYE_R;
+			FxDraw.disc(shade, m, ctr, s, UP.multiply(lid * 0.62), R, 0xF0A020, 0.97F, 0.97F, 36);
+			FxDraw.disc(glow, m, ctr.add(f.multiply(0.05)), s, UP.multiply(lid * 0.62), R * 0.9, 0xFFC040, 0.45F, 0.0F, 36);
+			// The pupil looks toward the camera.
+			Vec3d toCam = ctr.multiply(-1).normalize();
+			double lu = MathHelper.clamp(toCam.dotProduct(s), -0.6, 0.6), lv = MathHelper.clamp(toCam.y, -0.5, 0.5);
+			Vec3d pupil = ctr.add(s.multiply(lu * R * 0.55)).add(UP.multiply(lv * R * 0.3 * lid)).add(f.multiply(0.1));
+			FxDraw.disc(shade, m, pupil.subtract(f.multiply(0.05)), s, UP.multiply(lid * 0.62), R * 0.5, 0xC01808, 0.98F, 0.98F, 28);
+			FxDraw.disc(glow, m, pupil, s, UP.multiply(lid * 0.62), R * 0.5, 0xFF4010, 0.0F, 0.5F, 28);
+			FxDraw.disc(shade, m, pupil.add(f.multiply(0.05)), s.multiply(0.2), UP.multiply(lid * 0.6), R * 0.95, 0x080202, 0.98F, 0.98F, 24);
+			Solids.flare(glow, m, ctr.add(s.multiply(-R * 0.35)).add(UP.multiply(R * 0.2 * lid)).add(f.multiply(0.2)), cb, 1.2, 0xFFFFFF, 0.6F);
+			FxKit.halo(consumers, m, cb, ctr, R * 2.0, 0xFF3008, (float) (0.15 * lid * open));
+		}
+
+		/** Lava pouring over the sill and spreading out in front of the gate. */
+		private void lavafall(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d cam, float a) {
+			float in = smooth((a - HellGate.LAVA) / 20.0) * (1 - smooth((a - HellGate.IMPLODE) / 20.0));
+			for (int k = -3; k <= 3; k++) {
+				Vec3d top = local(k * 1.2, 1.0, 1.5).subtract(cam), bot = local(k * 1.4, 0.2, 3.5 + Math.abs(k) * 0.3).subtract(cam);
+				float fl = 0.75F + 0.25F * MathHelper.sin(a * 0.4F + k);
+				FxDraw.ribbon(shade, m, top, bot, Vec3d.ZERO, 1.6, 0x601008, 0.8F * in, 0.8F * in);
+				FxDraw.ribbon(glow, m, top, bot, Vec3d.ZERO, 1.2, 0xFF7020, 0.7F * in * fl, 0.7F * in * fl);
+			}
+		}
+
+		/**
+		 * The arm: shoulder hidden in the portal, a huge spined forearm, and a hand with clawed fingers that open
+		 * reaching out and close into a fist for the slam.
+		 */
+		private void arm(VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d cam, float a) {
+			Vec3d hl = HellGate.hand(a);
+			Vec3d hand = local(hl.x, hl.y, hl.z).subtract(cam);
+			Vec3d shoulder = local(4, HellGate.EYE_Y + 2, -14).subtract(cam);
+			Vec3d mid = shoulder.lerp(hand, 0.5);
+			Vec3d elbow = mid.add(UP.multiply(6)).add(s.multiply(7));
+			Solids.tube(solid, m, shoulder, elbow, 5.0 * K, 4.2 * K, 12, ARM, 1.0F, true);
+			Solids.tube(solid, m, elbow, hand, 4.2 * K, 3.0 * K, 12, ARM, 1.0F, true);
+			Solids.sphere(solid, m, elbow, 4.3 * K, ARM, 8, 10, true);
+			// Spines along the forearm and glowing cracks.
+			Vec3d along = hand.subtract(elbow);
+			for (int k = 1; k < 6; k++) {
+				Vec3d p = elbow.add(along.multiply(k / 6.0));
+				Vec3d out = UP.add(s.multiply(0.3)).normalize();
+				Solids.tube(solid, m, p.add(out.multiply(3.4 * K)), p.add(out.multiply(7.0 * K)).subtract(along.normalize().multiply(1.8 * K)), 0.8 * K, 0.05, 6,
+						0x1A0606, 1.0F, true);
+			}
+			float pulse = 0.4F + 0.3F * MathHelper.sin(a * 0.3F);
+			for (int k = -1; k <= 1; k += 2) {
+				Vec3d off = UP.multiply(k * 0.0).add(s.multiply(k * 2.5 * K)).add(UP.multiply(3.8 * K));
+				FxDraw.ribbon(glow, m, shoulder.add(off), elbow.add(off), Vec3d.ZERO, 0.9, 0xFF5010, pulse, pulse);
+				FxDraw.ribbon(glow, m, elbow.add(off.multiply(0.9)), hand.add(off.multiply(0.7)), Vec3d.ZERO, 0.8, 0xFF5010, pulse, pulse);
+			}
+			// The hand.
+			double fist = HellGate.fist(a);
+			Vec3d dir = along.normalize();
+			Vec3d side = dir.crossProduct(UP);
+			side = side.lengthSquared() < 1.0E-4 ? s : side.normalize();
+			Vec3d palmUp = side.crossProduct(dir).normalize();
+			Solids.sphere(solid, m, hand.add(dir.multiply(2 * K)), 3.6 * K, ARM, 8, 10, true);
+			for (int k = 0; k < 5; k++) {
+				boolean thumb = k == 4;
+				Vec3d root = hand.add(dir.multiply((thumb ? 1.5 : 4.5) * K)).add(side.multiply((thumb ? 3.2 : (k - 1.5) * 1.6) * K));
+				Vec3d d = thumb ? side.multiply(0.6).add(dir.multiply(0.8)).normalize() : dir.multiply(1 - fist * 0.2).add(palmUp.multiply(-0.2 - fist)).normalize();
+				Vec3d p = root;
+				for (int j = 0; j < 3; j++) {
+					double curl = (0.25 + fist * 1.1) * (j + 1) * 0.6;
+					Vec3d bend = d.multiply(Math.cos(curl)).add(palmUp.multiply(-Math.sin(curl))).normalize();
+					Vec3d q = p.add(bend.multiply((thumb ? 2.2 : 3.0 - j * 0.4) * K));
+					Solids.tube(solid, m, p, q, (0.9 - j * 0.2) * K, (0.75 - j * 0.2) * K, 6, ARM, 1.0F, true);
+					p = q;
+				}
+				Solids.tube(solid, m, p, p.add(d.multiply(-0.2).add(palmUp.multiply(-1)).normalize().multiply(2.0 * K)), 0.45 * K, 0.02, 5, 0x0A0404, 1.0F, true);
+			}
 		}
 	}
 }

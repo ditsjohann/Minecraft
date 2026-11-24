@@ -22,6 +22,100 @@ final class HorrorVfx {
 	static void register() {
 		maniac();
 		horseman();
+		hellgate();
+	}
+
+	static final Gradient HELLFIRE = Gradient.of(0, 0xFFF4C0, 0.25F, 0xFFA030, 0.6F, 0xE83810, 1, argb(0x601008, 0));
+	static final Gradient SOUL = Gradient.of(0, 0xFFE0C0, 0.4F, 0xFF7040, 1, argb(0x802010, 0));
+
+	private static void hellgate() {
+		// Heat round the watcher: embers rising, ash falling, a shimmer of red.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_HEAT).lod(80, 400)
+				.emit(EmitterDef.builder("embers").burst(4).shape(Shape.box(16, 2, 16)).velocity(Velocity.up(0.04F, 0.1F, 0.03F)).module(Module.curl(5, 0.006F))
+						.life(60, 110).size(0.08F, 0.14F).sprite(FxSprites.FLARE).color(HELLFIRE).alphaOverLife(TWINKLE).build())
+				.emit(EmitterDef.builder("ash").burst(3).shape(Shape.box(16, 2, 16)).offset(0, 14, 0).velocity(Velocity.up(-0.05F, -0.02F, 0.03F))
+						.module(Module.jitter(0.01F)).life(100, 160).size(0.08F, 0.14F).spin(-0.3F, 0.3F).sprite(FxSprites.DUST).color(0x302828).build())
+				.build());
+
+		// The gate heaving up: dust and stone bursting from its foot.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_RISE).lod(300, 2000)
+				.emit(smoke("dust").burst(6).onGround().shape(Shape.box(20, 0, 4)).velocity(Velocity.up(0.2F, 0.5F, 0.6F)).life(40, 70).size(3, 5)
+						.color(Gradient.of(0, 0x5A4A40, 1, 0x3A302A)).alpha(0.6F).build())
+				.emit(EmitterDef.builder("stones").burst(8).onGround().shape(Shape.box(20, 0, 4)).velocity(Velocity.up(0.4F, 0.8F, 0.6F)).gravity(0.05F)
+						.collide(0.3F, 0.5F, 1).life(30, 50).size(0.25F, 0.45F).spin(-0.4F, 0.4F).sprite(FxSprites.DUST).color(0x2A2428).build())
+				.build());
+
+		// The portal igniting: a blast of fire out of the arch, a ring of it, a flash.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_OPEN).lod(500, 3000).maxAge(160)
+				.cue(0, EffectDef.light(1.8F, 0xFF5010))
+				.emit(flash("flash", 40, 14, 0xFFB060).build())
+				.emit(EmitterDef.builder("blast").priority(Priority.HERO).burst(220).shape(Shape.disc(12)).velocity(Velocity.along(0.8F, 2.0F, 0.6F)).drag(0.05F)
+						.life(24, 50).size(2.5F, 4.5F).sprite(FxSprites.FIRE, 2).color(HELLFIRE).build())
+				.emit(smoke("smoke").burst(50).shape(Shape.disc(12)).velocity(Velocity.along(0.4F, 1.0F, 0.6F)).drag(0.03F).life(80, 140).size(5, 9)
+						.color(Gradient.of(0, 0x301010, 1, 0x180808)).alpha(0.7F).build())
+				.build());
+
+		// Souls pouring out of the portal, wailing and spiralling.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_SOULS).lod(300, 2000)
+				.emit(EmitterDef.builder("souls").burst(3).shape(Shape.disc(10)).velocity(Velocity.along(0.4F, 0.8F, 0.6F)).velocity(Velocity.swirl(0.2F, 0.4F))
+						.module(Module.curl(10, 0.02F)).life(50, 90).size(1.2F, 2.2F).sprite(FxSprites.WISP).color(SOUL).alpha(0.7F).build())
+				.emit(EmitterDef.builder("sparks").burst(5).shape(Shape.disc(10)).velocity(Velocity.along(0.5F, 1.0F, 0.5F)).life(20, 40).size(0.12F, 0.2F)
+						.sprite(FxSprites.FLARE).color(HELLFIRE).build())
+				.build());
+
+		// A fireball in flight: flame and black smoke streaming off it.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_FIRE_TRAIL).lod(250, 1800)
+				.emit(EmitterDef.builder("fire").burst(4).inherit(0.15F).shape(Shape.sphere(1.6F)).life(10, 22).size(1.8F, 3).sprite(FxSprites.FIRE, 2)
+						.color(HELLFIRE).build())
+				.emit(smoke("smoke").burst(2).inherit(0.05F).life(30, 60).size(2, 3.5F).sizeOverLife(Curve.RISE).color(Gradient.of(0, 0x301818, 1, 0x1A1010))
+						.alpha(0.6F).build())
+				.build());
+
+		// A fireball lands.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_IMPACT).lod(400, 2400).maxAge(140)
+				.cue(0, EffectDef.light(1.4F, 0xFF5010))
+				.emit(flash("flash", 20, 8, 0xFFB060).build())
+				.emit(EmitterDef.builder("ball").priority(Priority.HERO).burst(40).shape(Shape.sphere(2)).velocity(Velocity.radial(0.4F, 0.9F))
+						.velocity(Velocity.up(0.2F, 0.5F, 0.3F)).drag(0.06F).life(16, 30).size(2.5F, 4.5F).sprite(FxSprites.FIRE, 2).color(HELLFIRE).build())
+				.emit(smoke("smoke").burst(16).shape(Shape.sphere(3)).velocity(Velocity.up(0.3F, 0.6F, 0.4F)).drag(0.03F).life(60, 100).size(4, 7)
+						.color(Gradient.of(0, 0x301818, 1, 0x1A1010)).alpha(0.65F).build())
+				.emit(EmitterDef.builder("debris").burst(30).onGround().velocity(Velocity.up(0.6F, 1.2F, 0.8F)).gravity(0.05F).collide(0.3F, 0.5F, 1).life(30, 60)
+						.size(0.2F, 0.4F).spin(-0.5F, 0.5F).sprite(FxSprites.DUST).color(0x3A2A24).build())
+				.build());
+
+		// Lava splashing at the foot of the fall.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_LAVA_SPLASH).lod(200, 1400)
+				.emit(EmitterDef.builder("drops").burst(6).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.3F, 0.6F, 0.5F)).gravity(0.05F).life(14, 26)
+						.size(0.2F, 0.35F).sprite(FxSprites.FLARE).color(HELLFIRE).build())
+				.emit(smoke("steam").burst(1).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.1F, 0.2F, 0.2F)).life(40, 70).size(2, 3.5F)
+						.color(Gradient.of(0, 0x504040, 1, 0x302828)).alpha(0.4F).build())
+				.build());
+
+		// The fist comes down: a vast blast of fire and rock, a ring racing out, a column of black smoke.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_SLAM).lod(600, 3600).maxAge(220)
+				.cue(0, EffectDef.light(2.0F, 0xFF5010))
+				.emit(flash("flash", 50, 14, 0xFFC070).build())
+				.emit(EmitterDef.builder("fire").priority(Priority.HERO).burst(260).onGround().shape(Shape.disc(6)).velocity(Velocity.radial(0.8F, 2.0F))
+						.velocity(Velocity.up(0.3F, 1.0F, 0.4F)).drag(0.05F).life(20, 44).size(3, 6).sprite(FxSprites.FIRE, 2).color(HELLFIRE).build())
+				.emit(EmitterDef.builder("rock").burst(120).onGround().shape(Shape.disc(5)).velocity(Velocity.up(0.8F, 1.8F, 1.0F)).gravity(0.05F)
+						.collide(0.3F, 0.5F, 1).life(40, 80).size(0.4F, 0.9F).spin(-0.5F, 0.5F).sprite(FxSprites.DUST).color(0x2A2020).build())
+				.emit(smoke("column").burst(60).onGround().shape(Shape.disc(6)).velocity(Velocity.up(0.5F, 1.2F, 0.4F)).drag(0.02F).module(Module.curl(12, 0.01F))
+						.life(100, 180).size(6, 11).sizeOverLife(Curve.RISE).color(Gradient.of(0, 0x3A2020, 1, 0x1A1010)).alpha(0.75F).build())
+				.emit(EmitterDef.builder("ring").burst(1).onGround().offset(0, 0.4F, 0).mode(Mode.FLAT).fixedRotation().size(70, 70).life(30, 30)
+						.sprite(FxSprites.SHOCK).sizeOverLife(Curve.EASE_OUT).color(0xFF8040).alpha(0.8F).alphaOverLife(Curve.FADE_OUT).build())
+				.build());
+
+		// The portal implodes: everything drawn into a point, then a flash and a ring of fire blown out flat.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_IMPLODE).lod(500, 3000).maxAge(160)
+				.cue(0, EffectDef.light(2.0F, 0xFFA060))
+				.emit(EmitterDef.builder("inward").priority(Priority.HERO).rate(40, 12).shape(Shape.disc(18)).module(Module.attract(0.15F, 1.5F)).life(10, 16)
+						.size(1.5F, 2.5F).sprite(FxSprites.FIRE, 2).color(HELLFIRE).build())
+				.emit(12, flash("flash", 50, 14, 0xFFE0B0).build())
+				.emit(12, EmitterDef.builder("ring").burst(1).mode(Mode.FLAT).size(60, 60).life(26, 26).sprite(FxSprites.SHOCK).sizeOverLife(Curve.EASE_OUT)
+						.color(0xFFA050).alpha(0.8F).alphaOverLife(Curve.FADE_OUT).build())
+				.emit(12, EmitterDef.builder("embers").burst(200).shape(Shape.sphere(3)).velocity(Velocity.random(0.8F, 2.0F)).drag(0.04F).life(30, 70)
+						.size(0.15F, 0.3F).sprite(FxSprites.FLARE).color(HELLFIRE).build())
+				.build());
 	}
 
 	static final Gradient PUMPKIN_FIRE = Gradient.of(0, 0xFFF0A0, 0.3F, 0xFFA030, 0.7F, 0xFF5010, 1, argb(0x801008, 0));
