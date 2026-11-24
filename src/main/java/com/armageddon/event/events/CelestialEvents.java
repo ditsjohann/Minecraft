@@ -23,7 +23,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
@@ -720,16 +719,16 @@ public final class CelestialEvents {
 			Kit.sound(world, at, SoundEvents.BLOCK_ANVIL_LAND, sp.big() ? 48.0F : 12.0F, 0.6F);
 			if (sp.big()) {
 				// The great spear's blocks go up once the temple has been pressed around it.
-				Kit.boom(world, at.add(0, 2, 0), 11.0F, 0xFFD060, owner(), false);
-				Vfx.pillar(world, at, 9.0F, 0xFFE8A0, false, 70);
+				Kit.blast(world, at.add(0, 2, 0), 11.0F, owner(), false);
+				Vfx.play(world, VfxIds.GODFALL_IMPACT, at, 1.0F);
 				Vfx.ring(world, at.add(0, 1, 0), r * 2.2F, 4.0F, 0xFFE8A0, true, 45);
 				return;
 			}
 			// Every spear lands as a holy shell: a golden blast, a scorched hole and a ring of light.
-			Kit.boom(world, at, 3.2F, 0xFFD060, owner(), true);
+			Kit.blast(world, at, 3.2F, owner(), true);
+			Vfx.play(world, VfxIds.SPEAR_STRIKE, at, 1.0F);
 			Kit.damage(world, at, 7, 30.0F, ModDamageTypes.PLASMA, null, owner());
-			Vfx.ring(world, at.add(0, 0.5, 0), 14.0F, 1.5F, 0xFFE8A0, true, 22);
-			world.spawnParticles(ParticleTypes.END_ROD, at.x, at.y + 1, at.z, 30, 1.5, 1.5, 1.5, 0.35);
+			Vfx.ring(world, at.add(0, 0.5, 0), 14.0F, 1.5F, 0xFFE8A0, false, 22);
 			if (queue == null) {
 				return;
 			}

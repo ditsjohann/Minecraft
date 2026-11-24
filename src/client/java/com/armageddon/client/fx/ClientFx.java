@@ -464,6 +464,8 @@ public final class ClientFx {
 		add(new Effects.Ring(at, radius * 3, 0xFFFFFF, 30, radius * 0.25, false));
 		// Under the cloud a base surge; a hydrogen-sized blast adds its second stage.
 		com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.NUKE_SURGE, at.x, at.y, at.z, 0, 1, 0, radius / 26.0F, 0, world.random.nextLong());
+		// ...and its front rolling out over the real ground, throwing up whatever is there.
+		add(new NukeSurge(at, radius));
 		if (radius >= 45) {
 			com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.HYDROGEN_STAGE, at.x, at.y, at.z, 0, 1, 0, radius / 52.0F, 0, world.random.nextLong());
 		}

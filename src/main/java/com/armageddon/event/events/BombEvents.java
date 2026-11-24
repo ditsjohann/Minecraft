@@ -67,6 +67,7 @@ public final class BombEvents {
 			}
 			if (t % 10 == 0) {
 				int beat = t / 10;
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.DISCO_BEAT, c, new Vec3d(0, 1, 0), 1.0F, RAINBOW[beat % 8]);
 				Vfx.ring(world, c.add(0, -0.3, 0), 9.0F, 0.6F, RAINBOW[beat % 8], false, 14);
 				Kit.sound(world, c, ModSounds.DUBSTEP_WUB, 3.0F, 0.7F + (beat % 4) * 0.15F);
 				BlockPos b = BlockPos.ofFloored(c);
@@ -104,10 +105,13 @@ public final class BombEvents {
 			Vec3d c = center();
 			if (t == 0) {
 				Vfx.firework(world, c.add(0, 3, 0), 3.0F, 2, 0xFFE8A0);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GLITTER_POP, c.add(0, 3, 0), 1.0F);
 				Kit.sound(world, c, SoundEvents.ENTITY_FIREWORK_ROCKET_TWINKLE, 4.0F, 1.5F);
 			}
-			world.spawnParticles(ParticleTypes.END_ROD, c.x, c.y + 3, c.z, 6, 6, 3, 6, 0.03);
-			world.spawnParticles(ParticleTypes.FIREWORK, c.x, c.y + 2, c.z, 4, 6, 3, 6, 0.04);
+			if (t % 4 == 0 && t < 130) {
+				// Real glitter: flat flakes tumbling down and catching the light.
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GLITTER_FLAKES, c, 1.0F);
+			}
 			if (t % 30 == 0) {
 				for (LivingEntity e : Kit.living(world, c, 12)) {
 					e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 600, 0, false, false));
@@ -125,6 +129,7 @@ public final class BombEvents {
 			Vec3d c = center();
 			if (t == 0) {
 				Kit.sound(world, c, SoundEvents.ENTITY_WITCH_CELEBRATE, 4.0F, 0.8F);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PUMPKIN_FOG, c, 1.0F);
 				for (int i = 0; i < 48; i++) {
 					double a = world.random.nextDouble() * Math.PI * 2;
 					double d = Math.sqrt(world.random.nextDouble()) * 9;
@@ -132,7 +137,7 @@ public final class BombEvents {
 					if (world.getBlockState(p).isAir() && Math.abs(p.getY() - c.y) < 6) {
 						TemporaryBlocks.place(world, p, (world.random.nextInt(3) == 0 ? Blocks.CARVED_PUMPKIN : Blocks.JACK_O_LANTERN).getDefaultState(),
 								300 + world.random.nextInt(120));
-						world.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5, 6, 0.3, 0.3, 0.3, 0.05);
+						com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PUMPKIN_SPROUT, Vec3d.ofBottomCenter(p), 1.0F);
 					}
 				}
 				Vfx.ring(world, c, 12.0F, 0.8F, 0xFF8020, false, 20);
@@ -148,6 +153,7 @@ public final class BombEvents {
 			Vec3d c = center();
 			BlockPos b = BlockPos.ofFloored(c).up();
 			Vfx.cage(world, c.add(0, 1, 0), 6.0F, 0xE8E8E8, 40);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.WEB_BURST, c.add(0, 1, 0), 1.0F);
 			Kit.sound(world, c, SoundEvents.BLOCK_COBWEB_PLACE, 4.0F, 0.6F);
 			BlockPos.Mutable p = new BlockPos.Mutable();
 			for (int dx = -6; dx <= 6; dx++) {
@@ -175,6 +181,7 @@ public final class BombEvents {
 			Vec3d c = center();
 			if (t == 0) {
 				Kit.sound(world, c, SoundEvents.ENTITY_PUFFER_FISH_BLOW_UP, 4.0F, 1.2F);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.BALLOON_LIFT, c, 1.0F);
 				for (int i = 0; i < 9; i++) {
 					double a = i * Math.PI * 2 / 9;
 					Vfx.firework(world, c.add(Math.cos(a) * 3, 4 + (i % 3), Math.sin(a) * 3), 1.0F, 2, RAINBOW[i % 8]);
@@ -192,6 +199,7 @@ public final class BombEvents {
 				for (int i = 0; i < 9; i++) {
 					double a = i * Math.PI * 2 / 9;
 					Vfx.firework(world, c.add(Math.cos(a) * 4, 9 + (i % 3), Math.sin(a) * 4), 1.5F, 1, RAINBOW[(i + 3) % 8]);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.BALLOON_POP, c.add(Math.cos(a) * 4, 9 + (i % 3), Math.sin(a) * 4), new Vec3d(0, 1, 0), 1.0F, RAINBOW[(i + 3) % 8]);
 				}
 			}
 			return t > 55;
@@ -208,8 +216,13 @@ public final class BombEvents {
 				Kit.sound(world, c, SoundEvents.WEATHER_RAIN, 5.0F, 1.0F);
 				Vfx.dome(world, c, 9.0F, 0x60B0FF, 40);
 			}
-			world.spawnParticles(ParticleTypes.CLOUD, c.x, c.y + 6, c.z, 4, 2.5, 0.3, 2.5, 0.01);
-			world.spawnParticles(ParticleTypes.FALLING_WATER, c.x, c.y + 5.5, c.z, 24, 4.5, 0.2, 4.5, 0.0);
+			if (t % 2 == 0 && t < 180) {
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SPRINKLER_RAIN, c, 1.0F);
+			}
+			if (t == 120) {
+				// And when it eases off, a rainbow.
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.MILK_RAINBOW, c, 0.2F);
+			}
 			if (t % 5 == 0) {
 				for (int i = 0; i < 6; i++) {
 					double a = world.random.nextDouble() * Math.PI * 2;
@@ -251,17 +264,13 @@ public final class BombEvents {
 				Kit.sound(world, c, ModSounds.FLAMETHROWER, 4.0F, 0.5F);
 			}
 			if (t == 20) {
-				Vfx.layeredBlast(world, c, 3.0F, 0xFF6A10);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.THERMITE_BURN, c, 1.0F);
 				Kit.sound(world, c, ModSounds.PLASMA_IMPACT, 5.0F, 0.5F);
 				Kit.damage(world, c, 4, 24.0F, ModDamageTypes.PLASMA, null, owner());
 				if (Destruction.enabled(world)) {
 					Detonations.ignite(world, c, 5, 0.35F);
 					DetonationManager.add(new LineCarveJob(world, c.add(0, 0.5, 0), c.add(0, -26, 0), 2.3, ModBlocks.MOLTEN_CORE.getDefaultState(), 0.7F, 500));
 				}
-			}
-			if (t >= 20 && t < 70 && t % 2 == 0) {
-				world.spawnParticles(ParticleTypes.LAVA, c.x, c.y + 1, c.z, 3, 0.8, 0.2, 0.8, 0.0);
-				world.spawnParticles(ParticleTypes.LARGE_SMOKE, c.x, c.y + 2, c.z, 3, 0.5, 1.5, 0.5, 0.02);
 			}
 			return t > 70;
 		}
@@ -276,6 +285,7 @@ public final class BombEvents {
 			if (t == 0) {
 				Vfx.skyTint(world, c, 96, 0x304060, 0.5F);
 				EnergyFields.emit(world, EnergyFields.Energy.ELECTRIC, c, 12, 160, owner());
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.TESLA_LID, c, 1.0F);
 				Kit.sound(world, c, ModSounds.ARC_ZAP, 4.0F, 0.5F);
 			}
 			if (t % 6 == 0 && t < 150) {
@@ -285,6 +295,7 @@ public final class BombEvents {
 				Vec3d sky = hit.add(world.random.nextGaussian() * 3, 45, world.random.nextGaussian() * 3);
 				Vfx.arc(world, sky, hit, 0.7F, 0xA0D0FF);
 				Vfx.flash(world, hit, 0.25F, 48, 0xC0E0FF);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.FULGURITE, hit, 1.0F);
 				Kit.damage(world, hit, 3, 9.0F, ModDamageTypes.ELECTROCUTION, null, owner());
 				EnergyFields.chainLightning(world, hit.add(0, 1, 0), 8, owner());
 				Kit.sound(world, hit, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 3.0F, 1.2F);
@@ -307,7 +318,8 @@ public final class BombEvents {
 			BlockPos b = BlockPos.ofFloored(c);
 			if (t == 0) {
 				baseY = Kit.surface(world, b.getX(), b.getZ()).getY();
-				Vfx.ring(world, c, 12.0F, 1.0F, 0x8A6A40, true, 20);
+				Vfx.ring(world, c, 12.0F, 1.0F, 0x8A6A40, false, 20);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SINK_RIM, c, 1.0F);
 				Vfx.shake(world, c, 96, 1.5F);
 				Kit.sound(world, c, ModSounds.NUKE_RUMBLE, 6.0F, 0.6F);
 			}
@@ -326,7 +338,10 @@ public final class BombEvents {
 						}
 					}
 				}
-				world.spawnParticles(ModParticles.SHOCK_DUST, c.x, y + 1.0, c.z, 6, r * 0.5, 0.3, r * 0.5, 0.05);
+				if (t % 3 == 0) {
+					// The ground pours in: dust and soil sliding down the funnel.
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SINK_POUR, new Vec3d(c.x, baseY - 6, c.z), 1.0F);
+				}
 				if (t % 6 == 0) {
 					Vfx.shake(world, c, 64, 1.2F);
 				}

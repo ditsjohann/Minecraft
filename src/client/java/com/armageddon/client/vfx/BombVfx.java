@@ -197,6 +197,40 @@ final class BombVfx {
 						.life(60, 120).size(0.15F, 0.25F).mode(Mode.STRETCHED).sprite(FxSprites.STREAK).color(EMBER).build())
 				.build());
 
+		// What the blast front throws up as it rolls over the real world (played by the client's surge sampler, aimed
+		// outward, tinted with the ground's own colour).
+		Gradient tintable = Gradient.of(0, 0xFFFFFF, 1, 0xE8E8E8);
+		FxEngine.register(EffectDef.builder(VfxIds.SURGE_DUST).tint(0x9A8A70).lod(96, 260)
+				.emit(smoke("dust").priority(Priority.DETAIL).burst(3).onGround().shape(Shape.disc(2)).velocity(Velocity.along(0.4F, 0.9F, 0.35F))
+						.velocity(Velocity.up(0.08F, 0.25F, 0.3F)).drag(0.025F).life(80, 140).size(3.5F, 6).color(tintable).tinted().alpha(0.6F).build())
+				.emit(EmitterDef.builder("grit").priority(Priority.DETAIL).burst(6).onGround().shape(Shape.disc(2)).offset(0, 0.3F, 0)
+						.velocity(Velocity.along(0.7F, 1.3F, 0.3F)).velocity(Velocity.up(0.05F, 0.2F, 0.3F)).gravity(0.03F).collide(0.3F, 0.6F, 1)
+						.life(20, 40).size(0.1F, 0.18F).mode(Mode.STRETCHED).stretch(2).layer(Layer.SMOKE).sprite(FxSprites.STREAK).color(tintable)
+						.tinted().build())
+				.emit(EmitterDef.builder("clods").priority(Priority.DETAIL).burst(3).onGround().shape(Shape.disc(2)).velocity(Velocity.along(0.4F, 0.8F, 0.4F))
+						.velocity(Velocity.up(0.3F, 0.6F, 0.4F)).gravity(0.05F).collide(0.3F, 0.6F, 2).life(30, 60).size(0.2F, 0.35F).layer(Layer.SMOKE)
+						.sprite(FxSprites.DUST, 2).color(tintable).tinted().spin(0.05F, 0.2F).build())
+				.build());
+		FxEngine.register(EffectDef.builder(VfxIds.SURGE_SPRAY).tint(0xE8F4FF).lod(96, 260)
+				.emit(smoke("mist").priority(Priority.DETAIL).burst(4).onGround().shape(Shape.disc(2)).velocity(Velocity.along(0.3F, 0.7F, 0.35F))
+						.velocity(Velocity.up(0.25F, 0.6F, 0.3F)).drag(0.03F).life(60, 110).size(4, 7).color(tintable).tinted().alpha(0.5F).shade(0.9F).build())
+				.emit(EmitterDef.builder("drops").priority(Priority.DETAIL).burst(16).onGround().shape(Shape.disc(2)).velocity(Velocity.along(0.3F, 0.8F, 0.4F))
+						.velocity(Velocity.up(0.5F, 1.1F, 0.3F)).gravity(0.045F).life(25, 45).size(0.08F, 0.14F).mode(Mode.STRETCHED).sprite(FxSprites.STREAK)
+						.color(Gradient.of(0, 0xFFFFFF, 1, argb(0xC0E0FF, 0))).tinted().build())
+				.build());
+		FxEngine.register(EffectDef.builder(VfxIds.SURGE_LEAVES).tint(0x4A8A30).lod(96, 260)
+				.emit(EmitterDef.builder("leaves").priority(Priority.DETAIL).burst(14).shape(Shape.sphere(2.5F)).velocity(Velocity.along(0.5F, 1.0F, 0.5F))
+						.velocity(Velocity.up(0.1F, 0.4F, 0.5F)).gravity(0.008F).drag(0.03F).module(Module.curl(3, 0.02F)).life(60, 110).size(0.22F, 0.34F)
+						.layer(Layer.SMOKE).sprite(FxSprites.DUST, 2).color(tintable).tinted().spin(0.1F, 0.3F).build())
+				.build());
+		FxEngine.register(EffectDef.builder(VfxIds.SURGE_WALL).tint(0x9A8A70).lod(96, 260)
+				.emit(smoke("climb").priority(Priority.DETAIL).burst(7).shape(Shape.box(1.5F, 0.5F, 1.5F)).velocity(Velocity.up(0.6F, 1.2F, 0.15F))
+						.velocity(Velocity.along(0.05F, 0.2F, 0.3F)).drag(0.04F).life(60, 100).size(3, 5).color(tintable).tinted().alpha(0.6F).build())
+				.emit(EmitterDef.builder("debris").priority(Priority.DETAIL).burst(10).shape(Shape.box(1.5F, 0.5F, 1.5F)).offset(0, 5, 0)
+						.velocity(Velocity.along(0.3F, 0.7F, 0.6F)).velocity(Velocity.up(0.4F, 0.8F, 0.4F)).gravity(0.05F).collide(0.3F, 0.6F, 2)
+						.life(30, 60).size(0.25F, 0.45F).layer(Layer.SMOKE).sprite(FxSprites.DUST, 2).color(tintable).tinted().spin(0.05F, 0.2F).build())
+				.build());
+
 		// The hydrogen bomb's second stage, authored at radius 52: a second, brighter flash, condensation rings shocked out
 		// of the sky, and the air above glowing with ionisation.
 		FxEngine.register(EffectDef.builder(VfxIds.HYDROGEN_STAGE).lod(500, 3600).maxAge(500)

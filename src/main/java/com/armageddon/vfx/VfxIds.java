@@ -286,6 +286,26 @@ public final class VfxIds {
 	public static final String SPOT_SCORCH = "spot_scorch";
 	public static final String SHOWTIME = "showtime";
 	public static final String FINALE_GLITTER = "finale_glitter";
+	public static final String SPEAR_STRIKE = "spear_strike";
+	public static final String GODFALL_IMPACT = "godfall_impact";
+	public static final String DISCO_BEAT = "disco_beat";
+	public static final String GLITTER_FLAKES = "glitter_flakes";
+	public static final String GLITTER_POP = "glitter_pop";
+	public static final String PUMPKIN_SPROUT = "pumpkin_sprout";
+	public static final String PUMPKIN_FOG = "pumpkin_fog";
+	public static final String WEB_BURST = "web_burst";
+	public static final String BALLOON_LIFT = "balloon_lift";
+	public static final String BALLOON_POP = "balloon_pop";
+	public static final String SPRINKLER_RAIN = "sprinkler_rain";
+	public static final String THERMITE_BURN = "thermite_burn";
+	public static final String TESLA_LID = "tesla_lid";
+	public static final String FULGURITE = "fulgurite";
+	public static final String SINK_POUR = "sink_pour";
+	public static final String SINK_RIM = "sink_rim";
+	public static final String SURGE_DUST = "surge_dust";
+	public static final String SURGE_SPRAY = "surge_spray";
+	public static final String SURGE_LEAVES = "surge_leaves";
+	public static final String SURGE_WALL = "surge_wall";
 	public static final String CLUSTER_POP = "cluster_pop";
 	public static final String NOVA_PROMINENCE = "nova_prominence";
 	public static final String NOVA_SCORCH = "nova_scorch";
@@ -383,7 +403,9 @@ public final class VfxIds {
 			SEED_SPROUT, LAMP_CHUNK, LAMP_SHATTER, STAGE_HAZE, SPOT_SCORCH, SHOWTIME, FINALE_GLITTER,
 			SMASH_IMPACT, SMASH_BELL, STAR_LAND, HEART_NOVA, SMASH_DUST, TICK_BEAT, TICK_BOOM, FIELD_BLAST, TICK_FINAL, TICK_CHIME, TIME_STILL, TIME_SNAP, ALIEN_EMP, EMP_CRAWL, RAY_COLUMN, RAY_IMPACT, TERRA_PULSE, HARVEST_LIFT, HARVEST_CUT, BLOOM_SPORES, SHAFT_MOTES, SUN_BEAM, SUN_FROST, CORPSE_SHED, SUN_IMPACT, DAWN_MOTES, MIRROR_GLINT, LANCE_CUT, LANCE_DRILL, HAMMER_BLOW, CREST_SPRAY,
 			DEMO_BLAST, THERMO_BLAST, CRYO_NOVA, HOLE_INFALL, HOLE_POP, NEUTRON_PULSE, NUKE_SURGE, HYDROGEN_STAGE, ANTI_ANNIHILATE, TECTONIC_FRONT, BASS_THUMP, DROP_FINALE,
-			CLUSTER_POP, NOVA_PROMINENCE, NOVA_SCORCH, OMEGA_DRAW, OMEGA_CRACK, CROWN_RING, CROWN_BURST, CONTINENT_HEAVE, DAWN_GATHER, DAWN_RISE, BLOOD_RAIN, BLOOD_STRIKE, BLOOD_NOVA, LL_BEAT, LL_ASH, LL_DEATH, ZP_HUSH, ZP_SNAP, UM_PLANE);
+			CLUSTER_POP, NOVA_PROMINENCE, NOVA_SCORCH, OMEGA_DRAW, OMEGA_CRACK, CROWN_RING, CROWN_BURST, CONTINENT_HEAVE, DAWN_GATHER, DAWN_RISE, BLOOD_RAIN, BLOOD_STRIKE, BLOOD_NOVA, LL_BEAT, LL_ASH, LL_DEATH, ZP_HUSH, ZP_SNAP, UM_PLANE,
+			SURGE_DUST, SURGE_SPRAY, SURGE_LEAVES, SURGE_WALL,
+			SPEAR_STRIKE, GODFALL_IMPACT, DISCO_BEAT, GLITTER_FLAKES, GLITTER_POP, PUMPKIN_SPROUT, PUMPKIN_FOG, WEB_BURST, BALLOON_LIFT, BALLOON_POP, SPRINKLER_RAIN, THERMITE_BURN, TESLA_LID, FULGURITE, SINK_POUR, SINK_RIM);
 
 	private VfxIds() {
 	}

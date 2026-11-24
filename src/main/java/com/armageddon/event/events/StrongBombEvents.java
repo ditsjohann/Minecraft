@@ -618,9 +618,6 @@ public final class StrongBombEvents {
 					Kit.sound(world, p, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 8.0F, 0.6F);
 				}
 			}
-			if (t == Termite.EMERGE + 60) {
-				Vfx.vision(world, g, 7, 400, 0, 26, 0, 400, 0xFFFFFF, 110, Termite.RADIUS + 40);
-			}
 			if (t >= Termite.EMERGE && t <= Termite.EAT_END + 4) {
 				double front = Termite.front(t);
 				if (Destruction.enabled(world)) {
