@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/pumpkin_horseman"
+    },
+    "facing=east": {
+      "model": "armageddon:block/pumpkin_horseman",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/pumpkin_horseman",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/pumpkin_horseman",
+      "y": 270
+    }
+  }
+}

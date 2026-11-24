@@ -1706,3 +1706,24 @@ def terror_maniac():
 
 
 BOMBS.update({"terror_maniac": terror_maniac})
+
+
+def pumpkin_horseman():
+    # A grinning jack-o'-lantern on a mound of dark earth, a scythe leaning behind it, green ghost fire at its stem.
+    m = [B(0, 0, 0, 16, 1.4, 16, "mud"), B(2, 1.4, 2, 14, 2.2, 14, "black")]
+    m += [B(3.5, 2.2, 3.5, 12.5, 10.5, 12.5, "pumpkin"), B(3, 3.2, 4.5, 13, 9.5, 11.5, "pumpkin"), B(4.5, 3.2, 3, 11.5, 9.5, 13, "pumpkin")]
+    for x in (5.4, 8.0, 10.6):
+        m += [B(x - 0.2, 2.4, 3.3, x + 0.2, 10.3, 3.45, "pumpkin_dark")]
+    m += [B(7.4, 10.5, 7.4, 8.6, 12.4, 8.6, "leaf"), B(7.6, 12.4, 7.6, 8.4, 13.2, 8.4, "glow_lime")]
+    m += [B(4.8, 7.0, 2.85, 6.8, 8.6, 3.05, "glow_gold"), B(9.2, 7.0, 2.85, 11.2, 8.6, 3.05, "glow_gold")]
+    m += [B(7.4, 5.8, 2.85, 8.6, 6.8, 3.05, "glow_gold")]
+    m += [B(4.6, 4.0, 2.85, 11.4, 5.0, 3.05, "glow_gold")]
+    for x in (5.6, 7.4, 9.2):
+        m += [B(x, 4.6, 2.8, x + 0.8, 5.0, 3.1, "pumpkin")]
+    m += [B(13.4, 2.2, 12.6, 14.0, 15.6, 13.2, "black")]
+    for i in range(6):
+        m += [B(13.4 - i * 1.0, 15.0 - i * 0.35, 12.5, 14.0 - i * 1.0, 15.8 - i * 0.35, 13.3, "steel")]
+    return m
+
+
+BOMBS.update({"pumpkin_horseman": pumpkin_horseman})

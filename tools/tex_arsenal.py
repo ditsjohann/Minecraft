@@ -161,6 +161,9 @@ def tiles():
     t["bone"] = earth_tile(0xE6DCC0, 109, 0.3)
     t["cactus"] = earth_tile(0x4E8A32, 114, 0.25)
     t["sand"] = earth_tile(0xD8C890, 115, 0.4)
+    t["pumpkin"] = earth_tile(0xE07818, 116, 0.25)
+    t["pumpkin_dark"] = earth_tile(0xA84E08, 117, 0.25)
+    t["leaf"] = earth_tile(0x3E7A2A, 118, 0.25)
     # Every emissive material breathes: animated strips override the static base tiles.
     for name, c in T.GLOWS + [("gold", 0xFFC830), ("crimson", 0xFF2030), ("void", 0x7A30FF), ("pink", 0xFF70C0),
                               ("lime", 0x9AFF3A), ("ice", 0xBFEFFF)]:

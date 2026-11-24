@@ -156,6 +156,7 @@ public final class ModBlocks {
 	public static final BombBlock PTEROSAUR_FOSSIL = tiered(bomb("pterosaur_fossil", BombType.PTEROSAUR_FOSSIL, Rarity.EPIC), Tier.LEGENDARY);
 	public static final BombBlock XENOFORM = tiered(bomb("xenoform", BombType.XENOFORM, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock TERROR_MANIAC = tiered(bomb("terror_maniac", BombType.TERROR_MANIAC, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock PUMPKIN_HORSEMAN = tiered(bomb("pumpkin_horseman", BombType.PUMPKIN_HORSEMAN, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock BLUE_INFRIT = tiered(bomb("blue_infrit", BombType.BLUE_INFRIT, Rarity.EPIC), Tier.CELESTIAL);
 
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks

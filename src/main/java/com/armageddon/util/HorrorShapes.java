@@ -81,4 +81,88 @@ public final class HorrorShapes {
 			}
 		}
 	}
+
+	// ====================================================================== PUMPKIN HORSEMAN
+
+	/**
+	 * A colossal headless rider on a black horse made of night, gallops round the land, hurls his burning
+	 * jack-o'-lantern six times, rears, charges straight through the middle with his scythe, and rides up into the sky.
+	 */
+	public static final class Horseman {
+		public static final int APPEAR = 60, GALLOP = 120, REAR = 760, CHARGE = 790, ASCEND = 840, VANISH = 900, END = 1000;
+		public static final int THROWS = 6, THROW0 = 200, THROW_GAP = 80, FLIGHT = 32;
+		public static final double ORBIT = 46, OMEGA = 0.026, ASCEND_H = 70, HALLOW = 90;
+
+		private Horseman() {
+		}
+
+		/** Tick at which throw {@code k} leaves his hand. */
+		public static int throwAt(int k) {
+			return THROW0 + k * THROW_GAP;
+		}
+
+		private static double orbitAngle(double t) {
+			return (Math.max(t, GALLOP) - GALLOP) * OMEGA;
+		}
+
+		private static Vec3d orbit(double t) {
+			double a = orbitAngle(t);
+			return new Vec3d(Math.cos(a) * ORBIT, 0, Math.sin(a) * ORBIT);
+		}
+
+		/**
+		 * The horse's position at tick {@code t}, relative to the bomb: y is height above the ground under it (0 while it
+		 * gallops on the land).
+		 */
+		public static Vec3d pos(double t) {
+			if (t < GALLOP) {
+				// Coming out of the ghost fire and swinging onto the circle.
+				double u = smooth((t - APPEAR) / (GALLOP - APPEAR));
+				return orbit(GALLOP).multiply(u);
+			}
+			if (t < CHARGE) {
+				return orbit(Math.min(t, REAR));
+			}
+			Vec3d from = orbit(REAR), to = from.multiply(-1);
+			Vec3d dir = to.subtract(from).normalize();
+			if (t < ASCEND) {
+				return from.lerp(to, (t - CHARGE) / (ASCEND - CHARGE));
+			}
+			double u = (t - ASCEND) / (VANISH - ASCEND);
+			return to.add(dir.multiply(u * 50)).add(0, u * u * ASCEND_H, 0);
+		}
+
+		/** Which way the horse is going at tick {@code t}. */
+		public static Vec3d dir(double t) {
+			if (t >= REAR - 1 && t < CHARGE) {
+				// Rearing, it turns to face the centre it is about to charge through.
+				Vec3d from = orbit(REAR), charge = from.multiply(-1).normalize();
+				double a = orbitAngle(REAR);
+				Vec3d tangent = new Vec3d(-Math.sin(a), 0, Math.cos(a));
+				return tangent.lerp(charge, smooth((t - REAR) / 18.0)).normalize();
+			}
+			Vec3d d = pos(t + 0.5).subtract(pos(t - 0.5));
+			d = new Vec3d(d.x, 0, d.z);
+			if (d.lengthSquared() < 1.0E-6) {
+				double a = orbitAngle(t);
+				return new Vec3d(-Math.sin(a), 0, Math.cos(a));
+			}
+			return d.normalize();
+		}
+
+		/** How far the horse is rearing (0..1). */
+		public static double rear(double t) {
+			return smooth((t - REAR) / 14.0) * (1 - smooth((t - CHARGE + 6) / 10.0));
+		}
+
+		/** Where throw {@code k} lands, relative to the bomb (y = 0). */
+		public static Vec3d target(int k, int seed) {
+			double a = hash(seed + k, 21) * MathHelper.TAU;
+			double r = 12 + hash(seed + k, 22) * 34;
+			return new Vec3d(Math.cos(a) * r, 0, Math.sin(a) * r);
+		}
+
+		/** How much bigger than a horse he is drawn, and the height of his raised hand over the horse's feet. */
+		public static final double BIG = 1.5, HAND = 33 * BIG;
+	}
 }

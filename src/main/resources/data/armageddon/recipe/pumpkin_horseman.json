@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "JHJ",
+    "SCS",
+    "JHJ"
+  ],
+  "key": {
+    "J": {
+      "item": "minecraft:jack_o_lantern"
+    },
+    "H": {
+      "item": "minecraft:hay_block"
+    },
+    "S": {
+      "item": "minecraft:soul_lantern"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:pumpkin_horseman",
+    "count": 1
+  }
+}

@@ -21,6 +21,88 @@ final class HorrorVfx {
 
 	static void register() {
 		maniac();
+		horseman();
+	}
+
+	static final Gradient PUMPKIN_FIRE = Gradient.of(0, 0xFFF0A0, 0.3F, 0xFFA030, 0.7F, 0xFF5010, 1, argb(0x801008, 0));
+	static final Gradient GHOST_FIRE = Gradient.of(0, 0xE0FFC0, 0.35F, 0x80FF50, 0.7F, 0x30A020, 1, argb(0x104010, 0));
+
+	private static void horseman() {
+		// Halloween air round the watcher: low orange-violet mist, fireflies, now and then a bat-shaped flutter.
+		FxEngine.register(EffectDef.builder(VfxIds.HORSE_MIST).lod(80, 400)
+				.emit(smoke("mist").burst(2).onGround().shape(Shape.disc(18)).offset(0, 0.4F, 0).velocity(Velocity.random(0.02F, 0.05F)).module(Module.wind(0.004F))
+						.life(80, 140).size(3, 5).color(Gradient.of(0, 0x6A4A7A, 1, 0x4A3050)).alpha(0.3F).shade(1).emissive(Curve.constant(0.3F)).build())
+				.emit(EmitterDef.builder("fireflies").burst(2).shape(Shape.box(16, 3, 16)).offset(0, 2, 0).module(Module.curl(4, 0.006F)).life(60, 120)
+						.size(0.08F, 0.14F).sprite(FxSprites.FLARE).color(PUMPKIN_FIRE).alphaOverLife(TWINKLE).build())
+				.build());
+
+		// He arrives: a geyser of ghost fire and orange flame out of the ground, and a ring of it racing out.
+		FxEngine.register(EffectDef.builder(VfxIds.HORSE_APPEAR).lod(400, 2600).maxAge(160)
+				.cue(0, EffectDef.light(1.6F, 0xFF9030))
+				.emit(flash("flash", 30, 12, 0xFFC060).build())
+				.emit(EmitterDef.builder("ghost").priority(Priority.HERO).rate(40, 50, Curve.FALL).shape(Shape.disc(6)).velocity(Velocity.up(0.8F, 1.6F, 0.2F))
+						.module(Module.curl(8, 0.02F)).life(30, 60).size(2.5F, 4.5F).sprite(FxSprites.FIRE, 2).color(GHOST_FIRE).build())
+				.emit(EmitterDef.builder("flame").rate(30, 50, Curve.FALL).shape(Shape.disc(7)).velocity(Velocity.up(0.6F, 1.2F, 0.3F)).module(Module.curl(8, 0.02F))
+						.life(24, 50).size(2, 4).sprite(FxSprites.FIRE, 2).color(PUMPKIN_FIRE).build())
+				.emit(EmitterDef.builder("ring").burst(1).onGround().offset(0, 0.3F, 0).mode(Mode.FLAT).fixedRotation().size(50, 50).life(30, 30)
+						.sprite(FxSprites.SHOCK).sizeOverLife(Curve.EASE_OUT).color(0x90FF50).alpha(0.7F).alphaOverLife(Curve.FADE_OUT).build())
+				.build());
+
+		// A hoof strikes: a burst of ghost fire and sparks, clods thrown up.
+		FxEngine.register(EffectDef.builder(VfxIds.HORSE_HOOF).lod(200, 1400).maxAge(60)
+				.emit(EmitterDef.builder("fire").burst(8).onGround().shape(Shape.disc(1.2F)).velocity(Velocity.up(0.2F, 0.5F, 0.4F)).life(14, 26).size(1, 1.8F)
+						.sprite(FxSprites.FIRE, 2).color(GHOST_FIRE).build())
+				.emit(EmitterDef.builder("sparks").burst(12).onGround().velocity(Velocity.up(0.3F, 0.7F, 0.6F)).gravity(0.04F).life(14, 28).size(0.1F, 0.18F)
+						.mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK).color(PUMPKIN_FIRE).build())
+				.emit(smoke("clods").burst(4).onGround().shape(Shape.disc(1.5F)).velocity(Velocity.up(0.15F, 0.35F, 0.5F)).gravity(0.03F).life(24, 40)
+						.size(1.2F, 2).color(Gradient.of(0, 0x5A4636, 1, 0x3A2C20)).alpha(0.6F).build())
+				.build());
+
+		// The thrown lantern's trail: flame, sparks and a ribbon of smoke.
+		FxEngine.register(EffectDef.builder(VfxIds.HORSE_TRAIL).lod(250, 1600)
+				.emit(EmitterDef.builder("fire").burst(3).inherit(0.15F).shape(Shape.sphere(1.2F)).life(10, 20).size(1.4F, 2.2F).sprite(FxSprites.FIRE, 2)
+						.color(PUMPKIN_FIRE).build())
+				.emit(smoke("smoke").burst(1).inherit(0.05F).life(30, 50).size(1.5F, 2.5F).sizeOverLife(Curve.RISE)
+						.color(Gradient.of(0, 0x3A2A24, 1, 0x241A18)).alpha(0.5F).build())
+				.build());
+
+		// A lantern bursts: a fireball, burning pumpkin chunks and seeds thrown everywhere, a grinning ring of flame.
+		FxEngine.register(EffectDef.builder(VfxIds.HORSE_PUMPKIN).lod(400, 2400).maxAge(160)
+				.cue(0, EffectDef.light(1.5F, 0xFF8020))
+				.emit(flash("flash", 24, 10, 0xFFC060).build())
+				.emit(EmitterDef.builder("ball").priority(Priority.HERO).burst(50).shape(Shape.sphere(2)).velocity(Velocity.radial(0.4F, 0.9F))
+						.velocity(Velocity.up(0.2F, 0.5F, 0.3F)).drag(0.06F).life(16, 32).size(2.5F, 4.5F).sprite(FxSprites.FIRE, 2).color(PUMPKIN_FIRE).build())
+				.emit(EmitterDef.builder("chunks").burst(40).shape(Shape.sphere(1)).velocity(Velocity.up(0.6F, 1.2F, 0.9F)).gravity(0.05F).collide(0.3F, 0.5F, 1)
+						.life(30, 60).size(0.3F, 0.55F).spin(-0.5F, 0.5F).sprite(FxSprites.DUST).color(Gradient.of(0, 0xE07818, 1, 0xA04A08)).build())
+				.emit(EmitterDef.builder("seeds").burst(60).shape(Shape.sphere(1)).velocity(Velocity.up(0.4F, 1.0F, 1.0F)).gravity(0.04F).life(20, 40)
+						.size(0.08F, 0.14F).sprite(FxSprites.FLARE).color(Gradient.of(0, 0xFFF0C0, 1, 0xFFD080)).build())
+				.emit(smoke("smoke").burst(20).shape(Shape.sphere(3)).velocity(Velocity.up(0.2F, 0.5F, 0.4F)).drag(0.03F).life(60, 100).size(4, 7)
+						.color(Gradient.of(0, 0x3A2A24, 1, 0x2A201C)).alpha(0.6F).build())
+				.emit(EmitterDef.builder("ring").burst(1).onGround().offset(0, 0.3F, 0).mode(Mode.FLAT).fixedRotation().size(18, 18).life(22, 22)
+						.sprite(FxSprites.SHOCK).sizeOverLife(Curve.EASE_OUT).color(0xFFA040).alpha(0.7F).alphaOverLife(Curve.FADE_OUT).build())
+				.build());
+
+		// The charge: a wave of ghost fire peeling off the scythe's path, sparks and earth thrown aside.
+		FxEngine.register(EffectDef.builder(VfxIds.HORSE_SLASH).lod(300, 2000).maxAge(80)
+				.emit(EmitterDef.builder("fire").burst(20).onGround().shape(Shape.box(2, 0, 6)).velocity(Velocity.up(0.4F, 0.9F, 0.5F)).life(20, 40).size(1.5F, 3)
+						.sprite(FxSprites.FIRE, 2).color(GHOST_FIRE).build())
+				.emit(EmitterDef.builder("arc").burst(1).offset(0, 3, 0).mode(Mode.FLAT).size(10, 10).life(10, 10).sprite(FxSprites.RING).color(0xC0FF90)
+						.alpha(0.7F).alphaOverLife(Curve.FADE_OUT).build())
+				.emit(smoke("earth").burst(10).onGround().shape(Shape.box(2, 0, 5)).velocity(Velocity.up(0.4F, 0.8F, 0.6F)).gravity(0.03F).life(30, 50)
+						.size(2, 3.5F).color(Gradient.of(0, 0x5A4636, 1, 0x3A2C20)).alpha(0.6F).build())
+				.build());
+
+		// He is gone: a burst of ghost fire and pumpkin flame in the sky, and a shower of embers falling.
+		FxEngine.register(EffectDef.builder(VfxIds.HORSE_VANISH).lod(600, 3600).maxAge(200)
+				.cue(0, EffectDef.light(1.8F, 0xFF9030))
+				.emit(flash("flash", 40, 12, 0xFFD080).build())
+				.emit(EmitterDef.builder("ghost").priority(Priority.HERO).burst(200).shape(Shape.sphere(4)).velocity(Velocity.radial(0.8F, 2.0F)).drag(0.04F)
+						.life(30, 60).size(2, 4).sprite(FxSprites.FIRE, 2).color(GHOST_FIRE).build())
+				.emit(EmitterDef.builder("flame").burst(150).shape(Shape.sphere(4)).velocity(Velocity.radial(0.6F, 1.6F)).drag(0.04F).life(30, 60).size(2, 3.5F)
+						.sprite(FxSprites.FIRE, 2).color(PUMPKIN_FIRE).build())
+				.emit(10, EmitterDef.builder("embers").rate(30, 100).shape(Shape.disc(40)).velocity(Velocity.up(-0.4F, -0.2F, 0.1F)).module(Module.jitter(0.02F))
+						.life(60, 100).size(0.15F, 0.25F).sprite(FxSprites.FLARE).color(PUMPKIN_FIRE).alphaOverLife(TWINKLE).build())
+				.build());
 	}
 
 	private static void maniac() {

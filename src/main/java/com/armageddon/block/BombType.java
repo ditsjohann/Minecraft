@@ -115,7 +115,8 @@ public enum BombType {
 	// beyond
 	XENOFORM(300, 0xC0B0FF),
 	// horror
-	TERROR_MANIAC(200, 0xB01010);
+	TERROR_MANIAC(200, 0xB01010),
+	PUMPKIN_HORSEMAN(200, 0xFF8020);
 
 	public final int fuse;
 	public final int color;
