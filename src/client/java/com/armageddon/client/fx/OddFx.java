@@ -3,6 +3,7 @@ package com.armageddon.client.fx;
 import com.armageddon.client.render.FxDraw;
 import com.armageddon.client.render.FxRenderLayers;
 import com.armageddon.network.FxPayload;
+import com.armageddon.util.WonderShapes.Veil;
 import com.armageddon.util.MainStageSet;
 import com.armageddon.util.NewBombShapes;
 import com.armageddon.util.NewBombShapes.Geode;
@@ -177,19 +178,21 @@ final class OddFx {
 
 	/** Curtains of light high over the land: rippling folds, green below and violet above, with vertical rays. */
 	static final class AuroraFx extends FxEffect {
+		private static final int RAYS = 120;
 		private final Vec3d g;
-		private final float span;
 
 		AuroraFx(Vec3d g, float span, int life) {
 			super(life);
 			this.g = g;
-			this.span = span;
 		}
 
 		@Override
 		public boolean tick(ClientWorld world) {
-			if (age < 460) {
-				ClientFx.tintSky(0x041018, 0.85F);
+			if (age < Veil.STORM) {
+				ClientFx.tintSky(0x020818, Math.min(0.92F, age / 60.0F));
+			}
+			if (age % 10 == 0 && age > Veil.NIGHT && age < Veil.STORM + 20) {
+				ClientFx.light(g.add(0, Veil.hem(age) + 6, 0), 0.6F, 0x50FF90);
 			}
 			return super.tick(world);
 		}
@@ -197,49 +200,46 @@ final class OddFx {
 		@Override
 		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float camYaw, float camPitch) {
 			float t = age + tickDelta;
-			float fade = Math.min(Math.min(1, t / 60.0F), Math.min(1, (lifetime - t) / 60.0F));
-			float collapse = MathHelper.clamp((t - 440) / 40.0F, 0.0F, 1.0F);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			for (int band = 0; band < 4; band++) {
-				double baseZ = (band - 1.5) * span * 0.35;
-				double h = 95 + band * 12;
-				int n = 64;
-				for (int i = 0; i < n; i++) {
-					double u0 = (i / (double) n - 0.5) * span * 2, u1 = ((i + 1) / (double) n - 0.5) * span * 2;
-					Vec3d a = fold(u0, baseZ, h, t, band, collapse).subtract(cam);
-					Vec3d b = fold(u1, baseZ, h, t, band, collapse).subtract(cam);
-					double ray = 0.6 + 0.4 * Math.sin(u0 * 0.35 + t * 0.15 + band) * Math.sin(u0 * 0.11 - t * 0.05);
-					float k = (float) (ray * fade * (1 - collapse * 0.5));
-					double tall = 28 + 14 * ray;
-					// Green skirt, then the curtain fading up into violet.
-					quad(glow, m, a, b, b.add(0, tall * 0.4, 0), a.add(0, tall * 0.4, 0), 0x30FF80, 0x30FF90, 0.45F * k, 0.35F * k);
-					quad(glow, m, a.add(0, tall * 0.4, 0), b.add(0, tall * 0.4, 0), b.add(0, tall, 0), a.add(0, tall, 0), 0x30FF90, 0xA040FF, 0.35F * k, 0.0F);
+			Vec3d o = g.subtract(cam);
+			double open = Veil.unrolled(t);
+			float alive = t < Veil.STORM ? 1.0F : 0.0F;
+			if (open > 0.01 && alive > 0) {
+				for (int k = 0; k < Veil.CURTAINS; k++) {
+					Vec3d prevHem = null;
+					for (int i = 0; i < RAYS; i++) {
+						double sv = i / (double) (RAYS - 1);
+						if (Math.abs(sv - 0.5) * 2 > open) {
+							prevHem = null;
+							continue;
+						}
+						// The ends of a curtain thin out, and it unrolls from the middle.
+						double edge = Math.min(1, (open - Math.abs(sv - 0.5) * 2) * 6) * Math.min(1, Math.min(sv, 1 - sv) * 8 + 0.2);
+						double b = Veil.pulse(k, sv, t) * edge;
+						Vec3d hem = o.add(Veil.at(k, sv, t));
+						double len = Veil.RAY * (0.65 + 0.35 * Math.sin(sv * 17 + k * 2.3 + t * 0.02));
+						Vec3d mid = hem.add(0, len * 0.42, 0), top = hem.add(0, len, 0);
+						FxDraw.ribbon(glow, m, hem, mid, Vec3d.ZERO, 1.3, Veil.HEM[k], (float) (0.55 * b), (float) (0.25 * b));
+						FxDraw.ribbon(glow, m, mid, top, Vec3d.ZERO, 1.3, Veil.CROWN[k], (float) (0.25 * b), 0.0F);
+						if (prevHem != null) {
+							// The hem: a bright seam along the bottom of the curtain.
+							FxDraw.ribbon(glow, m, prevHem, hem, Vec3d.ZERO, 0.7, 0xD8FFE8, (float) (0.6 * b), (float) (0.6 * b));
+						}
+						prevHem = hem;
+					}
 				}
 			}
-		}
-
-		private Vec3d fold(double u, double z, double h, float t, int band, float collapse) {
-			double wave = Math.sin(u * 0.03 + t * 0.02 + band) * 18 + Math.sin(u * 0.09 - t * 0.035) * 6;
-			Vec3d p = new Vec3d(g.x + u, g.y + h, g.z + z + wave);
-			if (collapse > 0) {
-				double ang = Math.atan2(p.z - g.z, p.x - g.x) + collapse * 3;
-				double r = Math.hypot(p.x - g.x, p.z - g.z) * (1 - collapse * 0.9);
-				p = new Vec3d(g.x + Math.cos(ang) * r, p.y, g.z + Math.sin(ang) * r);
+			// The column the curtains spiral into, brightening until the storm breaks out of it.
+			if (t > Veil.SWEEP_END && t < Veil.STORM + 30) {
+				float u = (float) MathHelper.clamp((t - Veil.SWEEP_END) / (Veil.STORM - Veil.SWEEP_END), 0.0, 1.0);
+				float out = t < Veil.STORM ? 1.0F : 1.0F - (t - Veil.STORM) / 30.0F;
+				double h = t < Veil.STORM ? 80 : 80 + (t - Veil.STORM) * 12;
+				FxDraw.beam(glow, m, o, o.add(0, h, 0), Vec3d.ZERO, 2 + 6 * u, 0x60FFA0, 0.5F * u * out);
+				FxDraw.beam(glow, m, o, o.add(0, h, 0), Vec3d.ZERO, 0.8 + 2 * u, 0xE0FFF0, 0.7F * u * out);
 			}
-			return p;
-		}
-
-		private static void quad(VertexConsumer vc, Matrix4f m, Vec3d a, Vec3d b, Vec3d c, Vec3d d, int colLo, int colHi, float aLo, float aHi) {
-			FxDraw.vertex(vc, m, a.x, a.y, a.z, colLo, aLo);
-			FxDraw.vertex(vc, m, b.x, b.y, b.z, colLo, aLo);
-			FxDraw.vertex(vc, m, c.x, c.y, c.z, colHi, aHi);
-			FxDraw.vertex(vc, m, d.x, d.y, d.z, colHi, aHi);
 		}
 	}
 
-	// ====================================================================== PRISM
-
-	/** A floating glass prism, a white beam from the sky into it, and the seven coloured beams it splits into. */
 	static final class PrismFx extends FxEffect {
 		private final Vec3d g;
 

@@ -76,4 +76,57 @@ public final class WonderShapes {
 			return p;
 		}
 	}
+
+	// ====================================================================== AURORA
+
+	/**
+	 * Aurora curtains over the bomb. Each curtain is a long arc of vertical rays standing on a bright hem; it unrolls
+	 * high overhead, dances, comes down until its hem touches the land, sweeps round painting it, then spirals into a
+	 * single column. The hem's path is shared, so the server burns exactly where the client draws it touching.
+	 */
+	public static final class Veil {
+		public static final int CURTAINS = 5, NIGHT = 60, UNROLL = 200, DESCEND = 360, TOUCH = 440, SWEEP_END = 540, CONVERGE = 600,
+				STORM = 600, END = 740;
+		public static final double HIGH = 78, RAY = 52, R0 = 42;
+		/** Each curtain's hem and crown colours. */
+		public static final int[] HEM = {0x50FF90, 0x40F0C0, 0xFF60C0, 0x60FF70, 0x40D0FF};
+		public static final int[] CROWN = {0xA040FF, 0x8050FF, 0xFF4080, 0xB040FF, 0x7040FF};
+
+		private Veil() {
+		}
+
+		/** How far along its length curtain {@code k} has unrolled (0..1). */
+		public static double unrolled(double t) {
+			return smooth((t - NIGHT) / (UNROLL - NIGHT));
+		}
+
+		/** Height of the hem above the bomb at tick {@code t}. */
+		public static double hem(double t) {
+			if (t < DESCEND) {
+				return HIGH;
+			}
+			return HIGH * (1 - smooth((t - DESCEND) / (TOUCH - DESCEND)));
+		}
+
+		/** True once the hems are on the ground and burning it. */
+		public static boolean touching(double t) {
+			return t >= TOUCH - 4 && t < CONVERGE;
+		}
+
+		/** Curtain {@code k}'s hem at {@code s} (0..1 along its length), relative to the bomb, at hem height. */
+		public static Vec3d at(int k, double s, double t) {
+			double sweep = t > TOUCH ? (t - TOUCH) * 0.012 : 0;
+			double conv = smooth((t - SWEEP_END) / (CONVERGE - SWEEP_END));
+			double theta = k * MathHelper.TAU / CURTAINS + 0.4 * Math.sin(k * 1.7) + (s - 0.5) * 2.1 * (1 - conv * 0.6) + sweep + conv * 2.5 * s;
+			double fold = Math.sin(s * 9 + t * 0.03 + k) * 3 + Math.sin(s * 23 - t * 0.05 + k * 2) * 1.2;
+			double r = (R0 + 30 * hash(k, 3) + 12 * Math.sin(s * 3.1 + k) + fold) * (1 - conv * 0.9) + 3 * conv;
+			return new Vec3d(Math.cos(theta) * r, hem(t), Math.sin(theta) * r);
+		}
+
+		/** Brightness of the ray at {@code s} on curtain {@code k}: travelling pulses, the aurora's dance. */
+		public static double pulse(int k, double s, double t) {
+			double a = 0.55 + 0.25 * Math.sin(s * 14 - t * 0.12 + k) + 0.2 * Math.sin(s * 31 + t * 0.21 + k * 3);
+			return MathHelper.clamp(a, 0.1, 1.0);
+		}
+	}
 }

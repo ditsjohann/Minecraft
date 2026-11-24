@@ -12,6 +12,7 @@ import com.armageddon.registry.ModDamageTypes;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.MainStageSet;
 import com.armageddon.util.NewBombShapes;
+import com.armageddon.util.WonderShapes.Veil;
 import com.armageddon.util.NewBombShapes.Geode;
 import com.armageddon.util.NewBombShapes.Lamp;
 import com.armageddon.util.NewBombShapes.Prism;
@@ -571,14 +572,15 @@ public final class OddBombEvents {
 	// ====================================================================== AURORA
 
 	/**
-	 * The sky darkens and an aurora unrolls overhead, curtains of green and violet light rippling across it. Then it
-	 * comes down: its rays strike the ground one after another, charging the air and glazing the earth in coloured
-	 * glass, and finally the whole aurora spirals into one column of light.
+	 * Night falls and stars come out, and an aurora unrolls overhead: five great curtains of light, each a sheet of
+	 * rays standing on a bright hem, rippling and pulsing as they dance. Then they come down. Where a hem touches the
+	 * land it burns it into glowing stripes of coloured glass and lifts whatever stands there; the curtains sweep round,
+	 * painting the country, then spiral into one column of light, and a solar storm breaks out of it.
 	 */
 	public static class Aurora extends Base {
-		static final int STRIKES = 120, STRIKES_END = 420, FINALE = 460, END = 600;
-		static final int[] COLORS = {0x40FF90, 0x30E0FF, 0xB040FF, 0x80FF40, 0xFF40C0};
-		static final Block[] GLOW = {Blocks.VERDANT_FROGLIGHT, Blocks.SEA_LANTERN, Blocks.PEARLESCENT_FROGLIGHT, Blocks.VERDANT_FROGLIGHT, Blocks.PEARLESCENT_FROGLIGHT};
+		static final Block[] GLASS = {Blocks.LIME_STAINED_GLASS, Blocks.CYAN_STAINED_GLASS, Blocks.MAGENTA_STAINED_GLASS, Blocks.GREEN_STAINED_GLASS,
+				Blocks.LIGHT_BLUE_STAINED_GLASS};
+		static final Block[] LIGHT = {Blocks.VERDANT_FROGLIGHT, Blocks.SEA_LANTERN, Blocks.PEARLESCENT_FROGLIGHT, Blocks.VERDANT_FROGLIGHT, Blocks.SEA_LANTERN};
 
 		@Override
 		public boolean tick() {
@@ -586,47 +588,79 @@ public final class OddBombEvents {
 			Vec3d g = center();
 			if (t == 0) {
 				name("aurora_bomb", Formatting.GREEN);
-				Vfx.newFx(world, FX_AURORA, g, g, 140, 0x40FF90, 0, 0, END);
+				Vfx.newFx(world, FX_AURORA, g, g, (float) Veil.HIGH, 0x40FF90, 0, 0, Veil.END);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.AURORA_STARS, g, 1.0F);
 				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 48.0F, 0.4F);
 			}
-			if (t % 20 == 0 && t < FINALE) {
-				Vfx.skyTint(world, g, 300, 0x041018, 0.9F);
+			if (t % 20 == 0 && t < Veil.STORM) {
+				Vfx.skyTint(world, g, 400, 0x020818, Math.min(0.95F, t / 60.0F));
 			}
-			if (t % 40 == 10 && t < FINALE) {
-				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 48.0F, 0.4F + world.random.nextFloat() * 0.3F);
+			if (t % 40 == 10 && t < Veil.STORM) {
+				Kit.sound(world, g.add(0, Veil.hem(t), 0), SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 48.0F, 0.4F + world.random.nextFloat() * 0.3F);
 			}
-			if (t >= STRIKES && t < STRIKES_END && t % 12 == 0) {
-				int k = (t - STRIKES) / 12;
-				Vec3d p = CityDestructionEvents.around(world, g, 100);
-				strike(p, COLORS[k % COLORS.length], k);
+			if (t == Veil.DESCEND) {
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.4F);
 			}
-			if (t == FINALE) {
-				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.AURORA_CROWN, g, 1.0F);
-				Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.8F);
-				Kit.damage(world, g, 14, 40.0F, ModDamageTypes.PLASMA, null, owner());
-				com.armageddon.event.Ruin.disintegrate(world, g, 11, Blocks.SEA_LANTERN.getDefaultState(), ParticleTypes.END_ROD, 40);
+			if (Veil.touching(t) && t % 2 == 0) {
+				for (int k = 0; k < Veil.CURTAINS; k++) {
+					for (int i = 0; i < 10; i++) {
+						burn(g, k, world.random.nextDouble(), t, i == 0 && t % 4 == 0);
+					}
+				}
+				if (t % 10 == 0) {
+					Kit.sound(world, g, SoundEvents.BLOCK_BEACON_AMBIENT, 64.0F, 0.6F + world.random.nextFloat() * 0.4F);
+				}
+			}
+			if (t == Veil.STORM) {
+				storm(g);
 			}
 			drain();
-			return t >= END;
+			return t >= Veil.END;
 		}
 
-		private void strike(Vec3d p, int color, int k) {
-			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.AURORA_STRIKE, p, new Vec3d(0, 1, 0), 1.0F, color);
-			Kit.sound(world, p, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 24.0F, 1.6F);
-			for (LivingEntity e : Kit.living(world, p, 8)) {
+		/** Where a hem touches: the land burnt into a stripe of glowing glass, anything there lifted and lit. */
+		private void burn(Vec3d g, int k, double s, int t, boolean fx) {
+			Vec3d h = Veil.at(k, s, t);
+			Vec3d p = Kit.ground(world, g.x + h.x, g.z + h.z);
+			if (fx) {
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.AURORA_SPARK, p, new Vec3d(0, 1, 0), 1.0F, Veil.HEM[k]);
+			}
+			for (LivingEntity e : Kit.living(world, p, 3)) {
 				if (!Kit.creativeOrSpectator(e)) {
 					e.addStatusEffect(new StatusEffectInstance(StatusEffects.LEVITATION, 30, 1, false, true));
 					e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 200, 0, false, false));
+					e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA, null, owner()), 3.0F);
 				}
 			}
 			if (!Destruction.enabled(world)) {
 				return;
 			}
-			// The ray takes the land apart in its own colour: a deep round shaft of light where it touched.
-			Kit.damage(world, p, 6, 16.0F, ModDamageTypes.PLASMA, null, owner());
-			BlockState light = GLOW[k % GLOW.length].getDefaultState();
-			for (int i = 0; i < 3; i++) {
-				com.armageddon.event.Ruin.disintegrate(world, p.add(0, -i * 3.5, 0), 4.2 - i * 0.6, light, ParticleTypes.END_ROD, 10 + i * 4);
+			BlockPos top = BlockPos.ofFloored(p).down();
+			BlockState was = world.getBlockState(top);
+			if (was.isAir() || was.hasBlockEntity() || was.getHardness(world, top) < 0) {
+				return;
+			}
+			double n = NewBombShapes.hash(top.getX(), top.getZ());
+			q().add(top, (n < 0.12 ? LIGHT[k] : GLASS[k]).getDefaultState(), BlockQueue.ANY);
+		}
+
+		/** The curtains spiral into a column and a solar storm breaks out of it. */
+		private void storm(Vec3d g) {
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.AURORA_STORM, g, 1.0F);
+			Vfx.flash(world, g, 0.7F, 500, 0xC0FFE0);
+			Vfx.shake(world, g, 300, 2.0F);
+			Vfx.skyTint(world, g, 400, 0x103828, 0.6F);
+			Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.8F);
+			Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 0.6F);
+			Kit.sound(world, g, SoundEvents.BLOCK_BEACON_DEACTIVATE, 64.0F, 0.5F);
+			Kit.damage(world, g, 16, 40.0F, ModDamageTypes.PLASMA, null, owner());
+			for (LivingEntity e : Kit.living(world, g, 60)) {
+				if (!Kit.creativeOrSpectator(e)) {
+					e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 300, 0, false, false));
+				}
+			}
+			if (Destruction.enabled(world)) {
+				com.armageddon.event.Ruin.disintegrate(world, g, 10, Blocks.SEA_LANTERN.getDefaultState(), ParticleTypes.END_ROD, 40);
 			}
 		}
 	}

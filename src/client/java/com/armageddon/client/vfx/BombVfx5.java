@@ -29,7 +29,6 @@ import static com.armageddon.client.vfx.VfxLibrary.smoke;
  * <li>Magnetar: sparks riding field lines as the ground lifts, ground blocks to dust in orbit, a plasma splash where the
  * jet cuts, field lines snapping on the collapse.</li>
  * <li>Ink Bomb: comic book. Flat, bold, unshaded puffs in yellow and red with black speed lines.</li>
- * <li>Aurora: curtains of light falling where it strikes, and a crown of curtains rising at the finale.</li>
  * </ul>
  */
 final class BombVfx5 {
@@ -51,7 +50,6 @@ final class BombVfx5 {
 	static final Gradient PIXELS = Gradient.of(0, 0xFF40FF, 0.2F, 0x40FFFF, 0.4F, 0xFFFF40, 0.6F, 0x60FF40, 0.8F, 0xFF4040, 1, 0x4060FF);
 	static final Gradient FIELD = Gradient.of(0, 0xFFFFFF, 0.3F, 0xA0D8FF, 1, argb(0x4080FF, 0));
 	static final Gradient COMIC = Gradient.of(0, 0xFFF060, 0.4F, 0xFFC020, 0.75F, 0xFF5020, 1, 0xE03010);
-	static final Gradient AURORA = Gradient.of(0, 0xA0FFD0, 0.35F, 0x40FF90, 0.7F, 0x6080FF, 1, argb(0xA040FF, 0));
 
 	static void register() {
 		sixteenChunks();
@@ -63,7 +61,6 @@ final class BombVfx5 {
 		pixels();
 		magnetar();
 		comic();
-		aurora();
 	}
 
 	// ------------------------------------------------------------------ Sixteen Chunks
@@ -285,26 +282,4 @@ final class BombVfx5 {
 
 	// ------------------------------------------------------------------ Aurora
 
-	private static void aurora() {
-		// A strike, tinted: a curtain of light dropping out of the sky onto the point, and a pool of it on the ground.
-		FxEngine.register(EffectDef.builder(VfxIds.AURORA_STRIKE).tint(0x40FF90).lod(256, 1600).maxAge(120)
-				.emit(EmitterDef.builder("curtain").priority(Priority.HERO).burst(60).shape(Shape.box(6, 30, 0.6F)).offset(0, 40, 0).velocity(Velocity.up(-1.2F, -0.8F, 0))
-						.module(Module.curl(6, 0.02F)).life(30, 50).size(1.2F, 1.8F).sprite(FxSprites.WISP).color(WHITE).tinted().alpha(0.6F).build())
-				.emit(EmitterDef.builder("pool").burst(1).onGround().offset(0, 0.2F, 0).mode(Mode.FLAT).fixedRotation().size(6, 6).life(40, 40).sprite(FxSprites.GLOW)
-						.color(WHITE).tinted().alpha(0.5F).sizeOverLife(Curve.EASE_OUT).alphaOverLife(Curve.FADE_OUT).build())
-				.emit(EmitterDef.builder("sparkles").burst(30).shape(Shape.disc(4)).offset(0, 1, 0).velocity(Velocity.up(0.05F, 0.2F, 0.4F)).life(30, 60)
-						.size(0.15F, 0.25F).sprite(FxSprites.FLARE).color(WHITE).tinted().alphaOverLife(TWINKLE).build())
-				.build());
-
-		// The finale: a crown of curtains rising out of the ground in rings and spreading outward.
-		FxEngine.register(EffectDef.builder(VfxIds.AURORA_CROWN).lod(400, 3000).maxAge(300)
-				.cue(0, EffectDef.light(1.2F, 0x60FFB0))
-				.emit(flash("flash", 30, 12, 0xC0FFE0).build())
-				.emit(EmitterDef.builder("curtains").priority(Priority.HERO).rate(30, 80, Curve.FALL).onGround().shape(Shape.ring(12, 2)).expand(1.4F)
-						.velocity(Velocity.up(0.6F, 1.2F, 0.05F)).module(Module.curl(10, 0.02F)).life(50, 80).size(1.6F, 2.4F).sprite(FxSprites.WISP).color(AURORA)
-						.alpha(0.6F).build())
-				.emit(EmitterDef.builder("sparkles").rate(20, 120).shape(Shape.disc(80)).offset(0, 20, 0).velocity(Velocity.up(-0.05F, 0.05F, 1)).life(40, 80)
-						.size(0.3F, 0.5F).sprite(FxSprites.FLARE).color(AURORA).alphaOverLife(TWINKLE).build())
-				.build());
-	}
 }
