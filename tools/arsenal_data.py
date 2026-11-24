@@ -123,10 +123,12 @@ NEW_BOMBS.update({
     "dimension_shift": "DIMENSION SHIFT", "firework_havoc": "Firework Havoc", "chinese_lantern": "Chinese Lantern",
     "mammoth_fossil": "MAMMOTH FOSSIL", "leviathan_fossil": "LEVIATHAN FOSSIL", "pterosaur_fossil": "Pterosaur Fossil",
     "xenoform": "XENOFORM",
+    "terror_maniac": "TERROR MANIAC",
 })
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
+    "terror_maniac": "CELESTIAL. The colour drains from the world, the sky turns to old blood, and black veins crawl out pulsing with a heartbeat. A thing of roots with a cracked white mask rises from a rift, lifts everything living into the air while a bell tolls, and then breaks it. It shrieks, bursts into a storm of moths, and the land rots. Light twice.",
     "xenoform": "WORLD DESTRUCTION. Technology five thousand years past ours. No explosion: a hypercube unfolds over the land, scans it, then takes it apart block by block and sorts it by colour into rings, a catalogue of the place. Everything living goes up with it. It leaves a flat black plain ruled with light, a monolith, and a column of light leaving for the sky.",
     "mammoth_fossil": "A frozen fissure opens and a woolly mammoth's skeleton rises out of the permafrost, tusks curling. Its eyes catch a cold blue light and it trumpets: an ice age rolls out over the land, freezing water, burying it in snow and bursting spikes of ice out of the ground. Then it stomps twice and the frozen ground shatters. Light twice.",
     "leviathan_fossil": "The ancient sea floods back over the land as a ghost, with ammonites and shoals drifting through it, and the fossil of a sea serpent breaches out of the ground in great arches. Its skull rears up with its jaws wide, its eyes light, and a maelstrom tears open in front of it, dragging everything round and down. It leaves a lagoon. Light twice.",
@@ -342,6 +344,8 @@ def bomb_recipes3(shaped):
                                                    "F": "fossil_bomb"}, category=cat)
     shaped("leviathan_fossil", ["BPB", "HFH", "BPB"], {"B": "minecraft:bone_block", "P": "minecraft:prismarine", "H": "minecraft:heart_of_the_sea",
                                                      "F": "fossil_bomb"}, category=cat)
+    shaped("terror_maniac", ["RWR", "SCS", "RWR"], {"R": "minecraft:wither_rose", "W": "minecraft:wither_skeleton_skull", "S": "minecraft:sculk_catalyst",
+                                                  "C": "celestial_core"}, category=cat)
     shaped("xenoform", ["EGE", "NCN", "EGE"], {"E": "minecraft:end_crystal", "G": "minecraft:echo_shard", "N": "minecraft:nether_star",
                                              "C": "celestial_core"}, category=cat)
     shaped("pterosaur_fossil", ["MBM", "BFB", "MBM"], {"M": "minecraft:phantom_membrane", "B": "minecraft:bone_block", "F": "fossil_bomb"}, category=cat)

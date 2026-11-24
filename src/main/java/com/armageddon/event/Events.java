@@ -140,6 +140,7 @@ public final class Events {
 		EVENTS.put("leviathan_fossil", com.armageddon.event.events.FossilEvents.LeviathanFossil::new);
 		EVENTS.put("pterosaur_fossil", com.armageddon.event.events.FossilEvents.PterosaurFossil::new);
 		EVENTS.put("xenoform", com.armageddon.event.events.XenoEvents.Xenoform::new);
+		EVENTS.put("terror_maniac", com.armageddon.event.events.HorrorEvents.TerrorManiac::new);
 		EVENTS.put("blue_infrit", com.armageddon.event.events.WildEvents.BlueInfrit::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);

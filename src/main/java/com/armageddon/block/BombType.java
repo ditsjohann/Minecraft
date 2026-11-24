@@ -113,7 +113,9 @@ public enum BombType {
 	LEVIATHAN_FOSSIL(200, 0x40E0D0),
 	PTEROSAUR_FOSSIL(160, 0xFF9040),
 	// beyond
-	XENOFORM(300, 0xC0B0FF);
+	XENOFORM(300, 0xC0B0FF),
+	// horror
+	TERROR_MANIAC(200, 0xB01010);
 
 	public final int fuse;
 	public final int color;

@@ -314,6 +314,11 @@ public final class VfxIds {
 	public static final String XENO_FRONT = "xeno_front";
 	public static final String XENO_LAND = "xeno_land";
 	public static final String XENO_DEPART = "xeno_depart";
+	public static final String MANIAC_ASH = "maniac_ash";
+	public static final String MANIAC_RIFT = "maniac_rift";
+	public static final String MANIAC_CURSE = "maniac_curse";
+	public static final String MANIAC_SNAP = "maniac_snap";
+	public static final String MANIAC_SHATTER = "maniac_shatter";
 	public static final String PRISM_INBEAM = "prism_inbeam";
 	public static final String BANG_INHALE = "bang_inhale";
 	public static final String BANG_CMB = "bang_cmb";
@@ -550,7 +555,8 @@ public final class VfxIds {
 			SPECTRAL_MOTES, SPECTRAL_WISPS, SPECTRAL_NOVA, CHUNK_STATIC, BLIGHT_AMBIENT, BLIGHT_EDGE, BLIGHT_PULSE, MAMMOTH_HEAVE, MAMMOTH_BREATH,
 			MAMMOTH_TRUMPET, MAMMOTH_FRONT, MAMMOTH_SNOW, MAMMOTH_STOMP, LEVI_BREACH, LEVI_BUBBLES, LEVI_MAELSTROM, LEVI_ROAR, PTERO_BURST, PTERO_TRAIL,
 			PTERO_SCREECH, PTERO_IMPACT, PTERO_CRUMBLE,
-			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART);
+			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART,
+			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER);
 
 	private VfxIds() {
 	}

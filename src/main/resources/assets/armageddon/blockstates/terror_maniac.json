@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/terror_maniac"
+    },
+    "facing=east": {
+      "model": "armageddon:block/terror_maniac",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/terror_maniac",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/terror_maniac",
+      "y": 270
+    }
+  }
+}

@@ -1680,3 +1680,29 @@ def xenoform():
 
 
 BOMBS.update({"xenoform": xenoform})
+
+
+def terror_maniac():
+    # A cracked white mask with red eyes and a stitched grin, half sunk in black roots and red veins.
+    m = [B(0, 0, 0, 16, 1.2, 16, "black"), B(1, 1.2, 1, 15, 1.6, 15, "crimson")]
+    for (x0, z0, x1, z1) in ((8, 8, 1.5, 3), (8, 8, 14.5, 4), (8, 8, 2.5, 13.5), (8, 8, 13.5, 14), (8, 8, 8, 1)):
+        for s in range(6):
+            t = s / 6.0
+            x, z = x0 + (x1 - x0) * t, z0 + (z1 - z0) * t
+            m += [B(x - 0.4, 1.6, z - 0.4, x + 0.4, 2.0, z + 0.4, "glow_red")]
+    m += [B(4.5, 1.6, 6, 11.5, 13.5, 10, "black")]                       # head under the mask
+    m += [B(4.0, 2.6, 5.4, 12.0, 13.0, 5.9, "pearl"), B(4.6, 13.0, 5.6, 11.4, 14.2, 6.0, "pearl"), B(4.6, 1.8, 5.6, 11.4, 2.6, 6.0, "pearl")]
+    m += [B(5.2, 8.6, 5.2, 7.2, 11.4, 5.4, "black"), B(8.8, 8.6, 5.2, 10.8, 11.4, 5.4, "black")]
+    m += [B(5.8, 9.6, 5.1, 6.6, 10.4, 5.2, "glow_red"), B(9.4, 9.6, 5.1, 10.2, 10.4, 5.2, "glow_red")]
+    m += [B(5.9, 6.0, 5.2, 6.3, 8.6, 5.3, "black"), B(9.7, 6.0, 5.2, 10.1, 8.6, 5.3, "black")]
+    m += [B(5.0, 4.6, 5.2, 11.0, 5.0, 5.3, "black")]
+    for x in (5.6, 6.8, 8.0, 9.2, 10.4):
+        m += [B(x - 0.1, 4.0, 5.15, x + 0.1, 5.6, 5.25, "black")]
+    for (x, y) in ((4.6, 12.8), (11.0, 11.6), (7.4, 13.6)):
+        m += [B(x, y, 5.3, x + 0.3, y + 0.3, 5.4, "black")]
+    for (x, z, h) in ((3, 9, 9), (13, 8, 11), (5, 12, 7), (11.5, 12, 8)):
+        m += [B(x - 0.3, 1.6, z - 0.3, x + 0.3, 1.6 + h, z + 0.3, "black")]
+    return m
+
+
+BOMBS.update({"terror_maniac": terror_maniac})

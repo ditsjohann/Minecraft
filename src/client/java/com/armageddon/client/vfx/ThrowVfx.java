@@ -92,6 +92,7 @@ final class ThrowVfx {
 		RedoVfx.register();
 		FossilVfx.register();
 		XenoVfx.register();
+		HorrorVfx.register();
 	}
 
 	// ------------------------------------------------------------------ throw and warning light

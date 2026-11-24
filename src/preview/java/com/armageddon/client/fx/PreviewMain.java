@@ -89,6 +89,7 @@ public final class PreviewMain {
 			return new VfxPreviewEffect(name.substring(4), a);
 		}
 		return switch (name) {
+			case "maniac" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 80, 0xFF2010, 59, 1234, 0, com.armageddon.util.HorrorShapes.Maniac.END));
 			case "xeno" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 110, 0xE0D8FF, 58, 0, 0, com.armageddon.util.XenoShapes.END));
 			case "mammoth" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0x80E0FF, 55, 0, 0, com.armageddon.util.FossilShapes.Mammoth.END - com.armageddon.util.FossilShapes.Mammoth.EYES));
 			case "leviathan" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0x40E0D0, 56, 0, 0, com.armageddon.util.FossilShapes.Leviathan.END));
