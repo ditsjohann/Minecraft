@@ -161,9 +161,11 @@ public final class SciFiEvents {
 				// The trench charges: a rising whine and the glow brightening along it.
 				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_AMBIENT, 64.0F, 0.6F + (t - Ion.CARVE_END) * 0.015F);
 				Vfx.shake(world, g, 300, 0.3F + (t - Ion.CARVE_END) * 0.01F);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.ION_CHARGE, g, (float) (Ion.R / 64.0));
 			}
 			if (t == Ion.IGNITE) {
 				CityDestructionEvents.frames(world, g, 3, 1);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.ION_IGNITE, g, (float) (Ion.R / 64.0));
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 1.2F);
 				Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.7F);
 				Vfx.shake(world, g, 600, 1.8F);
@@ -187,7 +189,7 @@ public final class SciFiEvents {
 					e.setOnFireFor(6);
 				}
 			}
-			world.spawnParticles(ParticleTypes.ELECTRIC_SPARK, p.x, Kit.ground(world, p.x, p.z).y + 0.5, p.z, 6, 1.0, 0.3, 1.0, 0.3);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.ION_CARVE, new Vec3d(p.x, Kit.ground(world, p.x, p.z).y + 0.3, p.z), 1.0F);
 			if (!Destruction.enabled(world)) {
 				return;
 			}

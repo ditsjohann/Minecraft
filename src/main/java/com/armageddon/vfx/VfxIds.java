@@ -286,6 +286,28 @@ public final class VfxIds {
 	public static final String SPOT_SCORCH = "spot_scorch";
 	public static final String SHOWTIME = "showtime";
 	public static final String FINALE_GLITTER = "finale_glitter";
+	public static final String SEASON_SPRING = "season_spring";
+	public static final String SEASON_SUMMER = "season_summer";
+	public static final String SEASON_AUTUMN = "season_autumn";
+	public static final String SEASON_WINTER = "season_winter";
+	public static final String CENTURY_WAVE = "century_wave";
+	public static final String PRISM_SCORCH = "prism_scorch";
+	public static final String PRISM_NOVA = "prism_nova";
+	public static final String GEODE_HUM = "geode_hum";
+	public static final String GEODE_SHARD = "geode_shard";
+	public static final String GEODE_SHATTER = "geode_shatter";
+	public static final String FOSSIL_HEAVE = "fossil_heave";
+	public static final String FOSSIL_ROAR = "fossil_roar";
+	public static final String LAMP_SIMMER = "lamp_simmer";
+	public static final String LAMP_CRACK = "lamp_crack";
+	public static final String LAMP_BURST = "lamp_burst";
+	public static final String LAMP_SPLAT = "lamp_splat";
+	public static final String ION_CARVE = "ion_carve";
+	public static final String ION_CHARGE = "ion_charge";
+	public static final String ION_IGNITE = "ion_ignite";
+	public static final String ACID_STORM = "acid_storm";
+	public static final String SUPERBLOOM = "superbloom";
+	public static final String FORGE_SPARKFALL = "forge_sparkfall";
 	public static final String CHUNK_REROLL = "chunk_reroll";
 	public static final String GRID_FANFARE = "grid_fanfare";
 	public static final String CHUNK_SWAP = "chunk_swap";
@@ -463,7 +485,8 @@ public final class VfxIds {
 			SURGE_DUST, SURGE_SPRAY, SURGE_LEAVES, SURGE_WALL,
 			SPEAR_STRIKE, GODFALL_IMPACT, DISCO_BEAT, GLITTER_FLAKES, GLITTER_POP, PUMPKIN_SPROUT, PUMPKIN_FOG, WEB_BURST, BALLOON_LIFT, BALLOON_POP, SPRINKLER_RAIN, THERMITE_BURN, TESLA_LID, FULGURITE, SINK_POUR, SINK_RIM,
 			TSUNAMI_CREST, VOLCANO_RISE, VOLCANO_OPEN, VOLCANO_PLUME, VOLCANO_BURST, ICE_FRONT, ICE_BLIZZARD, SPIRE_CRACK, HELL_CRACK, HELL_OPEN, HELL_GEYSER, HELL_THROAT, HELL_ERUPT, CYCLONE_WEDGE, HOUR_MARK, CLOCK_HAND, HOUR_STRIKE, MIDNIGHT, BANG_BIRTH, BANG_STARS, PLANET_FORM, CHRONO_SHELL, CHRONO_SAND, CHRONO_SNAP, SPEAR_HERALD, SPEAR_IMPACT, SPEAR_DRILL, CORE_GEYSER, ZOMBIE_CLAW, GIANT_RISE, GIANT_STOMP, GIANT_BURST, ZOMBIE_DUST,
-			CHUNK_REROLL, GRID_FANFARE, CHUNK_SWAP, CORNER_GEYSER, BEAM_SPARKLE, DISCO_DROP, FLOOR_PULSE, LIDAR_HIT, LIDAR_OVERLOAD, VOID_SWALLOW, VOID_EXHALE, ICE_ERUPT, SHARD_LAND, SONAR_SHATTER, SONAR_BOOM, PIXEL_BURST, MAG_LIFT, MAG_GRIND, MAG_JET_HIT, MAG_COLLAPSE, COMIC_BLAST, AURORA_STRIKE, AURORA_CROWN);
+			CHUNK_REROLL, GRID_FANFARE, CHUNK_SWAP, CORNER_GEYSER, BEAM_SPARKLE, DISCO_DROP, FLOOR_PULSE, LIDAR_HIT, LIDAR_OVERLOAD, VOID_SWALLOW, VOID_EXHALE, ICE_ERUPT, SHARD_LAND, SONAR_SHATTER, SONAR_BOOM, PIXEL_BURST, MAG_LIFT, MAG_GRIND, MAG_JET_HIT, MAG_COLLAPSE, COMIC_BLAST, AURORA_STRIKE, AURORA_CROWN,
+			SEASON_SPRING, SEASON_SUMMER, SEASON_AUTUMN, SEASON_WINTER, CENTURY_WAVE, PRISM_SCORCH, PRISM_NOVA, GEODE_HUM, GEODE_SHARD, GEODE_SHATTER, FOSSIL_HEAVE, FOSSIL_ROAR, LAMP_SIMMER, LAMP_CRACK, LAMP_BURST, LAMP_SPLAT, ION_CARVE, ION_CHARGE, ION_IGNITE, ACID_STORM, SUPERBLOOM, FORGE_SPARKFALL);
 
 	private VfxIds() {
 	}

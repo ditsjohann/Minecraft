@@ -34,7 +34,6 @@ import net.minecraft.entity.vehicle.AbstractMinecartEntity;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ArmorMaterials;
 import net.minecraft.item.ItemStack;
-import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.sound.SoundEvents;
@@ -675,7 +674,8 @@ public final class OddBombEvents {
 				Kit.sound(world, g, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.3F);
 				Vfx.screen(world, g, 200, 0, 0.7F, 60);
 				Vfx.shake(world, g, 200, 1.2F);
-				Kit.boom(world, g.add(0, 1, 0), 4.0F, 0xC0A060, owner(), false);
+				Kit.blast(world, g.add(0, 1, 0), 4.0F, owner(), false);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CENTURY_WAVE, g, 1.0F);
 				age(g);
 				sweep = new RingSweep(R);
 			}
@@ -686,17 +686,17 @@ public final class OddBombEvents {
 			return t >= END;
 		}
 
+		/** Each season is a living scene over the whole radius: petals and butterflies, fireflies, leaves, snow. */
 		private void particles(Vec3d g, int ph) {
-			for (int i = 0; i < 6; i++) {
-				Vec3d p = CityDestructionEvents.around(world, g, R);
-				switch (ph) {
-					case 0 -> world.spawnParticles(ParticleTypes.CHERRY_LEAVES, p.x, p.y + 6, p.z, 4, 3, 2, 3, 0.02);
-					case 1 -> world.spawnParticles(ParticleTypes.HAPPY_VILLAGER, p.x, p.y + 1, p.z, 3, 2, 1, 2, 0.02);
-					case 2 -> world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.FALLING_DUST, Blocks.ORANGE_CONCRETE_POWDER.getDefaultState()), p.x, p.y + 8, p.z, 6, 3, 2, 3, 0.02);
-					case 3 -> world.spawnParticles(ParticleTypes.SNOWFLAKE, p.x, p.y + 8, p.z, 10, 4, 3, 4, 0.02);
-					default -> {
-					}
-				}
+			String fx = switch (ph) {
+				case 0 -> com.armageddon.vfx.VfxIds.SEASON_SPRING;
+				case 1 -> com.armageddon.vfx.VfxIds.SEASON_SUMMER;
+				case 2 -> com.armageddon.vfx.VfxIds.SEASON_AUTUMN;
+				case 3 -> com.armageddon.vfx.VfxIds.SEASON_WINTER;
+				default -> null;
+			};
+			if (fx != null) {
+				Vfx.play(world, fx, g, 1.0F);
 			}
 		}
 
@@ -833,14 +833,13 @@ public final class OddBombEvents {
 					Kit.sound(world, g, ModSounds.DEATH_RAY, 48.0F, 0.8F + (t % 30) / 60.0F);
 				}
 			}
+			if (t == Prism.CONVERGE) {
+				// Seven colours drawn into one point; ten ticks later it comes apart like light through a prism.
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PRISM_NOVA, g.add(0, 2, 0), 1.0F);
+			}
 			if (t == Prism.CONVERGE + 10) {
-				Kit.boom(world, g.add(0, 2, 0), 8.0F, 0xFFFFFF, owner(), true);
+				Kit.blast(world, g.add(0, 2, 0), 8.0F, owner(), true);
 				Vfx.flash(world, g, 0.7F, 300, 0xFFFFFF);
-				for (int i = 0; i < Prism.BEAMS; i++) {
-					final int c = Prism.COLORS[i];
-					final int k = i;
-					DetonationManager.schedule(world, i * 3, () -> Vfx.ring(world, g.add(0, 1, 0), 60.0F + k * 18, 3.0F, c, true, 45));
-				}
 			}
 			drain();
 			return t >= Prism.END;
@@ -851,7 +850,7 @@ public final class OddBombEvents {
 			Vec3d p = Kit.ground(world, h.x, h.z);
 			Kit.damage(world, p, 2.8, 5.0F, ModDamageTypes.PLASMA, null, owner());
 			if (t % 3 == i % 3) {
-				world.spawnParticles(ParticleTypes.END_ROD, p.x, p.y + 0.3, p.z, 3, 0.5, 0.2, 0.5, 0.05);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PRISM_SCORCH, p, new Vec3d(0, 1, 0), 1.0F, Prism.COLORS[i]);
 			}
 			if (!Destruction.enabled(world)) {
 				return;
@@ -903,6 +902,10 @@ public final class OddBombEvents {
 				}
 			}
 
+			if (t >= Geode.RESONATE && t < Geode.SHATTER && t % 4 == 0) {
+				// The standing wave: violet motes shivering over the dome.
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GEODE_HUM, Geode.centre(g), 1.0F);
+			}
 			if (t >= Geode.RESONATE && t < Geode.SPRAY && t % 6 == 0) {
 				Kit.sound(world, Geode.centre(g), SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 48.0F, 0.6F + (t - Geode.RESONATE) / 50.0F);
 			}
@@ -915,6 +918,7 @@ public final class OddBombEvents {
 				}
 			}
 			if (t == Geode.SHATTER) {
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GEODE_SHATTER, Geode.centre(g), 1.0F);
 				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, 64.0F, 0.5F);
 				Kit.damage(world, Geode.centre(g), Geode.R + 6, 30.0F, ModDamageTypes.SHRAPNEL, null, owner());
 			}
@@ -962,7 +966,7 @@ public final class OddBombEvents {
 			Vec3d p = Kit.ground(world, l.x, l.z);
 			Kit.sound(world, p, SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, 12.0F, 1.2F);
 			Kit.sound(world, p, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 8.0F, 1.4F);
-			world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.AMETHYST_BLOCK.getDefaultState()), p.x, p.y + 0.5, p.z, 30, 0.8, 0.6, 0.8, 0.2);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GEODE_SHARD, p, 1.0F);
 			Kit.damage(world, p, 4.0, 8.0F, ModDamageTypes.SHRAPNEL, null, owner());
 			if (!Destruction.enabled(world)) {
 				return;
@@ -1005,7 +1009,7 @@ public final class OddBombEvents {
 				}
 				if (t % 6 == 0) {
 					Kit.sound(world, g, SoundEvents.ENTITY_SKELETON_STEP, 32.0F, 0.4F);
-					world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.DIRT.getDefaultState()), g.x, g.y + 2, g.z, 40, 12, 2, 12, 0.1);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.FOSSIL_HEAVE, g, 1.0F);
 				}
 			}
 			if (t == EYES) {
@@ -1116,6 +1120,7 @@ public final class OddBombEvents {
 			Kit.sound(world, skull, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 64.0F, 0.5F);
 			Vfx.shake(world, skull, 160, (float) (1.2 * power));
 			Vec3d mouth = skull.add(heading.multiply(10));
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.FOSSIL_ROAR, mouth, heading, (float) power, 0);
 			for (int k = 0; k < 6; k++) {
 				Vfx.soundwave(world, mouth, mouth.add(heading.multiply(60)).add(0, -10, 0), (float) (6 + k * 2), 0xFFE0C0, 0.5F + k * 0.1F);
 			}
@@ -1170,12 +1175,16 @@ public final class OddBombEvents {
 			}
 			if (t >= Lamp.HEAT && t < Lamp.BURST && t % 25 == 0) {
 				Kit.sound(world, g.add(0, 15, 0), SoundEvents.BLOCK_LAVA_POP, 32.0F, 0.5F + (t - Lamp.HEAT) / 600.0F);
+			}
+			if (t >= Lamp.HEAT && t < Lamp.BURST && t % 8 == 0) {
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.LAMP_SIMMER, g.add(0, Lamp.BASE_H + Lamp.H + 1, 0), 1.0F);
 				Kit.sound(world, g.add(0, 15, 0), SoundEvents.BLOCK_LAVA_AMBIENT, 32.0F, 0.6F);
 			}
 			if (t >= Lamp.CRACK && t < Lamp.BURST && t % 4 == 0 && !glass.isEmpty() && Destruction.enabled(world)) {
 				BlockPos p = glass.remove(world.random.nextInt(glass.size()));
 				q().add(p, Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
 				Kit.sound(world, Vec3d.ofCenter(p), SoundEvents.BLOCK_GLASS_BREAK, 16.0F, 0.7F);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.LAMP_CRACK, Vec3d.ofCenter(p), 1.0F);
 			}
 			if (t == Lamp.BURST) {
 				burst(g);
@@ -1230,7 +1239,8 @@ public final class OddBombEvents {
 
 		private void burst(Vec3d g) {
 			Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.4F);
-			Kit.boom(world, g.add(0, Lamp.BASE_H + Lamp.H * 0.5, 0), 5.0F, 0xFF6020, owner(), false);
+			Kit.blast(world, g.add(0, Lamp.BASE_H + Lamp.H * 0.5, 0), 5.0F, owner(), false);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.LAMP_BURST, g.add(0, Lamp.BASE_H + Lamp.H * 0.5, 0), 1.0F);
 			if (Destruction.enabled(world)) {
 				for (BlockPos p : glass) {
 					q().add(p, Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
@@ -1245,7 +1255,7 @@ public final class OddBombEvents {
 			Vec3d p = Kit.ground(world, l.x, l.z);
 			Kit.sound(world, p, SoundEvents.BLOCK_LAVA_EXTINGUISH, 16.0F, 0.6F);
 			Kit.sound(world, p, SoundEvents.ENTITY_SLIME_SQUISH, 16.0F, 0.5F);
-			world.spawnParticles(ParticleTypes.LAVA, p.x, p.y + 0.5, p.z, 20, 1, 0.5, 1, 0.2);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.LAMP_SPLAT, p, 1.0F);
 			Kit.damage(world, p, 3.5, 7.0F, ModDamageTypes.PLASMA, null, owner());
 			for (LivingEntity e : Kit.living(world, p, 3.5)) {
 				e.setOnFireFor(6);

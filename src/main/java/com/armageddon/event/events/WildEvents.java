@@ -185,6 +185,8 @@ public final class WildEvents {
 			}
 			blob.clear();
 			Vfx.play(world, VfxIds.GOO_BURST, c, 2.0F);
+			// And after it, an acid storm: a green cloud lid and rain hissing down out of it.
+			Vfx.play(world, VfxIds.ACID_STORM, c, 1.0F);
 			Vfx.flash(world, c, 0.3F, 140, 0x9AFF40);
 			Vfx.shake(world, c, 120, 1.1F);
 			Kit.sound(world, c, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 16.0F, 0.6F);
@@ -422,6 +424,7 @@ public final class WildEvents {
 		/** The crown flowers, and a red sandstorm rolls out, leaving desert where it passes. */
 		private void bloom(Vec3d base) {
 			Vfx.play(world, VfxIds.CACTUS_BLOOM, base.add(0, Cactus.TRUNK_H + 1, 0), 1.0F);
+			Vfx.play(world, VfxIds.SUPERBLOOM, base.add(0, Cactus.TRUNK_H + 1, 0), 1.0F);
 			Vfx.play(world, VfxIds.SANDSTORM, base, 1.0F);
 			Vfx.shake(world, base, 80, 0.5F);
 			Kit.sound(world, base, SoundEvents.ITEM_ELYTRA_FLYING, 24.0F, 0.5F);
@@ -553,6 +556,7 @@ public final class WildEvents {
 			Vfx.play(world, VfxIds.FORGE_STRIKE, c, UP, 2.2F, 0);
 			Vfx.play(world, VfxIds.FORGE_SHOCK, c, (float) (Forge.IRON_R / 35.0));
 			Vfx.play(world, VfxIds.IRON_WAVE, c, 1.0F);
+			Vfx.play(world, VfxIds.FORGE_SPARKFALL, c, 1.0F);
 			for (LivingEntity e : Kit.living(world, c, 24)) {
 				if (!Kit.creativeOrSpectator(e)) {
 					e.damage(ModDamageTypes.source(world, ModDamageTypes.NUCLEAR_BLAST, null, owner()), 30.0F);
