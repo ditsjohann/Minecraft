@@ -30,4 +30,16 @@ public abstract class FxEffect {
 	 * @param cam camera position — subtract from world coords before emitting vertices
 	 */
 	public abstract void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float camYaw, float camPitch);
+
+	/** True for effects that also draw in the early pass (see {@link #renderEarly}). */
+	public boolean early() {
+		return false;
+	}
+
+	/**
+	 * Drawn before translucent terrain, for parts that sit behind or inside glass, water or ice: those blocks write
+	 * depth, so anything drawn after them is hidden behind them; drawn first, the glass blends over it instead.
+	 */
+	public void renderEarly(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float camYaw, float camPitch) {
+	}
 }

@@ -399,7 +399,13 @@ final class OddFx {
 		}
 
 		@Override
-		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float camYaw, float camPitch) {
+		public boolean early() {
+			return true;
+		}
+
+		/** The goo inside the lamp is drawn before the glass, so the orange glass is seen over it, not in front of nothing. */
+		@Override
+		public void renderEarly(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float camYaw, float camPitch) {
 			float t = age + tickDelta;
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
@@ -413,6 +419,13 @@ final class OddFx {
 					FxDraw.sphere(glow, m, c, s * 1.3, Vec3d.ZERO, col, 0.15F, 0.4F, 8, 12);
 				}
 			}
+		}
+
+		@Override
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float camYaw, float camPitch) {
+			float t = age + tickDelta;
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
 			if (t >= Lamp.BURST) {
 				for (int i = 0; i < Lamp.FLYERS; i++) {
 					float k = (t - Lamp.BURST) / Lamp.flight(i);

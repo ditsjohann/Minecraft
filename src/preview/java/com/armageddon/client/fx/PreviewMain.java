@@ -176,6 +176,9 @@ public final class PreviewMain {
 		}
 		Capture cap = new Capture();
 		FxBuffers.install(cap, cap.owner::get);
+		if (e.early()) {
+			e.renderEarly(new Matrix4f(), cap, cam, 0.0F, yaw, pitch);
+		}
 		e.render(new Matrix4f(), cap, cam, 0.0F, yaw, pitch);
 		com.armageddon.client.vfx.FxEngine.render(new Matrix4f(), cap, cam, 0.0F, yaw, pitch);
 		FxBuffers.install(null, null);

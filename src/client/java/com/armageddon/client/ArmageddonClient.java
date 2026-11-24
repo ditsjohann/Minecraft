@@ -66,6 +66,7 @@ public class ArmageddonClient implements ClientModInitializer {
 		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(ClientEvents::tick);
+		WorldRenderEvents.AFTER_ENTITIES.register(FxWorldRenderer::renderEarly);
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(FxWorldRenderer::render);
 		// The effects' own program. If it ever fails to load, effects fall back to the vanilla textured program.
 		net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback.EVENT.register(ctx -> {

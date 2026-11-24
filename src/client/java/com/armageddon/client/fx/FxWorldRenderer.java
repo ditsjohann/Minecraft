@@ -46,6 +46,35 @@ public final class FxWorldRenderer {
 		consumers.finish();
 	}
 
+	/** The early pass, before translucent terrain: the parts of effects that sit inside glass (see FxEffect.renderEarly). */
+	public static void renderEarly(WorldRenderContext ctx) {
+		boolean any = false;
+		for (FxEffect effect : ClientFx.EFFECTS) {
+			if (effect.early()) {
+				any = true;
+				break;
+			}
+		}
+		if (!any) {
+			return;
+		}
+		Camera camera = ctx.camera();
+		Vec3d cam = camera.getPos();
+		float tickDelta = ctx.tickCounter().getTickDelta(false);
+		Matrix4f m = new MatrixStack().peek().getPositionMatrix();
+		com.armageddon.client.render.FxBuffers consumers = com.armageddon.client.render.FxBuffers.begin();
+		for (FxEffect effect : ClientFx.EFFECTS) {
+			if (effect.early()) {
+				try {
+					effect.renderEarly(m, consumers, cam, tickDelta, camera.getYaw(), camera.getPitch());
+				} catch (RuntimeException ex) {
+					com.armageddon.Armageddon.LOGGER.error("Armageddon effect {} failed in the early pass", effect.getClass().getSimpleName(), ex);
+				}
+			}
+		}
+		consumers.finish();
+	}
+
 	private FxWorldRenderer() {
 	}
 }
