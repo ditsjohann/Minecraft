@@ -33,7 +33,6 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
@@ -428,6 +427,7 @@ public final class CityDestructionEvents {
 				Vfx.shake(world, g, 100000, 2.0F);
 				Vfx.skyTint(world, g, 100000, 0x2A0A50, 0.85F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 1.6F);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.BANG_BIRTH, point, (float) (scale / 60.0));
 				Kit.sound(world, g, SoundEvents.BLOCK_END_PORTAL_SPAWN, 64.0F, 1.2F);
 				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.5F);
 				// Everything is flung outward: a shove, not a crater.
@@ -448,6 +448,8 @@ public final class CityDestructionEvents {
 								CityShapes.planetRinged(seed, i), seed + i);
 					}
 					Vfx.light(world, at, 0.9F, CityShapes.planetColor(type));
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PLANET_FORM, at, new Vec3d(0, 1, 0), (float) Math.max(0.5, CityShapes.planetRadius(seed, i, scale) / 8.0),
+							CityShapes.planetColor(type));
 					Kit.sound(world, at, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 48.0F, 0.5F + i * 0.18F);
 					Kit.sound(world, at, SoundEvents.BLOCK_BEACON_POWER_SELECT, 32.0F, 0.6F + i * 0.1F);
 				}
@@ -460,7 +462,7 @@ public final class CityDestructionEvents {
 				}
 			}
 			if (t > BANG && t < BANG + 160 && t % 3 == 0) {
-				world.spawnParticles(ParticleTypes.END_ROD, point.x, point.y + scale * 0.4, point.z, 14, scale * 0.6, scale * 0.3, scale * 0.6, 0.02);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.BANG_STARS, point, (float) (scale / 60.0));
 			}
 			queue.drain(BlockQueue.PER_TICK);
 			return t > END;
@@ -791,6 +793,7 @@ public final class CityDestructionEvents {
 				frames(world, g, 1);
 				Kit.sound(world, g, ModSounds.ANTIMATTER, 64.0F, 0.6F);
 				Vfx.shake(world, g, 1024, 4.0F);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CHRONO_SNAP, g, 1.0F);
 			}
 			if (t >= ERASE_AT && t < ERASE_AT + radius) {
 				int r = t - ERASE_AT;
@@ -798,7 +801,7 @@ public final class CityDestructionEvents {
 					eraseShell(g, r);
 				}
 				if (r % 3 == 0) {
-					Vfx.ring(world, g, r + 1.0F, 1.0F, 0x50FFD0, false, 8);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CHRONO_SHELL, g, (r + 1.0F) / 10.0F);
 				}
 			}
 			if (t >= restoreAt && t <= restoreAt + radius * 2 + 4) {
@@ -820,6 +823,7 @@ public final class CityDestructionEvents {
 			}
 			if (t > restoreAt && t < restoreAt + radius * 2 && t % 6 == 0) {
 				Vfx.screen(world, g, 100000, 4, 0.5F, 2);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CHRONO_SAND, g, radius / 40.0F);
 				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 32.0F, 0.5F + (t - restoreAt) * 0.02F);
 			}
 			if (t == restoreAt + radius * 2 + 4) {

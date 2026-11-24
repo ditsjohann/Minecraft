@@ -9,7 +9,6 @@ import com.armageddon.event.WorldEvent;
 import com.armageddon.network.FxType;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModDamageTypes;
-import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
 import com.armageddon.util.CelestialIIShapes;
 import com.armageddon.util.Paths;
@@ -680,7 +679,6 @@ public final class CelestialIIEvents {
 				steps = (int) Math.ceil(depth / 0.6);
 				CelestialEvents.announce(world, c, "block.armageddon.colossal_spear");
 				Vfx.skyTint(world, c, 100000, 0xFFF0C8, 0.55F);
-				Vfx.pillar(world, c, 10.0F, 0xFFF0C0, false, THROW);
 				Vfx.grid(world, c.add(0, 0.2, 0), new Vec3d(0, 1, 0), 34.0F, 0xFFB050, 1, THROW + 4);
 				Vfx.spear(world, c, 92.0F, depth, THROW + 24 + steps + 50);
 				Kit.sound(world, c, ModSounds.ORBITAL_CHARGE, 64.0F, 0.5F);
@@ -692,7 +690,10 @@ public final class CelestialIIEvents {
 					Kit.sound(world, c, SoundEvents.BLOCK_BELL_RESONATE, 48.0F, 0.8F + t * 0.006F);
 					Kit.sound(world, c, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 48.0F, 0.5F + t * 0.008F);
 				}
-				world.spawnParticles(ParticleTypes.END_ROD, c.x, c.y + 40, c.z, 6, 30, 20, 30, 0.02);
+				if (t % 4 == 0) {
+					// Golden light spiralling down onto the target.
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SPEAR_HERALD, c, 1.0F);
+				}
 				if (t == THROW - 30) {
 					Kit.sound(world, c, SoundEvents.ENTITY_PHANTOM_SWOOP, 64.0F, 0.4F);
 					Vfx.shake(world, c, 800, 0.8F);
@@ -703,6 +704,7 @@ public final class CelestialIIEvents {
 				Vfx.flash(world, c, 0.35F, 400, 0xFFE0B0);
 				Vfx.shake(world, c, 800, 3.0F);
 				Vfx.impact(world, c, 0, 2);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SPEAR_IMPACT, c, 1.0F);
 				Vfx.fov(world, c, 10.0F, 18);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 64.0F, 0.6F);
 				Kit.sound(world, c, SoundEvents.BLOCK_ANVIL_LAND, 64.0F, 0.3F);
@@ -763,7 +765,7 @@ public final class CelestialIIEvents {
 					Vfx.shake(world, c, 700, 0.9F);
 					Kit.sound(world, c, SoundEvents.BLOCK_GRINDSTONE_USE, 40.0F, 0.3F + drill * 0.001F);
 					Kit.damage(world, new Vec3d(c.x, Math.max(y, bottomY), c.z), R + 3, 200.0F, ModDamageTypes.ANNIHILATION, null, owner());
-					world.spawnParticles(ParticleTypes.LAVA, c.x, surfaceY + 2, c.z, 10, R * 0.7, 2, R * 0.7, 0.0);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SPEAR_DRILL, new Vec3d(c.x, surfaceY + 1, c.z), 1.0F);
 				}
 			}
 			// Burn in the part of the sigil the drill has "paid for".
@@ -783,14 +785,12 @@ public final class CelestialIIEvents {
 			}
 			if (drill == steps) {
 				// The core answers: a geyser of light up the shaft, the whole sigil rings, and the land blossoms white.
-				Vfx.pillar(world, c, 9.0F, 0xFFF4D0, false, 220);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CORE_GEYSER, new Vec3d(c.x, surfaceY, c.z), 1.0F);
 				Vfx.skyTint(world, c, 100000, 0xFFF8E0, 0.6F);
 				blossom(b);
-				Vfx.ring(world, c.add(0, 0.6, 0), CelestialIIShapes.SIGIL_R + 6, 2.0F, 0xFFC860, false, 50);
 				Vfx.shake(world, c, 800, 2.0F);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 64.0F, 0.5F);
 				Kit.sound(world, c, SoundEvents.BLOCK_BELL_RESONATE, 64.0F, 0.4F);
-				world.spawnParticles(ParticleTypes.END_ROD, c.x, surfaceY + 4, c.z, 400, 5, 30, 5, 0.2);
 				if (Destruction.enabled(world)) {
 					for (int dx = -9; dx <= 9; dx++) {
 						for (int dz = -9; dz <= 9; dz++) {
@@ -886,9 +886,7 @@ public final class CelestialIIEvents {
 			world.spawnEntity(z);
 			zombies.add(z);
 			// They claw up out of the ground.
-			world.spawnParticles(new net.minecraft.particle.BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.PODZOL.getDefaultState()),
-					g.x, g.y + 0.2, g.z, 20, 0.4, 0.1, 0.4, 0.1);
-			world.spawnParticles(ParticleTypes.SOUL, g.x, g.y + 0.5, g.z, 3, 0.3, 0.5, 0.3, 0.05);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.ZOMBIE_CLAW, g, 1.0F);
 		}
 
 		private void spawnGiant(Vec3d c) {
@@ -905,24 +903,21 @@ public final class CelestialIIEvents {
 			giant.setPersistent();
 			world.spawnEntity(giant);
 			giants.put(giant, age());
-			Vfx.ring(world, g, 30.0F, 2.0F, 0x40C040, true, 30);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GIANT_RISE, g, 1.0F);
 			Vfx.shake(world, g, 400, 1.2F);
 			Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_EMERGE, 64.0F, 0.4F);
-			world.spawnParticles(new net.minecraft.particle.BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.PODZOL.getDefaultState()),
-					g.x, g.y + 1, g.z, 300, 4, 1, 4, 0.3);
 		}
 
 		/** A giant bursts: a bowl lined with green glass and slime, ribs of bone around its rim. */
 		private void giantBoom(GiantEntity giant) {
 			Vec3d p = giant.getPos();
 			fx(world, SPORE_BURST, p, p, 14.0F, 0x9CFF6A, 0, 0, 160);
-			Vfx.ring(world, p.add(0, 0.5, 0), 80.0F, 3.0F, 0x70FF50, true, 50);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GIANT_BURST, p, 1.0F);
 			Vfx.shake(world, p, 500, 2.0F);
 			Vfx.impact(world, p, 2, 1);
 			Kit.sound(world, p, ModSounds.NUKE_DETONATE, 64.0F, 0.9F);
 			Kit.sound(world, p, SoundEvents.ENTITY_SLIME_DEATH, 64.0F, 0.3F);
 			Kit.sound(world, p, SoundEvents.ENTITY_ZOMBIE_VILLAGER_CURE, 64.0F, 0.4F);
-			world.spawnParticles(ModParticles.TOXIC_GAS, p.x, p.y + 4, p.z, 300, 10, 6, 10, 0.15);
 			Detonations.blast(world, p, 40, 400.0F, ModDamageTypes.NUCLEAR_BLAST, owner(), 0, 3.0);
 			for (LivingEntity e : Kit.living(world, p, 30)) {
 				e.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 120, 1));
@@ -1102,7 +1097,7 @@ public final class CelestialIIEvents {
 				if (t % 14 == 0) {
 					Vec3d foot = giant.getPos();
 					Vfx.shake(world, foot, 260, 0.9F);
-					Vfx.ring(world, foot.add(0, 0.2, 0), 14.0F, 1.0F, 0x70A060, true, 10);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GIANT_STOMP, foot, 1.0F);
 					Kit.sound(world, foot, SoundEvents.ENTITY_IRON_GOLEM_STEP, 32.0F, 0.2F);
 					// Not Kit.damage: that would hit the giant itself (and the other giants) every stomp.
 					for (LivingEntity e : Kit.living(world, foot, 8)) {
@@ -1132,7 +1127,7 @@ public final class CelestialIIEvents {
 			dead.forEach(wander::remove);
 			if (t >= LIFE) {
 				for (ZombieEntity z : zombies) {
-					world.spawnParticles(ParticleTypes.POOF, z.getX(), z.getY() + 1, z.getZ(), 6, 0.3, 0.5, 0.3, 0.02);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.ZOMBIE_DUST, z.getPos(), 1.0F);
 					z.discard();
 				}
 				zombies.clear();

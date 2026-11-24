@@ -12,7 +12,6 @@ import com.armageddon.event.WorldEvent;
 import com.armageddon.network.Vfx;
 import com.armageddon.registry.ModBlocks;
 import com.armageddon.registry.ModDamageTypes;
-import com.armageddon.registry.ModParticles;
 import com.armageddon.registry.ModSounds;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -25,7 +24,6 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.BoneMealItem;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -383,13 +381,13 @@ public final class BombEvents {
 								TemporaryBlocks.place(world, p, Blocks.WATER.getDefaultState(), 28);
 							}
 						}
-						if (i % 4 == 0) {
-							world.spawnParticles(ParticleTypes.SPLASH, g.getX() + 0.5, g.getY() + 3, g.getZ() + 0.5, 10, 0.6, 0.8, 0.6, 0.2);
-						}
 					}
 				}
+				if (t % 2 == 0) {
+					// The crest: white water boiling along it, spray off the lip, foam lace behind.
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.TSUNAMI_CREST, c, (float) Math.max(0.3, r / 20.0));
+				}
 				if (t % 4 == 0) {
-					Vfx.ring(world, c, (float) r, 2.5F, 0x2080FF, false, 8);
 					Kit.sound(world, c, SoundEvents.ENTITY_GENERIC_SPLASH, 8.0F, 0.5F);
 					for (LivingEntity e : Kit.living(world, c, r + 4)) {
 						double d = Math.hypot(e.getX() - c.x, e.getZ() - c.z);
@@ -449,7 +447,7 @@ public final class BombEvents {
 						}
 					}
 				}
-				world.spawnParticles(ModParticles.SHOCK_DUST, base.getX() + 0.5, y, base.getZ() + 0.5, 20, r * 0.6, 0.5, r * 0.6, 0.1);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.VOLCANO_RISE, new Vec3d(base.getX() + 0.5, y, base.getZ() + 0.5), (float) (r / 10.0));
 				Vfx.shake(world, c, 96, 1.2F);
 			}
 			if (t == 58 && Destruction.enabled(world)) {
@@ -460,12 +458,13 @@ public final class BombEvents {
 						}
 					}
 				}
-				Vfx.pillar(world, topPos, 2.5F, 0xFF4010, false, 200);
-				Vfx.dome(world, topPos, 18.0F, 0xFF6020, 30);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.VOLCANO_OPEN, topPos, 1.0F);
 			}
 			if (t >= 60 && t < 260) {
-				world.spawnParticles(ParticleTypes.LARGE_SMOKE, topPos.x, topPos.y + 2, topPos.z, 6, 2, 1, 2, 0.25);
-				world.spawnParticles(ParticleTypes.LAVA, topPos.x, topPos.y + 1, topPos.z, 3, 1.5, 0.5, 1.5, 0.0);
+				if (t % 3 == 0) {
+					// The Plinian column, the lava fountain and lightning in the ash.
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.VOLCANO_PLUME, topPos, 1.0F);
+				}
 				if (t % 3 == 0 && Kit.debrisBudget(world, c) > 0) {
 					for (int i = 0; i < 2; i++) {
 						BlockPos spawn = base.up(16 + world.random.nextInt(2));
@@ -481,7 +480,7 @@ public final class BombEvents {
 					}
 				}
 				if (t % 12 == 0) {
-					Vfx.layeredBlast(world, topPos, 2.0F, 0xFF5010);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.VOLCANO_BURST, topPos, 1.0F);
 					Kit.sound(world, topPos, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 6.0F, 0.5F);
 					Kit.damage(world, topPos, 7, 14.0F, ModDamageTypes.PLASMA, null, owner());
 				}
@@ -527,6 +526,7 @@ public final class BombEvents {
 						double d = world.random.nextDouble() * r;
 						BlockPos g = top(world, c.x + Math.cos(a) * d, c.z + Math.sin(a) * d).up();
 						int h = 5 + world.random.nextInt(9);
+						com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SPIRE_CRACK, Vec3d.ofBottomCenter(g), 1.0F);
 						for (int y = 0; y < h; y++) {
 							Destruction.set(world, g.up(y), Blocks.BLUE_ICE.getDefaultState(), Block.NOTIFY_ALL);
 							if (y < h / 3) {
@@ -537,8 +537,12 @@ public final class BombEvents {
 						}
 					}
 				}
-				if (t % 20 == 0) {
-					Vfx.ring(world, c, (float) r, 2.0F, 0xBFEFFF, false, 20);
+				if (t % 4 == 0) {
+					// Rime growing over the ground at the front and freezing fog rolling out.
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.ICE_FRONT, c, (float) (r / 20.0));
+				}
+				if (t % 10 == 0) {
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.ICE_BLIZZARD, c, (float) Math.max(0.4, r / 26.0));
 				}
 				if (t % 10 == 0) {
 					for (LivingEntity e : Kit.living(world, c, r)) {
@@ -567,11 +571,11 @@ public final class BombEvents {
 			}
 			if (t == 20 || t == 30) {
 				Kit.ringCrack(world, g, t == 20 ? 16 : 11, 3, ModBlocks.CRIMSON_FISSURE.getDefaultState(), 0.9F);
-				Vfx.ring(world, g, 20.0F, 1.5F, 0xFF3010, true, 20);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.HELL_CRACK, g, t == 20 ? 1.0F : 11 / 16.0F);
 				Vfx.shake(world, g, 256, 2.0F);
 			}
 			if (t == 40) {
-				Vfx.layeredBlast(world, g, 8.0F, 0xC01010);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.HELL_OPEN, g, 1.0F);
 				Vfx.flash(world, g, 0.8F, 256, 0xFF6040);
 				Vfx.shake(world, g, 384, 3.0F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 12.0F, 0.6F);
@@ -586,12 +590,12 @@ public final class BombEvents {
 					for (int i = 0; i < 6; i++) {
 						double a = i * Math.PI / 3 + t * 0.02;
 						Vec3d p = Kit.ground(world, g.x + Math.cos(a) * 14, g.z + Math.sin(a) * 14);
-						Vfx.pillar(world, p, 1.5F, 0xFF3010, false, 16);
+						com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.HELL_GEYSER, p, 1.0F);
 					}
 					if (Destruction.enabled(world)) {
 						Detonations.ignite(world, g, 16, 0.04F);
 					}
-					Vfx.beam(world, g.add(0, -4, 0), g.add(0, 150, 0), 3.0F, 0xFF3010, 10);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.HELL_THROAT, g, 1.0F);
 					Detonations.pull(world, g, 24, 0.3);
 				}
 				if (t % 10 == 0) {
@@ -605,8 +609,7 @@ public final class BombEvents {
 				}
 			}
 			if (t == 280) {
-				Vfx.beam(world, g.add(0, -4, 0), g.add(0, 300, 0), 8.0F, 0xFF6040, 40);
-				Vfx.layeredBlast(world, g, 12.0F, 0xFF3010);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.HELL_ERUPT, g, 1.0F);
 				Vfx.flash(world, g, 1.0F, 512, 0xFFC0A0);
 				Vfx.shake(world, g, 512, 3.5F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 16.0F, 0.5F);
@@ -672,12 +675,11 @@ public final class BombEvents {
 				}
 			}
 			if (t % 25 == 0) {
-				Vfx.spiral(world, c, 9.0F, 38.0F, 0xB8C4D0, 35);
 				Kit.sound(world, c, SoundEvents.ITEM_ELYTRA_FLYING, 10.0F, 0.4F);
 			}
-			for (int k = 0; k < 6; k++) {
-				double h = k * 6;
-				world.spawnParticles(ParticleTypes.CLOUD, c.x, c.y + h, c.z, 3, 2 + h * 0.15, 0.5, 2 + h * 0.15, 0.3);
+			if (t % 2 == 0 && t < LIFE - 10) {
+				// The wedge: a wide dark wall of dust, a rain curtain, a debris band and a churning skirt.
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CYCLONE_WEDGE, c, 1.0F);
 			}
 			if (t >= LIFE) {
 				Kit.drop(blocks, new Vec3d(0, 0.2, 0));
@@ -709,16 +711,21 @@ public final class BombEvents {
 			if (t == 0) {
 				MythicEvents.warn(this, world, c, "message.armageddon.doomsday");
 				Vfx.grid(world, c.add(0, -0.3, 0), new Vec3d(0, 1, 0), R + 2, 0xFF3030, 0, 420);
-				for (int i = 0; i < 12; i++) {
-					Vfx.pillar(world, hour(i), 0.6F, 0xFF3030, false, 400);
-				}
 				Kit.sound(world, c, SoundEvents.BLOCK_BELL_RESONATE, 16.0F, 0.4F);
 			}
 			if (t >= 40 && t < 400) {
 				double a = (t - 40) * Math.PI * 2 / 360.0;
 				Vec3d dir = new Vec3d(Math.cos(a), 0, Math.sin(a));
 				Vec3d tip = Kit.ground(world, c.x + dir.x * R * 0.95, c.z + dir.z * R * 0.95);
-				Vfx.beam(world, c.add(0, 2, 0), tip.add(0, 1, 0), 1.2F, 0xFF3030, 3);
+				if (t % 2 == 0) {
+					Vec3d from = Kit.ground(world, c.x + dir.x * 3, c.z + dir.z * 3).add(0, 0.3, 0);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CLOCK_HAND, from, tip.add(0, 0.3, 0).subtract(from), 1.0F, 0);
+				}
+				if (t % 20 == 0) {
+					for (int i = 0; i < 12; i++) {
+						com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.HOUR_MARK, hour(i), 1.0F);
+					}
+				}
 				if (Destruction.enabled(world)) {
 					for (int d = 3; d <= R; d++) {
 						Vec3d p = Kit.ground(world, c.x + dir.x * d, c.z + dir.z * d);
@@ -743,8 +750,7 @@ public final class BombEvents {
 				if ((t - 40) % 30 == 0) {
 					int h = (t - 40) / 30;
 					Vec3d pos = hour(h);
-					Vfx.beam(world, pos.add(0, 200, 0), pos, 3.0F, 0xFF6060, 14);
-					Vfx.layeredBlast(world, pos, 4.0F, 0xFF3030);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.HOUR_STRIKE, pos, 1.0F);
 					Destruction.explode(world, null, pos.x, pos.y, pos.z, 5.0F, true);
 					Kit.damage(world, pos, 8, 30.0F, ModDamageTypes.NUCLEAR_BLAST, null, owner());
 					Kit.sound(world, pos, SoundEvents.BLOCK_BELL_USE, 16.0F, 0.5F);
@@ -754,10 +760,9 @@ public final class BombEvents {
 			if (t == 405) {
 				for (int i = 0; i < 12; i++) {
 					Vec3d pos = hour(i);
-					Vfx.beam(world, pos.add(0, 220, 0), pos, 4.0F, 0xFFFFFF, 20);
-					Vfx.layeredBlast(world, pos, 5.0F, 0xFF3030);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.HOUR_STRIKE, pos, 1.3F);
 				}
-				Vfx.layeredBlast(world, c, 14.0F, 0xFF3030);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.MIDNIGHT, c, 1.0F);
 				Vfx.screen(world, c, 512, 1, 1.0F, 12);
 				Vfx.shake(world, c, 512, 4.0F);
 				Kit.sound(world, c, ModSounds.NUKE_DETONATE, 16.0F, 0.6F);

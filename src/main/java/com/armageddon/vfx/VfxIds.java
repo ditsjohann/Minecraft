@@ -286,6 +286,39 @@ public final class VfxIds {
 	public static final String SPOT_SCORCH = "spot_scorch";
 	public static final String SHOWTIME = "showtime";
 	public static final String FINALE_GLITTER = "finale_glitter";
+	public static final String TSUNAMI_CREST = "tsunami_crest";
+	public static final String VOLCANO_RISE = "volcano_rise";
+	public static final String VOLCANO_OPEN = "volcano_open";
+	public static final String VOLCANO_PLUME = "volcano_plume";
+	public static final String VOLCANO_BURST = "volcano_burst";
+	public static final String ICE_FRONT = "ice_front";
+	public static final String ICE_BLIZZARD = "ice_blizzard";
+	public static final String SPIRE_CRACK = "spire_crack";
+	public static final String HELL_CRACK = "hell_crack";
+	public static final String HELL_OPEN = "hell_open";
+	public static final String HELL_GEYSER = "hell_geyser";
+	public static final String HELL_THROAT = "hell_throat";
+	public static final String HELL_ERUPT = "hell_erupt";
+	public static final String CYCLONE_WEDGE = "cyclone_wedge";
+	public static final String HOUR_MARK = "hour_mark";
+	public static final String CLOCK_HAND = "clock_hand";
+	public static final String HOUR_STRIKE = "hour_strike";
+	public static final String MIDNIGHT = "midnight";
+	public static final String BANG_BIRTH = "bang_birth";
+	public static final String BANG_STARS = "bang_stars";
+	public static final String PLANET_FORM = "planet_form";
+	public static final String CHRONO_SHELL = "chrono_shell";
+	public static final String CHRONO_SAND = "chrono_sand";
+	public static final String CHRONO_SNAP = "chrono_snap";
+	public static final String SPEAR_HERALD = "spear_herald";
+	public static final String SPEAR_IMPACT = "spear_impact";
+	public static final String SPEAR_DRILL = "spear_drill";
+	public static final String CORE_GEYSER = "core_geyser";
+	public static final String ZOMBIE_CLAW = "zombie_claw";
+	public static final String GIANT_RISE = "giant_rise";
+	public static final String GIANT_STOMP = "giant_stomp";
+	public static final String GIANT_BURST = "giant_burst";
+	public static final String ZOMBIE_DUST = "zombie_dust";
 	public static final String SPEAR_STRIKE = "spear_strike";
 	public static final String GODFALL_IMPACT = "godfall_impact";
 	public static final String DISCO_BEAT = "disco_beat";
@@ -405,7 +438,8 @@ public final class VfxIds {
 			DEMO_BLAST, THERMO_BLAST, CRYO_NOVA, HOLE_INFALL, HOLE_POP, NEUTRON_PULSE, NUKE_SURGE, HYDROGEN_STAGE, ANTI_ANNIHILATE, TECTONIC_FRONT, BASS_THUMP, DROP_FINALE,
 			CLUSTER_POP, NOVA_PROMINENCE, NOVA_SCORCH, OMEGA_DRAW, OMEGA_CRACK, CROWN_RING, CROWN_BURST, CONTINENT_HEAVE, DAWN_GATHER, DAWN_RISE, BLOOD_RAIN, BLOOD_STRIKE, BLOOD_NOVA, LL_BEAT, LL_ASH, LL_DEATH, ZP_HUSH, ZP_SNAP, UM_PLANE,
 			SURGE_DUST, SURGE_SPRAY, SURGE_LEAVES, SURGE_WALL,
-			SPEAR_STRIKE, GODFALL_IMPACT, DISCO_BEAT, GLITTER_FLAKES, GLITTER_POP, PUMPKIN_SPROUT, PUMPKIN_FOG, WEB_BURST, BALLOON_LIFT, BALLOON_POP, SPRINKLER_RAIN, THERMITE_BURN, TESLA_LID, FULGURITE, SINK_POUR, SINK_RIM);
+			SPEAR_STRIKE, GODFALL_IMPACT, DISCO_BEAT, GLITTER_FLAKES, GLITTER_POP, PUMPKIN_SPROUT, PUMPKIN_FOG, WEB_BURST, BALLOON_LIFT, BALLOON_POP, SPRINKLER_RAIN, THERMITE_BURN, TESLA_LID, FULGURITE, SINK_POUR, SINK_RIM,
+			TSUNAMI_CREST, VOLCANO_RISE, VOLCANO_OPEN, VOLCANO_PLUME, VOLCANO_BURST, ICE_FRONT, ICE_BLIZZARD, SPIRE_CRACK, HELL_CRACK, HELL_OPEN, HELL_GEYSER, HELL_THROAT, HELL_ERUPT, CYCLONE_WEDGE, HOUR_MARK, CLOCK_HAND, HOUR_STRIKE, MIDNIGHT, BANG_BIRTH, BANG_STARS, PLANET_FORM, CHRONO_SHELL, CHRONO_SAND, CHRONO_SNAP, SPEAR_HERALD, SPEAR_IMPACT, SPEAR_DRILL, CORE_GEYSER, ZOMBIE_CLAW, GIANT_RISE, GIANT_STOMP, GIANT_BURST, ZOMBIE_DUST);
 
 	private VfxIds() {
 	}
