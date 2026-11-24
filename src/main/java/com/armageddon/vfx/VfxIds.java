@@ -286,6 +286,11 @@ public final class VfxIds {
 	public static final String SPOT_SCORCH = "spot_scorch";
 	public static final String SHOWTIME = "showtime";
 	public static final String FINALE_GLITTER = "finale_glitter";
+	public static final String BANG_INHALE = "bang_inhale";
+	public static final String BANG_CMB = "bang_cmb";
+	public static final String GALAXY_SWIRL = "galaxy_swirl";
+	public static final String NEBULA_CLOUD = "nebula_cloud";
+	public static final String SUN_IGNITE = "sun_ignite";
 	public static final String AURORA_STARS = "aurora_stars";
 	public static final String AURORA_SPARK = "aurora_spark";
 	public static final String AURORA_STORM = "aurora_storm";
@@ -510,7 +515,8 @@ public final class VfxIds {
 			SEASON_SPRING, SEASON_SUMMER, SEASON_AUTUMN, SEASON_WINTER, CENTURY_WAVE, PRISM_SCORCH, PRISM_NOVA, GEODE_HUM, GEODE_SHARD, GEODE_SHATTER, FOSSIL_HEAVE, FOSSIL_ROAR, LAMP_SIMMER, LAMP_CRACK, LAMP_BURST, LAMP_SPLAT, ION_CARVE, ION_CHARGE, ION_IGNITE, ACID_STORM, SUPERBLOOM, FORGE_SPARKFALL,
 			KOI_POND, KOI_SHIMMER, KOI_RIPPLE, KOI_TRAIL, KOI_BREACH, KOI_SPLASH, KOI_GEYSER, KOI_RAIN,
 			DIM_RIFT, DIM_FRONT, DIM_ASH, DIM_CLOSE, HAVOC_LAUNCH, HAVOC_TRAIL, HAVOC_BURST, HAVOC_FOUNTAIN, HAVOC_WILLOW, LANTERN_RISE, LANTERN_SPARKLE, LANTERN_BURST,
-			AURORA_STARS, AURORA_SPARK, AURORA_STORM);
+			AURORA_STARS, AURORA_SPARK, AURORA_STORM,
+			BANG_INHALE, BANG_CMB, GALAXY_SWIRL, NEBULA_CLOUD, SUN_IGNITE);
 
 	private VfxIds() {
 	}

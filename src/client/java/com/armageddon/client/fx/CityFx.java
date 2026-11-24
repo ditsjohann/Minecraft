@@ -167,7 +167,12 @@ public final class CityFx {
 			if (a < bang) {
 				// The point, and the dark folding in on it.
 				float k = (float) clamp01(a / bang);
-				Solids.dot(glow, m, c, cb, 0.25 + 0.2 * Math.sin(a * 0.6) + k * 0.4, 0xFFFFFF, 0.6F + 0.4F * k);
+				Solids.dot(glow, m, c, cb, 0.25 + 0.2 * Math.sin(a * 0.6 * (1 + k * 3)) + k * 0.4, 0xFFFFFF, 0.6F + 0.4F * k);
+				// Light bending round it: lensing rings tightening and pulsing faster as the moment comes.
+				for (int r = 0; r < 3; r++) {
+					double rr = (2 + r * 2.5) * (1.2 - k * 0.6) * (1 + 0.15 * Math.sin(a * (0.2 + k * 0.6) + r));
+					FxDraw.ring(glow, m, c, cb[0], cb[1], rr, rr + 0.35, 0xC8D0FF, 0.0F, 0.35F * k, 0.0F, 48);
+				}
 				for (int i = 0; i < 10; i++) {
 					double ang = i * MathHelper.TAU / 10 + a * 0.08;
 					double d = (1 - (a * 0.02 + i * 0.1) % 1) * 12;
@@ -218,6 +223,28 @@ public final class CityFx {
 				if (u > 22 && u < 40) {
 					double rr = pr * (1.2 + (u - 22) * 0.35);
 					FxDraw.ring(glow, m, pc, cb[0], cb[1], rr, rr + 0.8, pcol, 0.0F, 0.7F * (float) (1 - (u - 22) / 18.0), 0.0F, 40);
+				}
+			}
+			// The newborn sun at the heart of it, its corona turning, and the orbits of its planets drawn round it.
+			if (e > 60) {
+				float sun = (float) clamp01((e - 60) / 20.0);
+				double sr = Math.max(1.5, scale * 0.06);
+				FxDraw.sphere(glow, m, c, sr, Vec3d.ZERO, 0xFFF0C0, 0.9F * sun, 0.6F * sun, 14, 24);
+				FxDraw.sphere(glow, m, c, sr * 1.8, Vec3d.ZERO, 0xFFA040, 0.0F, 0.35F * sun, 14, 24);
+				for (int i = 0; i < 18; i++) {
+					double ang = i * MathHelper.TAU / 18 + a * 0.01 * (i % 2 == 0 ? 1 : -1);
+					double len = sr * (1.6 + 0.8 * Math.sin(a * 0.07 + i * 1.7));
+					Vec3d d = cb[0].multiply(Math.cos(ang)).add(cb[1].multiply(Math.sin(ang)));
+					FxDraw.ribbon(glow, m, c.add(d.multiply(sr * 0.9)), c.add(d.multiply(len)), Vec3d.ZERO, sr * 0.35, 0xFFC060, 0.45F * sun, 0.0F);
+				}
+				for (int i = 0; i < CityShapes.PLANETS; i++) {
+					if (e < CityShapes.planetFormAt(i) - bang) {
+						continue;
+					}
+					Vec3d off = CityShapes.planetOffset(seed, i, scale);
+					double orb = Math.hypot(off.x, off.z);
+					FxDraw.ring(glow, m, c.add(0, off.y, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), orb - 0.4, orb + 0.4,
+							CityShapes.planetColor(CityShapes.planetType(seed, i)), 0.0F, 0.45F * sun, 0.0F, 96);
 				}
 			}
 			// Nebulae glowing softly where the glass clouds form.

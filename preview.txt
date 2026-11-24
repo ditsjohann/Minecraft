@@ -61,3 +61,4 @@ lantern 300 -50 15 -50 0 25 0
 vfx:havoc_burst 20 -45 25 -45 0 10 0
 vfx:dim_rift 25 -14 6 -14 0 4 0
 aurora 300 -100 20 -100 0 80 0
+bang 220 -60 30 -60 0 30 0

@@ -118,6 +118,7 @@ public final class PreviewMain {
 			case "infrit" -> NewFx.create(payload(FxType.NEW_FX, a, a, 42, 0x40C8FF, 52, 4242, 0, com.armageddon.util.WildShapes.Infrit.END));
 			case "sword" -> CityFx.create(payload(FxType.CITY_FX, a, new Vec3d(1, 0, 0), 90, 0xFF6020, 9, 60, 0, 300));
 			case "worm" -> CityFx.create(payload(FxType.CITY_FX, a, a, 64, 0xA060FF, 8, 0.6F, 0, 700));
+			case "bang" -> CityFx.create(payload(FxType.CITY_FX, a.add(0, 8, 0), a, 60, 0xFFFFFF, 2, com.armageddon.util.CityShapes.BANG, 0, 700));
 			case "twister" -> new MegaEffects.Twister(a, h, 26, 0.35, 600);
 			case "ufo" -> new MegaEffects.Ufo(a.add(-200, 70, 0), a.add(200, 70, 0), 60, 600);
 			case "moon" -> new ArsenalEffects.Moon(a, 40, 500, 0xC8C8D0, 400);

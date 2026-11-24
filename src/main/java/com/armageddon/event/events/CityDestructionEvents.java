@@ -417,6 +417,22 @@ public final class CityDestructionEvents {
 				Vfx.custom(world, FxType.CITY_FX, point, g, (float) scale, 0xFFFFFF, FX_INFLATION, BANG, 0, END + 400, Vfx.FAR);
 				Kit.sound(world, g, ModSounds.ANTIMATTER, 64.0F, 0.2F);
 			}
+			if (t == 10) {
+				// The singularity: everything starts streaming in toward the point.
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.BANG_INHALE, point, (float) (scale / 60.0));
+			}
+			if (t == BANG) {
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.BANG_CMB, point, (float) (scale / 60.0));
+			}
+			if (t == BANG + 60) {
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SUN_IGNITE, point, (float) Math.max(0.6, scale / 60.0));
+			}
+			for (int k = 0; k < 3; k++) {
+				if (t == BANG + 40 + k * 35) {
+					// The first galaxies wheel into shape out in the new space.
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GALAXY_SWIRL, point.add(CityShapes.nebulaOffset(seed, k + 7, scale)), (float) (scale / 60.0 * (0.9 + 0.3 * k)));
+				}
+			}
 			if (t < BANG - 4 && t % 20 == 0) {
 				Kit.sound(world, g, ModSounds.BOMB_BEEP, 64.0F, 0.5F - t * 0.003F);
 				Vfx.shake(world, g, 512, 0.3F + t * 0.006F);
@@ -455,6 +471,9 @@ public final class CityDestructionEvents {
 				}
 			}
 			for (int k = 0; k < CityShapes.NEBULAE; k++) {
+				if (t == CityShapes.nebulaAt(k)) {
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.NEBULA_CLOUD, point.add(CityShapes.nebulaOffset(seed, k, scale)), (float) Math.max(0.6, scale / 60.0));
+				}
 				if (t == CityShapes.nebulaAt(k) && Destruction.enabled(world)) {
 					Vec3d at = point.add(CityShapes.nebulaOffset(seed, k, scale));
 					CosmosTerrain.nebula(queue, BlockPos.ofFloored(at), (int) Math.max(6, scale * 0.16), k, seed);
