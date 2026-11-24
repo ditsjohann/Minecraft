@@ -81,3 +81,10 @@ tasks.register('boneDump', JavaExec) {
 	mainClass = 'com.armageddon.client.fx.BoneDump'
 	args project.findProperty('dumpDir') ?: 'build'
 }
+
+tasks.register('cityDump', JavaExec) {
+	dependsOn 'previewClasses'
+	classpath = sourceSets.preview.runtimeClasspath
+	mainClass = 'com.armageddon.client.fx.CityDump'
+	args project.findProperty('dumpArgs')?.split(' ') ?: ['build/city.txt', '2', '1']
+}

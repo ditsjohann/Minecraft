@@ -105,8 +105,12 @@ The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Sh
 the Mammoth, Leviathan and Pterosaur fossils, Xenoform, Terror Maniac, Pumpkin Horseman and Portal of Hell) sit
 in their own creative tab, "Armageddon: New", for now.
 
-**Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-4]`, to build a city of
-skyscrapers, roads, street lights and parks (with villagers) to destroy. `/armageddon purge` clears fallout,
+**Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-6]`, to build a city to destroy:
+roads, street lights, parks and villagers, ordinary skyscrapers (taller toward the centre, and taller the bigger the
+city), and a catalogue of oddly shaped buildings made to come down well: round glass towers, twisted towers, inverted
+pyramids, helix towers, TV towers with a glass pod, and gold-trimmed art-deco setbacks. Some blocks of four lots become
+landmarks: an oval stadium with floodlights, a ribbed glass dome, a Ferris wheel in a park, a glass pyramid, twin
+towers joined by a skybridge, or a megatower. Size 6 is over three hundred blocks across. `/armageddon purge` clears fallout,
 black holes, stars, pending strikes and crater jobs.
 
 **Celestial II** — EXPLODING COWS (cows fall as bombs, wave after wave, bigger each time, then one enormous cow

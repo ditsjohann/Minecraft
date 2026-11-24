@@ -42,7 +42,7 @@ public final class ModCommands {
 						.requires(source -> source.hasPermissionLevel(2))
 						.then(CommandManager.literal("city")
 								.executes(ctx -> city(ctx, 2))
-								.then(CommandManager.argument("size", IntegerArgumentType.integer(1, 4))
+								.then(CommandManager.argument("size", IntegerArgumentType.integer(1, 6))
 										.executes(ctx -> city(ctx, IntegerArgumentType.getInteger(ctx, "size")))))
 						.then(CommandManager.literal("purge").executes(ModCommands::purge))
 						.then(com.armageddon.showcase.Showcase.command(registryAccess))
