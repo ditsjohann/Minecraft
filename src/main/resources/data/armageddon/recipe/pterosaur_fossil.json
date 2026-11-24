@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "MBM",
+    "BFB",
+    "MBM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:phantom_membrane"
+    },
+    "B": {
+      "item": "minecraft:bone_block"
+    },
+    "F": {
+      "item": "armageddon:fossil_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:pterosaur_fossil",
+    "count": 1
+  }
+}

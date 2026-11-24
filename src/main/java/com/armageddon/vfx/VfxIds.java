@@ -293,6 +293,21 @@ public final class VfxIds {
 	public static final String BLIGHT_AMBIENT = "blight_ambient";
 	public static final String BLIGHT_EDGE = "blight_edge";
 	public static final String BLIGHT_PULSE = "blight_pulse";
+	public static final String MAMMOTH_HEAVE = "mammoth_heave";
+	public static final String MAMMOTH_BREATH = "mammoth_breath";
+	public static final String MAMMOTH_TRUMPET = "mammoth_trumpet";
+	public static final String MAMMOTH_FRONT = "mammoth_front";
+	public static final String MAMMOTH_SNOW = "mammoth_snow";
+	public static final String MAMMOTH_STOMP = "mammoth_stomp";
+	public static final String LEVI_BREACH = "levi_breach";
+	public static final String LEVI_BUBBLES = "levi_bubbles";
+	public static final String LEVI_MAELSTROM = "levi_maelstrom";
+	public static final String LEVI_ROAR = "levi_roar";
+	public static final String PTERO_BURST = "ptero_burst";
+	public static final String PTERO_TRAIL = "ptero_trail";
+	public static final String PTERO_SCREECH = "ptero_screech";
+	public static final String PTERO_IMPACT = "ptero_impact";
+	public static final String PTERO_CRUMBLE = "ptero_crumble";
 	public static final String PRISM_INBEAM = "prism_inbeam";
 	public static final String BANG_INHALE = "bang_inhale";
 	public static final String BANG_CMB = "bang_cmb";
@@ -526,7 +541,9 @@ public final class VfxIds {
 			AURORA_STARS, AURORA_SPARK, AURORA_STORM,
 			BANG_INHALE, BANG_CMB, GALAXY_SWIRL, NEBULA_CLOUD, SUN_IGNITE,
 			PRISM_INBEAM,
-			SPECTRAL_MOTES, SPECTRAL_WISPS, SPECTRAL_NOVA, CHUNK_STATIC, BLIGHT_AMBIENT, BLIGHT_EDGE, BLIGHT_PULSE);
+			SPECTRAL_MOTES, SPECTRAL_WISPS, SPECTRAL_NOVA, CHUNK_STATIC, BLIGHT_AMBIENT, BLIGHT_EDGE, BLIGHT_PULSE, MAMMOTH_HEAVE, MAMMOTH_BREATH,
+			MAMMOTH_TRUMPET, MAMMOTH_FRONT, MAMMOTH_SNOW, MAMMOTH_STOMP, LEVI_BREACH, LEVI_BUBBLES, LEVI_MAELSTROM, LEVI_ROAR, PTERO_BURST, PTERO_TRAIL,
+			PTERO_SCREECH, PTERO_IMPACT, PTERO_CRUMBLE);
 
 	private VfxIds() {
 	}

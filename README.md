@@ -53,8 +53,8 @@ deadly it is.
 | Uncommon | under 5 blocks | Frag, Incendiary, Gravity Grenade, Flamethrower |
 | Rare | 5 to 12 blocks, gadgets | Thermobaric, Thermite, Sinkhole, Pocket Nuke, Rocket Launcher, Plasma Rifle |
 | Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun |
-| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc |
-| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift |
+| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil |
+| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil |
 | Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit |
 | City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence |
 | World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami |
@@ -81,7 +81,16 @@ locals arrive. FIREWORK HAVOC (legendary): one giant firework climbs and bursts,
 every angle while fountains go off across the ground, ending in a golden willow. CHINESE LANTERN (fun): hundreds of paper
 lanterns rise and fill the sky while a translucent golden dragon flies over them to a flute tune, then bursts into gold.
 
-The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern) sit
+Three more fossils, each crafted from a Fossil Bomb. MAMMOTH FOSSIL (mythic): a woolly mammoth's skeleton rises out of
+a frozen fissure, trumpets, and an ice age rolls out over the land (frozen water, deep snow, spikes of ice, everyone
+frozen) before it stomps the frozen ground to pieces. LEVIATHAN FOSSIL (mythic): a ghost of the ancient sea floods the
+land, ammonites and shoals drifting through it, while a sea serpent's spine breaches in great arches; its skull rears
+up and a maelstrom drags everything down into a funnel that becomes a lagoon. PTEROSAUR FOSSIL (legendary): bones
+burst out of the ground and assemble mid-air into a pterosaur thirty blocks across that flies, screeches, dive-bombs
+the land three times, then lands on a spire of bone and crumbles to dust.
+
+The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern and
+the Mammoth, Leviathan and Pterosaur fossils) sit
 in their own creative tab, "Armageddon: New", for now.
 
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-4]`, to build a city of

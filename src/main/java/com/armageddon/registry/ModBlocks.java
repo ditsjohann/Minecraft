@@ -151,6 +151,9 @@ public final class ModBlocks {
 	public static final BombBlock DIMENSION_SHIFT = tiered(bomb("dimension_shift", BombType.DIMENSION_SHIFT, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock FIREWORK_HAVOC = tiered(bomb("firework_havoc", BombType.FIREWORK_HAVOC, Rarity.EPIC), Tier.LEGENDARY);
 	public static final BombBlock CHINESE_LANTERN = tiered(bomb("chinese_lantern", BombType.CHINESE_LANTERN, Rarity.UNCOMMON), Tier.FUN);
+	public static final BombBlock MAMMOTH_FOSSIL = tiered(bomb("mammoth_fossil", BombType.MAMMOTH_FOSSIL, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock LEVIATHAN_FOSSIL = tiered(bomb("leviathan_fossil", BombType.LEVIATHAN_FOSSIL, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock PTEROSAUR_FOSSIL = tiered(bomb("pterosaur_fossil", BombType.PTEROSAUR_FOSSIL, Rarity.EPIC), Tier.LEGENDARY);
 	public static final BombBlock BLUE_INFRIT = tiered(bomb("blue_infrit", BombType.BLUE_INFRIT, Rarity.EPIC), Tier.CELESTIAL);
 
 	// ---------------------------------------------------------------- arsenal expansion: aftermath blocks

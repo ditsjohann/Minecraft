@@ -136,6 +136,9 @@ public final class Events {
 		EVENTS.put("dimension_shift", com.armageddon.event.events.WonderEvents.DimensionShift::new);
 		EVENTS.put("firework_havoc", com.armageddon.event.events.WonderEvents.FireworkHavoc::new);
 		EVENTS.put("chinese_lantern", com.armageddon.event.events.WonderEvents.ChineseLantern::new);
+		EVENTS.put("mammoth_fossil", com.armageddon.event.events.FossilEvents.MammothFossil::new);
+		EVENTS.put("leviathan_fossil", com.armageddon.event.events.FossilEvents.LeviathanFossil::new);
+		EVENTS.put("pterosaur_fossil", com.armageddon.event.events.FossilEvents.PterosaurFossil::new);
 		EVENTS.put("blue_infrit", com.armageddon.event.events.WildEvents.BlueInfrit::new);
 		// Celestial
 		EVENTS.put("last_light", CelestialEvents.LastLight::new);

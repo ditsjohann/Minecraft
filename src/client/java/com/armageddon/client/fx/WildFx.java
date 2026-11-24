@@ -41,7 +41,7 @@ public final class WildFx {
 			case 52 -> new InfritFx(a, (int) p.p1(), p.duration());
 			case 53 -> new KoiFx(a, p.duration());
 			case 54 -> new LanternFx(a, p.duration());
-			default -> null;
+			default -> kind >= 55 && kind <= 57 ? FossilFx.create(kind, a, b, p) : null;
 		};
 	}
 

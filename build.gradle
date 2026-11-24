@@ -74,3 +74,10 @@ jar {
 		rename { "${it}_$projectName" }
 	}
 }
+
+tasks.register('boneDump', JavaExec) {
+	dependsOn 'previewClasses'
+	classpath = sourceSets.preview.runtimeClasspath
+	mainClass = 'com.armageddon.client.fx.BoneDump'
+	args project.findProperty('dumpDir') ?: 'build'
+}

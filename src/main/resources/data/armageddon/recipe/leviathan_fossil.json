@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "BPB",
+    "HFH",
+    "BPB"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:bone_block"
+    },
+    "P": {
+      "item": "minecraft:prismarine"
+    },
+    "H": {
+      "item": "minecraft:heart_of_the_sea"
+    },
+    "F": {
+      "item": "armageddon:fossil_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:leviathan_fossil",
+    "count": 1
+  }
+}

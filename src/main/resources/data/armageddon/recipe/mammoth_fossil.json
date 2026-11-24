@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "BIB",
+    "PFP",
+    "BIB"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:bone_block"
+    },
+    "I": {
+      "item": "minecraft:blue_ice"
+    },
+    "P": {
+      "item": "minecraft:packed_ice"
+    },
+    "F": {
+      "item": "armageddon:fossil_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:mammoth_fossil",
+    "count": 1
+  }
+}

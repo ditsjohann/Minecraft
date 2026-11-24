@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/pterosaur_fossil"
+    },
+    "facing=east": {
+      "model": "armageddon:block/pterosaur_fossil",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/pterosaur_fossil",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/pterosaur_fossil",
+      "y": 270
+    }
+  }
+}

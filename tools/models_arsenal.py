@@ -1584,3 +1584,68 @@ def hyperbeam_raygun():
 
 
 GUNS["hyperbeam_raygun"] = hyperbeam_raygun
+
+
+def mammoth_fossil():
+    # A mammoth's skull frozen in a block of permafrost, its tusks curling out of the ice, cold light in its eyes.
+    m = [B(0, 0, 0, 16, 1.5, 16, "rock"), B(1, 1.5, 1, 15, 2.2, 15, "mud")]
+    m += [B(2, 2.2, 11, 14, 8, 15, "glass_ice"), B(3, 2.2, 6, 13, 4, 11, "ice"), B(1.4, 2.2, 10, 3.4, 5, 14, "ice"), B(12.6, 2.2, 9, 14.6, 4, 13, "ice")]
+    # The dome of the skull and the face.
+    m += [B(4.5, 4, 7.5, 11.5, 11.5, 13.5, "bone"), B(5.2, 11.5, 8.2, 10.8, 13, 12.8, "bone"), B(5.5, 3, 5, 10.5, 8, 7.5, "bone")]
+    m += [B(5.4, 8.6, 7.3, 6.9, 9.8, 7.5, "glow_cyan"), B(9.1, 8.6, 7.3, 10.6, 9.8, 7.5, "glow_cyan")]
+    # Tusks: forward, down, out and up.
+    for side in (-1, 1):
+        x0 = 8 + side * 1.8
+        pts = [(x0, 4.5, 5), (x0 + side * 0.6, 3.3, 3.6), (x0 + side * 1.4, 3.0, 2.2), (x0 + side * 2.3, 3.6, 1.0), (x0 + side * 3.0, 5.0, 0.4),
+               (x0 + side * 3.2, 6.6, 0.4), (x0 + side * 2.9, 8.0, 1.0)]
+        for i, (x, y, z) in enumerate(pts):
+            r = 0.75 - i * 0.07
+            m += [B(x - r, y - r, z - r, x + r, y + r, z + r, "pearl")]
+    return m
+
+
+def leviathan_fossil():
+    # A tide pool of ghostly sea with a serpent's spine breaching out of it in two arches, its skull rearing up.
+    m = [B(0, 0, 0, 16, 1.5, 16, "sand"), B(1, 1.5, 1, 15, 2.4, 15, "glass_cyan")]
+    for (cx, r0) in ((4.0, 3.0), (9.0, 2.6)):
+        for i in range(9):
+            a = 3.14159 * i / 8
+            x, y = cx + _m.cos(a) * r0 * -1, 2 + _m.sin(a) * r0 * 1.5
+            m += [B(x - 0.7, y - 0.7, 7.2, x + 0.7, y + 0.7, 8.8, "bone")]
+            if i % 2 == 1:
+                m += [B(x - 0.25, y + 0.6, 7.75, x + 0.25, y + 1.6, 8.25, "glass_cyan")]
+    # The neck rising and the long open-jawed skull.
+    for i, (x, y) in enumerate(((12.4, 2.6), (12.8, 4.2), (13.0, 5.8), (12.9, 7.4), (12.5, 9.0))):
+        m += [B(x - 0.8, y - 0.8, 7.2, x + 0.8, y + 0.8, 8.8, "bone")]
+    m += [B(9.0, 9.4, 6.6, 13.2, 11.0, 9.4, "bone"), B(9.6, 11.0, 6.9, 12.8, 11.6, 9.1, "bone"), B(9.4, 7.6, 7.0, 12.6, 8.4, 9.0, "bone")]
+    for x in (9.6, 10.6, 11.6):
+        m += [B(x, 8.4, 7.1, x + 0.35, 9.4, 7.45, "white"), B(x, 8.4, 8.55, x + 0.35, 9.4, 8.9, "white")]
+    m += [B(12.2, 10.2, 6.5, 12.9, 10.8, 6.7, "glow_cyan"), B(12.2, 10.2, 9.3, 12.9, 10.8, 9.5, "glow_cyan")]
+    return m
+
+
+def pterosaur_fossil():
+    # A pterosaur splayed across a slab of stone, wings outstretched, crest swept back, embers in its eyes.
+    m = [B(0, 0, 0, 16, 1.4, 16, "rock"), B(0.6, 1.4, 0.6, 15.4, 2.6, 15.4, "mud")]
+    y = 2.6
+    m += [B(7.2, y, 5.5, 8.8, y + 0.8, 10.5, "bone")]                        # body
+    m += [B(7.5, y, 10.5, 8.5, y + 0.6, 12.4, "bone"), B(7.2, y, 12.4, 8.8, y + 1.0, 13.6, "bone")]  # neck, skull
+    m += [B(7.6, y, 13.6, 8.4, y + 0.6, 15.6, "bone"), B(7.7, y, 10.8, 8.3, y + 0.5, 12.6, "bone")]  # beak
+    m += [B(7.7, y + 0.5, 11.2, 8.3, y + 1.2, 12.4, "bone")]                 # crest
+    m += [B(7.2, y + 0.8, 13.0, 7.5, y + 1.1, 13.3, "glow_orange"), B(8.5, y + 0.8, 13.0, 8.8, y + 1.1, 13.3, "glow_orange")]
+    for side in (-1, 1):
+        def bx(x0, z0, x1, z1, w=0.5):
+            return B(min(x0, x1) - w, y, min(z0, z1) - w, max(x0, x1) + w, y + 0.6, max(z0, z1) + w, "bone")
+        sx = 8 + side * 0.8
+        ex, wx, tx = 8 + side * 3.2, 8 + side * 5.6, 8 + side * 7.4
+        m += [bx(sx, 9.6, ex, 10.2), bx(ex, 10.2, wx, 11.0)]
+        for k in range(4):
+            z = 11.0 - k * 1.5
+            m += [bx(wx + side * k * 0.45, z, wx + side * (k + 1) * 0.45, z - 1.5, 0.3)]
+        m += [bx(tx, 5.0, tx, 4.0, 0.25)]
+        m += [bx(8 + side * 0.5, 5.6, 8 + side * 1.4, 3.8, 0.28), bx(8 + side * 1.4, 3.8, 8 + side * 1.6, 2.2, 0.22)]
+    m += [B(7.7, y, 2.6, 8.3, y + 0.5, 5.5, "bone")]                           # tail
+    return m
+
+
+BOMBS.update({"mammoth_fossil": mammoth_fossil, "leviathan_fossil": leviathan_fossil, "pterosaur_fossil": pterosaur_fossil})

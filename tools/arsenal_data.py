@@ -121,10 +121,14 @@ NEW_BOMBS.update({
     "goo_bomb": "Goo Bomb", "cactus_bomb": "Cactus Bomb", "blackforge": "BLACKFORGE", "blue_infrit": "BLUE INFRIT",
     "plasma_koi": "PLASMA KOI",
     "dimension_shift": "DIMENSION SHIFT", "firework_havoc": "Firework Havoc", "chinese_lantern": "Chinese Lantern",
+    "mammoth_fossil": "MAMMOTH FOSSIL", "leviathan_fossil": "LEVIATHAN FOSSIL", "pterosaur_fossil": "Pterosaur Fossil",
 })
 BLOCKS.update(NEW_BOMBS)
 
 BLOCK_DESC = {
+    "mammoth_fossil": "A frozen fissure opens and a woolly mammoth's skeleton rises out of the permafrost, tusks curling. Its eyes catch a cold blue light and it trumpets: an ice age rolls out over the land, freezing water, burying it in snow and bursting spikes of ice out of the ground. Then it stomps twice and the frozen ground shatters. Light twice.",
+    "leviathan_fossil": "The ancient sea floods back over the land as a ghost, with ammonites and shoals drifting through it, and the fossil of a sea serpent breaches out of the ground in great arches. Its skull rears up with its jaws wide, its eyes light, and a maelstrom tears open in front of it, dragging everything round and down. It leaves a lagoon. Light twice.",
+    "pterosaur_fossil": "Bones burst out of the ground and assemble in the air into a pterosaur thirty blocks across, with fire in its eyes and the ghost of its wings between the bones. It circles high and dives three times, screeching, blasting the ground where it pulls up. Then it lands on a spire of bone and crumbles to dust.",
     "dimension_shift": "A rift tears open in the air and a wave runs out from it, shifting everything it passes into the Nether: nylium and netherrack, soul sand, crimson and warped trees, lava where the water was, a red sky and falling ash. Then the locals arrive. Light twice.",
     "firework_havoc": "One firework the size of a tower climbs screaming into the sky and bursts, setting off a cascade of fireworks at every angle while fountains and roman candles go off all over the ground. Ends in a golden willow.",
     "chinese_lantern": "Hundreds of paper lanterns rise and fill the sky while a golden dragon flies slowly round over them to a flute tune, and at the end climbs and bursts into gold. Harmless.",
@@ -332,6 +336,11 @@ def bomb_recipes3(shaped):
                                                     "N": "minecraft:nether_star"}, category=cat)
     shaped("firework_havoc", ["RFR", "FTF", "RFR"], {"R": "minecraft:firework_rocket", "F": "minecraft:firework_star", "T": "minecraft:tnt"}, category=cat)
     shaped("chinese_lantern", ["PGP", "PLP", "PGP"], {"P": "minecraft:paper", "G": "minecraft:gold_nugget", "L": "minecraft:lantern"}, category=cat)
+    shaped("mammoth_fossil", ["BIB", "PFP", "BIB"], {"B": "minecraft:bone_block", "I": "minecraft:blue_ice", "P": "minecraft:packed_ice",
+                                                   "F": "fossil_bomb"}, category=cat)
+    shaped("leviathan_fossil", ["BPB", "HFH", "BPB"], {"B": "minecraft:bone_block", "P": "minecraft:prismarine", "H": "minecraft:heart_of_the_sea",
+                                                     "F": "fossil_bomb"}, category=cat)
+    shaped("pterosaur_fossil", ["MBM", "BFB", "MBM"], {"M": "minecraft:phantom_membrane", "B": "minecraft:bone_block", "F": "fossil_bomb"}, category=cat)
     shaped("plasma_koi", ["SFS", "PNP", "SFS"], {"S": "minecraft:sea_lantern", "F": "minecraft:tropical_fish", "P": "minecraft:prismarine_crystals",
                                                "N": "minecraft:nether_star"}, category=cat)
 
