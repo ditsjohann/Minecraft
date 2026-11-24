@@ -17,10 +17,23 @@ jobs:
         with:
           java-version: '21'
           distribution: 'microsoft'
+      - name: setup gradle (caches dependencies between runs)
+        uses: gradle/actions/setup-gradle@v4
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build
-        run: ./gradlew build --stacktrace 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+        # Maven Central sometimes rate-limits the shared runners (HTTP 429); only that is retried, after a pause.
+        run: |
+          for attempt in 1 2 3; do
+            ./gradlew build --stacktrace 2>&1 | tee build.log
+            code=${PIPESTATUS[0]}
+            if [ "$code" -eq 0 ] || ! grep -q "status code 429" build.log; then
+              exit "$code"
+            fi
+            echo "Rate-limited by a dependency repository (attempt $attempt); retrying in $((attempt * 60))s"
+            sleep $((attempt * 60))
+          done
+          exit "$code"
         shell: bash
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
