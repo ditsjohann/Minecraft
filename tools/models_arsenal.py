@@ -1751,3 +1751,20 @@ def portal_of_hell():
 
 
 BOMBS.update({"portal_of_hell": portal_of_hell})
+
+
+def ai_takeover():
+    # A black monolithic core on a circuit board, red seams up its faces and a red lens-eye at its crown.
+    m = [B(0, 0, 0, 16, 1.2, 16, "black"), B(0.5, 1.2, 0.5, 15.5, 1.5, 15.5, "carbon")]
+    for (x0, z0, x1, z1) in ((1, 8, 5.5, 8), (10.5, 8, 15, 8), (8, 1, 8, 5.5), (8, 10.5, 8, 15), (2, 3, 5, 3), (11, 13, 14, 13), (3, 11, 3, 14)):
+        m += [B(min(x0, x1) - 0.2, 1.5, min(z0, z1) - 0.2, max(x0, x1) + 0.2, 1.7, max(z0, z1) + 0.2, "glow_red")]
+    m += [B(4.5, 1.5, 4.5, 11.5, 2.5, 11.5, "gunmetal")]
+    m += [B(5.5, 2.5, 5.5, 10.5, 13.5, 10.5, "black")]
+    for (x0, z0, x1, z1) in ((7.6, 5.3, 8.4, 5.5), (7.6, 10.5, 8.4, 10.7), (5.3, 7.6, 5.5, 8.4), (10.5, 7.6, 10.7, 8.4)):
+        m += [B(x0, 3, z0, x1, 12.5, z1, "glow_red")]
+    m += [B(6.0, 13.5, 6.0, 10.0, 14.5, 10.0, "gunmetal"), B(6.5, 14.5, 6.5, 9.5, 16, 9.5, "black")]
+    m += [B(7.0, 14.7, 6.3, 9.0, 15.8, 6.5, "glow_red"), B(7.6, 15.0, 6.2, 8.4, 15.5, 6.3, "glow_white")]
+    return m
+
+
+BOMBS.update({"ai_takeover": ai_takeover})

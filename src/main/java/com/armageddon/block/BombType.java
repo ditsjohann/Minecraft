@@ -117,7 +117,8 @@ public enum BombType {
 	// horror
 	TERROR_MANIAC(200, 0xB01010),
 	PUMPKIN_HORSEMAN(200, 0xFF8020),
-	PORTAL_OF_HELL(200, 0xFF3010);
+	PORTAL_OF_HELL(200, 0xFF3010),
+	AI_TAKEOVER(300, 0xFF2020);
 
 	public final int fuse;
 	public final int color;

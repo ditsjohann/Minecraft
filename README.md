@@ -56,7 +56,7 @@ deadly it is.
 | Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil |
 | Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil |
 | Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit, Terror Maniac, Pumpkin Horseman, Portal of Hell |
-| City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence |
+| City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence, AI Takeover |
 | World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami, Xenoform |
 
 Bombs of Mythic tier and up must be lit twice; Celestial and up are gated by `armageddonAllowCelestial` and live in
@@ -83,6 +83,13 @@ out of the earth; its arch becomes a vortex of hellfire with an eye that follows
 falls from its sill, Nether mobs come through, and a clawed arm reaches out and slams the ground before the portal
 implodes, leaving the cracked gate over scorched land.
 
+AI TAKEOVER (City Destruction): a black core erupts from the middle of the city and opens a red lens-eye, and static
+crawls over every screen. Circuit traces race out across the streets behind a wall of red hologram, and everything they
+reach is assimilated: glass blacked out, walls turned black, lights gone red, the ground a black circuit board. A swarm
+of drones pours out of the core and hunts anything alive with lasers. Then the eye goes white, alarms sound, and a grid
+of laser walls expands from the core, cutting every building straight down into blocks. The drones return, the core
+uploads itself into the sky, and an EMP blast ends it.
+
 PLASMA KOI (mythic): a pond of liquid light opens and seven koi made of plasma circle beneath its surface. One by one
 they leap out on wilder and wilder arcs, each landing in a scorching splash; then they leap together, braid into a
 dragon that climbs and circles over the pond, and dive back in. The pond erupts into a geyser and plasma rains down.
@@ -102,7 +109,7 @@ burst out of the ground and assemble mid-air into a pterosaur thirty blocks acro
 the land three times, then lands on a spire of bone and crumbles to dust.
 
 The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern and
-the Mammoth, Leviathan and Pterosaur fossils, Xenoform, Terror Maniac, Pumpkin Horseman and Portal of Hell) sit
+the Mammoth, Leviathan and Pterosaur fossils, Xenoform, Terror Maniac, Pumpkin Horseman, Portal of Hell and AI Takeover) sit
 in their own creative tab, "Armageddon: New", for now.
 
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-6]`, to build a city to destroy:

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/ai_takeover"
+    },
+    "facing=east": {
+      "model": "armageddon:block/ai_takeover",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/ai_takeover",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/ai_takeover",
+      "y": 270
+    }
+  }
+}

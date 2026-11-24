@@ -56,7 +56,8 @@ public final class Catalog {
 			com.armageddon.block.BombType.MAMMOTH_FOSSIL, com.armageddon.block.BombType.LEVIATHAN_FOSSIL, com.armageddon.block.BombType.PTEROSAUR_FOSSIL,
 			com.armageddon.block.BombType.XENOFORM, com.armageddon.block.BombType.TERROR_MANIAC,
 			com.armageddon.block.BombType.PUMPKIN_HORSEMAN,
-			com.armageddon.block.BombType.PORTAL_OF_HELL);
+			com.armageddon.block.BombType.PORTAL_OF_HELL,
+			com.armageddon.block.BombType.AI_TAKEOVER);
 
 	private static Set<Item> ammo() {
 		return Set.of(ModItems.MINI_NUKE, ModItems.ROCKET, ModItems.PLASMA_CELL, ModItems.RAILGUN_SLUG, ModItems.BULLET_BELT,
