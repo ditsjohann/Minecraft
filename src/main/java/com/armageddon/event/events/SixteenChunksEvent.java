@@ -107,7 +107,7 @@ public class SixteenChunksEvent extends WorldEvent {
 		}
 		if (t == ChunkRolls.rollTick(ChunkRolls.CELLS - 1) + 20) {
 			// Every chunk has rolled: a fanfare, and the results stay.
-			Vfx.ring(world, g, 140.0F, 2.0F, 0xFF40FF, true, 40);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.GRID_FANFARE, g, 1.0F);
 			Kit.sound(world, g, SoundEvents.ENTITY_PLAYER_LEVELUP, 48.0F, 0.5F);
 			Kit.sound(world, g, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 48.0F, 1.0F);
 		}
@@ -159,7 +159,7 @@ public class SixteenChunksEvent extends WorldEvent {
 			int col = net.minecraft.util.math.MathHelper.hsvToRgb(cell / (float) ChunkRolls.CELLS, 0.7F, 1.0F);
 			int delay = cell % ChunkRolls.W * 2 + cell / ChunkRolls.W * 3;
 			com.armageddon.detonation.DetonationManager.schedule(world, delay, () -> {
-				Vfx.pillar(world, corner, 3.0F, col, true, 60);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CORNER_GEYSER, corner, new Vec3d(0, 1, 0), 1.0F, col);
 				// The corners glitch out of existence rather than blowing up.
 				com.armageddon.event.Ruin.disintegrate(world, corner, 4.0, Blocks.PEARLESCENT_FROGLIGHT.getDefaultState(), net.minecraft.particle.ParticleTypes.END_ROD, 14);
 			});
@@ -238,8 +238,7 @@ public class SixteenChunksEvent extends WorldEvent {
 		Vec3d cc = cellCenter(cell);
 		int lo = lo(cell), hi = hi(cell);
 		Vfx.wirebox(world, new Vec3d(minX(cell), lo, minZ(cell)), new Vec3d(minX(cell) + 16, hi + 1, minZ(cell) + 16), kind.color, 40);
-		Vfx.pillar(world, cc, 3.0F, kind.color, kind == ChunkRolls.Kind.RANDOMIZE, 30);
-		Vfx.glitch(world, cc, 12.0F, kind.color, 30);
+		com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CHUNK_REROLL, new Vec3d(cc.x, lo + 1, cc.z), new Vec3d(0, 1, 0), 1.0F, kind.color);
 		Vfx.shake(world, cc, 120, 0.6F);
 		Kit.sound(world, cc, SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 24.0F, 0.5F + world.random.nextFloat());
 		Kit.sound(world, cc, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 24.0F, 0.6F);
@@ -373,7 +372,7 @@ public class SixteenChunksEvent extends WorldEvent {
 				}
 			}
 		}
-		Vfx.beam(world, cellCenter(cell).add(0, 2, 0), cellCenter(other).add(0, 2, 0), 1.5F, 0xFFFF60, 30);
+		com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.CHUNK_SWAP, cellCenter(cell).add(0, 2, 0), cellCenter(other).subtract(cellCenter(cell)), 1.0F, 0);
 	}
 
 	private void ocean(int cell, int hi) {

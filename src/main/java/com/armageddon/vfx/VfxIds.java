@@ -286,6 +286,29 @@ public final class VfxIds {
 	public static final String SPOT_SCORCH = "spot_scorch";
 	public static final String SHOWTIME = "showtime";
 	public static final String FINALE_GLITTER = "finale_glitter";
+	public static final String CHUNK_REROLL = "chunk_reroll";
+	public static final String GRID_FANFARE = "grid_fanfare";
+	public static final String CHUNK_SWAP = "chunk_swap";
+	public static final String CORNER_GEYSER = "corner_geyser";
+	public static final String BEAM_SPARKLE = "beam_sparkle";
+	public static final String DISCO_DROP = "disco_drop";
+	public static final String FLOOR_PULSE = "floor_pulse";
+	public static final String LIDAR_HIT = "lidar_hit";
+	public static final String LIDAR_OVERLOAD = "lidar_overload";
+	public static final String VOID_SWALLOW = "void_swallow";
+	public static final String VOID_EXHALE = "void_exhale";
+	public static final String ICE_ERUPT = "ice_erupt";
+	public static final String SHARD_LAND = "shard_land";
+	public static final String SONAR_SHATTER = "sonar_shatter";
+	public static final String SONAR_BOOM = "sonar_boom";
+	public static final String PIXEL_BURST = "pixel_burst";
+	public static final String MAG_LIFT = "mag_lift";
+	public static final String MAG_GRIND = "mag_grind";
+	public static final String MAG_JET_HIT = "mag_jet_hit";
+	public static final String MAG_COLLAPSE = "mag_collapse";
+	public static final String COMIC_BLAST = "comic_blast";
+	public static final String AURORA_STRIKE = "aurora_strike";
+	public static final String AURORA_CROWN = "aurora_crown";
 	public static final String TSUNAMI_CREST = "tsunami_crest";
 	public static final String VOLCANO_RISE = "volcano_rise";
 	public static final String VOLCANO_OPEN = "volcano_open";
@@ -439,7 +462,8 @@ public final class VfxIds {
 			CLUSTER_POP, NOVA_PROMINENCE, NOVA_SCORCH, OMEGA_DRAW, OMEGA_CRACK, CROWN_RING, CROWN_BURST, CONTINENT_HEAVE, DAWN_GATHER, DAWN_RISE, BLOOD_RAIN, BLOOD_STRIKE, BLOOD_NOVA, LL_BEAT, LL_ASH, LL_DEATH, ZP_HUSH, ZP_SNAP, UM_PLANE,
 			SURGE_DUST, SURGE_SPRAY, SURGE_LEAVES, SURGE_WALL,
 			SPEAR_STRIKE, GODFALL_IMPACT, DISCO_BEAT, GLITTER_FLAKES, GLITTER_POP, PUMPKIN_SPROUT, PUMPKIN_FOG, WEB_BURST, BALLOON_LIFT, BALLOON_POP, SPRINKLER_RAIN, THERMITE_BURN, TESLA_LID, FULGURITE, SINK_POUR, SINK_RIM,
-			TSUNAMI_CREST, VOLCANO_RISE, VOLCANO_OPEN, VOLCANO_PLUME, VOLCANO_BURST, ICE_FRONT, ICE_BLIZZARD, SPIRE_CRACK, HELL_CRACK, HELL_OPEN, HELL_GEYSER, HELL_THROAT, HELL_ERUPT, CYCLONE_WEDGE, HOUR_MARK, CLOCK_HAND, HOUR_STRIKE, MIDNIGHT, BANG_BIRTH, BANG_STARS, PLANET_FORM, CHRONO_SHELL, CHRONO_SAND, CHRONO_SNAP, SPEAR_HERALD, SPEAR_IMPACT, SPEAR_DRILL, CORE_GEYSER, ZOMBIE_CLAW, GIANT_RISE, GIANT_STOMP, GIANT_BURST, ZOMBIE_DUST);
+			TSUNAMI_CREST, VOLCANO_RISE, VOLCANO_OPEN, VOLCANO_PLUME, VOLCANO_BURST, ICE_FRONT, ICE_BLIZZARD, SPIRE_CRACK, HELL_CRACK, HELL_OPEN, HELL_GEYSER, HELL_THROAT, HELL_ERUPT, CYCLONE_WEDGE, HOUR_MARK, CLOCK_HAND, HOUR_STRIKE, MIDNIGHT, BANG_BIRTH, BANG_STARS, PLANET_FORM, CHRONO_SHELL, CHRONO_SAND, CHRONO_SNAP, SPEAR_HERALD, SPEAR_IMPACT, SPEAR_DRILL, CORE_GEYSER, ZOMBIE_CLAW, GIANT_RISE, GIANT_STOMP, GIANT_BURST, ZOMBIE_DUST,
+			CHUNK_REROLL, GRID_FANFARE, CHUNK_SWAP, CORNER_GEYSER, BEAM_SPARKLE, DISCO_DROP, FLOOR_PULSE, LIDAR_HIT, LIDAR_OVERLOAD, VOID_SWALLOW, VOID_EXHALE, ICE_ERUPT, SHARD_LAND, SONAR_SHATTER, SONAR_BOOM, PIXEL_BURST, MAG_LIFT, MAG_GRIND, MAG_JET_HIT, MAG_COLLAPSE, COMIC_BLAST, AURORA_STRIKE, AURORA_CROWN);
 
 	private VfxIds() {
 	}

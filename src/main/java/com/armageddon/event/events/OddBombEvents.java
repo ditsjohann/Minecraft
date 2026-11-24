@@ -122,7 +122,7 @@ public final class OddBombEvents {
 				// brittle for a hundred blocks bursts at once.
 				Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.7F);
 				Kit.sound(world, g, SoundEvents.BLOCK_GLASS_BREAK, 64.0F, 0.5F);
-				Vfx.ring(world, g.add(0, 1, 0), 140.0F, 4.0F, 0x40FF80, true, 40);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SONAR_BOOM, g, 1.0F);
 				Vfx.shake(world, g, 400, 2.0F);
 				Detonations.blast(world, g, 40, 22.0F, ModDamageTypes.ANNIHILATION, owner(), 3.0, 1.0);
 				for (int k = 0; k < 8; k++) {
@@ -171,7 +171,9 @@ public final class OddBombEvents {
 					BlockState s = world.getBlockState(p);
 					if (s.isIn(BlockTags.LEAVES) || s.isOf(Blocks.GLASS) || s.isOf(Blocks.GLASS_PANE) || s.isIn(BlockTags.IMPERMEABLE)
 							|| s.isOf(Blocks.ICE) || s.isOf(Blocks.PACKED_ICE) || s.getBlock() instanceof net.minecraft.block.StainedGlassPaneBlock) {
-						world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, s), p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5, 6, 0.3, 0.3, 0.3, 0.1);
+						if (world.random.nextInt(3) == 0) {
+							com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SONAR_SHATTER, Vec3d.ofCenter(p), 1.0F);
+						}
 						q().add(p, Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
 						if (world.random.nextInt(6) == 0) {
 							Kit.sound(world, Vec3d.ofCenter(p), SoundEvents.BLOCK_GLASS_BREAK, 4.0F, 0.8F + world.random.nextFloat() * 0.6F);
@@ -219,7 +221,8 @@ public final class OddBombEvents {
 			if (t == OVER) {
 				Kit.title(world, g, 200, Text.literal("GAME OVER").formatted(Formatting.RED, Formatting.BOLD), Text.literal("INSERT COIN").formatted(Formatting.YELLOW));
 				Kit.sound(world, g, SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), 64.0F, 0.5F);
-				Kit.boom(world, g.add(0, 1, 0), 5.0F, 0xFF40FF, owner(), true);
+				Kit.blast(world, g.add(0, 1, 0), 5.0F, owner(), true);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PIXEL_BURST, g.add(0, 1, 0), 1.0F);
 				List<FallingBlockEntity> bits = Kit.lift(world, g, 18, 50, true, false);
 				Block[] palette = {Blocks.MAGENTA_CONCRETE, Blocks.CYAN_CONCRETE, Blocks.YELLOW_CONCRETE, Blocks.LIME_CONCRETE, Blocks.RED_CONCRETE, Blocks.BLUE_CONCRETE};
 				for (int i = 0; i < bits.size(); i++) {
@@ -354,7 +357,7 @@ public final class OddBombEvents {
 				fb.setNoGravity(true);
 				fb.setDestroyedOnLanding();
 				orbit.add(fb);
-				world.spawnParticles(ParticleTypes.ELECTRIC_SPARK, x + 0.5, p.getY() + 0.5, z + 0.5, 8, 0.4, 0.4, 0.4, 0.2);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.MAG_LIFT, new Vec3d(x + 0.5, p.getY() + 0.5, z + 0.5), 1.0F);
 				if (orbit.size() >= 260) {
 					return;
 				}
@@ -365,7 +368,7 @@ public final class OddBombEvents {
 		private void grind(Vec3d star) {
 			for (FallingBlockEntity fb : orbit) {
 				if (fb.isAlive() && world.random.nextFloat() < 0.012F) {
-					world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, fb.getBlockState()), fb.getX(), fb.getY(), fb.getZ(), 10, 0.3, 0.3, 0.3, 0.1);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.MAG_GRIND, fb.getPos(), 1.0F);
 					fb.discard();
 				}
 			}
@@ -431,7 +434,7 @@ public final class OddBombEvents {
 				com.armageddon.event.Ruin.disintegrate(world, hit, 2.6, Blocks.SEA_LANTERN.getDefaultState(), ParticleTypes.END_ROD, 4);
 			}
 			if (t % 5 == 0) {
-				world.spawnParticles(ParticleTypes.FLASH, hit.x, hit.y + 0.5, hit.z, 1, 0, 0, 0, 0);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.MAG_JET_HIT, hit, 1.0F);
 				Kit.sound(world, hit, ModSounds.PLASMA_IMPACT, 6.0F, 1.2F);
 			}
 		}
@@ -441,7 +444,7 @@ public final class OddBombEvents {
 			Vfx.screen(world, star, 200, 3, 0.6F, 24);
 			// It collapses into a point and the orbit is fired off as a storm of debris; where the star was is a hole.
 			com.armageddon.event.Ruin.implode(world, star, 7, 18);
-			Vfx.ring(world, star, 90.0F, 3.0F, 0x80B0FF, false, 40);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.MAG_COLLAPSE, star, 1.0F);
 			for (FallingBlockEntity fb : orbit) {
 				if (fb.isAlive()) {
 					fb.setNoGravity(false);
@@ -516,7 +519,10 @@ public final class OddBombEvents {
 				for (int k = -2; k <= 2; k++) {
 					Vec3d side = new Vec3d(-heading.z, 0, heading.x).multiply(k * 14);
 					final Vec3d p = mid.add(side);
-					DetonationManager.schedule(world, 4 + (k + 2) * 3, () -> Kit.boom(world, p, 4.0F, 0xFFD020, owner(), true));
+					DetonationManager.schedule(world, 4 + (k + 2) * 3, () -> {
+						Kit.blast(world, p, 4.0F, owner(), true);
+						com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.COMIC_BLAST, p, 4.0F / 3.6F);
+					});
 				}
 			}
 			drain();
@@ -524,7 +530,8 @@ public final class OddBombEvents {
 		}
 
 		private void blast(Vec3d p, float size, int word) {
-			Kit.boom(world, p, size, 0xFFD020, owner(), true);
+			Kit.blast(world, p, size, owner(), true);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.COMIC_BLAST, p, size / 3.6F);
 			Vfx.impact(world, p, 0, 2);
 			Vfx.newFx(world, FX_COMIC, p.add(0, 4 + size, 0), p, size * 2.2F, word % 2 == 0 ? 0xFFE020 : 0xFF5020, word % WORDS.length, 0, 50);
 			Kit.sound(world, p, SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, 32.0F, 0.5F);
@@ -595,24 +602,17 @@ public final class OddBombEvents {
 				strike(p, COLORS[k % COLORS.length], k);
 			}
 			if (t == FINALE) {
-				Vfx.pillar(world, g, 14.0F, 0x60FFB0, true, 120);
-				Vfx.beam(world, g.add(0, 160, 0), g, 8.0F, 0x80FFC0, 40);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.AURORA_CROWN, g, 1.0F);
 				Kit.sound(world, g, ModSounds.ORBITAL_STRIKE, 64.0F, 0.8F);
 				Kit.damage(world, g, 14, 40.0F, ModDamageTypes.PLASMA, null, owner());
 				com.armageddon.event.Ruin.disintegrate(world, g, 11, Blocks.SEA_LANTERN.getDefaultState(), ParticleTypes.END_ROD, 40);
-				for (int i = 0; i < 5; i++) {
-					final int c = COLORS[i];
-					final int k = i;
-					DetonationManager.schedule(world, i * 4, () -> Vfx.ring(world, g.add(0, 1, 0), 120.0F + k * 30, 4.0F, c, true, 50));
-				}
 			}
 			drain();
 			return t >= END;
 		}
 
 		private void strike(Vec3d p, int color, int k) {
-			Vfx.beam(world, p.add(0, 140, 0), p, 3.0F, color, 14);
-			Vfx.pillar(world, p, 4.0F, color, false, 40);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.AURORA_STRIKE, p, new Vec3d(0, 1, 0), 1.0F, color);
 			Kit.sound(world, p, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 24.0F, 1.6F);
 			for (LivingEntity e : Kit.living(world, p, 8)) {
 				if (!Kit.creativeOrSpectator(e)) {

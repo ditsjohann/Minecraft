@@ -180,8 +180,8 @@ public final class StrongBombEvents {
 			for (int i = 0; i < marks.size(); i++) {
 				if (t == Lidar.STRIKES + i * 3) {
 					Vec3d p = marks.get(i);
-					Vfx.beam(world, p.add(0, 220, 0), p, 2.2F, 0xFF3020, 8);
-					Kit.boom(world, p, 3.4F, 0xFF5030, owner(), true);
+					Kit.blast(world, p, 3.4F, owner(), true);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.LIDAR_HIT, p, 1.0F);
 				}
 			}
 			if (t == Lidar.OVERLOAD - 30) {
@@ -190,8 +190,8 @@ public final class StrongBombEvents {
 			if (t == Lidar.OVERLOAD) {
 				Vfx.vision(world, g, 1, Lidar.RANGE * 1.5F, 7.0F, 0, 0, 0, 0xFFFFFF, 80, Lidar.RANGE + 200);
 				Vfx.flash(world, g, 0.9F, 600, 0xC0FFFF);
-				Kit.boom(world, g.add(0, 2, 0), 9.0F, 0x90FFFF, owner(), true);
-				Vfx.ring(world, g.add(0, 1, 0), 220.0F, 6.0F, 0x80FFFF, true, 50);
+				Kit.blast(world, g.add(0, 2, 0), 9.0F, owner(), true);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.LIDAR_OVERLOAD, g.add(0, 2, 0), 1.0F);
 				Detonations.blast(world, g, 70, 40.0F, ModDamageTypes.ANNIHILATION, owner(), 3.0, 1.2);
 				if (Destruction.enabled(world)) {
 					DetonationManager.add(new CraterJob(world, BlockPos.ofFloored(g), Destruction.radius(world, 20.0F), CraterJob.Mode.NUKE));
@@ -334,7 +334,7 @@ public final class StrongBombEvents {
 				Vec3d to = orb.subtract(fb.getPos());
 				double d = to.length();
 				if (d < core + 1) {
-					world.spawnParticles(ParticleTypes.SQUID_INK, fb.getX(), fb.getY(), fb.getZ(), 4, 0.3, 0.3, 0.3, 0.02);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.VOID_SWALLOW, fb.getPos(), 1.0F);
 					fb.discard();
 					continue;
 				}
@@ -390,9 +390,8 @@ public final class StrongBombEvents {
 			Vfx.flash(world, orb, 0.5F, 600, 0x8030FF);
 			Vfx.screen(world, g, 600, 4, 0.8F, 6);
 			Vfx.impact(world, g, 1, 2);
-			Kit.boom(world, orb, 11.0F, 0x5010B0, owner(), true);
-			Vfx.ring(world, g.add(0, 1, 0), 260.0F, 10.0F, 0x300060, true, 70);
-			Vfx.dome(world, orb, 120.0F, 0x6020C0, 40);
+			Kit.blast(world, orb, 11.0F, owner(), true);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.VOID_EXHALE, orb, 1.0F);
 			Kit.sound(world, g, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 64.0F, 0.5F);
 			Kit.sound(world, g, ModSounds.NUKE_DETONATE, 64.0F, 0.5F);
 			Detonations.blast(world, orb, 110, 45.0F, ModDamageTypes.ANNIHILATION, owner(), 4.5, 1.6);
@@ -536,7 +535,7 @@ public final class StrongBombEvents {
 				if (done[i] == 0) {
 					Kit.sound(world, bases[i], SoundEvents.BLOCK_GLASS_BREAK, 24.0F, 0.5F);
 					Kit.sound(world, bases[i], ModSounds.FREEZE, 24.0F, 0.7F);
-					world.spawnParticles(ParticleTypes.SNOWFLAKE, bases[i].x, bases[i].y + 1, bases[i].z, 60, 2, 1, 2, 0.2);
+					com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.ICE_ERUPT, bases[i], 1.0F);
 					for (LivingEntity e : Kit.living(world, bases[i], r0 + 3)) {
 						if (!Kit.creativeOrSpectator(e)) {
 							Kit.push(e, new Vec3d(0, 1.4, 0));
@@ -556,8 +555,7 @@ public final class StrongBombEvents {
 		private void land(Vec3d g, int i) {
 			Vec3d l = Ice.shardTarget(g, i);
 			Vec3d p = Kit.ground(world, l.x, l.z);
-			world.spawnParticles(ParticleTypes.SNOWFLAKE, p.x, p.y + 1, p.z, 40, 1.5, 1, 1.5, 0.25);
-			world.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.PACKED_ICE.getDefaultState()), p.x, p.y + 1, p.z, 30, 1, 1, 1, 0.3);
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.SHARD_LAND, p, 1.0F);
 			Kit.sound(world, p, SoundEvents.BLOCK_GLASS_BREAK, 16.0F, 0.6F);
 			Kit.sound(world, p, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 10.0F, 1.3F);
 			Kit.damage(world, p, 4.5, 9.0F, ModDamageTypes.CRYO, null, owner());

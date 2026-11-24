@@ -14,7 +14,6 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -116,8 +115,7 @@ public class DiscoBallEvent extends WorldEvent {
 			}
 			Vec3d hit = Kit.ground(world, h.x, h.z);
 			if (t % 3 == i % 3) {
-				world.spawnParticles(ParticleTypes.END_ROD, hit.x, hit.y + 0.5, hit.z, 3, 0.6, 0.3, 0.6, 0.04);
-				world.spawnParticles(ParticleTypes.NOTE, hit.x, hit.y + 1.0, hit.z, 1, 0.8, 0.2, 0.8, 1.0);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.BEAM_SPARKLE, hit, new Vec3d(0, 1, 0), 1.0F, com.armageddon.util.DiscoBeams.color(i, t));
 			}
 			for (LivingEntity e : near) {
 				if (Kit.creativeOrSpectator(e) || segmentDistance(e.getPos().add(0, e.getHeight() / 2, 0), ball, hit) > 2.6) {
@@ -149,14 +147,7 @@ public class DiscoBallEvent extends WorldEvent {
 		Vfx.shake(world, g, 100000, 3.0F);
 		Vfx.fov(world, g, 20.0F, 24);
 		Vfx.flash(world, g, 0.35F, 2000, 0xFF60FF);
-		int[] cols = {0xFF40FF, 0x40FFFF, 0xFFFF40, 0xFF4040, 0x40FF60};
-		for (int k = 0; k < 5; k++) {
-			final int kk = k;
-			com.armageddon.detonation.DetonationManager.schedule(world, k * 4, () ->
-					Vfx.ring(world, g.add(0, 0.5, 0), 260.0F + kk * 40, 6.0F, cols[kk], true, 70 + kk * 10));
-		}
-		Vfx.dome(world, g, 180.0F, 0xFF80FF, 50);
-		Vfx.pillar(world, DiscoBeams.ball(g, DiscoBeams.DROP).add(0, -DiscoBeams.HANG, 0), 6.0F, 0xFFFFFF, true, 80);
+		com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.DISCO_DROP, g, 1.0F);
 		// Everybody bounces.
 		for (LivingEntity e : Kit.living(world, g, 170)) {
 			if (Kit.creativeOrSpectator(e)) {
@@ -191,7 +182,7 @@ public class DiscoBallEvent extends WorldEvent {
 			boolean down = k % 20 == 0;
 			Kit.sound(world, g, ModSounds.DUBSTEP_WUB, 40.0F, down ? 0.5F : 0.62F);
 			if (down) {
-				Vfx.ring(world, g.add(0, 0.6, 0), 40.0F + (k % 60), 1.5F, CityDestructionEvents.hsv(k * 0.031F), false, 18);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.FLOOR_PULSE, g, new Vec3d(0, 1, 0), (40.0F + (k % 60)) / 40.0F, CityDestructionEvents.hsv(k * 0.031F));
 				// Little hops on the beat for anything standing on the dance floor.
 				for (LivingEntity e : Kit.living(world, g, 110)) {
 					if (e.isOnGround() && !Kit.creativeOrSpectator(e)) {
