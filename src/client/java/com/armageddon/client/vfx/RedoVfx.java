@@ -27,6 +27,10 @@ final class RedoVfx {
 	static void register() {
 		aurora();
 		bigBang();
+		prism();
+		spectralIce();
+		chunks();
+		blight();
 	}
 
 	// ------------------------------------------------------------------ Aurora
@@ -121,6 +125,101 @@ final class RedoVfx {
 						.life(30, 60).size(0.3F, 0.5F).mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK).color(SUNFIRE).build())
 				.emit(EmitterDef.builder("flares").rate(4, 160).shape(Shape.shell(4.5F)).velocity(Velocity.radial(0.2F, 0.4F)).module(Module.attract(0.02F, 3)).life(30, 50)
 						.size(1.2F, 2).sprite(FxSprites.FIRE, 2).color(SUNFIRE).alphaOverLife(Curve.FADE).build())
+				.build());
+	}
+
+	// ------------------------------------------------------------------ Prism
+
+	private static void prism() {
+		// Sunlight pouring down into the prism: sparkling motes riding the beam.
+		FxEngine.register(EffectDef.builder(VfxIds.PRISM_INBEAM).lod(300, 2000)
+				.emit(EmitterDef.builder("motes").burst(6).shape(Shape.column(2, 60)).velocity(Velocity.up(-1.4F, -0.9F, 0.02F)).life(20, 40).size(0.2F, 0.35F)
+						.sprite(FxSprites.FLARE).color(Gradient.of(0, 0xFFFFFF, 1, argb(0xFFF0C0, 0))).alphaOverLife(TWINKLE).build())
+				.build());
+	}
+
+	// ------------------------------------------------------------------ Spectral Ice
+
+	static final Gradient FROST = Gradient.of(0, 0xFFFFFF, 0.4F, 0xC8F0FF, 1, argb(0x70C0FF, 0));
+	static final Gradient GHOST = Gradient.of(0, 0xE0FFFF, 0.5F, 0x80E0FF, 1, argb(0x4070FF, 0));
+
+	private static void spectralIce() {
+		// Frost glitter climbing a spike.
+		FxEngine.register(EffectDef.builder(VfxIds.SPECTRAL_MOTES).lod(160, 900)
+				.emit(EmitterDef.builder("glitter").burst(4).shape(Shape.sphere(0.8F)).velocity(Velocity.up(0.08F, 0.2F, 0.3F)).life(20, 40).size(0.15F, 0.25F)
+						.sprite(FxSprites.FLARE).color(FROST).alphaOverLife(TWINKLE).build())
+				.build());
+
+		// Ghostly wisps circling and climbing the pyramid.
+		FxEngine.register(EffectDef.builder(VfxIds.SPECTRAL_WISPS).lod(300, 1600)
+				.emit(EmitterDef.builder("wisps").burst(3).onGround().shape(Shape.ring(26, 4)).offset(0, 2, 0).velocity(Velocity.swirl(0.3F, 0.5F))
+						.velocity(Velocity.up(0.15F, 0.3F, 0.1F)).module(Module.vortex(0.02F, 0.01F)).module(Module.curl(6, 0.01F)).life(80, 120).size(1.4F, 2.2F)
+						.sprite(FxSprites.WISP).color(GHOST).alpha(0.7F).build())
+				.emit(EmitterDef.builder("trails").burst(6).onGround().shape(Shape.ring(26, 4)).offset(0, 2, 0).velocity(Velocity.swirl(0.3F, 0.5F))
+						.velocity(Velocity.up(0.15F, 0.3F, 0.1F)).module(Module.vortex(0.02F, 0.01F)).life(40, 70).size(0.15F, 0.25F).sprite(FxSprites.FLARE)
+						.color(FROST).alphaOverLife(TWINKLE).build())
+				.build());
+
+		// The spray: a spectral frost nova out of the apex.
+		FxEngine.register(EffectDef.builder(VfxIds.SPECTRAL_NOVA).lod(400, 2400).maxAge(200)
+				.cue(0, EffectDef.light(1.4F, 0xA0E8FF))
+				.emit(flash("flash", 30, 12, 0xE8FCFF).build())
+				.emit(EmitterDef.builder("needles").priority(Priority.HERO).burst(400).shape(Shape.sphere(1)).velocity(Velocity.random(1.4F, 2.8F)).drag(0.03F)
+						.life(30, 50).size(0.3F, 0.5F).mode(Mode.STRETCHED).stretch(3).sprite(FxSprites.STREAK).color(FROST).build())
+				.emit(EmitterDef.builder("ghosts").burst(30).shape(Shape.sphere(2)).velocity(Velocity.random(0.4F, 0.9F)).drag(0.03F).module(Module.curl(8, 0.02F))
+						.life(60, 100).size(2.5F, 4).sprite(FxSprites.WISP).color(GHOST).alpha(0.7F).build())
+				.emit(smoke("frost").burst(40).shape(Shape.shell(3)).velocity(Velocity.radial(0.6F, 1.2F)).drag(0.05F).life(100, 160).size(5, 8)
+						.color(Gradient.of(0, 0xF0FAFF, 1, 0xC8E4F4)).alpha(0.45F).shade(0.95F).emissive(Curve.keys(0, 0.8F, 1, 0.2F)).build())
+				.build());
+	}
+
+	// ------------------------------------------------------------------ Sixteen Chunks
+
+	private static void chunks() {
+		// A rolling chunk corrupting: dead pixels flickering through it, data pouring down, flat scanline slivers.
+		FxEngine.register(EffectDef.builder(VfxIds.CHUNK_STATIC).tint(0x60E0FF).lod(200, 1400)
+				.emit(EmitterDef.builder("pixels").burst(7).shape(Shape.box(8, 10, 8)).offset(0, 11, 0).life(3, 8).size(0.25F, 0.6F).fixedRotation()
+						.sprite(FxSprites.GLOW).color(WHITE).tinted().alphaOverLife(FLICKER).build())
+				.emit(EmitterDef.builder("rain").burst(4).shape(Shape.box(8, 1, 8)).offset(0, 26, 0).velocity(Velocity.up(-1.3F, -0.8F, 0)).life(18, 30)
+						.size(0.12F, 0.2F).mode(Mode.STRETCHED).stretch(5).sprite(FxSprites.STREAK).color(Gradient.of(0, 0xFFFFFF, 0.3F, 0xFFFFFF, 1, argb(0xFFFFFF, 0)))
+						.tinted().build())
+				.emit(EmitterDef.builder("slivers").burst(1).shape(Shape.box(6, 10, 6)).offset(0, 11, 0).mode(Mode.FLAT).fixedRotation().life(2, 5).size(3, 5)
+						.sprite(FxSprites.STREAK).color(WHITE).tinted().alpha(0.6F).build())
+				.build());
+	}
+
+	// ------------------------------------------------------------------ Zombie Apocalypse
+
+	static final Gradient ROT = Gradient.of(0, 0xD8FF70, 0.4F, 0x9CE040, 1, argb(0x507020, 0));
+	static final Gradient MIASMA = Gradient.of(0, 0x7A9A50, 0.5F, 0x5A7040, 1, 0x3A4630);
+
+	private static void blight() {
+		// Life on the blight: glowing rot spores rising, flies buzzing in knots, a sickly wisp crawling over the ground.
+		FxEngine.register(EffectDef.builder(VfxIds.BLIGHT_AMBIENT).lod(120, 800)
+				.emit(EmitterDef.builder("spores").burst(4).shape(Shape.disc(3)).offset(0, 0.5F, 0).velocity(Velocity.up(0.03F, 0.08F, 0.3F))
+						.module(Module.curl(4, 0.006F)).life(60, 110).size(0.12F, 0.22F).sprite(FxSprites.FLARE).color(ROT).alphaOverLife(TWINKLE).build())
+				.emit(EmitterDef.builder("flies").burst(6).shape(Shape.sphere(0.6F)).offset(0, 1.2F, 0).module(Module.attract(0.02F, 0)).module(Module.jitter(0.08F))
+						.drag(0.15F).life(40, 70).size(0.05F, 0.08F).sprite(FxSprites.DUST).color(0x141810).build())
+				.emit(smoke("wisp").burst(1).onGround().offset(0, 0.4F, 0).velocity(Velocity.random(0.02F, 0.05F)).module(Module.curl(5, 0.004F)).life(70, 110)
+						.size(1.6F, 2.6F).color(MIASMA).alpha(0.35F).shade(1).emissive(Curve.constant(0.35F)).build())
+				.build());
+
+		// The edge of the blight: a wall of miasma boiling up where it is spreading, with spores spat ahead of it.
+		FxEngine.register(EffectDef.builder(VfxIds.BLIGHT_EDGE).lod(300, 2000)
+				.emit(smoke("wall").burst(3).onGround().shape(Shape.box(3, 0, 3)).velocity(Velocity.up(0.04F, 0.1F, 0.2F)).module(Module.curl(8, 0.006F))
+						.life(70, 110).size(3, 5).sizeOverLife(Curve.RISE).color(MIASMA).alpha(0.4F).shade(0.9F).emissive(Curve.keys(0, 0.4F, 1, 0.1F)).build())
+				.emit(EmitterDef.builder("spit").burst(3).onGround().velocity(Velocity.along(0.15F, 0.3F, 0.5F)).velocity(Velocity.up(0.1F, 0.2F, 0.2F))
+						.gravity(0.01F).life(30, 50).size(0.15F, 0.25F).sprite(FxSprites.FLARE).color(ROT).build())
+				.build());
+
+		// The heartbeat: a sickly ring thumping out over the blight and a flare of glowing rot from the heart.
+		FxEngine.register(EffectDef.builder(VfxIds.BLIGHT_PULSE).lod(400, 2400).maxAge(60)
+				.emit(EmitterDef.builder("ring").burst(1).onGround().offset(0, 0.3F, 0).mode(Mode.FLAT).fixedRotation().size(40, 40).life(26, 26)
+						.sprite(FxSprites.SHOCK).sizeOverLife(Curve.EASE_OUT).color(0x9CFF50).alpha(0.55F).alphaOverLife(Curve.FADE_OUT).build())
+				.emit(EmitterDef.builder("heart").burst(1).onGround().offset(0, 0.3F, 0).mode(Mode.FLAT).fixedRotation().size(10, 10).life(14, 14)
+						.sprite(FxSprites.GLOW).color(0xB0FF60).alpha(0.6F).alphaOverLife(Curve.FADE_OUT).build())
+				.emit(EmitterDef.builder("veins").burst(40).onGround().shape(Shape.disc(4)).offset(0, 0.3F, 0).velocity(Velocity.radial(0.8F, 1.4F)).drag(0.06F)
+						.life(16, 26).size(0.2F, 0.3F).mode(Mode.STRETCHED).stretch(3).sprite(FxSprites.STREAK).color(ROT).build())
 				.build());
 	}
 }

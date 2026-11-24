@@ -1033,6 +1033,9 @@ public final class CelestialIIEvents {
 			int beat = Math.max(14, 50 - t / 50);
 			if (t % beat == 0) {
 				Kit.sound(world, c, SoundEvents.ENTITY_WARDEN_HEARTBEAT, 48.0F, 0.6F);
+				if (r > 6) {
+					Vfx.play(world, VfxIds.BLIGHT_PULSE, c, (float) (r / 40.0));
+				}
 			}
 			if (t % 90 == 45) {
 				Kit.sound(world, c, SoundEvents.ENTITY_ZOMBIE_AMBIENT, 48.0F, 0.4F);

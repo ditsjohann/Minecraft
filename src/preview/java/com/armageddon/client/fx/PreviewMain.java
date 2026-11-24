@@ -89,6 +89,8 @@ public final class PreviewMain {
 			return new VfxPreviewEffect(name.substring(4), a);
 		}
 		return switch (name) {
+			case "glitch" -> new ChunkGlitchFx(payload(FxType.CHUNK_GLITCH, a, new Vec3d(1, 0, 0), 1, 0x60E0FF, 0, (float) a.y, 0, 700));
+			case "blight" -> new CelestialIIFx.BlightFog(a, 1820);
 			case "spear" -> new MegaEffects.Spear(a, 92, 60, 120 + 24 + 60 + 50);
 			case "galactic" -> Cinematics.create(Cinematics.GALACTIC_SMASH, a, h, 760);
 			case "boom" -> Cinematics.create(Cinematics.BOOM_SURVEY, a, h, 400);
@@ -99,6 +101,7 @@ public final class PreviewMain {
 			case "termites" -> NewFx.create(payload(FxType.NEW_FX, a, a, 90, 0x6A4020, 4, 0, 0, com.armageddon.util.NewBombShapes.Termite.END));
 			case "sun" -> NewFx.create(payload(FxType.NEW_FX, a, h, 64, 0xFFE0A0, 5, 0, 0, 1500));
 			case "ice" -> NewFx.create(payload(FxType.NEW_FX, a, a, 24, 0x60C0FF, 3, 0, 0, 520));
+			case "prism" -> NewFx.create(payload(FxType.NEW_FX, a, a, 80, 0xFFFFFF, 13, 0, 0, 380));
 			case "void" -> NewFx.create(payload(FxType.NEW_FX, a.add(0, 22, 0), a, 46, 0x9040FF, 2, 15, 0, 620));
 			case "ion" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(0.3, 0, 0), 64, 0x80E0FF, 40, 0, 0, com.armageddon.util.SciShapes.Ion.END));
 			case "resonance" -> NewFx.create(payload(FxType.NEW_FX, a, a, 95, 0xA0F0FF, 41, 0, 0, com.armageddon.util.SciShapes.Resonance.END));

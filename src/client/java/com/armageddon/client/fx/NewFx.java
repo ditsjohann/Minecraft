@@ -270,10 +270,18 @@ public final class NewFx {
 				ClientFx.tintSky(0x0C2850, 0.5F);
 			}
 			if (t >= Ice.GLOW && t < Ice.SPRAY && age % 2 == 0) {
+				// Frost glitter climbing the spikes.
 				int i = world.random.nextInt(bases.length);
 				double u = world.random.nextDouble();
 				Vec3d p = bases[i].add(tips[i].subtract(bases[i]).multiply(u));
-				world.addParticle(ParticleTypes.END_ROD, p.x, p.y, p.z, 0, 0.05, 0);
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.SPECTRAL_MOTES, p.x, p.y, p.z, 0, 1, 0, 1.0F, 0, age * 131L + i);
+			}
+			if (t >= Ice.ERUPT_END && t < Ice.SPRAY + 40 && age % 4 == 0) {
+				// Ghostly wisps circling and climbing the pyramid.
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.SPECTRAL_WISPS, g.x, g.y, g.z, 0, 1, 0, 1.0F, 0, age * 977L);
+			}
+			if (age == Ice.SPRAY) {
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.SPECTRAL_NOVA, apex.x, apex.y + 2, apex.z, 0, 1, 0, 1.0F, 0, 31L);
 			}
 			return super.tick(world);
 		}
@@ -304,6 +312,42 @@ public final class NewFx {
 						double rr = r0 * (1 - u) + 0.6;
 						Vec3d dir = tip.subtract(b).multiply(1 / len);
 						Solids.tube(glow, m, c, c.add(dir.multiply(2.2)), rr + 0.2, rr * 0.9 + 0.2, 10, 0xC0F4FF, 0.55F * Math.min(gl, 1.0F), false);
+					}
+				}
+			}
+			// The cathedral of light: frost filaments from every tip to the apex, and rings of frost linking the spikes.
+			if (gl > 0.01F) {
+				float lat = Math.min(1.0F, gl);
+				for (int i = 0; i < bases.length; i++) {
+					FxDraw.ribbon(glow, m, tips[i].subtract(cam), apex, Vec3d.ZERO, 0.25, 0xA8E8FF, 0.45F * lat, 0.7F * lat);
+				}
+				int ring = bases.length - 8;
+				for (int lvl = 1; lvl <= 3; lvl++) {
+					double u = lvl / 4.0 + 0.04 * Math.sin(t * 0.05 + lvl);
+					for (int i = 0; i < ring; i++) {
+						int j = (i + 1) % ring;
+						Vec3d a = bases[i].add(tips[i].subtract(bases[i]).multiply(u)).subtract(cam);
+						Vec3d b = bases[j].add(tips[j].subtract(bases[j]).multiply(u)).subtract(cam);
+						FxDraw.ribbon(glow, m, a, b, Vec3d.ZERO, 0.3, 0x80D0FF, 0.35F * lat, 0.35F * lat);
+					}
+				}
+			}
+			if (t >= Ice.APEX && t < Ice.SPRAY + Ice.SPRAY_LEN) {
+				// A snowflake of light turning at the apex, growing as the spray nears.
+				float grow = (float) Math.min(1.0, (t - Ice.APEX) / 60.0) * (1 + Math.min(1, gl) * 0.6F);
+				double arm = 5 * grow;
+				Vec3d sc = apex.add(0, 2, 0);
+				for (int k = 0; k < 6; k++) {
+					double ang = k * Math.PI / 3 + t * 0.01;
+					Vec3d d = cb[0].multiply(Math.cos(ang)).add(cb[1].multiply(Math.sin(ang)));
+					Vec3d side = cb[0].multiply(-Math.sin(ang)).add(cb[1].multiply(Math.cos(ang)));
+					Vec3d tip = sc.add(d.multiply(arm));
+					FxDraw.ribbon(glow, m, sc, tip, Vec3d.ZERO, 0.35, 0xE0F8FF, 0.9F, 0.6F);
+					for (int b = 1; b <= 2; b++) {
+						Vec3d root = sc.add(d.multiply(arm * b / 3.0));
+						double br = arm * (0.35 - b * 0.08);
+						FxDraw.ribbon(glow, m, root, root.add(d.multiply(br * 0.6)).add(side.multiply(br)), Vec3d.ZERO, 0.22, 0xC0F0FF, 0.8F, 0.3F);
+						FxDraw.ribbon(glow, m, root, root.add(d.multiply(br * 0.6)).subtract(side.multiply(br)), Vec3d.ZERO, 0.22, 0xC0F0FF, 0.8F, 0.3F);
 					}
 				}
 			}

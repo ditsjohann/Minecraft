@@ -7,7 +7,6 @@ import com.armageddon.util.ChunkRolls;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
@@ -56,11 +55,10 @@ public class ChunkGlitchFx extends FxEffect {
 	public boolean tick(ClientWorld world) {
 		for (int cell = 0; cell < ChunkRolls.CELLS; cell++) {
 			float g = glitch(cell, age);
-			if (g > 0.3F) {
-				for (int i = 0; i < 4; i++) {
-					double x = x0 + (cell % ChunkRolls.W) * 16 + world.random.nextDouble() * 16, z = z0 + (cell / ChunkRolls.W) * 16 + world.random.nextDouble() * 16;
-					world.addParticle(i % 2 == 0 ? ParticleTypes.ELECTRIC_SPARK : ParticleTypes.END_ROD, x, groundY + world.random.nextDouble() * 20, z, 0, 0.05, 0);
-				}
+			if (g > 0.3F && age % 2 == 0) {
+				// Static crawling over the rolling chunk, and data pouring down its corner pillars.
+				double cx = x0 + (cell % ChunkRolls.W) * 16 + 8, cz = z0 + (cell / ChunkRolls.W) * 16 + 8;
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.CHUNK_STATIC, cx, groundY, cz, 0, 1, 0, 1.0F, color, age * 131L + cell);
 			}
 		}
 		return super.tick(world);
@@ -114,6 +112,9 @@ public class ChunkGlitchFx extends FxEffect {
 			FxDraw.ribbon(glow, m, s0.add(0, 0, i * 4), s0.add(sx, 0, i * 4), Vec3d.ZERO, 0.08, 0xA0FFFF, la, la);
 		}
 		Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+		if (a < ChunkRolls.rollTick(ChunkRolls.CELLS - 1) + 60) {
+			machine(glow, consumers.getBuffer(FxRenderLayers.SHADE), m, cb, cam, a, env);
+		}
 		// Rolling chunks glitch; settled ones keep a faint tint of their result.
 		for (int cell = 0; cell < ChunkRolls.CELLS; cell++) {
 			double cx = x0 + (cell % ChunkRolls.W) * 16, cz = z0 + (cell / ChunkRolls.W) * 16;
@@ -154,6 +155,75 @@ public class ChunkGlitchFx extends FxEffect {
 				Vec3d q = alongX ? p.add(16, 0, 0) : p.add(0, 0, 16);
 				int c2 = Solids.hash(i, frame) < 0.5 ? col : (Solids.hash(i, frame + 1) < 0.5 ? 0xFFFFFF : 0x40FFFF);
 				FxDraw.ribbon(glow, m, p.subtract(cam), q.subtract(cam), Vec3d.ZERO, 0.4 + h2 * 1.2, c2, 0.8F * g * env, 0.8F * g * env);
+			}
+		}
+	}
+
+	/**
+	 * The jackpot machine: a holographic slot machine hanging over the grid with three reels. Each roll spins them
+	 * through the outcome colours and stops them one after another on the result; the marquee lights chase round the
+	 * frame and flash when a result lands.
+	 */
+	private void machine(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d cam, float a, float env) {
+		int slot = -1;
+		for (int s = 0; s < ChunkRolls.CELLS; s++) {
+			if (a >= ChunkRolls.rollTick(s) - 14) {
+				slot = s;
+			}
+		}
+		Vec3d right = new Vec3d(cb[0].x, 0, cb[0].z);
+		right = right.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : right.normalize();
+		Vec3d up = new Vec3d(0, 1, 0);
+		Vec3d c = new Vec3d(x0 + ChunkRolls.W * 8, groundY + 58, z0 + ChunkRolls.H * 8).subtract(cam);
+		double w = 34, h = 14;
+		Vec3d[] f = {c.add(right.multiply(-w)).add(up.multiply(-h)), c.add(right.multiply(w)).add(up.multiply(-h)),
+				c.add(right.multiply(w)).add(up.multiply(h)), c.add(right.multiply(-w)).add(up.multiply(h))};
+		float landed = slot < 0 ? 0 : (float) MathHelper.clamp(1 - (a - ChunkRolls.rollTick(slot)) / 20.0, 0.0, 1.0);
+		landed = a >= (slot < 0 ? 0 : ChunkRolls.rollTick(slot)) ? landed : 0;
+		for (int e = 0; e < 4; e++) {
+			FxDraw.ribbon(glow, m, f[e], f[(e + 1) % 4], Vec3d.ZERO, 0.8, 0xFFD040, (0.7F + 0.3F * landed) * env, (0.7F + 0.3F * landed) * env);
+		}
+		Solids.quad(shade, m, f[0], f[1], f[2], f[3], 0x180828, 0.7F * env);
+		// Marquee lights chasing round the frame.
+		int bulbs = 56;
+		for (int i = 0; i < bulbs; i++) {
+			double u = i / (double) bulbs * 4;
+			int e = (int) u;
+			Vec3d p = f[e].lerp(f[(e + 1) % 4], u - e);
+			boolean on = ((i + (int) (a * 0.5)) % 4 == 0) || landed > 0.3F && ((int) (a * 0.6)) % 2 == 0;
+			Solids.dot(glow, m, p, cb, on ? 1.0 : 0.5, on ? 0xFFF4C0 : 0xFF9030, (on ? 0.95F : 0.4F) * env);
+		}
+		// Three reels: tiles scrolling past a window, stopping in turn on the result's colour.
+		ChunkRolls.Kind[] kinds = ChunkRolls.Kind.values();
+		for (int r = 0; r < 3; r++) {
+			Vec3d wc = c.add(right.multiply((r - 1) * 21));
+			int result = slot < 0 ? -1 : ChunkRolls.roll(seed, order[slot]).kind().ordinal();
+			double stopAt = slot < 0 ? 0 : ChunkRolls.rollTick(slot) - 8 + r * 4;
+			boolean spinning = slot >= 0 && a < stopAt;
+			double scroll = spinning ? a * 0.9 : 0;
+			for (int k = -1; k <= 1; k++) {
+				double off = (scroll % 1.0) - k;
+				if (Math.abs(off) > 1.0) {
+					continue;
+				}
+				int idx = spinning ? Math.floorMod((int) Math.floor(scroll) + k + r * 2, kinds.length) : (k == 0 && result >= 0 ? result : -1);
+				if (idx < 0) {
+					continue;
+				}
+				double hh = 8.5, ww = 8.5;
+				Vec3d tc = wc.add(up.multiply(-off * hh * 2));
+				double clip = Math.max(0, 1 - Math.abs(off));
+				int col = kinds[idx].color;
+				Solids.quad(shade, m, tc.add(right.multiply(-ww)).add(up.multiply(-hh * clip)), tc.add(right.multiply(ww)).add(up.multiply(-hh * clip)),
+						tc.add(right.multiply(ww)).add(up.multiply(hh * clip)), tc.add(right.multiply(-ww)).add(up.multiply(hh * clip)), col, 0.92F * env);
+				// A diamond symbol on the tile.
+				Solids.quad(shade, m, tc.add(up.multiply(-hh * 0.6 * clip)), tc.add(right.multiply(ww * 0.55)), tc.add(up.multiply(hh * 0.6 * clip)),
+						tc.add(right.multiply(-ww * 0.55)), 0xFFFFFF, 0.8F * env);
+			}
+			Vec3d[] wf = {wc.add(right.multiply(-9)).add(up.multiply(-9)), wc.add(right.multiply(9)).add(up.multiply(-9)),
+					wc.add(right.multiply(9)).add(up.multiply(9)), wc.add(right.multiply(-9)).add(up.multiply(9))};
+			for (int e = 0; e < 4; e++) {
+				FxDraw.ribbon(glow, m, wf[e], wf[(e + 1) % 4], Vec3d.ZERO, 0.35, 0xFFFFFF, 0.7F * env, 0.7F * env);
 			}
 		}
 	}

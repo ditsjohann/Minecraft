@@ -286,6 +286,14 @@ public final class VfxIds {
 	public static final String SPOT_SCORCH = "spot_scorch";
 	public static final String SHOWTIME = "showtime";
 	public static final String FINALE_GLITTER = "finale_glitter";
+	public static final String SPECTRAL_MOTES = "spectral_motes";
+	public static final String SPECTRAL_WISPS = "spectral_wisps";
+	public static final String SPECTRAL_NOVA = "spectral_nova";
+	public static final String CHUNK_STATIC = "chunk_static";
+	public static final String BLIGHT_AMBIENT = "blight_ambient";
+	public static final String BLIGHT_EDGE = "blight_edge";
+	public static final String BLIGHT_PULSE = "blight_pulse";
+	public static final String PRISM_INBEAM = "prism_inbeam";
 	public static final String BANG_INHALE = "bang_inhale";
 	public static final String BANG_CMB = "bang_cmb";
 	public static final String GALAXY_SWIRL = "galaxy_swirl";
@@ -516,7 +524,9 @@ public final class VfxIds {
 			KOI_POND, KOI_SHIMMER, KOI_RIPPLE, KOI_TRAIL, KOI_BREACH, KOI_SPLASH, KOI_GEYSER, KOI_RAIN,
 			DIM_RIFT, DIM_FRONT, DIM_ASH, DIM_CLOSE, HAVOC_LAUNCH, HAVOC_TRAIL, HAVOC_BURST, HAVOC_FOUNTAIN, HAVOC_WILLOW, LANTERN_RISE, LANTERN_SPARKLE, LANTERN_BURST,
 			AURORA_STARS, AURORA_SPARK, AURORA_STORM,
-			BANG_INHALE, BANG_CMB, GALAXY_SWIRL, NEBULA_CLOUD, SUN_IGNITE);
+			BANG_INHALE, BANG_CMB, GALAXY_SWIRL, NEBULA_CLOUD, SUN_IGNITE,
+			PRISM_INBEAM,
+			SPECTRAL_MOTES, SPECTRAL_WISPS, SPECTRAL_NOVA, CHUNK_STATIC, BLIGHT_AMBIENT, BLIGHT_EDGE, BLIGHT_PULSE);
 
 	private VfxIds() {
 	}

@@ -241,6 +241,7 @@ final class OddFx {
 	}
 
 	static final class PrismFx extends FxEffect {
+		private static final double R = 7, H = 7;
 		private final Vec3d g;
 
 		PrismFx(Vec3d g, int life) {
@@ -249,38 +250,82 @@ final class OddFx {
 		}
 
 		@Override
+		public boolean tick(ClientWorld world) {
+			if (age >= Prism.CHARGE && age < Prism.CONVERGE && age % 3 == 0) {
+				Vec3d c = g.add(0, Prism.HEIGHT, 0);
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.PRISM_INBEAM, c.x, c.y + 8, c.z, 0, 1, 0, 1.0F, 0, age * 131L);
+			}
+			if (age >= Prism.SPLIT && age < Prism.CONVERGE && age % 10 == 0) {
+				ClientFx.light(g.add(0, Prism.HEIGHT, 0), 0.8F, 0xFFFFFF);
+			}
+			return super.tick(world);
+		}
+
+		@Override
 		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float camYaw, float camPitch) {
 			float t = age + tickDelta;
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
+			Vec3d[] cb = FxDraw.cameraBasis(camYaw, camPitch);
 			float rise = MathHelper.clamp(t / 40.0F, 0.0F, 1.0F);
 			Vec3d c = g.add(0, Prism.HEIGHT * rise, 0).subtract(cam);
-			double spin = t * 0.02;
-			// The prism: a triangular glass column, drawn as translucent faces with bright edges.
+			double spin = t * 0.015;
+			float charge = MathHelper.clamp((t - Prism.CHARGE) / 40.0F, 0.0F, 1.0F);
+			boolean split = t >= Prism.SPLIT && t < Prism.CONVERGE + 8;
+			// The prism: a faceted glass column, its white-hot heart showing through, rainbow glints on its faces.
 			Vec3d[] top = new Vec3d[3], bot = new Vec3d[3];
 			for (int i = 0; i < 3; i++) {
 				double a = spin + i * MathHelper.TAU / 3;
-				top[i] = c.add(Math.cos(a) * 5, 4, Math.sin(a) * 5);
-				bot[i] = c.add(Math.cos(a) * 5, -4, Math.sin(a) * 5);
+				top[i] = c.add(Math.cos(a) * R, H, Math.sin(a) * R);
+				bot[i] = c.add(Math.cos(a) * R, -H, Math.sin(a) * R);
 			}
+			FxDraw.beam(glow, m, c.add(0, -H * 0.8, 0), c.add(0, H * 0.8, 0), Vec3d.ZERO, 1.2 + 2.5 * charge, 0xFFFFFF, 0.3F + 0.6F * charge);
 			for (int i = 0; i < 3; i++) {
 				int j = (i + 1) % 3;
-				Solids.quad(shade, m, bot[i], bot[j], top[j], top[i], 0xC8E8FF, 0.25F);
-				FxDraw.ribbon(glow, m, top[i], top[j], Vec3d.ZERO, 0.2, 0xFFFFFF, 0.8F, 0.8F);
-				FxDraw.ribbon(glow, m, bot[i], bot[j], Vec3d.ZERO, 0.2, 0xFFFFFF, 0.8F, 0.8F);
-				FxDraw.ribbon(glow, m, bot[i], top[i], Vec3d.ZERO, 0.2, 0xFFFFFF, 0.8F, 0.8F);
+				Solids.quad(shade, m, bot[i], bot[j], top[j], top[i], 0xD0ECFF, 0.22F);
+				Solids.quad(shade, m, top[0], top[1], top[2], top[2], 0xE0F4FF, 0.18F);
+				FxDraw.ribbon(glow, m, top[i], top[j], Vec3d.ZERO, 0.3, 0xFFFFFF, 0.9F, 0.9F);
+				FxDraw.ribbon(glow, m, bot[i], bot[j], Vec3d.ZERO, 0.3, 0xFFFFFF, 0.9F, 0.9F);
+				FxDraw.ribbon(glow, m, bot[i], top[i], Vec3d.ZERO, 0.3, 0xFFFFFF, 0.9F, 0.9F);
+				// A rainbow glint sliding down each face.
+				double u = ((t * 0.02 + i * 0.33) % 1.0);
+				Vec3d ga = bot[i].lerp(top[i], 1 - u), gb = bot[j].lerp(top[j], 1 - u);
+				int gcol = Prism.COLORS[(int) (t / 6 + i * 2) % Prism.BEAMS];
+				FxDraw.ribbon(glow, m, ga, gb, Vec3d.ZERO, 0.8, gcol, 0.35F, 0.35F);
 			}
+			// Crystal shards orbiting it, catching the light.
+			for (int k = 0; k < 9; k++) {
+				double a = k * MathHelper.TAU / 9 + t * 0.03 * (k % 2 == 0 ? 1 : -1);
+				double r = R + 4 + 2 * Math.sin(k * 2.1 + t * 0.05);
+				Vec3d p = c.add(Math.cos(a) * r, Math.sin(t * 0.04 + k) * H * 0.8, Math.sin(a) * r);
+				Vec3d up = new Vec3d(0, 1.4, 0), side = new Vec3d(-Math.sin(a), 0, Math.cos(a)).multiply(0.8);
+				Solids.quad(shade, m, p.subtract(up), p.add(side), p.add(up), p.subtract(side), 0xE0F4FF, 0.35F);
+				Solids.flare(glow, m, p, cb, 0.8, Prism.COLORS[k % Prism.BEAMS], 0.5F);
+			}
+			// The sunbeam coming down into it.
 			if (t >= Prism.CHARGE && t < Prism.CONVERGE + 20) {
-				float k = MathHelper.clamp((t - Prism.CHARGE) / 30.0F, 0.0F, 1.0F);
-				FxDraw.beam(glow, m, c.add(0, 220, 0), c.add(0, 4, 0), Vec3d.ZERO, 0.6 + 2.4 * k, 0xFFFFFF, k);
+				FxDraw.beam(glow, m, c.add(0, 220, 0), c.add(0, H, 0), Vec3d.ZERO, 0.8 + 3.2 * charge, 0xFFFFFF, charge);
+				FxDraw.beam(glow, m, c.add(0, 220, 0), c.add(0, H, 0), Vec3d.ZERO, 3 + 6 * charge, 0xFFF8E0, 0.2F * charge);
 			}
-			if (t >= Prism.SPLIT && t < Prism.CONVERGE + 8) {
-				for (int i = 0; i < Prism.BEAMS; i++) {
-					Vec3d h = Prism.hit(g, i, t);
-					Vec3d end = new Vec3d(h.x, NewFx.groundY(h.x, h.z, g.y), h.z).subtract(cam);
-					FxDraw.beam(glow, m, c, end, Vec3d.ZERO, 1.3, Prism.COLORS[i], 0.9F);
-					Solids.flare(glow, m, end.add(0, 0.5, 0), FxDraw.cameraBasis(camYaw, camPitch), 2.2, Prism.COLORS[i], 0.8F);
-				}
+			if (!split) {
+				return;
+			}
+			// The split: seven beams fanning out of it with the spectrum stretched between them like a sheet.
+			Vec3d[] ends = new Vec3d[Prism.BEAMS];
+			for (int i = 0; i < Prism.BEAMS; i++) {
+				Vec3d h = Prism.hit(g, i, t);
+				ends[i] = new Vec3d(h.x, NewFx.groundY(h.x, h.z, g.y), h.z).subtract(cam);
+			}
+			Vec3d src = c.add(0, -H * 0.3, 0);
+			for (int i = 0; i < Prism.BEAMS - 1; i++) {
+				Solids.quad(glow, m, src, ends[i], ends[i + 1], src, Prism.COLORS[i], 0.12F);
+			}
+			for (int i = 0; i < Prism.BEAMS; i++) {
+				float flick = 0.85F + 0.15F * MathHelper.sin(t * 0.9F + i);
+				FxDraw.beam(glow, m, src, ends[i], Vec3d.ZERO, 2.2 * flick, Prism.COLORS[i], 0.45F);
+				FxDraw.beam(glow, m, src, ends[i], Vec3d.ZERO, 0.6, 0xFFFFFF, 0.8F);
+				FxDraw.disc(glow, m, ends[i].add(0, 0.15, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 3.4, Prism.COLORS[i], 0.6F, 0.0F, 24);
+				Solids.flare(glow, m, ends[i].add(0, 0.6, 0), cb, 3.0, Prism.COLORS[i], 0.8F);
 			}
 		}
 	}

@@ -7,6 +7,7 @@ import com.armageddon.registry.ModParticles;
 import com.armageddon.util.CelestialIIShapes;
 import com.armageddon.util.Paths;
 import net.minecraft.client.MinecraftClient;
+import com.armageddon.vfx.VfxIds;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.world.ClientWorld;
@@ -331,13 +332,20 @@ public final class CelestialIIFx {
 		@Override
 		public boolean tick(ClientWorld world) {
 			double r = CelestialIIShapes.blightRadius(age);
-			if (r > 4 && age % 2 == 0) {
-				for (int i = 0; i < 3; i++) {
-					double ang = world.random.nextDouble() * MathHelper.TAU;
-					double d = Math.sqrt(world.random.nextDouble()) * r;
-					double x = c.x + Math.cos(ang) * d, z = c.z + Math.sin(ang) * d;
-					world.addImportantParticle(ParticleTypes.SPORE_BLOSSOM_AIR, true, x, groundY(x, z) + 0.5 + world.random.nextDouble() * 3, z, 0, 0.02, 0);
+			if (r > 4 && age % 3 == 0) {
+				// Rot and flies over the blighted ground, thickest near the player.
+				net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+				Vec3d eye = mc == null || mc.gameRenderer == null ? c : mc.gameRenderer.getCamera().getPos();
+				for (int i = 0; i < 2; i++) {
+					double ang = world.random.nextDouble() * MathHelper.TAU, d = world.random.nextDouble() * 24;
+					double x = eye.x + Math.cos(ang) * d, z = eye.z + Math.sin(ang) * d;
+					if (CelestialIIShapes.blighted(x - c.x, z - c.z, r)) {
+						com.armageddon.client.vfx.FxEngine.play(VfxIds.BLIGHT_AMBIENT, x, groundY(x, z), z, 0, 1, 0, 1.0F, 0, age * 31L + i);
+					}
 				}
+				double ang = world.random.nextDouble() * MathHelper.TAU;
+				double x = c.x + Math.cos(ang) * r, z = c.z + Math.sin(ang) * r;
+				com.armageddon.client.vfx.FxEngine.play(VfxIds.BLIGHT_EDGE, x, groundY(x, z), z, (float) Math.cos(ang), 0, (float) Math.sin(ang), 1.0F, 0, age * 17L);
 			}
 			return super.tick(world);
 		}
@@ -371,6 +379,33 @@ public final class CelestialIIFx {
 				}
 			}
 			Effects.drawPuffs(puffs, shade, m, cb, 8);
+			plagueMoon(m, consumers, cam, cb, a, fade * Effects.smooth((a - 20) / 160.0F));
+		}
+
+		/**
+		 * The plague moon: a huge diseased moon hanging over the blight, mottled with rot, wreathed in a sickly halo
+		 * that throbs with the heartbeat under the ground.
+		 */
+		private void plagueMoon(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, Vec3d[] cb, float a, float vis) {
+			if (vis < 0.01F) {
+				return;
+			}
+			Vec3d p = c.add(60, 150, -90).subtract(cam);
+			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
+			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
+			int beat = Math.max(14, 50 - (int) a / 50);
+			float thump = (float) Math.exp(-((a % beat) / 4.0));
+			FxKit.halo(consumers, m, cb, p, 95 + 8 * thump, 0x7AC040, (0.25F + 0.2F * thump) * vis);
+			FxKit.halo(consumers, m, cb, p, 46, 0xC8F070, 0.3F * vis);
+			FxDraw.disc(shade, m, p, cb[0], cb[1], 30, 0xA8C878, 0.95F * vis, 0.95F * vis, 48);
+			// Rot blotches drifting slowly over its face.
+			for (int k = 0; k < 9; k++) {
+				double ang = Effects.hash(k, 41) * MathHelper.TAU + a * 0.001;
+				double d = Math.sqrt(Effects.hash(k, 42)) * 21;
+				Vec3d q = p.add(cb[0].multiply(Math.cos(ang) * d)).add(cb[1].multiply(Math.sin(ang) * d));
+				FxDraw.disc(shade, m, q, cb[0], cb[1], 4 + Effects.hash(k, 43) * 7, 0x3E5428, 0.7F * vis, 0.0F, 20);
+			}
+			FxDraw.ring(glow, m, p, cb[0], cb[1], 29, 33, 0xB0FF60, 0.0F, (0.5F + 0.4F * thump) * vis, 0.0F, 48);
 		}
 	}
 
