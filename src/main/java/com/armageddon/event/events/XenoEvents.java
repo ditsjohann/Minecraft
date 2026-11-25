@@ -58,7 +58,7 @@ public final class XenoEvents {
 				floorY = MathHelper.floor(base.y) + XenoShapes.FLOOR;
 				cx = MathHelper.floor(base.x);
 				cz = MathHelper.floor(base.z);
-				WorldCutsceneEvents.begin(this, world, base, "block.armageddon.xenoform", CINE_XENO, heading, XenoShapes.CINE);
+				CelestialEvents.announce(world, base, "block.armageddon.xenoform");
 				Vfx.newFx(world, FX_XENO, base, heading, (float) r, 0xE0D8FF, 0, 0, XenoShapes.END);
 				Kit.sound(world, base, SoundEvents.BLOCK_END_PORTAL_SPAWN, 96.0F, 0.5F);
 				Kit.sound(world, base, SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, 96.0F, 0.4F);
@@ -108,6 +108,27 @@ public final class XenoEvents {
 			}
 			if (t == XenoShapes.LAND) {
 				land();
+			}
+			if (t >= XenoShapes.WATCH && t < XenoShapes.LAND && (t - XenoShapes.WATCH) % XenoShapes.WATCH_STEP == 0) {
+				// The watchers glitch a step closer.
+				Kit.sound(world, base, SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, 128.0F, 0.5F);
+				Kit.sound(world, base, SoundEvents.ENTITY_ENDERMAN_TELEPORT, 128.0F, 0.3F);
+				Kit.sound(world, base, SoundEvents.AMBIENT_SOUL_SAND_VALLEY_ADDITIONS.value(), 128.0F, 0.5F);
+				Vfx.screen(world, base, 400, 3, 0.3F, 3);
+			}
+			if (t == XenoShapes.SHIP) {
+				Kit.sound(world, base, SoundEvents.ENTITY_ELDER_GUARDIAN_AMBIENT, 128.0F, 0.3F);
+				Kit.sound(world, base, SoundEvents.BLOCK_BEACON_AMBIENT, 128.0F, 0.3F);
+				Vfx.shake(world, base, 100000, 0.6F);
+			}
+			if (t == XenoShapes.LEAVE) {
+				Vec3d sky = base.add(0, XenoShapes.SHIP_H, 0);
+				Vfx.flash(world, sky, 0.6F, 100000, 0xFFFFFF);
+				Vfx.shake(world, base, 100000, 1.8F);
+				Vfx.screen(world, base, 400, 1, 0.45F, 4);
+				Kit.sound(world, base, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 128.0F, 0.3F);
+				Kit.sound(world, base, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 128.0F, 0.5F);
+				Kit.sound(world, base, SoundEvents.BLOCK_END_PORTAL_SPAWN, 128.0F, 2.0F);
 			}
 			if (t == XenoShapes.DEPART) {
 				Vec3d top = new Vec3d(base.x, floorY + XenoShapes.MONOLITH + 1, base.z);

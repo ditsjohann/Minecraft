@@ -73,6 +73,12 @@ final class XenoVfx {
 						.alphaOverLife(FLICKER).build())
 				.build());
 
+		// After it leaves: glowing pixels drifting down out of the sky round the watcher, winking out.
+		FxEngine.register(EffectDef.builder(VfxIds.XENO_PIXELS).lod(80, 400)
+				.emit(EmitterDef.builder("pixels").burst(10).shape(Shape.box(18, 4, 18)).offset(0, 16, 0).velocity(Velocity.up(-0.25F, -0.1F, 0.02F))
+						.life(40, 80).size(0.15F, 0.3F).fixedRotation().sprite(FxSprites.GLOW).color(CYAN).alphaOverLife(FLICKER).build())
+				.build());
+
 		// Leaving: a white-out at the monolith's crown and the last of the light going straight up.
 		FxEngine.register(EffectDef.builder(VfxIds.XENO_DEPART).lod(800, 5000).maxAge(120)
 				.cue(0, EffectDef.light(2.0F, 0xF0F0FF))

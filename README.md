@@ -185,7 +185,11 @@ taken apart, block by block from the centre out: every block rises in a straight
 spectrum rings round the hypercube, a catalogue of the place, and everything living goes up with it and is
 disassembled. What is left is a perfectly flat black plain ruled with lines of light, cut clean at its rim. The rings
 fold into the hypercube, the hypercube folds into a 1:4:9 monolith that sets itself down in the middle with eight
-needles round it, and a column of light leaves for the sky.
+needles round it. All the while eight Watchers - tall faceless things with a slit of light for a face - stand round the
+edge of the harvest facing you, glitching a step closer now and then, and an eye opens inside the hypercube. At the end
+light races in along the grid to the monolith, a ring-shaped ship hundreds of blocks across comes down out of the sky,
+the monolith's beam locks on to it, the Watchers dissolve up into it, and it leaves in a streak of light that throws a
+shockwave across the sky. No cutscene: you watch it all yourself.
 
 **Oddities (Legendary and Mythic)** — Sonar (green echo vision; every echo heaves the ground, then the converged
 boom shakes the land around it to pieces), 8-Bit (the world goes low-res on screen and in the blocks, then GAME OVER),

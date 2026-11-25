@@ -135,6 +135,10 @@ final class XenoFx extends FxEffect {
 		if (age % 10 == 0) {
 			ClientFx.light(c.add(0, XenoShapes.coreY(t), 0), 0.8F, 0xC0B0FF);
 		}
+		if (t >= XenoShapes.LEAVE && t < XenoShapes.LEAVE + 70 && age % 2 == 0) {
+			Vec3d eye = camera();
+			FxEngine.play(VfxIds.XENO_PIXELS, eye.x, eye.y, eye.z, 0, 1, 0, 1.0F, 0, age * 7919L);
+		}
 		return super.tick(world);
 	}
 
@@ -238,7 +242,170 @@ final class XenoFx extends FxEffect {
 		scan(glow, m, o, a);
 		filaments(glow, m, cb, o, core, a);
 		harvest(solid, glow, m, cb, o, a, cmp);
+		if (a >= XenoShapes.HARVEST && a < XenoShapes.COMPRESS + 30) {
+			alienEye(glow, shade, m, cb, core, a, cmp);
+		}
+		watchers(solid, glow, m, cb, o, a);
+		grid(glow, m, o, a);
+		ship(glow, shade, m, cb, o, a);
 		depart(glow, m, cb, o, a);
+	}
+
+	/**
+	 * The Watchers: tall faceless things, too thin, arms hanging to their ankles, a single slit of light for a face,
+	 * standing round the edge of the harvest facing you. Now and then they glitch a step closer.
+	 */
+	private void watchers(VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d o, float a) {
+		double here = XenoShapes.watching(a);
+		if (here <= 0.01) {
+			return;
+		}
+		double since = (a - XenoShapes.WATCH) % XenoShapes.WATCH_STEP;
+		boolean glitching = a >= XenoShapes.WATCH && a < XenoShapes.LAND && since < 5;
+		double rise = Math.max(0, a - XenoShapes.DEPART - 20) * 0.9;
+		for (int i = 0; i < XenoShapes.WATCHERS; i++) {
+			if (glitching && ((int) (a * 3) + i) % 3 == 0) {
+				continue;
+			}
+			Vec3d w = XenoShapes.watcher(i, a, r);
+			double gy = NewFx.groundY(c.x + w.x, c.z + w.z, c.y) - c.y;
+			Vec3d foot = o.add(w.x, gy + rise, w.z);
+			if (glitching) {
+				foot = foot.add(Math.sin(a * 7 + i) * 1.2, 0, Math.cos(a * 5 + i) * 1.2);
+			}
+			// Face the camera.
+			Vec3d look = new Vec3d(-foot.x, 0, -foot.z);
+			look = look.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : look.normalize();
+			Vec3d side = new Vec3d(-look.z, 0, look.x);
+			double k = here;
+			int skin = 0x24242A;
+			Vec3d hip = foot.add(0, 14 * k, 0), neck = hip.add(0, 9 * k, 0), head = neck.add(0, 2.6 * k, 0);
+			for (int sgn = -1; sgn <= 1; sgn += 2) {
+				Solids.tube(solid, m, foot.add(side.multiply(sgn * 1.2)), hip.add(side.multiply(sgn * 0.7)), 0.35 * k, 0.5 * k, 5, skin, 1.0F, true);
+				Vec3d sh = neck.add(side.multiply(sgn * 1.8 * k)).add(0, -0.8 * k, 0);
+				Vec3d el = sh.add(side.multiply(sgn * 0.6 * k)).add(0, -8 * k, 0).add(look.multiply(0.4 * k));
+				Vec3d hand = el.add(0, -8.5 * k, 0).add(side.multiply(sgn * 0.3 * k));
+				Solids.tube(solid, m, sh, el, 0.3 * k, 0.25 * k, 5, skin, 1.0F, true);
+				Solids.tube(solid, m, el, hand, 0.25 * k, 0.12 * k, 5, skin, 1.0F, true);
+				for (int f = -1; f <= 1; f++) {
+					Solids.tube(solid, m, hand, hand.add(0, -2.2 * k, 0).add(side.multiply(f * 0.3 * k)), 0.08 * k, 0.02, 4, skin, 1.0F, true);
+				}
+			}
+			Solids.tube(solid, m, hip, neck, 0.9 * k, 1.4 * k, 6, skin, 1.0F, true);
+			Solids.tube(solid, m, neck.add(side.multiply(-1.9 * k)).add(0, -0.8 * k, 0), neck.add(side.multiply(1.9 * k)).add(0, -0.8 * k, 0), 0.45 * k, 0.45 * k, 5,
+					skin, 1.0F, true);
+			// An elongated head with no face but a slit of light.
+			Solids.tube(solid, m, neck, head.add(0, 3.5 * k, 0), 1.1 * k, 0.6 * k, 8, skin, 1.0F, true);
+			Vec3d slit = head.add(look.multiply(1.05 * k)).add(0, 0.6 * k, 0);
+			FxDraw.ribbon(glow, m, slit.add(0, -1.4 * k, 0), slit.add(0, 1.6 * k, 0), Vec3d.ZERO, 0.22 * k, 0xE8F4FF, (float) k, (float) k);
+			FxDraw.ribbon(glow, m, slit.add(0, -1.8 * k, 0), slit.add(0, 2.0 * k, 0), Vec3d.ZERO, 0.8 * k, 0x6080FF, 0.3F * (float) k, 0.3F * (float) k);
+			if (glitching) {
+				FxDraw.ribbon(glow, m, foot.add(side.multiply(0.6)), head.add(side.multiply(0.6)), Vec3d.ZERO, 1.6, 0xFF2040, 0.25F, 0.25F);
+				FxDraw.ribbon(glow, m, foot.add(side.multiply(-0.6)), head.add(side.multiply(-0.6)), Vec3d.ZERO, 1.6, 0x20E0FF, 0.25F, 0.25F);
+			}
+			// Dissolving up into the ship at the end.
+			if (a > XenoShapes.DEPART) {
+				double shipY = XenoShapes.shipY(a);
+				FxDraw.ribbon(glow, m, head, o.add(w.x * 0.6, shipY, w.z * 0.6), Vec3d.ZERO, 0.5, 0xD0D8FF, 0.5F * (float) (1 - k), 0.0F);
+			}
+		}
+	}
+
+	/** An eye opening inside the hypercube: black, ringed with turning rings of cyan light, a white slit of a pupil. */
+	private void alienEye(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d core, float a, double cmp) {
+		double open = smooth((a - XenoShapes.HARVEST) / 30.0) * (1 - cmp);
+		double blink = Math.max(0, Math.sin(a * 0.04) - 0.96) / 0.04;
+		open *= 1 - blink;
+		if (open <= 0.02) {
+			return;
+		}
+		Vec3d toCam = core.multiply(-1).normalize();
+		Vec3d p = core.add(toCam.multiply(0.5));
+		FxDraw.disc(shade, m, p, cb[0], cb[1].multiply(open * 0.7), 5.2, 0x020206, 0.97F, 0.97F, 32);
+		for (int k = 0; k < 4; k++) {
+			double rr = 1.2 + k * 0.95;
+			double spin = a * 0.02 * (k % 2 == 0 ? 1 : -1);
+			for (int j = 0; j < 12; j++) {
+				double a0 = spin + j * MathHelper.TAU / 12, a1 = a0 + MathHelper.TAU / 12 * 0.7;
+				Vec3d q0 = p.add(toCam.multiply(0.3 + k * 0.1)).add(cb[0].multiply(Math.cos(a0) * rr)).add(cb[1].multiply(Math.sin(a0) * rr * open * 0.7));
+				Vec3d q1 = p.add(toCam.multiply(0.3 + k * 0.1)).add(cb[0].multiply(Math.cos(a1) * rr)).add(cb[1].multiply(Math.sin(a1) * rr * open * 0.7));
+				FxDraw.ribbon(glow, m, q0, q1, Vec3d.ZERO, 0.16, k == 3 ? 0x80A0FF : 0x60F0FF, 0.8F * (float) open, 0.8F * (float) open);
+			}
+		}
+		Vec3d pupil = p.add(toCam.multiply(0.9));
+		FxDraw.ribbon(glow, m, pupil.add(cb[1].multiply(-2.6 * open * 0.7)), pupil.add(cb[1].multiply(2.6 * open * 0.7)), Vec3d.ZERO, 0.5, 0xFFFFFF,
+				(float) open, (float) open);
+	}
+
+	/** Light racing inward along the plain's grid toward the monolith, and the needles beaming into its crown. */
+	private void grid(VertexConsumer glow, Matrix4f m, Vec3d o, float a) {
+		float on = smooth((a - XenoShapes.LAND) / 20.0) * (1 - smooth((a - XenoShapes.LEAVE) / 30.0));
+		if (on <= 0.01F) {
+			return;
+		}
+		double fy = XenoShapes.FLOOR + 1.08;
+		for (int axis = 0; axis < 2; axis++) {
+			for (double line = -Math.floor(r / 10) * 10; line <= r; line += 10) {
+				double half = Math.sqrt(Math.max(0, r * r - line * line));
+				for (int sgn = -1; sgn <= 1; sgn += 2) {
+					double ph = ((a * 1.6 + XenoShapes.hash((int) line, axis * 3 + sgn) * half) % half);
+					double pos = sgn * (half - ph);
+					Vec3d p0 = axis == 0 ? o.add(line, fy, pos) : o.add(pos, fy, line);
+					Vec3d p1 = axis == 0 ? o.add(line, fy, pos - sgn * 6) : o.add(pos - sgn * 6, fy, line);
+					FxDraw.ribbon(glow, m, p0, p1, Vec3d.ZERO, 0.6, 0x90F0FF, 0.0F, 0.9F * on);
+				}
+			}
+		}
+		// The needles beam into the monolith's crown.
+		Vec3d crown = o.add(0, XenoShapes.FLOOR + XenoShapes.MONOLITH + 1, 0);
+		for (int k = 0; k < 8; k++) {
+			double ang = k * MathHelper.TAU / 8 + Math.atan2(fwd.z, fwd.x);
+			int tall = 12 + (int) (XenoShapes.hash(k, 3) * 8);
+			Vec3d tip = o.add(Math.cos(ang) * r * 0.55, XenoShapes.FLOOR + 1 + tall + 0.5, Math.sin(ang) * r * 0.55);
+			FxDraw.ribbon(glow, m, tip, crown, Vec3d.ZERO, 0.4, 0xE0E8FF, 0.7F * on, 0.9F * on);
+		}
+	}
+
+	/**
+	 * The ship: a ring hundreds of blocks across coming down out of the sky over the plain, dark, lit along its inner
+	 * edge; the monolith's beam reaches up to it, and then it is gone straight up in a streak of light.
+	 */
+	private void ship(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d o, float a) {
+		if (a < XenoShapes.SHIP || a > XenoShapes.END) {
+			return;
+		}
+		float vis = smooth((a - XenoShapes.SHIP) / 40.0) * (1 - smooth((a - XenoShapes.LEAVE - 20) / 15.0));
+		double y = XenoShapes.shipY(a);
+		Vec3d ctr = o.add(0, y, 0);
+		double R0 = XenoShapes.SHIP_R - 14, R1 = XenoShapes.SHIP_R + 14;
+		int n = 96;
+		if (vis > 0.01F) {
+			for (int k = 0; k < n; k++) {
+				double a0 = k * MathHelper.TAU / n + a * 0.002, a1 = (k + 1) * MathHelper.TAU / n + a * 0.002;
+				Vec3d i0 = ctr.add(Math.cos(a0) * R0, 0, Math.sin(a0) * R0), i1 = ctr.add(Math.cos(a1) * R0, 0, Math.sin(a1) * R0);
+				Vec3d o0 = ctr.add(Math.cos(a0) * R1, 4, Math.sin(a0) * R1), o1 = ctr.add(Math.cos(a1) * R1, 4, Math.sin(a1) * R1);
+				Solids.quad(shade, m, i0, i1, o1, o0, 0x0C0C14, 0.95F * vis);
+				Solids.quad(shade, m, i0.add(0, 6, 0), i1.add(0, 6, 0), o1.add(0, 2, 0), o0.add(0, 2, 0), 0x16161E, 0.95F * vis);
+				Solids.quad(shade, m, o0, o1, o1.add(0, -2, 0), o0.add(0, -2, 0), 0x0A0A10, 0.95F * vis);
+				if (k % 3 == 0) {
+					float blink = ((int) (a * 0.3) + k) % 4 == 0 ? 1.0F : 0.5F;
+					Solids.flare(glow, m, i0.add(0, -0.5, 0), cb, 2.2, 0x90E8FF, blink * vis);
+				}
+				FxDraw.ribbon(glow, m, i0.add(0, -0.3, 0), i1.add(0, -0.3, 0), Vec3d.ZERO, 0.8, 0x6080FF, 0.6F * vis, 0.6F * vis);
+				if (k % 12 == 0) {
+					FxDraw.ribbon(glow, m, i0.add(0, -0.4, 0), o0.add(0, -0.4, 0), Vec3d.ZERO, 0.5, 0xA0C0FF, 0.5F * vis, 0.1F * vis);
+				}
+			}
+		}
+		// Leaving: a streak of light straight up, and a ring of light thrown out across the sky.
+		if (a >= XenoShapes.LEAVE) {
+			float u = (float) Math.min(1, (a - XenoShapes.LEAVE) / 40.0);
+			float f2 = 1 - u;
+			Vec3d base = o.add(0, XenoShapes.SHIP_H, 0);
+			FxDraw.beam(glow, m, base, base.add(0, 900, 0), Vec3d.ZERO, 40 * f2 + 2, 0xF4F8FF, 0.8F * f2);
+			FxDraw.ring(glow, m, base, new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), XenoShapes.SHIP_R + u * 700, XenoShapes.SHIP_R + u * 700 + 30, 0xD0E0FF, 0.0F,
+					0.6F * f2, 0.0F, 96);
+		}
 	}
 
 	/** Before the unfolding: a point of nothing with a ring of bent light round it. */
@@ -483,12 +650,17 @@ final class XenoFx extends FxEffect {
 		if (a < XenoShapes.DEPART) {
 			return;
 		}
-		float u = (a - XenoShapes.DEPART) / (XenoShapes.END - XenoShapes.DEPART);
-		float w = smooth(u * 6) * (1 - smooth((u - 0.4F) / 0.6F));
+		float w = smooth((a - XenoShapes.DEPART) / 15.0) * (1 - smooth((a - XenoShapes.LEAVE) / 10.0));
 		Vec3d top = o.add(0, XenoShapes.FLOOR + XenoShapes.MONOLITH + 1, 0);
-		FxDraw.beam(glow, m, top, top.add(0, 420, 0), Vec3d.ZERO, 5 * w + 0.5, 0xF4F0FF, 0.8F * w);
-		FxDraw.beam(glow, m, top, top.add(0, 420, 0), Vec3d.ZERO, 14 * w, 0x8070FF, 0.2F * w);
+		double h = XenoShapes.shipY(a) - (XenoShapes.FLOOR + XenoShapes.MONOLITH + 1);
+		FxDraw.beam(glow, m, top, top.add(0, h, 0), Vec3d.ZERO, 5 * w + 0.5, 0xF4F0FF, 0.8F * w);
+		FxDraw.beam(glow, m, top, top.add(0, h, 0), Vec3d.ZERO, 14 * w, 0x8070FF, 0.2F * w);
 		Solids.flare(glow, m, top, cb, 10 * w, 0xFFFFFF, w);
+	}
+
+	private Vec3d camera() {
+		net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+		return mc == null || mc.gameRenderer == null ? c.add(0, 10, 0) : mc.gameRenderer.getCamera().getPos();
 	}
 
 	private static float smooth(double u) {

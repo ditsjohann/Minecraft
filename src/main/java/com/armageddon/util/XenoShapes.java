@@ -12,7 +12,7 @@ public final class XenoShapes {
 	}
 
 	public static final int UNFOLD = 60, UNFOLDED = 200, SCAN = 200, SCAN_END = 330, HARVEST = 330, FRONT_END = 680, HARVEST_END = 740,
-			COMPRESS = 800, LAND = 890, DEPART = 920, END = 1020, CINE = 1000;
+			COMPRESS = 800, LAND = 890, SHIP = 920, DEPART = 980, LEAVE = 1070, END = 1150, CINE = 1000;
 	/** Height of the hypercube over the ground, its half-size, and the default radius of the harvest. */
 	public static final double H = 58, SIZE = 14, R = 110;
 	/** The new floor, relative to the bomb's ground, and the monolith's height. */
@@ -68,5 +68,30 @@ public final class XenoShapes {
 
 	public static double ringR(int k) {
 		return 32 + k * 7;
+	}
+
+	/** The Watchers: eight tall faceless things standing round the harvest, glitching a step closer now and then. */
+	public static final int WATCHERS = 8, WATCH = HARVEST + 60, WATCH_STEP = 90;
+	/** Height of the alien ship's ring over the ground, and its radius. */
+	public static final double SHIP_H = 190, SHIP_R = 120;
+
+	/** Where watcher {@code i} stands at tick {@code t}, for a harvest of radius {@code r} (relative, on the ground). */
+	public static net.minecraft.util.math.Vec3d watcher(int i, double t, double r) {
+		double a = i * MathHelper.TAU / WATCHERS + hash(i, 81) * 0.4;
+		int steps = (int) Math.max(0, Math.min((t - WATCH) / WATCH_STEP, (LAND - WATCH) / WATCH_STEP));
+		double d = r * 0.95 - steps * r * 0.07 - hash(i, 82) * 6;
+		return new net.minecraft.util.math.Vec3d(Math.cos(a) * d, 0, Math.sin(a) * d);
+	}
+
+	/** How present the watchers are (0..1): flickering in, standing, dissolving up into the ship at the end. */
+	public static double watching(double t) {
+		return smooth((t - WATCH) / 30.0) * (1 - smooth((t - DEPART - 20) / 50.0));
+	}
+
+	/** Where the ship's ring hangs at tick {@code t}: descending out of the sky, then gone in a streak. */
+	public static double shipY(double t) {
+		double down = smooth((t - SHIP) / 60.0);
+		double up = Math.max(0, t - LEAVE);
+		return SHIP_H + (1 - down) * 160 + up * up * 0.6;
 	}
 }
