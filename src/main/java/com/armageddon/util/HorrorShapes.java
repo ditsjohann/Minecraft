@@ -162,6 +162,24 @@ public final class HorrorShapes {
 			return new Vec3d(Math.cos(a) * r, 0, Math.sin(a) * r);
 		}
 
+		/** Turns a path offset by {@code rot} about the vertical, so the ride starts the way whoever lit it was looking. */
+		public static Vec3d turn(Vec3d v, double rot) {
+			double cs = Math.cos(rot), sn = Math.sin(rot);
+			return new Vec3d(v.x * cs - v.z * sn, v.y, v.x * sn + v.z * cs);
+		}
+
+		public static Vec3d pos(double t, double rot) {
+			return turn(pos(t), rot);
+		}
+
+		public static Vec3d dir(double t, double rot) {
+			return turn(dir(t), rot);
+		}
+
+		public static Vec3d target(int k, int seed, double rot) {
+			return turn(target(k, seed), rot);
+		}
+
 		/** How much bigger than a horse he is drawn, and the height of his raised hand over the horse's feet. */
 		public static final double BIG = 1.5, HAND = 33 * BIG;
 	}

@@ -309,17 +309,24 @@ public final class HorrorEvents {
 	 */
 	public static class PumpkinHorseman extends SciFiEvents.Base {
 		private boolean trenched;
+		private double rot;
 
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d c = center();
+			if (t > 0 && rot == 0 && data.contains("Yaw")) {
+				Vec3d heading = Kit.dir(yaw());
+				rot = Math.atan2(heading.z, heading.x);
+			}
 			if (t == 0) {
 				if (!data.contains("Seed")) {
 					data.putInt("Seed", world.random.nextInt(1_000_000));
 				}
 				CelestialEvents.announce(world, c, "block.armageddon.pumpkin_horseman");
-				Vfx.newFx(world, FX_HORSEMAN, Kit.ground(world, c.x, c.z), c, (float) Horseman.ORBIT, 0xFF8020, seed(), 0, Horseman.END);
+				Vec3d heading = Kit.dir(yaw());
+				rot = Math.atan2(heading.z, heading.x);
+				Vfx.newFx(world, FX_HORSEMAN, Kit.ground(world, c.x, c.z), heading, (float) Horseman.ORBIT, 0xFF8020, seed(), 0, Horseman.END);
 				Kit.sound(world, c, SoundEvents.ENTITY_WITCH_CELEBRATE, 64.0F, 0.5F);
 				Kit.sound(world, c, SoundEvents.AMBIENT_SOUL_SAND_VALLEY_MOOD.value(), 64.0F, 0.6F);
 			}
@@ -339,7 +346,7 @@ public final class HorrorEvents {
 			for (int k = 0; k < Horseman.THROWS; k++) {
 				int at = Horseman.throwAt(k);
 				if (t == at) {
-					Vec3d hand = Kit.ground(world, c.x + Horseman.pos(t).x, c.z + Horseman.pos(t).z).add(0, Horseman.HAND, 0);
+					Vec3d hand = Kit.ground(world, c.x + Horseman.pos(t, rot).x, c.z + Horseman.pos(t, rot).z).add(0, Horseman.HAND, 0);
 					Kit.sound(world, hand, SoundEvents.ENTITY_WITCH_CELEBRATE, 96.0F, 0.45F);
 					Kit.sound(world, hand, SoundEvents.ITEM_FIRECHARGE_USE, 96.0F, 0.5F);
 				}
@@ -348,7 +355,7 @@ public final class HorrorEvents {
 				}
 			}
 			if (t == Horseman.REAR) {
-				Vec3d p = Kit.ground(world, c.x + Horseman.pos(t).x, c.z + Horseman.pos(t).z);
+				Vec3d p = Kit.ground(world, c.x + Horseman.pos(t, rot).x, c.z + Horseman.pos(t, rot).z);
 				Kit.sound(world, p, SoundEvents.ENTITY_HORSE_DEATH, 128.0F, 0.4F);
 				Kit.sound(world, p, SoundEvents.ENTITY_HORSE_ANGRY, 128.0F, 0.35F);
 				Vfx.shake(world, p, 300, 1.0F);
@@ -357,7 +364,7 @@ public final class HorrorEvents {
 				charge(c, t);
 			}
 			if (t == Horseman.VANISH) {
-				Vec3d p = c.add(Horseman.pos(t)).add(0, Kit.ground(world, c.x, c.z).y - c.y + 20, 0);
+				Vec3d p = c.add(Horseman.pos(t, rot)).add(0, Kit.ground(world, c.x, c.z).y - c.y + 20, 0);
 				Vfx.play(world, VfxIds.HORSE_VANISH, p, 1.0F);
 				Vfx.flash(world, p, 0.35F, 400, 0xFF9030);
 				Kit.sound(world, p, SoundEvents.ENTITY_WITCH_CELEBRATE, 128.0F, 0.4F);
@@ -377,7 +384,7 @@ public final class HorrorEvents {
 			if (t < Horseman.GALLOP && t % 6 != 0) {
 				return;
 			}
-			Vec3d p = Horseman.pos(t);
+			Vec3d p = Horseman.pos(t, rot);
 			if (p.y > 2) {
 				return;
 			}
@@ -388,7 +395,7 @@ public final class HorrorEvents {
 				Vfx.shake(world, g, 80, 0.5F);
 			}
 			if (t % 4 == 0) {
-				Vec3d d = Horseman.dir(t), side = new Vec3d(-d.z, 0, d.x);
+				Vec3d d = Horseman.dir(t, rot), side = new Vec3d(-d.z, 0, d.x);
 				int hoof = (t / 4) % 4;
 				Vec3d h = g.add(d.multiply((hoof < 2 ? 5 : -5.5) * Horseman.BIG)).add(side.multiply((hoof % 2 == 0 ? 2.4 : -2.4) * Horseman.BIG));
 				Vfx.play(world, VfxIds.HORSE_HOOF, Kit.ground(world, h.x, h.z), 1.0F);
@@ -417,7 +424,7 @@ public final class HorrorEvents {
 
 		/** A lantern lands: it bursts into a burning crater ringed with grinning pumpkins, and bats scatter out of it. */
 		private void pumpkin(Vec3d c, int k) {
-			Vec3d tg = Horseman.target(k, seed());
+			Vec3d tg = Horseman.target(k, seed(), rot);
 			Vec3d hit = Kit.ground(world, c.x + tg.x, c.z + tg.z);
 			Vfx.play(world, VfxIds.HORSE_PUMPKIN, hit, 1.0F);
 			Vfx.flash(world, hit, 0.3F, 300, 0xFF9030);
@@ -456,7 +463,7 @@ public final class HorrorEvents {
 
 		/** The charge: a burning trench cut straight through the middle, and everything near it cut down. */
 		private void charge(Vec3d c, int t) {
-			Vec3d p = Horseman.pos(t), d = Horseman.dir(t);
+			Vec3d p = Horseman.pos(t, rot), d = Horseman.dir(t, rot);
 			Vec3d g = Kit.ground(world, c.x + p.x, c.z + p.z);
 			if (t == Horseman.CHARGE) {
 				Kit.sound(world, g, SoundEvents.ENTITY_HORSE_ANGRY, 128.0F, 0.5F);

@@ -28,7 +28,7 @@ final class HorrorFx {
 	static FxEffect create(int kind, Vec3d a, Vec3d b, FxPayload p) {
 		return switch (kind) {
 			case 59 -> new ManiacFx(a, b, (int) p.p1(), p.duration());
-			case 60 -> new HorsemanFx(a, (int) p.p1(), p.duration());
+			case 60 -> new HorsemanFx(a, b, (int) p.p1(), p.duration());
 			case 61 -> new HellGateFx(a, b, (int) p.p1(), p.duration());
 			default -> null;
 		};
@@ -399,17 +399,21 @@ final class HorrorFx {
 	// ====================================================================== PUMPKIN HORSEMAN
 
 	/**
-	 * The horseman: a horse of night galloping with a burning mane and tail, the headless rider with ghost fire pouring
-	 * from his neck, his tattered cloak streaming, his scythe, and the jack-o'-lantern he throws.
+	 * The horseman, made of particles: a horse of black smoke and ghost fire with a burning mane and tail, a rider of
+	 * smoke with fire pouring from his neck, his cloak streaming off him in tatters, his scythe edged in green fire,
+	 * and the jack-o'-lantern blazing in his raised hand. Every bone of them is a cloud of embers and smoke that
+	 * flickers upward and streams off behind as he rides.
 	 */
 	static final class HorsemanFx extends FxEffect {
-		private static final int HORSE = 0x15101A, RIDER = 0x1C1420, CLOAK = 0x1A0C20, PUMPKIN = 0xD86A10;
+		private static final int SMOKE_DARK = 0x120A16, SMOKE_EDGE = 0x2A1630, FIRE = 0xFF7A20, GHOST = 0x70FF40, PUMPKIN = 0xFF8A10;
 		private final Vec3d c;
+		private final double rot;
 		private final int seed;
 
-		HorsemanFx(Vec3d c, int seed, int life) {
+		HorsemanFx(Vec3d c, Vec3d heading, int seed, int life) {
 			super(Math.max(40, life));
 			this.c = c;
+			this.rot = heading.lengthSquared() < 1.0E-4 ? 0 : Math.atan2(heading.z, heading.x);
 			this.seed = seed;
 		}
 
@@ -419,24 +423,85 @@ final class HorrorFx {
 			final double cosR, sinR, bob, scale;
 
 			Frame(Vec3d cam, double a) {
-				Vec3d p = Horseman.pos(a);
+				Vec3d p = Horseman.pos(a, rot);
 				double gy = NewFx.groundY(c.x + p.x, c.z + p.z, c.y);
 				this.o = new Vec3d(c.x + p.x, gy + p.y, c.z + p.z).subtract(cam);
-				this.d = Horseman.dir(a);
+				this.d = Horseman.dir(a, rot);
 				this.s = new Vec3d(-d.z, 0, d.x);
 				double rear = Horseman.rear(a) * 0.8;
 				this.cosR = Math.cos(rear);
 				this.sinR = Math.sin(rear);
 				boolean onLand = a >= Horseman.GALLOP && a < Horseman.ASCEND && Horseman.rear(a) < 0.05;
 				this.bob = onLand ? 0.9 * Math.abs(Math.sin(a * 0.32)) : 0;
-				this.scale = Horseman.BIG * smooth((a - Horseman.APPEAR) / 30.0) * (1 - smooth((a - Horseman.VANISH) / 4.0));
+				this.scale = Horseman.BIG * smooth((a - Horseman.APPEAR) / 25.0) * (1 - smooth((a - Horseman.VANISH) / 4.0));
 			}
 
 			Vec3d at(double x, double y, double z) {
-				// Rearing pivots the whole body up about the hind feet.
 				double dx = x + 6;
 				double x2 = -6 + dx * cosR - y * sinR, y2 = dx * sinR + y * cosR;
 				return o.add(d.multiply(x2 * scale)).add(UP.multiply((y2 + bob) * scale)).add(s.multiply(z * scale));
+			}
+		}
+
+		/** Everything drawn this frame: glowing embers, and smoke puffs that are sorted and drawn together. */
+		private static final class Cloud {
+			final VertexConsumer glow;
+			final Matrix4f m;
+			final Vec3d[] cb;
+			final float a;
+			final List<Effects.Puff> puffs = new ArrayList<>();
+
+			Cloud(VertexConsumer glow, Matrix4f m, Vec3d[] cb, float a) {
+				this.glow = glow;
+				this.m = m;
+				this.cb = cb;
+				this.a = a;
+			}
+
+			/**
+			 * One limb as particles: a core of dark smoke along it, embers scattered through it flickering upward and
+			 * fading, and flame licking off its edge.
+			 */
+			void limb(Vec3d p0, Vec3d p1, double r0, double r1, int salt, int ember, int edge, double density, Vec3d drift) {
+				Vec3d axis = p1.subtract(p0);
+				double len = axis.length();
+				if (len < 1.0E-3) {
+					return;
+				}
+				Vec3d dir = axis.multiply(1 / len);
+				Vec3d side = dir.crossProduct(UP);
+				side = side.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : side.normalize();
+				Vec3d up = side.crossProduct(dir).normalize();
+				int n = (int) Math.max(6, len * (r0 + r1) * density * 2.2);
+				for (int i = 0; i < n; i++) {
+					double u = HorrorShapes.hash(salt, i * 3 + 1);
+					double rr = (r0 + (r1 - r0) * u) * Math.sqrt(HorrorShapes.hash(salt, i * 3 + 2));
+					double ang = HorrorShapes.hash(salt, i * 3 + 3) * MathHelper.TAU + a * 0.04;
+					double ph = (a * 0.07 + HorrorShapes.hash(salt, i + 999)) % 1.0;
+					Vec3d p = p0.add(axis.multiply(u)).add(side.multiply(Math.cos(ang) * rr)).add(up.multiply(Math.sin(ang) * rr))
+							.add(0, ph * 1.4, 0).add(drift.multiply(ph * 2.5));
+					float life = (float) (1 - ph);
+					if (i % 7 == 0) {
+						puffs.add(new Effects.Puff(p, (r0 + r1) * 0.22 + 0.25, SMOKE_EDGE, SMOKE_DARK, 0.28F * life));
+					} else {
+						boolean outer = rr > (r0 + r1) * 0.32;
+						double size = 0.22 + 0.25 * HorrorShapes.hash(salt, i + 77);
+						Solids.dot(glow, m, p, cb, size, outer ? edge : ember, 0.95F * life);
+						if (i % 4 == 1) {
+							Solids.dot(glow, m, p, cb, size * 0.4, 0xFFF0C0, 0.8F * life);
+						}
+					}
+				}
+			}
+
+			/** A licking tongue of flame from {@code root} along {@code dir}, drawn as embers streaming off it. */
+			void flame(Vec3d root, Vec3d dir, double len, int salt, int col) {
+				for (int k = 0; k < 14; k++) {
+					double ph = (a * 0.09 + HorrorShapes.hash(salt, k)) % 1.0;
+					double wv = Math.sin(a * 0.5 + salt + k) * 0.5 * ph;
+					Vec3d p = root.add(dir.multiply(len * ph)).add(UP.multiply(wv)).add(dir.crossProduct(UP).multiply(Math.cos(a * 0.4 + k) * 0.6 * ph));
+					Solids.dot(glow, m, p, cb, 0.55 * (1 - ph) + 0.15, k % 3 == 0 ? 0xFFE080 : col, 0.9F * (float) (1 - ph));
+				}
 			}
 		}
 
@@ -458,9 +523,16 @@ final class HorrorFx {
 					}
 				}
 			}
-			if (t >= Horseman.APPEAR && t < Horseman.VANISH && t % 5 == 0) {
-				Vec3d p = Horseman.pos(t);
-				ClientFx.light(new Vec3d(c.x + p.x, NewFx.groundY(c.x + p.x, c.z + p.z, c.y) + p.y + Horseman.HAND, c.z + p.z), 0.8F, 0xFF8020);
+			if (t >= Horseman.APPEAR && t < Horseman.VANISH) {
+				Vec3d p = Horseman.pos(t, rot), q = Horseman.pos(t - 1, rot);
+				double gy = NewFx.groundY(c.x + p.x, c.z + p.z, c.y);
+				Vec3d body = new Vec3d(c.x + p.x, gy + p.y + 12 * Horseman.BIG, c.z + p.z);
+				// Embers shed off his back as he rides.
+				FxEngine.playMoving(VfxIds.HORSE_TRAIL, body.x, body.y, body.z, 0, 1, 0, 1.2F, 0, t * 977L, (float) (p.x - q.x) * 0.3F, 0.1F,
+						(float) (p.z - q.z) * 0.3F);
+				if (t % 5 == 0) {
+					ClientFx.light(body.add(0, Horseman.HAND - 12 * Horseman.BIG, 0), 0.9F, 0xFF8020);
+				}
 			}
 			return super.tick(world);
 		}
@@ -468,9 +540,9 @@ final class HorrorFx {
 		/** World position of thrown lantern {@code k} at tick {@code t}: an arc from his hand to where it lands. */
 		private Vec3d lantern(int k, double t) {
 			int at = Horseman.throwAt(k);
-			Vec3d p = Horseman.pos(at);
+			Vec3d p = Horseman.pos(at, rot);
 			Vec3d from = new Vec3d(c.x + p.x, NewFx.groundY(c.x + p.x, c.z + p.z, c.y) + Horseman.HAND, c.z + p.z);
-			Vec3d tg = Horseman.target(k, seed);
+			Vec3d tg = Horseman.target(k, seed, rot);
 			Vec3d to = new Vec3d(c.x + tg.x, NewFx.groundY(c.x + tg.x, c.z + tg.z, c.y) + 1, c.z + tg.z);
 			double u = MathHelper.clamp((t - at) / Horseman.FLIGHT, 0.0, 1.0);
 			return from.lerp(to, u).add(0, Math.sin(Math.PI * u) * 22, 0);
@@ -481,49 +553,46 @@ final class HorrorFx {
 			float a = age + td;
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
-			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+			Cloud cl = new Cloud(glow, m, cb, a);
 			for (int k = 0; k < Horseman.THROWS; k++) {
 				int at = Horseman.throwAt(k);
 				if (a >= at && a < at + Horseman.FLIGHT) {
 					Vec3d p = lantern(k, a).subtract(cam);
-					Vec3d spinD = new Vec3d(Math.cos(a * 0.4), 0, Math.sin(a * 0.4));
-					jackOLantern(consumers, solid, glow, m, cb, p, spinD, 2.4, a);
+					jackOLantern(consumers, cl, p, new Vec3d(Math.cos(a * 0.4), 0, Math.sin(a * 0.4)), 2.6, a);
 				}
 			}
-			if (a < Horseman.APPEAR || a > Horseman.VANISH + 2) {
-				return;
+			if (a >= Horseman.APPEAR && a <= Horseman.VANISH + 2) {
+				Frame f = new Frame(cam, a);
+				if (f.scale > 0.02) {
+					horse(f, cl, a);
+					rider(f, consumers, cl, a);
+				}
 			}
-			Frame f = new Frame(cam, a);
-			if (f.scale <= 0.02) {
-				return;
-			}
-			horse(f, solid, glow, m, cb, a);
-			rider(f, consumers, solid, glow, shade, m, cb, a);
+			Effects.drawPuffs(cl.puffs, consumers.getBuffer(FxRenderLayers.SHADE), m, cb, 6);
 		}
 
-		private void horse(Frame f, VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d[] cb, float a) {
+		private void horse(Frame f, Cloud cl, float a) {
 			double sc = f.scale;
-			// Body: rump, barrel, chest.
-			Solids.tube(solid, m, f.at(-8.5, 11.8, 0), f.at(-3, 11.6, 0), 3.6 * sc, 4.2 * sc, 10, HORSE, 1.0F, true);
-			Solids.tube(solid, m, f.at(-3, 11.6, 0), f.at(3, 11.8, 0), 4.2 * sc, 4.3 * sc, 10, HORSE, 1.0F, true);
-			Solids.tube(solid, m, f.at(3, 11.8, 0), f.at(7.5, 12.6, 0), 4.3 * sc, 3.4 * sc, 10, HORSE, 1.0F, true);
-			// Neck and head, the head held low and forward.
-			Vec3d n0 = f.at(6.5, 14.0, 0), n1 = f.at(9.5, 18.5, 0), n2 = f.at(11.5, 21.0, 0);
-			Solids.tube(solid, m, n0, n1, 2.8 * sc, 2.2 * sc, 8, HORSE, 1.0F, true);
-			Solids.tube(solid, m, n1, n2, 2.2 * sc, 1.9 * sc, 8, HORSE, 1.0F, true);
-			Vec3d muzzle = f.at(15.8, 17.2, 0);
-			Solids.tube(solid, m, n2, muzzle, 1.9 * sc, 1.1 * sc, 8, HORSE, 1.0F, true);
+			Vec3d back = f.d.multiply(-1);
+			// Body, neck and head.
+			cl.limb(f.at(-8.5, 11.8, 0), f.at(-3, 11.6, 0), 3.6 * sc, 4.2 * sc, 1, 0xC02A0C, FIRE, 1.1, back);
+			cl.limb(f.at(-3, 11.6, 0), f.at(3, 11.8, 0), 4.2 * sc, 4.3 * sc, 2, 0xC02A0C, FIRE, 1.1, back);
+			cl.limb(f.at(3, 11.8, 0), f.at(7.5, 12.6, 0), 4.3 * sc, 3.4 * sc, 3, 0xC02A0C, FIRE, 1.1, back);
+			Vec3d n0 = f.at(6.5, 14.0, 0), n1 = f.at(9.5, 18.5, 0), n2 = f.at(11.5, 21.0, 0), muzzle = f.at(15.8, 17.2, 0);
+			cl.limb(n0, n1, 2.8 * sc, 2.2 * sc, 4, 0xC02A0C, FIRE, 1.2, back);
+			cl.limb(n1, n2, 2.2 * sc, 1.9 * sc, 5, 0xC02A0C, FIRE, 1.2, back);
+			cl.limb(n2, muzzle, 1.9 * sc, 1.1 * sc, 6, 0xC02A0C, FIRE, 1.4, back);
 			for (int s = -1; s <= 1; s += 2) {
-				Solids.tube(solid, m, f.at(11.2, 22.0, s * 0.8), f.at(10.6, 24.0, s * 0.9), 0.45 * sc, 0.1 * sc, 5, HORSE, 1.0F, true);
 				Vec3d eye = f.at(12.6, 20.6, s * 1.35);
-				Solids.flare(glow, m, eye, cb, 0.9 * sc, 0xFFA030, 0.95F);
+				Solids.flare(cl.glow, cl.m, eye, cl.cb, 1.2 * sc, 0xFFA030, 1.0F);
+				cl.limb(f.at(11.2, 22.0, s * 0.8), f.at(10.6, 24.5, s * 0.9), 0.5 * sc, 0.15 * sc, 7 + s, FIRE, FIRE, 3, back);
 			}
-			// Breath of fire from the nostrils.
-			FxDraw.ribbon(glow, m, muzzle, f.at(17.5, 16.0, 0), Vec3d.ZERO, 0.7 * sc, 0xFF7020, 0.5F, 0.0F);
-			// Legs at the gallop: hind pair, then front pair.
+			// Fire snorted from the nostrils.
+			cl.flame(muzzle, f.d.add(0, -0.3, 0).normalize(), 5 * sc, 9, FIRE);
+			// Legs at the gallop.
 			double ph = a * 0.32, rear = Horseman.rear(a);
 			double[][] legs = {{-6.5, 2.4, 0.0}, {-6.5, -2.4, 0.13}, {5.5, 2.4, 0.5}, {5.5, -2.4, 0.63}};
+			int li = 0;
 			for (double[] leg : legs) {
 				boolean front = leg[0] > 0;
 				double w = ph + leg[2] * MathHelper.TAU;
@@ -538,60 +607,44 @@ final class HorrorFx {
 					al *= 0.6;
 				}
 				Vec3d hip = f.at(leg[0], 9.0, leg[1]);
-				Vec3d knee = f.at(leg[0] + Math.sin(al) * 4.4, 9.0 - Math.cos(al) * 4.4, leg[1]);
 				double kx = leg[0] + Math.sin(al) * 4.4, ky = 9.0 - Math.cos(al) * 4.4;
+				Vec3d knee = f.at(kx, ky, leg[1]);
 				Vec3d hoof = f.at(kx + Math.sin(be) * 4.4, ky - Math.cos(be) * 4.4, leg[1]);
-				Solids.tube(solid, m, hip, knee, 1.3 * sc, 0.9 * sc, 7, HORSE, 1.0F, true);
-				Solids.tube(solid, m, knee, hoof, 0.8 * sc, 0.7 * sc, 7, HORSE, 1.0F, true);
-				Solids.dot(glow, m, hoof, cb, 1.2 * sc, 0xFF7020, 0.7F);
+				cl.limb(hip, knee, 1.4 * sc, 1.0 * sc, 20 + li, 0xC02A0C, FIRE, 1.6, back);
+				cl.limb(knee, hoof, 0.9 * sc, 0.75 * sc, 30 + li, 0xC02A0C, FIRE, 1.8, back);
+				Solids.dot(cl.glow, cl.m, hoof, cl.cb, 1.3 * sc, 0xFF9030, 0.8F);
+				li++;
 			}
-			// The mane and tail: ghost fire, orange and green, streaming back.
+			// The mane and the tail: ghost fire streaming back.
 			for (int k = 0; k < 9; k++) {
 				double u = k / 8.0;
-				Vec3d root = f.at(6.0 + u * 5.5, 15.5 + u * 6.0, 0);
-				flame(glow, m, root, f.d.multiply(-1).add(UP.multiply(0.9)).normalize(), 3.5 + 1.5 * Math.sin(k), a, k, sc);
+				cl.flame(f.at(6.0 + u * 5.5, 15.5 + u * 6.0, 0), back.add(UP.multiply(0.9)).normalize(), (4 + 2 * Math.sin(k)) * sc, 40 + k, k % 3 == 0 ? GHOST : FIRE);
 			}
-			Vec3d tail = f.at(-8.8, 13.0, 0);
 			for (int k = 0; k < 4; k++) {
-				flame(glow, m, tail, f.d.multiply(-1).add(UP.multiply(0.25 + k * 0.12)).normalize(), 7 + k, a, 20 + k, sc);
+				cl.flame(f.at(-8.8, 13.0, 0), back.add(UP.multiply(0.2 + k * 0.12)).normalize(), (8 + k) * sc, 60 + k, k % 2 == 0 ? GHOST : FIRE);
 			}
 		}
 
-		/** A licking tongue of ghost fire from {@code root} along {@code dir}. */
-		private static void flame(VertexConsumer glow, Matrix4f m, Vec3d root, Vec3d dir, double len, float a, int salt, double sc) {
-			Vec3d side = new Vec3d(-dir.z, 0, dir.x);
-			Vec3d prev = root;
-			int n = 6;
-			for (int j = 1; j <= n; j++) {
-				double u = j / (double) n;
-				double wv = Math.sin(a * 0.6 + salt * 1.7 + j * 1.1) * 0.6 * u;
-				Vec3d p = root.add(dir.multiply(len * u * sc)).add(side.multiply(wv * sc)).add(UP.multiply(Math.sin(a * 0.45 + salt + j) * 0.4 * u * sc));
-				float al = (float) (1 - u) * 0.75F;
-				FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, (1.3 - u) * sc, salt % 3 == 0 ? 0x70FF40 : 0xFF7A20, al, al * 0.7F);
-				prev = p;
-			}
-		}
-
-		private void rider(Frame f, VertexConsumerProvider consumers, VertexConsumer solid, VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb,
-				float a) {
+		private void rider(Frame f, VertexConsumerProvider consumers, Cloud cl, float a) {
 			double sc = f.scale;
+			Vec3d back = f.d.multiply(-1);
+			int robe = 0xB040FF;
 			Vec3d hip = f.at(-1.0, 16.4, 0), chest = f.at(0.6, 22.5, 0), shoulders = f.at(0.8, 25.6, 0), stump = f.at(0.9, 27.0, 0);
-			Solids.tube(solid, m, hip, chest, 2.2 * sc, 2.6 * sc, 9, RIDER, 1.0F, true);
-			Solids.tube(solid, m, chest, shoulders, 2.6 * sc, 2.2 * sc, 9, RIDER, 1.0F, true);
-			Solids.tube(solid, m, shoulders, stump, 1.4 * sc, 1.0 * sc, 8, RIDER, 1.0F, true);
+			cl.limb(hip, chest, 2.2 * sc, 2.6 * sc, 70, robe, GHOST, 1.2, back);
+			cl.limb(chest, shoulders, 2.6 * sc, 2.2 * sc, 71, robe, GHOST, 1.2, back);
+			cl.limb(shoulders, stump, 1.4 * sc, 1.0 * sc, 72, robe, GHOST, 1.5, back);
 			// Ghost fire pouring up from where his head should be.
 			for (int k = 0; k < 6; k++) {
-				Vec3d dir = UP.add(f.d.multiply(-0.35)).add(f.s.multiply((k - 2.5) * 0.08)).normalize();
-				flame(glow, m, stump, dir, 5.5 + k % 3, a, k * 3, sc);
+				Vec3d dir = UP.add(back.multiply(0.35)).add(f.s.multiply((k - 2.5) * 0.08)).normalize();
+				cl.flame(stump, dir, (6 + k % 3) * sc, 80 + k, k % 2 == 0 ? GHOST : 0xC0FF80);
 			}
-			FxKit.halo(consumers, m, cb, stump.add(0, 2 * sc, 0), 4.5 * sc, 0x60FF40, 0.35F);
-			// Legs down the horse's flanks.
+			FxKit.halo(consumers, cl.m, cl.cb, stump.add(0, 2 * sc, 0), 4.5 * sc, 0x60FF40, 0.35F);
 			for (int s = -1; s <= 1; s += 2) {
 				Vec3d knee = f.at(2.0, 13.0, s * 4.4), foot = f.at(0.8, 8.5, s * 4.6);
-				Solids.tube(solid, m, f.at(-0.8, 16.2, s * 1.6), knee, 1.2 * sc, 1.0 * sc, 7, RIDER, 1.0F, true);
-				Solids.tube(solid, m, knee, foot, 0.9 * sc, 0.8 * sc, 7, RIDER, 1.0F, true);
+				cl.limb(f.at(-0.8, 16.2, s * 1.6), knee, 1.2 * sc, 1.0 * sc, 90 + s, robe, GHOST, 1.5, back);
+				cl.limb(knee, foot, 0.9 * sc, 0.8 * sc, 95 + s, robe, GHOST, 1.5, back);
 			}
-			// The lantern arm: held high, wound back before a throw, empty until a new lantern kindles.
+			// The lantern arm.
 			double wind = 0, release = 0, regrow = 1;
 			for (int k = 0; k < Horseman.THROWS; k++) {
 				double at = Horseman.throwAt(k);
@@ -604,76 +657,78 @@ final class HorrorFx {
 			Vec3d sh = f.at(0.8, 25.2, 2.8);
 			Vec3d elbow = f.at(1.2 - wind * 3 + release * 3, 29.0, 4.0);
 			Vec3d hand = f.at(1.6 - wind * 5.5 + release * 6, 33.0 - wind * 1.5, 4.4);
-			Solids.tube(solid, m, sh, elbow, 1.0 * sc, 0.8 * sc, 7, RIDER, 1.0F, true);
-			Solids.tube(solid, m, elbow, hand, 0.8 * sc, 0.65 * sc, 7, RIDER, 1.0F, true);
+			cl.limb(sh, elbow, 1.0 * sc, 0.8 * sc, 100, robe, GHOST, 1.8, back);
+			cl.limb(elbow, hand, 0.8 * sc, 0.65 * sc, 101, robe, GHOST, 1.8, back);
 			if (regrow > 0.02) {
-				jackOLantern(consumers, solid, glow, m, cb, hand.add(UP.multiply(1.6 * sc * regrow)), f.d, 2.4 * sc * regrow, a);
+				jackOLantern(consumers, cl, hand.add(UP.multiply(1.8 * sc * regrow)), f.d, 2.4 * sc * regrow, a);
 			}
-			// The scythe arm.
+			// The scythe arm and the scythe, its blade edged in green fire.
 			Vec3d sh2 = f.at(0.8, 25.2, -2.8), el2 = f.at(0.0, 21.5, -4.4), hand2 = f.at(2.4, 20.8, -4.8);
-			Solids.tube(solid, m, sh2, el2, 1.0 * sc, 0.8 * sc, 7, RIDER, 1.0F, true);
-			Solids.tube(solid, m, el2, hand2, 0.8 * sc, 0.65 * sc, 7, RIDER, 1.0F, true);
+			cl.limb(sh2, el2, 1.0 * sc, 0.8 * sc, 102, robe, GHOST, 1.8, back);
+			cl.limb(el2, hand2, 0.8 * sc, 0.65 * sc, 103, robe, GHOST, 1.8, back);
 			double swing = a >= Horseman.CHARGE && a < Horseman.ASCEND ? Math.sin((a - Horseman.CHARGE) * 0.5) * 6 : 0;
 			Vec3d butt = f.at(-5.0, 14.0 - swing * 0.3, -5.0), top = f.at(9.0, 33.0 + swing * 0.2, -5.2 + swing * 0.3);
-			Solids.tube(solid, m, butt, top, 0.35 * sc, 0.3 * sc, 6, 0x2A1E14, 1.0F, true);
+			cl.limb(butt, top, 0.35 * sc, 0.3 * sc, 104, 0x8A6034, 0x8A6034, 4, Vec3d.ZERO);
 			Vec3d prev = top;
-			for (int j = 1; j <= 8; j++) {
-				double u = j / 8.0;
+			for (int j = 1; j <= 10; j++) {
+				double u = j / 10.0;
 				Vec3d p = top.add(f.d.multiply((-u * 8.0 + u * u * 2.0) * sc)).add(UP.multiply((-u * u * 4.5) * sc)).add(f.s.multiply(-0.3 * sc));
-				Solids.tube(solid, m, prev, p, (0.55 - u * 0.4) * sc, (0.5 - u * 0.4) * sc, 5, 0x8A8E90, 1.0F, true);
-				FxDraw.ribbon(glow, m, prev.add(UP.multiply(-0.5 * sc)), p.add(UP.multiply(-0.5 * sc)), Vec3d.ZERO, 0.35 * sc, 0xB0FF90, 0.6F, 0.6F);
+				FxDraw.ribbon(cl.glow, cl.m, prev, p, Vec3d.ZERO, (0.7 - u * 0.5) * sc, 0xB0FF90, 0.75F, 0.75F);
+				Solids.dot(cl.glow, cl.m, p.add(UP.multiply(-0.6 * sc)), cl.cb, 0.5 * sc, GHOST, 0.6F + 0.3F * MathHelper.sin(a * 0.6F + j));
 				prev = p;
 			}
-			// The cloak, tattered, streaming back from his shoulders.
-			int strips = 7, rows = 7;
-			Vec3d[][] cloak = new Vec3d[strips][rows];
-			for (int k = 0; k < strips; k++) {
-				double z = -3.0 + k * 1.0;
-				for (int j = 0; j < rows; j++) {
-					double flutter = Math.sin(a * 0.35 + j * 0.9 + k * 0.7) * 0.7 * j / rows;
-					int len = rows - (int) (HorrorShapes.hash(k, 77) * 2);
-					double jj = Math.min(j, len);
-					cloak[k][j] = f.at(-0.6 - jj * 1.7, 25.6 - jj * 1.25 + flutter, z * (1 + jj * 0.08));
-				}
-			}
-			for (int k = 0; k < strips - 1; k++) {
-				for (int j = 0; j < rows - 1; j++) {
-					Solids.quad(shade, m, cloak[k][j], cloak[k + 1][j], cloak[k + 1][j + 1], cloak[k][j + 1], CLOAK, 0.96F);
+			// The cloak: rags of smoke streaming back from his shoulders and fraying away.
+			for (int k = 0; k < 9; k++) {
+				double z = -3.2 + k * 0.8;
+				Vec3d p = f.at(-0.6, 25.6, z);
+				for (int j = 0; j < 8; j++) {
+					double flutter = Math.sin(a * 0.35 + j * 0.9 + k * 0.7) * 0.8 * j / 8.0;
+					Vec3d q = f.at(-0.6 - j * 1.8, 25.6 - j * 1.3 + flutter, z * (1 + j * 0.09));
+					float fade = 1 - j / 8.0F;
+					cl.puffs.add(new Effects.Puff(q, (0.9 + j * 0.12) * sc, SMOKE_EDGE, SMOKE_DARK, 0.5F * fade));
+					if ((j + k) % 3 == 0) {
+						Solids.dot(cl.glow, cl.m, q, cl.cb, 0.25 * sc, robe, 0.6F * fade);
+					}
+					p = q;
 				}
 			}
 		}
 
-		/** A blazing jack-o'-lantern: a ribbed pumpkin, its carved face lit from inside, a halo of fire. */
-		private static void jackOLantern(VertexConsumerProvider consumers, VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d p, Vec3d face,
-				double r, float a) {
+		/** A blazing jack-o'-lantern made of fire: a ball of flame, its carved face glowing gold, a halo round it. */
+		private static void jackOLantern(VertexConsumerProvider consumers, Cloud cl, Vec3d p, Vec3d face, double r, float a) {
 			if (r < 0.05) {
 				return;
 			}
 			Vec3d side = new Vec3d(-face.z, 0, face.x);
-			for (int k = 0; k < 6; k++) {
-				double ang = k * Math.PI / 6;
-				Vec3d off = face.multiply(Math.cos(ang) * r * 0.35).add(side.multiply(Math.sin(ang) * r * 0.35));
-				Solids.sphere(solid, m, p.add(off), r * 0.78, k % 2 == 0 ? PUMPKIN : 0xC05A0C, 6, 8, true);
+			for (int i = 0; i < 90; i++) {
+				double th = HorrorShapes.hash(i, 201) * MathHelper.TAU, ph = Math.acos(2 * HorrorShapes.hash(i, 202) - 1);
+				double flick = 1 + 0.12 * Math.sin(a * 0.9 + i);
+				Vec3d n = new Vec3d(Math.sin(ph) * Math.cos(th), Math.cos(ph) * 0.85, Math.sin(ph) * Math.sin(th));
+				Vec3d q = p.add(n.multiply(r * flick));
+				// Leave the face's cut-outs dark.
+				double fwd = n.dotProduct(face);
+				if (fwd > 0.55) {
+					continue;
+				}
+				Solids.dot(cl.glow, cl.m, q, cl.cb, 0.45 * r / 2.4, i % 4 == 0 ? 0xFFC040 : PUMPKIN, 0.9F);
 			}
-			Solids.tube(solid, m, p.add(UP.multiply(r * 0.7)), p.add(UP.multiply(r * 1.2)).add(side.multiply(r * 0.2)), r * 0.15, r * 0.1, 5, 0x3A6020, 1.0F,
-					true);
-			Vec3d front = p.add(face.multiply(r * 1.02));
+			cl.puffs.add(new Effects.Puff(p, r * 0.9, 0x6A2A08, 0x3A1404, 0.7F));
+			Vec3d front = p.add(face.multiply(r * 0.95));
 			float fl = 0.8F + 0.2F * MathHelper.sin(a * 1.7F);
 			for (int s = -1; s <= 1; s += 2) {
-				Vec3d e = front.add(side.multiply(s * r * 0.38)).add(UP.multiply(r * 0.22));
-				Solids.quad(glow, m, e.add(UP.multiply(r * 0.22)), e.add(side.multiply(r * 0.2)).add(UP.multiply(-r * 0.12)),
-						e.add(side.multiply(-r * 0.2)).add(UP.multiply(-r * 0.12)), e.add(UP.multiply(r * 0.22)), 0xFFE060, fl);
+				Solids.flare(cl.glow, cl.m, front.add(side.multiply(s * r * 0.38)).add(UP.multiply(r * 0.22)), cl.cb, r * 0.32, 0xFFF080, fl);
 			}
 			Vec3d prev = null;
 			for (int k = -4; k <= 4; k++) {
 				double u = k / 4.0;
 				Vec3d q = front.add(side.multiply(u * r * 0.6)).add(UP.multiply(-r * 0.32 + u * u * r * 0.12 + (k % 2 == 0 ? 0 : -r * 0.1)));
 				if (prev != null) {
-					FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, r * 0.14, 0xFFD040, fl, fl);
+					FxDraw.ribbon(cl.glow, cl.m, prev, q, Vec3d.ZERO, r * 0.16, 0xFFE060, fl, fl);
 				}
 				prev = q;
 			}
-			FxKit.halo(consumers, m, cb, p, r * 2.6, 0xFF7020, 0.4F * fl);
+			cl.flame(p.add(UP.multiply(r * 0.8)), UP, r * 1.4, 300, PUMPKIN);
+			FxKit.halo(consumers, cl.m, cl.cb, p, r * 2.8, 0xFF7020, 0.45F * fl);
 		}
 	}
 
