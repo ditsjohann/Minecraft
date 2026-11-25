@@ -102,11 +102,12 @@ lanterns rise and fill the sky while a translucent golden dragon flies over them
 
 Three more fossils, each crafted from a Fossil Bomb. MAMMOTH FOSSIL (mythic): a woolly mammoth's skeleton rises out of
 a frozen fissure, trumpets, and an ice age rolls out over the land (frozen water, deep snow, spikes of ice, everyone
-frozen) before it stomps the frozen ground to pieces. LEVIATHAN FOSSIL (mythic): a ghost of the ancient sea floods the
-land, ammonites and shoals drifting through it, while a sea serpent's spine breaches in great arches; its skull rears
-up and a maelstrom drags everything down into a funnel that becomes a lagoon. PTEROSAUR FOSSIL (legendary): bones
+frozen) before it stomps the frozen ground to pieces; in the finale lines of giant ice spikes race out and a glacier
+entombs the skeleton in ice. LEVIATHAN FOSSIL (mythic): a ghost of the ancient sea floods the
+land, jellyfish and shoals drifting through it, while a sea serpent's spine breaches in great arches; its skull rears
+up and the whole sea gathers into one great curling wave that rolls out and leaves a sea floor behind. PTEROSAUR FOSSIL (legendary): bones
 burst out of the ground and assemble mid-air into a pterosaur thirty blocks across that flies, screeches, dive-bombs
-the land three times, then lands on a spire of bone and crumbles to dust.
+the land three times, then lands on a spire of bone and turns to stone, its fossil left perched there.
 
 The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern and
 the Mammoth, Leviathan and Pterosaur fossils, Xenoform, Terror Maniac, Pumpkin Horseman, Portal of Hell and AI Takeover) sit
