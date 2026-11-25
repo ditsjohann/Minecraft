@@ -2,6 +2,7 @@ package com.armageddon.event.events;
 
 import com.armageddon.destruction.Destruction;
 import com.armageddon.destruction.city.BlockQueue;
+import com.armageddon.destruction.world.TerrainJob;
 import com.armageddon.event.Kit;
 import com.armageddon.event.events.StrongBombEvents.RingSweep;
 import com.armageddon.network.Vfx;
@@ -31,7 +32,7 @@ import java.util.List;
 
 /**
  * Three more fossils: the MAMMOTH (an ice age rolls out from its trumpet), the LEVIATHAN (a sea serpent breaching
- * through a ghost of the ancient sea, ending in a maelstrom) and the PTEROSAUR (a skeleton that flies, dive-bombs and
+ * through a ghost of the ancient sea, ending in a tidal wave) and the PTEROSAUR (a skeleton that flies, dive-bombs and
  * crumbles).
  */
 public final class FossilEvents {
@@ -185,8 +186,106 @@ public final class FossilEvents {
 			if (t == Mammoth.STOMP || t == Mammoth.STOMP2) {
 				stomp(t == Mammoth.STOMP2 ? 1.4 : 1.0);
 			}
+			if (t == Mammoth.FINALE) {
+				// The last trumpet: the eyes blaze, the air freezes white.
+				Vec3d mouth = base.add(Mammoth.skull(heading)).add(heading.multiply(5)).add(0, -3, 0);
+				Vfx.play(world, VfxIds.MAMMOTH_TRUMPET, mouth, heading, 1.6F, 0);
+				Vfx.flash(world, mouth, 0.35F, 400, 0xD8F4FF);
+				Vfx.screen(world, base, 400, 1, 0.35F, 4);
+				Vfx.shake(world, base, 400, 1.4F);
+				Kit.sound(world, mouth, SoundEvents.GOAT_HORN_SOUNDS.get(5).value(), 128.0F, 0.4F);
+				Kit.sound(world, mouth, SoundEvents.ENTITY_RAVAGER_ROAR, 128.0F, 0.9F);
+				Kit.sound(world, mouth, SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, 128.0F, 0.5F);
+			}
+			if (t >= Mammoth.SPIKES && t <= Mammoth.SPIKES_END) {
+				spikes(t);
+			}
+			if (t == Mammoth.ENTOMB) {
+				entomb();
+			}
 			drain();
 			return t >= Mammoth.END;
+		}
+
+		private double spiked;
+
+		/** Twelve lines of ice spikes racing out from the mammoth, taller and taller, throwing everything aside. */
+		private void spikes(int t) {
+			double reach = Mammoth.spikes(t);
+			for (double u = spiked == 0 ? 8 : spiked + 3.2; u < reach; u += 3.2) {
+				spiked = u;
+				for (int k = 0; k < Mammoth.SPIKE_LINES; k++) {
+					double ang = k * MathHelper.TAU / Mammoth.SPIKE_LINES + Math.atan2(heading.z, heading.x) + 0.13;
+					double wob = Math.sin(u * 0.2 + k) * 2.5;
+					Vec3d dir = new Vec3d(Math.cos(ang), 0, Math.sin(ang)), side = new Vec3d(-dir.z, 0, dir.x);
+					Vec3d at = base.add(dir.multiply(u)).add(side.multiply(wob));
+					Vec3d g = Kit.ground(world, at.x, at.z);
+					double tall = 5 + u * 0.32 + FossilShapes.hash((int) u, k) * 5;
+					if (Destruction.enabled(world)) {
+						spike(g, dir.multiply(0.35).add(0, 1, 0).normalize(), tall, 1.3 + u * 0.018);
+					}
+					if (((int) u) % 3 == 0) {
+						Vfx.play(world, VfxIds.MAMMOTH_SPIKE, g, (float) (0.8 + u / Mammoth.SPIKE_REACH));
+					}
+					for (LivingEntity e : Kit.living(world, g, 5)) {
+						if (!Kit.creativeOrSpectator(e)) {
+							Kit.push(e, dir.multiply(1.0).add(0, 1.4, 0));
+							e.damage(ModDamageTypes.source(world, ModDamageTypes.CRYO), 18.0F);
+							e.setFrozenTicks(e.getMinFreezeDamageTicks() + 200);
+						}
+					}
+				}
+			}
+			if (t % 4 == 0) {
+				Kit.sound(world, base.add(heading.multiply(reach * 0.5)), SoundEvents.BLOCK_GLASS_BREAK, 96.0F, 0.5F);
+				Kit.sound(world, base, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 96.0F, 0.5F);
+				Vfx.shake(world, base, 300, 0.9F);
+			}
+		}
+
+		/** One jagged spike of packed ice with a blue core, leaning outward. */
+		private void spike(Vec3d foot, Vec3d dir, double tall, double r) {
+			for (double s = -1; s <= tall; s += 0.5) {
+				double u = Math.max(0, s / tall);
+				double rr = r * (1 - u) + 0.2;
+				Vec3d p = foot.add(dir.multiply(s));
+				int R = MathHelper.ceil(rr);
+				for (int x = -R; x <= R; x++) {
+					for (int z = -R; z <= R; z++) {
+						if (x * x + z * z <= rr * rr + 0.2) {
+							BlockPos b = BlockPos.ofFloored(p.add(x, 0, z));
+							q().add(b, (x == 0 && z == 0 ? Blocks.BLUE_ICE : Blocks.PACKED_ICE).getDefaultState(), BlockQueue.ANY);
+						}
+					}
+				}
+			}
+		}
+
+		/** A glacier closes over the skeleton: it is left entombed in a dome of clear ice, like a find in a museum. */
+		private void entomb() {
+			Vfx.play(world, VfxIds.MAMMOTH_STOMP, base, 1.8F);
+			Vfx.flash(world, base.add(0, 15, 0), 0.4F, 400, 0xE0F8FF);
+			Kit.sound(world, base, SoundEvents.BLOCK_GLASS_PLACE, 128.0F, 0.4F);
+			Kit.sound(world, base, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 128.0F, 0.5F);
+			Kit.sound(world, base, SoundEvents.BLOCK_BEACON_DEACTIVATE, 96.0F, 0.6F);
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			Vec3d right = new Vec3d(-heading.z, 0, heading.x);
+			Vec3d mid = base.add(heading.multiply(3)).add(0, 12, 0);
+			double ra = 26, rb = 11, rc = 18;
+			for (int x = -28; x <= 28; x++) {
+				for (int z = -28; z <= 28; z++) {
+					for (int y = -14; y <= 22; y++) {
+						Vec3d p = new Vec3d(x, y, z);
+						double a = p.dotProduct(heading) / ra, b = p.dotProduct(right) / rb, cc = y / rc;
+						double d = Math.sqrt(a * a + b * b + cc * cc);
+						if (d <= 1.0 && d > 1 - 1.5 / rb && mid.y + y >= base.y) {
+							q().add(BlockPos.ofFloored(mid.add(p)), Blocks.ICE.getDefaultState(), BlockQueue.AIR_ONLY);
+						}
+					}
+				}
+			}
 		}
 
 		/** A woolly mammoth in bone: barrel ribs, a high hump of spines, pillar legs, a domed skull and huge tusks. */
@@ -358,7 +457,7 @@ public final class FossilEvents {
 	 * LEVIATHAN FOSSIL. The ancient sea comes back as a ghost: a shimmering surface floods in over the land, with
 	 * ammonites and fish drifting through it. The fossil of the serpent that swam it breaches out of the ground in
 	 * great arches, tail first, and its skull rears up out of the sea with its jaws wide. Its eyes light, and a
-	 * maelstrom tears open in front of it, dragging everything round and down into a funnel that becomes a lagoon.
+	 * whole ghost sea gathers and rolls out in front of it as one great wave, leaving the land a sea floor.
 	 */
 	public static class LeviathanFossil extends OddBombEvents.Base {
 		private static BlockState mat(int k) {
@@ -370,10 +469,10 @@ public final class FossilEvents {
 			}).getDefaultState();
 		}
 
-		private Vec3d heading, base, whirl;
+		private Vec3d heading, base, origin;
 		private Bones bones = new Bones();
 		private int placed;
-		private RingSweep funnel;
+		private TerrainJob seabed;
 
 		@Override
 		public boolean tick() {
@@ -383,12 +482,11 @@ public final class FossilEvents {
 				name("leviathan_fossil", Formatting.DARK_AQUA);
 				heading = Kit.dir(data.getFloat("Yaw"));
 				base = Kit.ground(world, g.x, g.z);
-				whirl = Kit.ground(world, base.x + heading.x * (Leviathan.HEAD + Leviathan.MAEL_AHEAD), base.z + heading.z * (Leviathan.HEAD + Leviathan.MAEL_AHEAD));
-				Vfx.newFx(world, FX_LEVIATHAN, base, heading, 1.0F, 0x40E0D0, (float) (whirl.y - base.y), 0, Leviathan.END);
+				origin = Kit.ground(world, base.x + heading.x * Leviathan.HEAD, base.z + heading.z * Leviathan.HEAD);
+				Vfx.newFx(world, FX_LEVIATHAN, base, heading, 1.0F, 0x40E0D0, 0, 0, Leviathan.END);
 				Kit.sound(world, base, SoundEvents.AMBIENT_UNDERWATER_ENTER, 64.0F, 0.6F);
 				Kit.sound(world, base, SoundEvents.BLOCK_CONDUIT_ACTIVATE, 64.0F, 0.5F);
 				bones = plan(base, heading);
-				funnel = new RingSweep((int) Leviathan.MAEL_R);
 			}
 			if (t >= Leviathan.BREACH && t <= Leviathan.BREACHED) {
 				int to = (int) ((t - Leviathan.BREACH) / (double) (Leviathan.BREACHED - Leviathan.BREACH) * bones.list.size());
@@ -423,18 +521,15 @@ public final class FossilEvents {
 			if (t == Leviathan.EYES) {
 				Kit.sound(world, base, SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, 96.0F, 0.6F);
 			}
-			if (t == Leviathan.MAEL) {
+			if (t == Leviathan.WAVE) {
 				Vec3d mouth = base.add(heading.multiply(Leviathan.HEAD + 6)).add(0, Leviathan.spine(Leviathan.HEAD), 0);
 				Kit.sound(world, mouth, SoundEvents.ENTITY_RAVAGER_ROAR, 96.0F, 0.35F);
 				Kit.sound(world, mouth, SoundEvents.ENTITY_WARDEN_ROAR, 96.0F, 0.5F);
 				Vfx.play(world, VfxIds.LEVI_ROAR, mouth, heading, 1.0F, 0);
 				Vfx.shake(world, mouth, 160, 1.2F);
 			}
-			if (t >= Leviathan.MAEL && t <= Leviathan.MAEL_END) {
-				maelstrom(t);
-			}
-			if (t == Leviathan.MAEL_END && Destruction.enabled(world)) {
-				lagoon();
+			if (t >= Leviathan.WAVE && t <= Leviathan.WAVE_END + 60) {
+				wave(t);
 			}
 			drain();
 			return t >= Leviathan.END;
@@ -534,73 +629,97 @@ public final class FossilEvents {
 			}
 		}
 
-		/** The whirlpool: everything round it dragged in and down, the funnel carved out ring by ring. */
-		private void maelstrom(int t) {
-			double k = Leviathan.maelstrom(t);
-			if (t % 4 == 0) {
-				Vfx.play(world, VfxIds.LEVI_MAELSTROM, whirl, (float) Math.max(0.2, k));
+		/** True if a point lies in the wave's arc, ahead of the skull. */
+		private boolean inArc(double x, double z) {
+			double dx = x - origin.x, dz = z - origin.z;
+			double d = Math.hypot(dx, dz);
+			if (d < 1) {
+				return true;
 			}
-			if (t % 20 == 0) {
-				Kit.sound(world, whirl, SoundEvents.BLOCK_BUBBLE_COLUMN_WHIRLPOOL_AMBIENT, 96.0F, 0.5F);
-				Kit.sound(world, whirl, SoundEvents.AMBIENT_UNDERWATER_LOOP_ADDITIONS_ULTRA_RARE, 64.0F, 0.6F);
-				Vfx.shake(world, whirl, 80, 0.4F);
-			}
-			if (Destruction.enabled(world)) {
-				double front = Leviathan.MAEL_R * Math.min(1.0, (t - Leviathan.MAEL) / 120.0);
-				funnel.advance(front, 120, (dx, dz, d) -> carve(MathHelper.floor(whirl.x) + dx, MathHelper.floor(whirl.z) + dz, d));
-			}
-			double reach = Leviathan.MAEL_R * 2.4;
-			for (LivingEntity e : Kit.living(world, whirl, reach)) {
-				if (Kit.creativeOrSpectator(e)) {
-					continue;
-				}
-				Vec3d to = whirl.subtract(e.getPos());
-				double d = Math.max(1, Math.hypot(to.x, to.z));
-				Vec3d in = new Vec3d(to.x / d, 0, to.z / d), tan = new Vec3d(-in.z, 0, in.x);
-				double pull = k * (1 - d / reach);
-				Kit.velocity(e, e.getVelocity().multiply(0.8).add(in.multiply(0.25 * pull)).add(tan.multiply(0.55 * pull)).add(0, -0.08 * pull, 0));
-				if (d < 6 && t % 10 == 0) {
-					e.damage(world.getDamageSources().drown(), (float) (4 * k));
-				}
-			}
+			return Math.acos(MathHelper.clamp((dx * heading.x + dz * heading.z) / d, -1, 1)) <= Leviathan.WAVE_ARC;
 		}
 
-		/** One column of the funnel: dug out deeper toward the centre. */
-		private void carve(int x, int z, double d) {
-			if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+		/** The tidal wave rolling out: everything in its path swept along and half drowned, the land left a sea floor. */
+		private void wave(int t) {
+			double front = Leviathan.wave(t);
+			if (t == Leviathan.WAVE) {
+				Kit.sound(world, origin, SoundEvents.ENTITY_GENERIC_SPLASH, 128.0F, 0.3F);
+				Kit.sound(world, origin, SoundEvents.AMBIENT_UNDERWATER_EXIT, 128.0F, 0.5F);
+				if (Destruction.enabled(world)) {
+					seabed = TerrainJob.disc(world, origin, Leviathan.WAVE_REACH, this::seabed);
+					seabed.limit = 0;
+				}
+			}
+			if (seabed != null) {
+				seabed.limit = t > Leviathan.WAVE_END ? Leviathan.WAVE_REACH + 1 : front - 4;
+				seabed.step(3000);
+			}
+			if (t > Leviathan.WAVE_END) {
 				return;
 			}
-			int top = surface(x, z).getY();
-			int depth = (int) Math.round(13 * Math.pow(1 - d / Leviathan.MAEL_R, 1.4));
-			for (int y = top + 3; y > top - depth; y--) {
-				q().add(new BlockPos(x, y, z), Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
+			if (t % 3 == 0) {
+				for (int k = -4; k <= 4; k++) {
+					double ang = Math.atan2(heading.z, heading.x) + k * Leviathan.WAVE_ARC / 4.5;
+					Vec3d at = Kit.ground(world, origin.x + Math.cos(ang) * front, origin.z + Math.sin(ang) * front);
+					Vfx.play(world, VfxIds.LEVI_CREST, at, new Vec3d(Math.cos(ang), 0, Math.sin(ang)), (float) (1.2 - 0.6 * front / Leviathan.WAVE_REACH), 0);
+				}
 			}
-			if (depth > 1) {
-				q().add(new BlockPos(x, top - depth, z), (FossilShapes.hash(x, z) < 0.4 ? Blocks.PRISMARINE : Blocks.SAND).getDefaultState(), BlockQueue.ANY);
+			if (t % 8 == 0) {
+				Vec3d at = origin.add(heading.multiply(front));
+				Kit.sound(world, at, SoundEvents.WEATHER_RAIN_ABOVE, 128.0F, 0.4F);
+				Kit.sound(world, at, SoundEvents.ENTITY_GENERIC_SPLASH, 128.0F, 0.5F);
+				Vfx.shake(world, at, 120, 0.8F);
+			}
+			for (LivingEntity e : Kit.living(world, origin, front + 4)) {
+				if (Kit.creativeOrSpectator(e) || !inArc(e.getX(), e.getZ())) {
+					continue;
+				}
+				Vec3d out = new Vec3d(e.getX() - origin.x, 0, e.getZ() - origin.z);
+				double d = out.length();
+				if (d < front - 8 || d > front + 3) {
+					continue;
+				}
+				out = out.normalize();
+				Kit.velocity(e, out.multiply(1.1).add(0, 0.45, 0));
+				e.extinguish();
+				if (t % 10 == 0) {
+					e.damage(world.getDamageSources().drown(), 7.0F);
+				}
 			}
 		}
 
-		/** When the maelstrom closes, the funnel's floor fills: a lagoon is left where it was. */
-		private void lagoon() {
-			int level = MathHelper.floor(whirl.y) - (int) Math.round(13 * Math.pow(0.55, 1.4));
-			int r = (int) (Leviathan.MAEL_R * 0.55);
-			BlockPos.Mutable p = new BlockPos.Mutable();
-			for (int dx = -r; dx <= r; dx++) {
-				for (int dz = -r; dz <= r; dz++) {
-					if (dx * dx + dz * dz > r * r) {
-						continue;
-					}
-					int x = MathHelper.floor(whirl.x) + dx, z = MathHelper.floor(whirl.z) + dz;
-					for (int y = level; y > level - 16; y--) {
-						BlockState s = world.getBlockState(p.set(x, y, z));
-						if (!s.isAir()) {
-							break;
-						}
-						q().add(p.toImmutable(), Blocks.WATER.getDefaultState(), BlockQueue.AIR_ONLY);
-					}
+		/** Where the wave has been: plants swept away, the ground left sand, gravel and clay, dead coral, sea pickles. */
+		private void seabed(TerrainJob.Column col) {
+			if (!inArc(col.x + 0.5, col.z + 0.5)) {
+				return;
+			}
+			int surf = col.surface();
+			for (int y = Math.min(col.top(), surf + 16); y > surf; y--) {
+				BlockState s = col.get(y);
+				if (s.isIn(BlockTags.LEAVES) || s.isIn(BlockTags.FLOWERS) || s.isReplaceable() || s.isIn(BlockTags.SAPLINGS)) {
+					col.set(y, Blocks.AIR.getDefaultState());
 				}
 			}
-			Kit.sound(world, whirl, SoundEvents.ENTITY_GENERIC_SPLASH, 96.0F, 0.4F);
+			BlockState g = col.get(surf);
+			if (!(g.isIn(BlockTags.DIRT) || g.isOf(Blocks.GRASS_BLOCK) || g.isOf(Blocks.STONE) || g.isIn(BlockTags.SAND) || g.isOf(Blocks.GRAVEL))) {
+				return;
+			}
+			double n = col.noise(41);
+			col.set(surf, (n < 0.55 ? Blocks.SAND : n < 0.75 ? Blocks.GRAVEL : n < 0.85 ? Blocks.CLAY : Blocks.PRISMARINE).getDefaultState());
+			double m = col.noise(43);
+			if (col.get(surf + 1).isAir()) {
+				if (m < 0.025) {
+					col.set(surf + 1, Blocks.DEAD_BRAIN_CORAL_BLOCK.getDefaultState());
+				} else if (m < 0.05) {
+					col.set(surf + 1, Blocks.DEAD_TUBE_CORAL_BLOCK.getDefaultState());
+				} else if (m < 0.07) {
+					col.set(surf + 1, Blocks.DEAD_FIRE_CORAL_FAN.getDefaultState());
+				} else if (m < 0.08) {
+					col.set(surf + 1, Blocks.SEA_PICKLE.getDefaultState().with(net.minecraft.state.property.Properties.WATERLOGGED, false));
+				} else if (m < 0.085) {
+					col.set(surf + 1, Blocks.BONE_BLOCK.getDefaultState());
+				}
+			}
 		}
 	}
 

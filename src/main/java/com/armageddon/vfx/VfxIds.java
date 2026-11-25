@@ -299,9 +299,10 @@ public final class VfxIds {
 	public static final String MAMMOTH_FRONT = "mammoth_front";
 	public static final String MAMMOTH_SNOW = "mammoth_snow";
 	public static final String MAMMOTH_STOMP = "mammoth_stomp";
+	public static final String MAMMOTH_SPIKE = "mammoth_spike";
 	public static final String LEVI_BREACH = "levi_breach";
 	public static final String LEVI_BUBBLES = "levi_bubbles";
-	public static final String LEVI_MAELSTROM = "levi_maelstrom";
+	public static final String LEVI_CREST = "levi_crest";
 	public static final String LEVI_ROAR = "levi_roar";
 	public static final String PTERO_BURST = "ptero_burst";
 	public static final String PTERO_TRAIL = "ptero_trail";
@@ -574,7 +575,7 @@ public final class VfxIds {
 			BANG_INHALE, BANG_CMB, GALAXY_SWIRL, NEBULA_CLOUD, SUN_IGNITE,
 			PRISM_INBEAM,
 			SPECTRAL_MOTES, SPECTRAL_WISPS, SPECTRAL_NOVA, CHUNK_STATIC, BLIGHT_AMBIENT, BLIGHT_EDGE, BLIGHT_PULSE, MAMMOTH_HEAVE, MAMMOTH_BREATH,
-			MAMMOTH_TRUMPET, MAMMOTH_FRONT, MAMMOTH_SNOW, MAMMOTH_STOMP, LEVI_BREACH, LEVI_BUBBLES, LEVI_MAELSTROM, LEVI_ROAR, PTERO_BURST, PTERO_TRAIL,
+			MAMMOTH_TRUMPET, MAMMOTH_FRONT, MAMMOTH_SNOW, MAMMOTH_STOMP, MAMMOTH_SPIKE, LEVI_BREACH, LEVI_BUBBLES, LEVI_CREST, LEVI_ROAR, PTERO_BURST, PTERO_TRAIL,
 			PTERO_SCREECH, PTERO_IMPACT, PTERO_CRUMBLE,
 			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART,
 			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER,

@@ -31,7 +31,7 @@ final class FossilFx {
 	static FxEffect create(int kind, Vec3d a, Vec3d b, FxPayload p) {
 		return switch (kind) {
 			case 55 -> new MammothFx(a, b, p.duration());
-			case 56 -> new LeviathanFx(a, b, p.p1(), p.duration());
+			case 56 -> new LeviathanFx(a, b, p.duration());
 			case 57 -> new PteroFx(a, b, p.duration());
 			default -> null;
 		};
@@ -108,7 +108,10 @@ final class FossilFx {
 					FxEngine.play(VfxIds.MAMMOTH_FRONT, x, NewFx.groundY(x, z, c.y) + 0.5, z, 0, 1, 0, 1.0F, 0, age * 131L + i);
 				}
 			}
-			if (t > Mammoth.TRUMPET + 20 && t < Mammoth.END - 60 && age % 3 == 0) {
+			if ((int) t == Mammoth.FINALE + 20) {
+				FxEngine.play(VfxIds.MAMMOTH_STOMP, c.x, c.y, c.z, 0, 1, 0, 2.6F, 0, 91L);
+			}
+			if (t > Mammoth.TRUMPET + 20 && t < Mammoth.END - 60 && age % (t > Mammoth.FINALE ? 1 : 3) == 0) {
 				Vec3d eye = camera(c);
 				double front = Mammoth.front(t);
 				if (Math.hypot(eye.x - c.x, eye.z - c.z) < front + 10) {
@@ -126,10 +129,15 @@ final class FossilFx {
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			// Cold fire in the sockets, flickering up out of them.
 			float in = smooth(a / 20.0) * fade;
+			// In the finale the eyes blaze.
+			float blaze = 1 + 2.2F * smooth((t - Mammoth.FINALE + 10) / 15.0) * (1 - smooth((t - Mammoth.ENTOMB) / 40.0));
 			for (int s = 0; s < 2; s++) {
 				Vec3d e = eyes[s].subtract(cam);
 				float fl = 0.8F + 0.2F * MathHelper.sin(a * 0.7F + s * 2);
-				FxKit.halo(consumers, m, cb, e, 3.2 * fl, 0x60C8FF, 0.55F * in);
+				FxKit.halo(consumers, m, cb, e, 3.2 * fl * blaze, 0x60C8FF, 0.55F * in);
+				if (blaze > 1.1F) {
+					FxDraw.beam(glow, m, e, e.add(h.multiply(40)).add(0, -6, 0), Vec3d.ZERO, 0.8 * (blaze - 1), 0xA0E8FF, 0.25F * (blaze - 1) * in);
+				}
 				Solids.flare(glow, m, e, cb, 1.6, 0xE8FAFF, 0.9F * in);
 				for (int k = 0; k < 5; k++) {
 					double ph = ((a * 0.06 + k * 0.2) % 1.0);
@@ -167,21 +175,21 @@ final class FossilFx {
 
 	/**
 	 * The ghost of the ancient sea: a shimmering surface rolling in over the land with a glowing wall at its edge,
-	 * kelp swaying up from the ground, ammonites and shoals of fish drifting through it, light falling in shafts. The
-	 * serpent's eyes light, and a maelstrom spirals down into the ground in front of it.
+	 * kelp swaying up from the ground, jellyfish and shoals of fish drifting through it, light falling in shafts. The
+	 * serpent's eyes light, and the whole sea gathers and rolls out in front of it as one great curling wave.
 	 */
 	static final class LeviathanFx extends FxEffect {
 		private static final int RINGS = 18, SEGS = 56, KELP = 30, AMMO = 14, SHOALS = 3, FISH = 18;
-		private final Vec3d c, h, right, whirl;
+		private final Vec3d c, h, right, origin;
 		private final Vec3d[] eyes = new Vec3d[2];
 		private final double[] kelpY = new double[KELP];
 
-		LeviathanFx(Vec3d c, Vec3d heading, float whirlDy, int life) {
+		LeviathanFx(Vec3d c, Vec3d heading, int life) {
 			super(Math.max(40, life));
 			this.c = c;
 			this.h = heading.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : heading.normalize();
 			this.right = rightOf(h);
-			this.whirl = c.add(h.multiply(Leviathan.HEAD + Leviathan.MAEL_AHEAD)).add(0, whirlDy, 0);
+			this.origin = c.add(h.multiply(Leviathan.HEAD));
 			Vec3d s = at(Leviathan.HEAD);
 			Vec3d fu = h.multiply(Math.cos(0.3)).add(UP.multiply(Math.sin(0.3)));
 			Vec3d nu = UP.multiply(Math.cos(0.3)).subtract(h.multiply(Math.sin(0.3)));
@@ -212,8 +220,8 @@ final class FossilFx {
 			if (age >= Leviathan.EYES && age % 10 == 0) {
 				ClientFx.light(eyes[0].lerp(eyes[1], 0.5), 0.7F, 0x60FFF0);
 			}
-			if (age >= Leviathan.MAEL && age < Leviathan.MAEL_END && age % 10 == 0) {
-				ClientFx.light(whirl.add(0, 2, 0), 0.6F, 0x60E0FF);
+			if (age >= Leviathan.WAVE && age < Leviathan.WAVE_END && age % 8 == 0) {
+				ClientFx.light(origin.add(h.multiply(Leviathan.wave(age))).add(0, 6, 0), 0.8F, 0x60E0FF);
 			}
 			for (int k = 0; k < KELP; k++) {
 				if (Double.isNaN(kelpY[k])) {
@@ -285,14 +293,13 @@ final class FossilFx {
 						prev = p;
 					}
 				}
-				// Ammonites drifting on slow circles, tentacles trailing.
+				// Jellyfish drifting up and down, pulsing, their tentacles trailing.
 				for (int k = 0; k < AMMO; k++) {
-					double ang = Effects.hash(k, 91) * MathHelper.TAU + a * (0.004 + 0.004 * Effects.hash(k, 92)) * (k % 2 == 0 ? 1 : -1);
+					double ang = Effects.hash(k, 91) * MathHelper.TAU + a * 0.002 * (k % 2 == 0 ? 1 : -1);
 					double r = 10 + Effects.hash(k, 93) * (R - 16);
-					double y = 3 + Effects.hash(k, 94) * (Leviathan.SEA_H - 5) + Math.sin(a * 0.03 + k) * 0.8;
+					double y = 3 + Effects.hash(k, 94) * (Leviathan.SEA_H - 5) + Math.sin(a * 0.025 + k) * 1.5;
 					Vec3d p = o.add(Math.cos(ang) * r, y, Math.sin(ang) * r);
-					Vec3d dir = new Vec3d(-Math.sin(ang), 0, Math.cos(ang)).multiply(k % 2 == 0 ? 1 : -1);
-					ammonite(glow, shade, m, cb, p, dir, 1.4 + Effects.hash(k, 95) * 1.2, a, k, body);
+					jelly(glow, shade, m, cb, p, 1.2 + Effects.hash(k, 95) * 1.0, a, k, body);
 				}
 				// Shoals of ghost fish wheeling.
 				for (int s = 0; s < SHOALS; s++) {
@@ -320,32 +327,50 @@ final class FossilFx {
 					Solids.flare(glow, m, e, cb, 1.8, 0xE0FFFA, 0.9F * in);
 				}
 			}
-			// The maelstrom: white water spiralling down into a dark eye.
-			double k = Leviathan.maelstrom(a);
-			if (k > 0.01) {
-				Vec3d w = whirl.subtract(cam);
-				double top = sea > 0.3 ? lv - w.y : 1.0;
-				int arms = 7;
-				for (int arm = 0; arm < arms; arm++) {
-					Vec3d prev = null;
-					for (int s = 0; s <= 40; s++) {
-						double f = s / 40.0;
-						double r = Leviathan.MAEL_R * 1.15 * (1 - f * 0.92);
-						double y = top - (top + 12) * Math.pow(f, 1.6);
-						double ang = arm * MathHelper.TAU / arms + f * 10.0 - a * (0.12 + f * 0.25);
-						Vec3d p = w.add(Math.cos(ang) * r, y, Math.sin(ang) * r);
-						if (prev != null) {
-							float al = (float) (k * (0.35 + 0.45 * f));
-							int col = Solids.mix(arm % 2 == 0 ? 0xD8F4F4 : 0x8CD0D4, 0x123E4C, Math.min(1.0, f * 1.4));
-							FxDraw.ribbon(shade, m, prev, p, Vec3d.ZERO, 2.0 * (1 - f * 0.6), col, al, al);
-							FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 0.4, 0x60E8E0, al * 0.25F, al * 0.25F);
-						}
-						prev = p;
-					}
+			// The tidal wave.
+			if (a >= Leviathan.WAVE && a < Leviathan.WAVE_END + 30) {
+				wave(glow, shade, m, cam, a);
+			}
+		}
+
+		/**
+		 * The wave: a curling wall of ghost water rolling out in an arc in front of the skull. Its back slopes up to a
+		 * crest that leans forward over its face, foam boiling along the lip.
+		 */
+		private void wave(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d cam, float a) {
+			double d = Leviathan.wave(a);
+			float on = smooth((a - Leviathan.WAVE) / 12.0) * (1 - smooth((a - Leviathan.WAVE_END) / 30.0));
+			double crest = Leviathan.CREST * (1 - 0.55 * d / Leviathan.WAVE_REACH) * on;
+			double base = Math.atan2(h.z, h.x);
+			int n = 40;
+			// The profile, back to front: (distance behind the front, height).
+			double[][] prof = {{-14, 0.5}, {-8, 0.35}, {-3.5, 0.8}, {-1, 1.0}, {1.5, 0.92}, {2.6, 0.7}, {1.6, 0.45}, {0.4, 0.15}, {0.2, 0}};
+			for (int i = 0; i < n; i++) {
+				double t0 = base + Leviathan.WAVE_ARC * (2.0 * i / n - 1), t1 = base + Leviathan.WAVE_ARC * (2.0 * (i + 1) / n - 1);
+				double edge0 = Math.min(1, Math.min(i, n - i) / 5.0), edge1 = Math.min(1, Math.min(i + 1, n - i - 1) / 5.0);
+				Vec3d dir0 = new Vec3d(Math.cos(t0), 0, Math.sin(t0)), dir1 = new Vec3d(Math.cos(t1), 0, Math.sin(t1));
+				double g0 = NewFx.groundY(origin.x + dir0.x * d, origin.z + dir0.z * d, c.y), g1 = NewFx.groundY(origin.x + dir1.x * d, origin.z + dir1.z * d, c.y);
+				for (int k = 0; k < prof.length - 1; k++) {
+					double wob0 = 1 + 0.12 * Math.sin(t0 * 9 + a * 0.2), wob1 = 1 + 0.12 * Math.sin(t1 * 9 + a * 0.2);
+					Vec3d a0 = origin.add(dir0.multiply(d + prof[k][0])).add(0, 0, 0), b0 = origin.add(dir0.multiply(d + prof[k + 1][0]));
+					Vec3d a1 = origin.add(dir1.multiply(d + prof[k][0])), b1 = origin.add(dir1.multiply(d + prof[k + 1][0]));
+					Vec3d p00 = new Vec3d(a0.x, g0 + prof[k][1] * crest * edge0 * wob0, a0.z).subtract(cam);
+					Vec3d p01 = new Vec3d(b0.x, g0 + prof[k + 1][1] * crest * edge0 * wob0, b0.z).subtract(cam);
+					Vec3d p10 = new Vec3d(a1.x, g1 + prof[k][1] * crest * edge1 * wob1, a1.z).subtract(cam);
+					Vec3d p11 = new Vec3d(b1.x, g1 + prof[k + 1][1] * crest * edge1 * wob1, b1.z).subtract(cam);
+					boolean face = k >= 4;
+					int col = face ? 0x1E8898 : 0x2AA4B4;
+					float al = (face ? 0.55F : 0.42F) * on;
+					quad(shade, m, p00, p01, p11, p10, col, al, al, al, al);
+					float sh = (float) (0.15 + 0.15 * Math.sin(t0 * 14 - a * 0.3 + k));
+					quad(glow, m, p00, p01, p11, p10, 0x40F0E0, sh * on, sh * on, sh * on, sh * on);
 				}
-				FxDraw.disc(shade, m, w.add(0, -11.5, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 2.5, 0x0A2030, (float) (0.85 * k), 0.0F, 24);
-				FxDraw.ring(glow, m, w.add(0, top + 0.2, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), Leviathan.MAEL_R * 0.9, Leviathan.MAEL_R * 1.3, 0x60E8E0,
-						0.0F, (float) (0.12 * k), 0.0F, 48);
+				// Foam along the lip.
+				double lipH0 = g0 + 0.95 * crest * edge0, lipH1 = g1 + 0.95 * crest * edge1;
+				Vec3d l0 = new Vec3d(origin.x + dir0.x * (d + 1.8), lipH0, origin.z + dir0.z * (d + 1.8)).subtract(cam);
+				Vec3d l1 = new Vec3d(origin.x + dir1.x * (d + 1.8), lipH1, origin.z + dir1.z * (d + 1.8)).subtract(cam);
+				FxDraw.ribbon(shade, m, l0, l1, Vec3d.ZERO, 1.6, 0xE8FAFA, 0.85F * on, 0.85F * on);
+				FxDraw.ribbon(glow, m, l0, l1, Vec3d.ZERO, 0.8, 0xC0FFF8, 0.4F * on, 0.4F * on);
 			}
 		}
 
@@ -364,32 +389,22 @@ final class FossilFx {
 			return (float) MathHelper.clamp(v * 0.6 + 0.3, 0.0, 1.0);
 		}
 
-		/** A coiled shell drawn as a glowing logarithmic spiral, with a sheen and tentacles trailing behind. */
-		private static void ammonite(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d p, Vec3d dir, double size, float a, int k,
-				float body) {
-			Vec3d side = new Vec3d(-dir.z, 0, dir.x);
-			FxDraw.disc(shade, m, p, dir, UP, size * 1.45, 0xD8B888, 0.35F * body, 0.25F * body, 16);
-			Vec3d prev = null;
-			for (int s = 0; s <= 40; s++) {
-				double th = s * 0.32;
-				double r = size * 0.1 * Math.exp(0.2 * th);
-				Vec3d q = p.add(dir.multiply(Math.cos(th + a * 0.01) * r)).add(UP.multiply(Math.sin(th + a * 0.01) * r));
-				if (prev != null) {
-					FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 0.12 + s * 0.006, 0xFFE8C0, 0.55F * body, 0.55F * body);
-				}
-				prev = q;
-			}
-			Vec3d mouthP = p.add(dir.multiply(size * 1.3));
-			for (int t = 0; t < 5; t++) {
-				Vec3d prevT = mouthP;
-				for (int s = 1; s <= 4; s++) {
-					double wave = Math.sin(a * 0.2 + s + t * 1.3 + k) * 0.25 * s;
-					Vec3d q = mouthP.add(dir.multiply(s * 0.55)).add(side.multiply((t - 2) * 0.18 * s * 0.5 + wave)).add(0, -0.15 * s, 0);
-					FxDraw.ribbon(glow, m, prevT, q, Vec3d.ZERO, 0.08, 0xFFD0A0, 0.4F * body * (1 - s / 5.0F), 0.4F * body * (1 - (s + 1) / 5.0F));
-					prevT = q;
+		/** A jellyfish: a glowing bell that pulses, frilled at its rim, with long tentacles trailing and swaying below. */
+		private static void jelly(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d p, double size, float a, int k, float body) {
+			float pulse = 0.85F + 0.15F * MathHelper.sin(a * 0.25F + k);
+			int col = k % 3 == 0 ? 0xFF90E0 : k % 3 == 1 ? 0x90E0FF : 0xC0A0FF;
+			FxDraw.disc(shade, m, p, cb[0], cb[1].multiply(0.7), size * 1.3 * pulse, col, 0.35F * body, 0.15F * body, 18);
+			FxDraw.disc(glow, m, p.add(0, size * 0.15, 0), cb[0], cb[1].multiply(0.6), size * pulse, col, 0.55F * body, 0.0F, 18);
+			for (int t = 0; t < 6; t++) {
+				double off = (t - 2.5) * size * 0.35 * pulse;
+				Vec3d prev = p.add(cb[0].multiply(off)).add(0, -size * 0.3, 0);
+				for (int s = 1; s <= 6; s++) {
+					double wave = Math.sin(a * 0.15 + s * 0.8 + t * 1.3 + k) * 0.35 * s / 6.0;
+					Vec3d q = p.add(cb[0].multiply(off * (1 - s * 0.05) + wave)).add(0, -size * 0.3 - s * size * 0.55, 0);
+					FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 0.1, col, 0.5F * body * (1 - s / 7.0F), 0.5F * body * (1 - (s + 1) / 7.0F));
+					prev = q;
 				}
 			}
-			Solids.dot(glow, m, mouthP.add(UP.multiply(size * 0.3)), cb, 0.3, 0x80FFF0, 0.7F * body);
 		}
 	}
 

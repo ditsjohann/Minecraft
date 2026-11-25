@@ -79,6 +79,16 @@ final class FossilVfx {
 						.size(2, 3.5F).color(RIME).alpha(0.3F).shade(1).build())
 				.build());
 
+		// An ice spike bursting out of the ground: shards and frost blasted up, a ring of rime.
+		FxEngine.register(EffectDef.builder(VfxIds.MAMMOTH_SPIKE).lod(300, 2000).maxAge(80)
+				.emit(EmitterDef.builder("shards").burst(26).onGround().shape(Shape.disc(2)).velocity(Velocity.up(0.6F, 1.3F, 0.5F)).gravity(0.06F)
+						.collide(0.3F, 0.5F, 1).life(20, 40).size(0.25F, 0.5F).spin(-0.5F, 0.5F).sprite(FxSprites.FLARE).color(FROST).build())
+				.emit(smoke("rime").burst(6).onGround().shape(Shape.disc(2.5F)).velocity(Velocity.radial(0.2F, 0.5F)).velocity(Velocity.up(0.1F, 0.3F, 0.2F))
+						.drag(0.05F).life(40, 70).size(2.5F, 4).sizeOverLife(Curve.RISE).color(RIME).alpha(0.55F).shade(0.9F).build())
+				.emit(EmitterDef.builder("glint").burst(1).onGround().offset(0, 2, 0).life(8, 12).size(3, 4).sprite(FxSprites.GLOW).color(0xD0F4FF).alpha(0.6F)
+						.alphaOverLife(Curve.FADE_OUT).build())
+				.build());
+
 		// The stomp: a burst of shattered ice, a rolling wave of snow, a frost shockwave.
 		FxEngine.register(EffectDef.builder(VfxIds.MAMMOTH_STOMP).lod(400, 2400).maxAge(160)
 				.cue(0, EffectDef.light(1.0F, 0xC0F0FF))
@@ -113,14 +123,15 @@ final class FossilVfx {
 						.size(0.08F, 0.16F).sprite(FxSprites.FLARE).color(SEA).alphaOverLife(TWINKLE).build())
 				.build());
 
-		// The maelstrom's rim: foam whirling, spray flung off the spin, mist over the funnel.
-		FxEngine.register(EffectDef.builder(VfxIds.LEVI_MAELSTROM).lod(300, 2000)
-				.emit(smoke("foam").burst(10).onGround().shape(Shape.ring(16, 4)).offset(0, 0.5F, 0).velocity(Velocity.swirl(0.6F, 1.0F))
-						.module(Module.vortex(0.06F, 0.02F)).life(30, 50).size(1.2F, 2.0F).color(FOAM).alpha(0.55F).shade(1).emissive(Curve.constant(0.4F)).build())
-				.emit(EmitterDef.builder("spray").burst(4).onGround().shape(Shape.ring(16, 3)).velocity(Velocity.swirl(0.5F, 0.8F)).velocity(Velocity.up(0.3F, 0.6F, 0.2F))
-						.gravity(0.04F).life(16, 28).size(0.1F, 0.18F).mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK).color(FOAM).alpha(0.5F).build())
-				.emit(smoke("mist").burst(2).onGround().shape(Shape.ring(10, 6)).velocity(Velocity.swirl(0.2F, 0.35F)).velocity(Velocity.up(0.05F, 0.12F, 0.1F))
-						.module(Module.vortex(0.03F, 0.01F)).life(60, 90).size(3, 5).color(FOAM).alpha(0.35F).shade(1).emissive(Curve.constant(0.3F)).build())
+		// The wave's crest breaking: foam and spray thrown forward off the lip, mist trailing.
+		FxEngine.register(EffectDef.builder(VfxIds.LEVI_CREST).lod(300, 2000)
+				.emit(EmitterDef.builder("spray").burst(14).shape(Shape.box(3, 1, 3)).offset(0, 12, 0).velocity(Velocity.along(0.5F, 1.0F, 0.4F))
+						.velocity(Velocity.up(0.1F, 0.4F, 0.2F)).gravity(0.04F).life(20, 36).size(0.25F, 0.45F).mode(Mode.STRETCHED).stretch(2)
+						.sprite(FxSprites.STREAK).color(FOAM).alpha(0.8F).build())
+				.emit(smoke("foam").burst(4).shape(Shape.box(3, 1, 3)).offset(0, 12, 0).velocity(Velocity.along(0.3F, 0.6F, 0.4F)).gravity(0.02F).life(30, 50)
+						.size(2.5F, 4).color(FOAM).alpha(0.6F).shade(1).emissive(Curve.constant(0.35F)).build())
+				.emit(smoke("mist").burst(2).onGround().shape(Shape.box(3, 0, 3)).velocity(Velocity.up(0.1F, 0.2F, 0.3F)).life(50, 80).size(4, 6)
+						.color(FOAM).alpha(0.3F).shade(1).build())
 				.build());
 
 		// The roar: a shockwave of water out of the jaws, spray and a column of bubbles.

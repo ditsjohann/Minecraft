@@ -28,7 +28,16 @@ public final class FossilShapes {
 	 * ice age rolls out over the land. Then it stomps, twice.
 	 */
 	public static final class Mammoth {
-		public static final int RISE = 30, RISEN = 190, EYES = 200, TRUMPET = 230, FREEZE_END = 430, STOMP = 450, STOMP2 = 510, END = 760;
+		public static final int RISE = 30, RISEN = 190, EYES = 200, TRUMPET = 230, FREEZE_END = 430, STOMP = 450, STOMP2 = 510, FINALE = 570,
+				SPIKES = 590, SPIKES_END = 690, ENTOMB = 710, END = 900;
+		/** Lines of ice spikes racing out in the finale, and how far they run. */
+		public static final int SPIKE_LINES = 12;
+		public static final double SPIKE_REACH = 72;
+
+		/** How far the finale's spike lines have raced out at tick {@code t}. */
+		public static double spikes(double t) {
+			return SPIKE_REACH * MathHelper.clamp((t - SPIKES) / (double) (SPIKES_END - SPIKES), 0.0, 1.0);
+		}
 		public static final double R = 72;
 
 		private Mammoth() {
@@ -49,17 +58,17 @@ public final class FossilShapes {
 
 	/**
 	 * An ancient sea floods back over the land as a ghost, and the fossil of the serpent that swam it breaches out of
-	 * the ground in great arches. Its skull rears up out of the sea and a maelstrom opens in front of it.
+	 * the ground in great arches. Its skull rears up out of the sea and the sea rolls out in front of it as one great wave.
 	 */
 	public static final class Leviathan {
-		public static final int BREACH = 20, BREACHED = 200, SEA_IN = 30, SEA_FULL = 150, EYES = 210, MAEL = 250, MAEL_END = 430, DRAIN = 450,
+		public static final int BREACH = 20, BREACHED = 200, SEA_IN = 30, SEA_FULL = 150, EYES = 210, WAVE = 250, WAVE_END = 430, DRAIN = 250,
 				END = 520;
 		/** The ghost sea's radius and the height of its surface over the ground. */
 		public static final double SEA_R = 64, SEA_H = 11;
 		/** The serpent runs from u = TAIL to u = HEAD along its heading. */
 		public static final double TAIL = -52, HEAD = 34;
-		/** The maelstrom's distance ahead of the skull, and its radius. */
-		public static final double MAEL_AHEAD = 22, MAEL_R = 18;
+		/** How far the tidal wave rolls from the skull, the half-angle of its arc, and its crest's height. */
+		public static final double WAVE_REACH = 100, WAVE_ARC = 1.15, CREST = 15;
 
 		private Leviathan() {
 		}
@@ -76,12 +85,13 @@ public final class FossilShapes {
 
 		/** How far (0..1) the sea has come in. */
 		public static double sea(double t) {
-			return smooth((t - SEA_IN) / (SEA_FULL - SEA_IN)) * (1 - smooth((t - DRAIN) / (END - DRAIN)));
+			return smooth((t - SEA_IN) / (SEA_FULL - SEA_IN)) * (1 - smooth((t - DRAIN) / 70.0));
 		}
 
-		/** The maelstrom's strength (0..1). */
-		public static double maelstrom(double t) {
-			return smooth((t - MAEL) / 50.0) * (1 - smooth((t - MAEL_END + 30) / 40.0));
+		/** How far the tidal wave has rolled out from under the skull at tick {@code t}. */
+		public static double wave(double t) {
+			double u = MathHelper.clamp((t - WAVE) / (WAVE_END - WAVE), 0.0, 1.0);
+			return 6 + (WAVE_REACH - 6) * (1 - (1 - u) * (1 - u));
 		}
 	}
 
