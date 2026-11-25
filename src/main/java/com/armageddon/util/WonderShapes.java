@@ -39,17 +39,20 @@ public final class WonderShapes {
 
 	// ====================================================================== FIREWORK HAVOC
 
-	/** One giant rocket climbs, bursts, and sets off a cascade of fireworks at every angle. */
+	/** One giant rocket climbs slowly, bursts, and sets off a cascade of fireworks at every angle. */
 	public static final class Havoc {
-		public static final int CLIMB = 50, CASCADE_END = 120, GROUND = 60, GROUND_END = 170, FINALE = 175, END = 260;
+		public static final int CLIMB = 130, CASCADE_END = 200, GROUND = 140, GROUND_END = 250, FINALE = 255, END = 340;
 		public static final double APEX = 95;
+		/** The giant rocket's body length, radius and the length of its guide stick. */
+		public static final double BODY = 12, RADIUS = 1.6, STICK = 16;
 
 		private Havoc() {
 		}
 
-		/** The rocket's height above the pad at tick {@code t}: slow off the pad, then screaming. */
+		/** The rocket's height above the pad at tick {@code t}: a slow, stately climb that gathers pace. */
 		public static double height(double t) {
-			return 2 + (APEX - 2) * Math.pow(MathHelper.clamp(t / CLIMB, 0.0, 1.0), 1.7);
+			double u = MathHelper.clamp(t / CLIMB, 0.0, 1.0);
+			return 2 + (APEX - 2) * (0.35 * u + 0.65 * u * u);
 		}
 	}
 

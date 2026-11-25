@@ -423,6 +423,38 @@ public final class WildShapes {
 		public static final double POND_R = 14, DEPTH = 3;
 		/** Each koi's colour: cyan, magenta, gold, white, violet, mint, coral. */
 		public static final int[] COLORS = {0x20C8FF, 0xFF30B0, 0xFFA010, 0x90C8FF, 0x7040FF, 0x30FF80, 0xFF5030};
+		/** The koi that never come down: they swim up out of the pond and through the air. */
+		public static final int AIR = 6;
+		public static final int[] AIR_COLORS = {0xFF80E0, 0x60FFD0, 0xFFD060, 0x80A0FF, 0xFF6080, 0xB0FF60};
+
+		/** When air koi {@code i} swims up out of the pond. */
+		public static int airLaunch(int i) {
+			return LEAP0 + 10 + i * 34;
+		}
+
+		/**
+		 * Air koi {@code i} at tick {@code t}, relative to the pond: rising out of it, swimming lazy loops and figure
+		 * eights through the air over the land, then diving back in before the dragon gathers. Null while in the pond.
+		 */
+		public static Vec3d sky(int i, double t) {
+			double l = airLaunch(i);
+			double back = GATHER - 50 + i * 4;
+			if (t < l || t > back + 40) {
+				return null;
+			}
+			Vec3d start = swim(i, l);
+			double e = t - l;
+			double dir = i % 2 == 0 ? 1 : -1;
+			double a = hash(i, 11) * MathHelper.TAU + e * (0.018 + 0.012 * hash(i, 12)) * dir;
+			double r = 18 + 16 * hash(i, 13) + 7 * Math.sin(e * 0.021 + i);
+			double h = 9 + 14 * hash(i, 14) + 5 * Math.sin(e * 0.035 + i * 2) + 3 * Math.sin(e * 0.09 + i);
+			Vec3d loop = new Vec3d(Math.cos(a) * r + 6 * Math.sin(2 * a + i), h, Math.sin(a) * r);
+			Vec3d p = start.lerp(loop, smooth(e / 40.0));
+			if (t > back) {
+				p = p.lerp(new Vec3d(0, -1.5, 0), smooth((t - back) / 40.0));
+			}
+			return p;
+		}
 
 		private Koi() {
 		}

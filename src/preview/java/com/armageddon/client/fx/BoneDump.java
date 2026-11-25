@@ -12,6 +12,16 @@ public final class BoneDump {
 		dump(args[0] + "/mammoth.txt", FossilEvents.MammothFossil.plan(base, h));
 		dump(args[0] + "/leviathan.txt", FossilEvents.LeviathanFossil.plan(base, h));
 		dump(args[0] + "/spire.txt", FossilEvents.PterosaurFossil.planSpire(base));
+		FossilEvents.Bones ptero = FossilEvents.PterosaurFossil.planSpire(base);
+		com.armageddon.util.PteroPose.Pose pose = com.armageddon.util.PteroPose.pose(com.armageddon.util.FossilShapes.Ptero.CRUMBLE, h);
+		for (com.armageddon.util.PteroPose.Seg seg : pose.segs) {
+			double sc = com.armageddon.util.PteroPose.SC;
+			ptero.line(base.add(seg.a()), base.add(seg.b()), Math.max(0.45, seg.ra() * sc), Math.max(0.45, seg.rb() * sc), 0);
+		}
+		for (Vec3d e : pose.eyes) {
+			ptero.dot(base.add(e), 1);
+		}
+		dump(args[0] + "/ptero.txt", ptero);
 	}
 
 	private static void dump(String path, FossilEvents.Bones b) throws Exception {

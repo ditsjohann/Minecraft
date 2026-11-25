@@ -41,7 +41,7 @@ public final class WildFx {
 			case 52 -> new InfritFx(a, (int) p.p1(), p.duration());
 			case 53 -> new KoiFx(a, p.duration());
 			case 54 -> new LanternFx(a, p.duration());
-			default -> kind >= 55 && kind <= 57 ? FossilFx.create(kind, a, b, p) : kind == 58 ? new XenoFx(a, b, p.scale(), p.duration()) : kind >= 59 && kind <= 61 ? HorrorFx.create(kind, a, b, p) : kind == 62 ? new AiFx(a, (int) p.p1(), p.duration()) : null;
+			default -> kind >= 55 && kind <= 57 ? FossilFx.create(kind, a, b, p) : kind == 58 ? new XenoFx(a, b, p.scale(), p.duration()) : kind >= 59 && kind <= 61 ? HorrorFx.create(kind, a, b, p) : kind == 62 ? new AiFx(a, (int) p.p1(), p.duration()) : kind == 63 ? new RocketFx(a, p.duration()) : kind == 64 ? new ShiftFx(a, p.duration()) : null;
 		};
 	}
 
@@ -476,10 +476,13 @@ public final class WildFx {
 			return y > w.getBottomY() + 1 ? y : fallback;
 		}
 
-		/** Koi {@code k} relative to the pond at time {@code t}, or null. */
+		/** Koi {@code k} relative to the pond at time {@code t}, or null; past {@link Koi#KOI} they are the air koi. */
 		private Vec3d pos(int k, double t) {
 			if (t < Koi.OPEN || t >= Koi.GEYSER) {
 				return null;
+			}
+			if (k >= Koi.KOI) {
+				return Koi.sky(k - Koi.KOI, t);
 			}
 			if (t >= Koi.GATHER) {
 				return Koi.dragon(k, t);
@@ -489,6 +492,10 @@ public final class WildFx {
 				return Koi.leap(j, t, landDy[j]);
 			}
 			return Koi.resting(k, t) ? null : Koi.swim(k, t);
+		}
+
+		private static int color(int k) {
+			return k < Koi.KOI ? Koi.COLORS[k] : Koi.AIR_COLORS[k - Koi.KOI];
 		}
 
 		@Override
@@ -504,14 +511,14 @@ public final class WildFx {
 			if (t >= Koi.OPEN && t < Koi.GEYSER && t % 6 == 0) {
 				FxEngine.play(VfxIds.KOI_SHIMMER, c.x, c.y, c.z, 0, 1, 0, 1.0F, 0, t * 131L);
 			}
-			for (int k = 0; k < Koi.KOI; k++) {
+			for (int k = 0; k < Koi.KOI + Koi.AIR; k++) {
 				Vec3d p = pos(k, t), q = pos(k, t - 1);
 				if (p == null) {
 					continue;
 				}
 				Vec3d w = c.add(p);
-				int col = Koi.COLORS[k];
-				boolean flying = t >= Koi.GATHER || Koi.leapOf(k, t) >= 0;
+				int col = color(k);
+				boolean flying = k >= Koi.KOI ? p.y > 0.3 : t >= Koi.GATHER || Koi.leapOf(k, t) >= 0;
 				if (flying && q != null) {
 					Vec3d v = p.subtract(q);
 					FxEngine.playMoving(VfxIds.KOI_TRAIL, w.x, w.y, w.z, 0, 1, 0, t >= Koi.GATHER ? 1.3F : 1.0F, col, t * 977L + k,
@@ -551,8 +558,12 @@ public final class WildFx {
 			// The body is sampled by distance, not time, so a fish stays fish-length however fast it is moving.
 			double seg = dragon ? 0.8 : 0.45;
 			Vec3d[] pts = new Vec3d[n];
-			for (int k = 0; k < Koi.KOI; k++) {
-				int col = Koi.COLORS[k];
+			for (int k = 0; k < Koi.KOI + Koi.AIR; k++) {
+				if (k >= Koi.KOI && dragon) {
+					n = 12;
+					seg = 0.45;
+				}
+				int col = color(k);
 				Vec3d head = pos(k, a);
 				if (head == null) {
 					continue;
@@ -576,7 +587,7 @@ public final class WildFx {
 					continue;
 				}
 				float alpha = pts[0].y - o.y < -0.25 ? 0.6F : 1.0F;
-				double thick = dragon ? 2.2 : 1.4;
+				double thick = dragon && k < Koi.KOI ? 2.2 : k >= Koi.KOI ? 1.7 : 1.4;
 				for (int s = 0; s < len - 1; s++) {
 					double u = (s + 1) / (double) (len + 1);
 					double w = (0.25 + 0.95 * Math.pow(Math.sin(Math.PI * Math.min(1, u * 1.4)), 0.7)) * thick;

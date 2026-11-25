@@ -62,7 +62,7 @@ public final class FossilEvents {
 			}
 		}
 
-		void line(Vec3d a, Vec3d b, double ra, double rb, int kind) {
+		public void line(Vec3d a, Vec3d b, double ra, double rb, int kind) {
 			double len = a.distanceTo(b);
 			for (double s = 0; s <= len; s += 0.5) {
 				double u = s / Math.max(len, 0.01);
@@ -74,7 +74,7 @@ public final class FossilEvents {
 			line(a, b, r, r, kind);
 		}
 
-		void dot(Vec3d p, int kind) {
+		public void dot(Vec3d p, int kind) {
 			list.add(new int[]{MathHelper.floor(p.x), MathHelper.floor(p.y), MathHelper.floor(p.z), kind, order});
 		}
 
@@ -683,6 +683,7 @@ public final class FossilEvents {
 				Kit.sound(world, top, SoundEvents.BLOCK_BONE_BLOCK_BREAK, 96.0F, 0.5F);
 				Kit.sound(world, top, SoundEvents.BLOCK_SAND_BREAK, 96.0F, 0.5F);
 				Vfx.play(world, VfxIds.PTERO_CRUMBLE, top, 1.0F);
+				petrify();
 				rubble();
 			}
 			drain();
@@ -731,7 +732,27 @@ public final class FossilEvents {
 			return spire;
 		}
 
-		/** Where it crumbled: bones scattered round the spire's foot. */
+		/** It turns to stone where it perches: its skeleton left standing on the spire, bone for bone, eyes still smouldering. */
+		private void petrify() {
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			com.armageddon.util.PteroPose.Pose pose = com.armageddon.util.PteroPose.pose(Ptero.CRUMBLE, heading);
+			Bones fossil = new Bones();
+			for (com.armageddon.util.PteroPose.Seg seg : pose.segs) {
+				double sc = com.armageddon.util.PteroPose.SC;
+				fossil.line(base.add(seg.a()), base.add(seg.b()), Math.max(0.45, seg.ra() * sc), Math.max(0.45, seg.rb() * sc), 0);
+			}
+			for (Vec3d e : pose.eyes) {
+				fossil.dot(base.add(e), 1);
+			}
+			fossil.dedupe();
+			for (int[] b : fossil.list) {
+				q().add(b[0], b[1], b[2], (b[3] == 1 ? Blocks.SHROOMLIGHT : Blocks.BONE_BLOCK).getDefaultState(), BlockQueue.ANY);
+			}
+		}
+
+		/** Bones shaken loose, scattered round the spire's foot. */
 		private void rubble() {
 			if (!Destruction.enabled(world)) {
 				return;

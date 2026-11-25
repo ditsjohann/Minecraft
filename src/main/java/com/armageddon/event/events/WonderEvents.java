@@ -43,7 +43,7 @@ public final class WonderEvents {
 	}
 
 	/** Effect id for {@link com.armageddon.network.FxType#NEW_FX} (client: WildFx). */
-	public static final int FX_LANTERN = 54;
+	public static final int FX_LANTERN = 54, FX_ROCKET = 63, FX_SHIFT = 64;
 
 	// ====================================================================== DIMENSION SHIFT
 
@@ -63,6 +63,7 @@ public final class WonderEvents {
 			Vec3d c = center();
 			if (t == 0) {
 				CelestialEvents.announce(world, c, "block.armageddon.dimension_shift");
+				Vfx.newFx(world, FX_SHIFT, c, c, (float) Shift.R, 0x9A40FF, 0, 0, Shift.CLOSE + 40);
 				queue = BlockQueue.start(world);
 				sweep = new StrongBombEvents.RingSweep((int) Shift.R);
 				Vfx.play(world, VfxIds.DIM_RIFT, c.add(0, 4, 0), 1.0F);
@@ -228,13 +229,14 @@ public final class WonderEvents {
 			Vec3d c = center();
 			if (t == 0) {
 				CelestialEvents.announce(world, c, "block.armageddon.firework_havoc");
+				Vfx.newFx(world, FX_ROCKET, c, c, 1.0F, 0xFF3040, 0, 0, Havoc.CLIMB + 2);
 				Vfx.play(world, VfxIds.HAVOC_LAUNCH, c, 1.0F);
 				Kit.sound(world, c, SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 64.0F, 0.4F);
 				Kit.sound(world, c, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 24.0F, 1.4F);
 			}
 			if (t < Havoc.CLIMB) {
-				Vec3d r = c.add(0, Havoc.height(t), 0);
-				Vfx.play(world, VfxIds.HAVOC_TRAIL, r, 1.0F + t * 0.02F);
+				Vec3d r = c.add(0, Havoc.height(t) - Havoc.BODY * 0.5, 0);
+				Vfx.play(world, VfxIds.HAVOC_TRAIL, r, 1.0F + t * 0.01F);
 				if (t % 10 == 0) {
 					Kit.sound(world, r, SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 48.0F, 0.5F + t * 0.01F);
 				}
@@ -247,6 +249,13 @@ public final class WonderEvents {
 				Kit.sound(world, apex, SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST_FAR, 128.0F, 0.5F);
 				Kit.sound(world, apex, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 64.0F, 0.6F);
 				Kit.sound(world, apex, SoundEvents.ENTITY_FIREWORK_ROCKET_TWINKLE_FAR, 128.0F, 0.8F);
+				// The starburst: a ring of real fireworks fired out of the shell at once, every direction there is.
+				int n = 56;
+				for (int i = 0; i < n; i++) {
+					double y = 1 - 2 * (i + 0.5) / n, rr = Math.sqrt(1 - y * y), th = i * 2.39996;
+					Vec3d dir = new Vec3d(Math.cos(th) * rr, y, Math.sin(th) * rr);
+					rocketAlong(apex.add(dir.multiply(3)), dir, 1.1 + world.random.nextDouble() * 0.8);
+				}
 			}
 			if (t > Havoc.CLIMB && t <= Havoc.CASCADE_END) {
 				// The cascade: real fireworks fired out of the burst at every angle.
@@ -289,6 +298,19 @@ public final class WonderEvents {
 			} else {
 				dir = new Vec3d(world.random.nextGaussian() * 0.25, 1, world.random.nextGaussian() * 0.25).normalize();
 			}
+			e.setVelocity(dir.multiply(speed));
+			world.spawnEntity(e);
+		}
+
+		/** One real firework fired along {@code dir}. */
+		private void rocketAlong(Vec3d at, Vec3d dir, double speed) {
+			int a = PALETTE[world.random.nextInt(PALETTE.length)], b = PALETTE[world.random.nextInt(PALETTE.length)];
+			FireworkExplosionComponent.Type[] shapes = FireworkExplosionComponent.Type.values();
+			FireworkExplosionComponent boom = new FireworkExplosionComponent(shapes[world.random.nextInt(shapes.length)], IntList.of(a, b), IntList.of(b),
+					world.random.nextBoolean(), world.random.nextBoolean());
+			ItemStack stack = new ItemStack(Items.FIREWORK_ROCKET);
+			stack.set(DataComponentTypes.FIREWORKS, new FireworksComponent(1 + world.random.nextInt(2), List.of(boom)));
+			FireworkRocketEntity e = new FireworkRocketEntity(world, stack, at.x, at.y, at.z, true);
 			e.setVelocity(dir.multiply(speed));
 			world.spawnEntity(e);
 		}
