@@ -195,8 +195,8 @@ shockwave across the sky. No cutscene: you watch it all yourself.
 boom shakes the land around it to pieces), 8-Bit (the world goes low-res on screen and in the blocks, then GAME OVER),
 Magnetar (the land torn up into orbit and ground to dust, pulsar jets cutting trenches, then the star collapses into
 a hole), KA-BOOM! (comic ink vision, giant block letters, POW), Aurora (curtains overhead, then rays that take the
-land apart into coloured light), Century (a year in forty seconds, then a hundred years of decay), Prism (seven
-rainbow beams burning coloured trenches), Geode (the ground turns to amethyst crystal and shatters into a hollow),
+land apart into coloured light), Century (a year in forty seconds, then a hundred years of decay), Prism (a crystal gem splits sunlight into seven wandering spotlights that paint the land a rainbow
+mosaic, then shatters into shards that grow into crystal), Geode (the ground turns to amethyst crystal and shatters into a hollow),
 Fossil (a colossal skeleton rises and its roar tears a cone out of the land) and Lava Lamp (heats, cracks and bursts
 into molten splats).
 

@@ -162,7 +162,7 @@ BLOCK_DESC = {
     "ink_bomb": "The world turns to comic ink. Giant KABOOM letters rise, comic blasts go POW, then the letters blow up.",
     "aurora_bomb": "An aurora unrolls overhead, then its rays strike down and take the land apart into coloured light, shaft by shaft.",
     "seasons_bomb": "A year in forty seconds as the sun races by, then a century passes in an instant.",
-    "prism_bomb": "A floating prism splits a beam from the sky into seven rainbow beams that burn coloured trenches. Light twice.",
+    "prism_bomb": "A great crystal gem comes down into a shaft of sunlight and splits it: seven soft spotlights of colour wander over the land, painting it a rainbow mosaic and scorching whatever stands in them. They gather white-hot under it, and the gem shatters into shards that rain down and grow into crystal. Light twice.",
     "geode_bomb": "The ground turns to amethyst crystal from the inside out, throws crystal spikes, rings louder and louder, and shatters into a hollow.",
     "fossil_bomb": "A colossal skeleton rises from a fissure. Its eyes catch fire, and its roar tears a widening cone out of the land in front of it. Light twice.",
     "lava_lamp": "A three-storey lava lamp heats up until the glass cracks and it throws molten goo everywhere.",

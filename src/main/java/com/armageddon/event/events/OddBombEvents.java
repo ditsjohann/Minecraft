@@ -840,8 +840,10 @@ public final class OddBombEvents {
 	 * across the land, each burning a trench in its own colour, then fold back together into one white blast.
 	 */
 	public static class PrismBomb extends Base {
-		static final Block[] TRENCH = {Blocks.RED_CONCRETE, Blocks.ORANGE_CONCRETE, Blocks.YELLOW_CONCRETE, Blocks.LIME_CONCRETE,
+		static final Block[] PAINT = {Blocks.RED_CONCRETE, Blocks.ORANGE_CONCRETE, Blocks.YELLOW_CONCRETE, Blocks.LIME_CONCRETE,
 				Blocks.LIGHT_BLUE_CONCRETE, Blocks.BLUE_CONCRETE, Blocks.PURPLE_CONCRETE};
+		static final Block[] GLASS = {Blocks.RED_STAINED_GLASS, Blocks.ORANGE_STAINED_GLASS, Blocks.YELLOW_STAINED_GLASS, Blocks.LIME_STAINED_GLASS,
+				Blocks.LIGHT_BLUE_STAINED_GLASS, Blocks.BLUE_STAINED_GLASS, Blocks.PURPLE_STAINED_GLASS};
 
 		@Override
 		public boolean tick() {
@@ -849,57 +851,105 @@ public final class OddBombEvents {
 			Vec3d g = center();
 			if (t == 0) {
 				name("prism_bomb", Formatting.WHITE);
-				Vfx.newFx(world, FX_PRISM, g, g, (float) Prism.REACH, 0xFFFFFF, 0, 0, Prism.END);
-				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 48.0F, 0.5F);
+				Vfx.newFx(world, FX_PRISM, Kit.ground(world, g.x, g.z), g, (float) Prism.REACH, 0xFFFFFF, 0, 0, Prism.END);
+				Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 64.0F, 0.5F);
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_POWER_SELECT, 64.0F, 0.8F);
 			}
-			if (t == Prism.CHARGE) {
-				Kit.sound(world, g, ModSounds.RAILGUN_CHARGE, 64.0F, 0.6F);
+			if (t < Prism.DESCEND && t % 12 == 0) {
+				Kit.sound(world, g.add(0, Prism.gemY(t), 0), SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 64.0F, 0.5F + t * 0.01F);
 			}
-			if (t == Prism.SPLIT) {
-				Kit.sound(world, g, ModSounds.DEATH_RAY, 64.0F, 1.0F);
-				Vfx.flash(world, g, 0.4F, 200, 0xFFFFFF);
+			if (t == Prism.REFRACT) {
+				Kit.sound(world, g, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 1.2F);
+				Vfx.flash(world, g.add(0, Prism.GEM_Y, 0), 0.3F, 200, 0xFFFFFF);
 			}
-			if (t >= Prism.SPLIT && t < Prism.CONVERGE) {
-				for (int i = 0; i < Prism.BEAMS; i++) {
-					burn(g, i, t);
+			if (t >= Prism.REFRACT && t < Prism.SHATTER) {
+				for (int i = 0; i < Prism.SPOTS; i++) {
+					light(g, i, t);
 				}
-				if (t % 10 == 0) {
-					Kit.sound(world, g, ModSounds.DEATH_RAY, 48.0F, 0.8F + (t % 30) / 60.0F);
+				if (t % 16 == 0) {
+					Kit.sound(world, g, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 64.0F, 0.7F + world.random.nextFloat() * 0.6F);
 				}
 			}
 			if (t == Prism.CONVERGE) {
-				// Seven colours drawn into one point; ten ticks later it comes apart like light through a prism.
-				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PRISM_NOVA, g.add(0, 2, 0), 1.0F);
+				Kit.sound(world, g, ModSounds.RAILGUN_CHARGE, 64.0F, 0.6F);
 			}
-			if (t == Prism.CONVERGE + 10) {
-				Kit.blast(world, g.add(0, 2, 0), 8.0F, owner(), true);
-				Vfx.flash(world, g, 0.7F, 300, 0xFFFFFF);
+			if (t == Prism.SHATTER) {
+				Vec3d gem = Kit.ground(world, g.x, g.z).add(0, Prism.GEM_Y, 0);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PRISM_NOVA, gem, 1.6F);
+				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PRISM_SHARDS, gem, 1.0F);
+				Vfx.flash(world, gem, 0.7F, 300, 0xFFFFFF);
+				Vfx.shake(world, g, 200, 1.2F);
+				Kit.sound(world, gem, SoundEvents.BLOCK_GLASS_BREAK, 128.0F, 0.4F);
+				Kit.sound(world, gem, SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, 128.0F, 0.5F);
+				Kit.sound(world, gem, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 96.0F, 0.8F);
+				// The white-hot light under it bursts out of the ground.
+				Kit.blast(world, Kit.ground(world, g.x, g.z).add(0, 1, 0), 6.0F, owner(), true);
+			}
+			for (int k = 0; k < Prism.SHARDS; k++) {
+				if (t == Prism.shardLand(k)) {
+					shard(g, k);
+				}
 			}
 			drain();
 			return t >= Prism.END;
 		}
 
-		private void burn(Vec3d g, int i, int t) {
-			Vec3d h = Prism.hit(g, i, t);
-			Vec3d p = Kit.ground(world, h.x, h.z);
-			Kit.damage(world, p, 2.8, 5.0F, ModDamageTypes.PLASMA, null, owner());
-			if (t % 3 == i % 3) {
+		/** Spotlight {@code i}: the land under it painted its colour, a little at a time, and whatever stands in it scorched. */
+		private void light(Vec3d g, int i, int t) {
+			Vec3d sp = Prism.spot(i, t);
+			Vec3d p = Kit.ground(world, g.x + sp.x, g.z + sp.z);
+			if (t % 10 == i % 10) {
+				for (LivingEntity e : Kit.living(world, p, Prism.SPOT)) {
+					if (!Kit.creativeOrSpectator(e)) {
+						e.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 60, 0, false, false));
+						e.setOnFireFor(2);
+						e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA), 3.0F);
+					}
+				}
+			}
+			if (t % 4 == i % 4) {
 				com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PRISM_SCORCH, p, new Vec3d(0, 1, 0), 1.0F, Prism.COLORS[i]);
 			}
+			if (!Destruction.enabled(world) || t % 2 != 0) {
+				return;
+			}
+			for (int n = 0; n < 10; n++) {
+				double a = world.random.nextDouble() * MathHelper.TAU, d = Math.sqrt(world.random.nextDouble()) * Prism.SPOT;
+				BlockPos b = surface(MathHelper.floor(p.x + Math.cos(a) * d), MathHelper.floor(p.z + Math.sin(a) * d));
+				BlockState s = world.getBlockState(b);
+				if (s.isOpaqueFullCube(world, b) && !s.hasBlockEntity()) {
+					q().add(b, PAINT[i].getDefaultState(), BlockQueue.ANY);
+					BlockState up = world.getBlockState(b.up());
+					if (!up.isAir() && (up.isReplaceable() || up.isIn(BlockTags.FLOWERS))) {
+						q().add(b.up(), Blocks.AIR.getDefaultState(), BlockQueue.ANY);
+					}
+				}
+			}
+		}
+
+		/** A shard lands: a cluster of coloured crystal spikes growing out of the ground where it hits. */
+		private void shard(Vec3d g, int k) {
+			Vec3d at = Prism.shard(k);
+			Vec3d hit = Kit.ground(world, g.x + at.x, g.z + at.z);
+			int c = (int) (Prism.hash(k, 14) * Prism.SPOTS) % Prism.SPOTS;
+			com.armageddon.network.Vfx.play(world, com.armageddon.vfx.VfxIds.PRISM_SCORCH, hit, new Vec3d(0, 1, 0), 1.6F, Prism.COLORS[c]);
+			Kit.sound(world, hit, SoundEvents.BLOCK_AMETHYST_CLUSTER_PLACE, 32.0F, 0.6F + (float) Prism.hash(k, 15) * 0.8F);
+			Kit.damage(world, hit, 3, 6.0F, ModDamageTypes.PLASMA, null, owner());
 			if (!Destruction.enabled(world)) {
 				return;
 			}
-			BlockState col = TRENCH[i].getDefaultState();
-			for (int x = -1; x <= 1; x++) {
-				for (int z = -1; z <= 1; z++) {
-					BlockPos b = surface(MathHelper.floor(p.x) + x, MathHelper.floor(p.z) + z);
-					q().add(b, Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
-					q().add(b.down(), col, BlockQueue.ANY);
+			int spikes = 2 + (int) (Prism.hash(k, 16) * 3);
+			for (int s = 0; s < spikes; s++) {
+				double a = Prism.hash(k, 20 + s) * MathHelper.TAU, lean = 0.25 + Prism.hash(k, 30 + s) * 0.35;
+				int tall = 3 + (int) (Prism.hash(k, 40 + s) * 5);
+				Vec3d dir = new Vec3d(Math.cos(a) * lean, 1, Math.sin(a) * lean).normalize();
+				for (double u = 0; u <= tall; u += 0.5) {
+					BlockPos b = BlockPos.ofFloored(hit.add(dir.multiply(u)).add(0, 0.5, 0));
+					q().add(b, GLASS[(c + (u > tall * 0.6 ? 1 : 0)) % Prism.SPOTS].getDefaultState(), BlockQueue.AIR_ONLY);
 				}
 			}
-			if (world.random.nextInt(12) == 0) {
-				q().add(BlockPos.ofFloored(p), Blocks.FIRE.getDefaultState(), BlockQueue.AIR_ONLY);
-			}
+			BlockPos base = surface(MathHelper.floor(hit.x), MathHelper.floor(hit.z));
+			q().add(base, PAINT[c].getDefaultState(), BlockQueue.ANY);
 		}
 	}
 

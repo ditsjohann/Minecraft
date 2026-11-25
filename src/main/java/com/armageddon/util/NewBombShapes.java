@@ -192,23 +192,55 @@ public final class NewBombShapes {
 
 	// ====================================================================== PRISM
 
+	/**
+	 * The Prism: a great crystal gem comes down out of the sky into a shaft of sunlight and splits it. Seven soft
+	 * spotlights of colour fall from its facets and wander over the land, painting it; they converge white-hot under
+	 * it, and the gem shatters into rainbow shards that rain down and grow into crystal.
+	 */
 	public static final class Prism {
-		public static final int CHARGE = 60, SPLIT = 120, SWEEP = 260, CONVERGE = 300, END = 380;
-		public static final int BEAMS = 7;
+		public static final int DESCEND = 90, REFRACT = 100, CONVERGE = 400, SHATTER = 460, END = 600;
+		public static final int SPOTS = 7, SHARDS = 64;
 		public static final int[] COLORS = {0xFF2020, 0xFF8A10, 0xFFE020, 0x30E030, 0x20A0FF, 0x3040FF, 0xB030FF};
-		public static final double HEIGHT = 30, REACH = 80;
+		/** The gem's hover height and half-height, the spotlights' reach and radius. */
+		public static final double GEM_Y = 34, GEM = 12, REACH = 60, SPOT = 7;
 
 		private Prism() {
 		}
 
-		/** Where beam {@code i} touches the ground at tick {@code t} (relative ground point; y resolved by the caller). */
-		public static Vec3d hit(Vec3d g, int i, double t) {
-			double k = MathHelper.clamp((t - SPLIT) / (SWEEP - SPLIT), 0.0, 1.0);
-			double back = MathHelper.clamp((t - SWEEP) / (CONVERGE - SWEEP), 0.0, 1.0);
-			double base = i * MathHelper.TAU / BEAMS;
-			double a = base + k * 2.2 + Math.sin(k * 6 + i) * 0.25;
-			double d = (12 + k * (REACH - 12)) * (1 - back);
-			return g.add(Math.cos(a) * d, 0, Math.sin(a) * d);
+		public static double hash(int i, int k) {
+			double v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453;
+			return v - Math.floor(v);
+		}
+
+		/** The gem's height over the ground: down out of the sky, then hovering, bobbing. */
+		public static double gemY(double t) {
+			double u = MathHelper.clamp(t / DESCEND, 0.0, 1.0);
+			u = 1 - (1 - u) * (1 - u);
+			return GEM_Y + (1 - u) * 90 + Math.sin(t * 0.04) * 1.2;
+		}
+
+		/** How spread out the spotlights are (0 gathered under the gem .. 1 roaming the land). */
+		public static double spread(double t) {
+			double out = MathHelper.clamp((t - REFRACT) / 60.0, 0.0, 1.0);
+			double in = MathHelper.clamp((t - CONVERGE) / (SHATTER - CONVERGE - 10), 0.0, 1.0);
+			return out * out * (3 - 2 * out) * (1 - in * in * (3 - 2 * in));
+		}
+
+		/** Where spotlight {@code i} falls at tick {@code t}, relative to the bomb (y = 0): wandering loops over the land. */
+		public static Vec3d spot(int i, double t) {
+			double wx = 0.011 + hash(i, 1) * 0.012, wz = 0.013 + hash(i, 2) * 0.012;
+			double r = REACH * (0.55 + 0.45 * hash(i, 3)) * spread(t);
+			return new Vec3d(Math.sin(t * wx + i * 1.7) * r, 0, Math.sin(t * wz + i * 2.9 + 1) * r);
+		}
+
+		/** Where shard {@code k} lands (relative, y = 0), and when. */
+		public static Vec3d shard(int k) {
+			double a = hash(k, 11) * MathHelper.TAU, r = 8 + Math.sqrt(hash(k, 12)) * (REACH - 6);
+			return new Vec3d(Math.cos(a) * r, 0, Math.sin(a) * r);
+		}
+
+		public static int shardLand(int k) {
+			return SHATTER + 18 + (int) (hash(k, 13) * 45);
 		}
 	}
 

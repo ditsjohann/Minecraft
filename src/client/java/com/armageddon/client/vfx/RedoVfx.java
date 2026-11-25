@@ -130,7 +130,20 @@ final class RedoVfx {
 
 	// ------------------------------------------------------------------ Prism
 
+	static final Gradient RAINBOW = Gradient.of(0, 0xFF2020, 0.17F, 0xFF8A10, 0.33F, 0xFFE020, 0.5F, 0x30E030, 0.67F, 0x20A0FF, 0.83F, 0x3040FF, 1, 0xB030FF);
+
 	private static void prism() {
+		// The gem shattering: a burst of rainbow glass shards and sparkles flying out of the flash.
+		FxEngine.register(EffectDef.builder(VfxIds.PRISM_SHARDS).lod(400, 2600).maxAge(160)
+				.cue(0, EffectDef.light(1.8F, 0xFFFFFF))
+				.emit(EmitterDef.builder("shards").priority(Priority.HERO).burst(320).shape(Shape.sphere(3)).velocity(Velocity.random(0.6F, 1.8F)).gravity(0.03F)
+						.drag(0.02F).life(40, 80).size(0.3F, 0.6F).spin(-0.6F, 0.6F).fixedRotation().sprite(FxSprites.FLARE).color(RAINBOW).build())
+				.emit(EmitterDef.builder("sparkle").burst(200).shape(Shape.sphere(4)).velocity(Velocity.random(0.2F, 0.8F)).drag(0.04F).life(40, 90)
+						.size(0.12F, 0.22F).sprite(FxSprites.FLARE).color(RAINBOW).alphaOverLife(TWINKLE).build())
+				.emit(EmitterDef.builder("ring").burst(1).mode(Mode.FLAT).fixedRotation().size(60, 60).life(26, 26).sprite(FxSprites.SHOCK)
+						.sizeOverLife(Curve.EASE_OUT).color(0xFFFFFF).alpha(0.7F).alphaOverLife(Curve.FADE_OUT).build())
+				.build());
+
 		// Sunlight pouring down into the prism: sparkling motes riding the beam.
 		FxEngine.register(EffectDef.builder(VfxIds.PRISM_INBEAM).lod(300, 2000)
 				.emit(EmitterDef.builder("motes").burst(6).shape(Shape.column(2, 60)).velocity(Velocity.up(-1.4F, -0.9F, 0.02F)).life(20, 40).size(0.2F, 0.35F)

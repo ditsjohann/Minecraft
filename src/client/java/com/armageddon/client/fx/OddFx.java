@@ -240,92 +240,170 @@ final class OddFx {
 		}
 	}
 
+	/**
+	 * The Prism: a great faceted gem comes down into a shaft of sunlight, turning, ringed with a halo of rainbow.
+	 * Seven soft spotlights fall from it and wander over the land in their colours; they gather white-hot under it,
+	 * and it shatters, its shards falling as sparks of colour to grow into crystal where they land.
+	 */
 	static final class PrismFx extends FxEffect {
-		private static final double R = 7, H = 7;
+		private static final Vec3d UP = new Vec3d(0, 1, 0);
 		private final Vec3d g;
 
 		PrismFx(Vec3d g, int life) {
-			super(life);
+			super(Math.max(40, life));
 			this.g = g;
+		}
+
+		private static float smooth(double u) {
+			u = MathHelper.clamp(u, 0.0, 1.0);
+			return (float) (u * u * (3 - 2 * u));
 		}
 
 		@Override
 		public boolean tick(ClientWorld world) {
-			if (age >= Prism.CHARGE && age < Prism.CONVERGE && age % 3 == 0) {
-				Vec3d c = g.add(0, Prism.HEIGHT, 0);
-				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.PRISM_INBEAM, c.x, c.y + 8, c.z, 0, 1, 0, 1.0F, 0, age * 131L);
+			if (age < Prism.SHATTER && age % 3 == 0) {
+				Vec3d c = g.add(0, Prism.gemY(age), 0);
+				com.armageddon.client.vfx.FxEngine.play(com.armageddon.vfx.VfxIds.PRISM_INBEAM, c.x, c.y + 6, c.z, 0, 1, 0, 1.0F, 0, age * 37L);
 			}
-			if (age >= Prism.SPLIT && age < Prism.CONVERGE && age % 10 == 0) {
-				ClientFx.light(g.add(0, Prism.HEIGHT, 0), 0.8F, 0xFFFFFF);
+			if (age < Prism.SHATTER && age % 8 == 0) {
+				ClientFx.light(g.add(0, Prism.gemY(age), 0), 0.9F, 0xFFFFFF);
+				if (age >= Prism.REFRACT) {
+					for (int i = 0; i < Prism.SPOTS; i++) {
+						Vec3d sp = g.add(Prism.spot(i, age));
+						ClientFx.light(sp.add(0, 2, 0), 0.6F, Prism.COLORS[i]);
+					}
+				}
 			}
 			return super.tick(world);
 		}
 
 		@Override
-		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float tickDelta, float camYaw, float camPitch) {
-			float t = age + tickDelta;
+		public void render(Matrix4f m, VertexConsumerProvider consumers, Vec3d cam, float td, float yaw, float pitch) {
+			float a = age + td;
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
-			Vec3d[] cb = FxDraw.cameraBasis(camYaw, camPitch);
-			float rise = MathHelper.clamp(t / 40.0F, 0.0F, 1.0F);
-			Vec3d c = g.add(0, Prism.HEIGHT * rise, 0).subtract(cam);
-			double spin = t * 0.015;
-			float charge = MathHelper.clamp((t - Prism.CHARGE) / 40.0F, 0.0F, 1.0F);
-			boolean split = t >= Prism.SPLIT && t < Prism.CONVERGE + 8;
-			// The prism: a faceted glass column, its white-hot heart showing through, rainbow glints on its faces.
-			Vec3d[] top = new Vec3d[3], bot = new Vec3d[3];
-			for (int i = 0; i < 3; i++) {
-				double a = spin + i * MathHelper.TAU / 3;
-				top[i] = c.add(Math.cos(a) * R, H, Math.sin(a) * R);
-				bot[i] = c.add(Math.cos(a) * R, -H, Math.sin(a) * R);
+			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
+			Vec3d o = g.subtract(cam);
+			Vec3d gem = o.add(0, Prism.gemY(a), 0);
+			float alive = 1 - smooth((a - Prism.SHATTER) / 3.0F);
+			if (alive > 0.01F) {
+				sunlight(glow, consumers, m, cb, gem, a);
+				spotlights(glow, m, cam, gem, a);
+				halo(glow, m, cb, gem, a);
+				gem(glow, shade, consumers, m, cb, gem, a);
 			}
-			FxDraw.beam(glow, m, c.add(0, -H * 0.8, 0), c.add(0, H * 0.8, 0), Vec3d.ZERO, 1.2 + 2.5 * charge, 0xFFFFFF, 0.3F + 0.6F * charge);
-			for (int i = 0; i < 3; i++) {
-				int j = (i + 1) % 3;
-				Solids.quad(shade, m, bot[i], bot[j], top[j], top[i], 0xD0ECFF, 0.22F);
-				Solids.quad(shade, m, top[0], top[1], top[2], top[2], 0xE0F4FF, 0.18F);
-				FxDraw.ribbon(glow, m, top[i], top[j], Vec3d.ZERO, 0.3, 0xFFFFFF, 0.9F, 0.9F);
-				FxDraw.ribbon(glow, m, bot[i], bot[j], Vec3d.ZERO, 0.3, 0xFFFFFF, 0.9F, 0.9F);
-				FxDraw.ribbon(glow, m, bot[i], top[i], Vec3d.ZERO, 0.3, 0xFFFFFF, 0.9F, 0.9F);
-				// A rainbow glint sliding down each face.
-				double u = ((t * 0.02 + i * 0.33) % 1.0);
-				Vec3d ga = bot[i].lerp(top[i], 1 - u), gb = bot[j].lerp(top[j], 1 - u);
-				int gcol = Prism.COLORS[(int) (t / 6 + i * 2) % Prism.BEAMS];
-				FxDraw.ribbon(glow, m, ga, gb, Vec3d.ZERO, 0.8, gcol, 0.35F, 0.35F);
+			shards(glow, m, cb, o, cam, a);
+		}
+
+		/** A broad soft shaft of sunlight pouring down into the gem from high above. */
+		private void sunlight(VertexConsumer glow, VertexConsumerProvider consumers, Matrix4f m, Vec3d[] cb, Vec3d gem, float a) {
+			float on = smooth(a / 30.0F) * (1 - smooth((a - Prism.CONVERGE) / 50.0F) * 0.5F);
+			Vec3d top = gem.add(0, 160, 0);
+			for (int k = 0; k < 4; k++) {
+				double w = 3 + k * 3.5;
+				FxDraw.beam(glow, m, top, gem.add(0, Prism.GEM * 0.6, 0), Vec3d.ZERO, w, k == 0 ? 0xFFFFFF : 0xFFF6D8, (0.13F - k * 0.028F) * on);
 			}
-			// Crystal shards orbiting it, catching the light.
-			for (int k = 0; k < 9; k++) {
-				double a = k * MathHelper.TAU / 9 + t * 0.03 * (k % 2 == 0 ? 1 : -1);
-				double r = R + 4 + 2 * Math.sin(k * 2.1 + t * 0.05);
-				Vec3d p = c.add(Math.cos(a) * r, Math.sin(t * 0.04 + k) * H * 0.8, Math.sin(a) * r);
-				Vec3d up = new Vec3d(0, 1.4, 0), side = new Vec3d(-Math.sin(a), 0, Math.cos(a)).multiply(0.8);
-				Solids.quad(shade, m, p.subtract(up), p.add(side), p.add(up), p.subtract(side), 0xE0F4FF, 0.35F);
-				Solids.flare(glow, m, p, cb, 0.8, Prism.COLORS[k % Prism.BEAMS], 0.5F);
-			}
-			// The sunbeam coming down into it.
-			if (t >= Prism.CHARGE && t < Prism.CONVERGE + 20) {
-				FxDraw.beam(glow, m, c.add(0, 220, 0), c.add(0, H, 0), Vec3d.ZERO, 0.8 + 3.2 * charge, 0xFFFFFF, charge);
-				FxDraw.beam(glow, m, c.add(0, 220, 0), c.add(0, H, 0), Vec3d.ZERO, 3 + 6 * charge, 0xFFF8E0, 0.2F * charge);
-			}
-			if (!split) {
+			FxKit.halo(consumers, m, cb, gem.add(0, Prism.GEM, 0), 10, 0xFFF8E0, 0.25F * on);
+		}
+
+		/**
+		 * The spotlights: a soft cone of each colour from the gem's lower facets down to a pool of light on the
+		 * ground, wandering; at the end they slide in under the gem and blend to white.
+		 */
+		private void spotlights(VertexConsumer glow, Matrix4f m, Vec3d cam, Vec3d gem, float a) {
+			if (a < Prism.REFRACT - 5) {
 				return;
 			}
-			// The split: seven beams fanning out of it with the spectrum stretched between them like a sheet.
-			Vec3d[] ends = new Vec3d[Prism.BEAMS];
-			for (int i = 0; i < Prism.BEAMS; i++) {
-				Vec3d h = Prism.hit(g, i, t);
-				ends[i] = new Vec3d(h.x, NewFx.groundY(h.x, h.z, g.y), h.z).subtract(cam);
+			float on = smooth((a - Prism.REFRACT + 5) / 20.0F);
+			double merge = smooth((a - Prism.CONVERGE) / (Prism.SHATTER - Prism.CONVERGE));
+			Vec3d apex = gem.add(0, -Prism.GEM * 0.8, 0);
+			Vec3d X = new Vec3d(1, 0, 0), Z = new Vec3d(0, 0, 1);
+			for (int i = 0; i < Prism.SPOTS; i++) {
+				Vec3d sp = Prism.spot(i, a);
+				double gy = NewFx.groundY(g.x + sp.x, g.z + sp.z, g.y) - cam.y + 0.15;
+				Vec3d pool = new Vec3d(g.x + sp.x - cam.x, gy, g.z + sp.z - cam.z);
+				int col = Solids.mix(Prism.COLORS[i], 0xFFFFFF, merge);
+				double rad = Prism.SPOT * (1 - merge * 0.5);
+				// The cone: a fan of soft quads from the facet to the pool's rim, fading toward the top.
+				int n = 16;
+				for (int k = 0; k < n; k++) {
+					double a0 = k * MathHelper.TAU / n, a1 = (k + 1) * MathHelper.TAU / n;
+					Vec3d r0 = pool.add(Math.cos(a0) * rad, 0, Math.sin(a0) * rad), r1 = pool.add(Math.cos(a1) * rad, 0, Math.sin(a1) * rad);
+					FxDraw.vertex(glow, m, apex.x, apex.y, apex.z, col, 0.02F * on);
+					FxDraw.vertex(glow, m, apex.x, apex.y, apex.z, col, 0.02F * on);
+					FxDraw.vertex(glow, m, r1.x, r1.y, r1.z, col, 0.13F * on);
+					FxDraw.vertex(glow, m, r0.x, r0.y, r0.z, col, 0.13F * on);
+				}
+				// The pool of light on the ground, soft at its edge, brighter at its heart.
+				FxDraw.disc(glow, m, pool, X, Z, rad * 1.15, col, 0.5F * on, 0.0F, 32);
+				FxDraw.disc(glow, m, pool.add(0, 0.02, 0), X, Z, rad * 0.45, Solids.mix(col, 0xFFFFFF, 0.4), 0.45F * on, 0.0F, 24);
 			}
-			Vec3d src = c.add(0, -H * 0.3, 0);
-			for (int i = 0; i < Prism.BEAMS - 1; i++) {
-				Solids.quad(glow, m, src, ends[i], ends[i + 1], src, Prism.COLORS[i], 0.12F);
+			if (merge > 0.05) {
+				Vec3d under = new Vec3d(g.x - cam.x, NewFx.groundY(g.x, g.z, g.y) - cam.y + 0.2, g.z - cam.z);
+				FxDraw.disc(glow, m, under, X, Z, 6 + merge * 6, 0xFFFFFF, (float) merge, 0.0F, 32);
+				FxDraw.beam(glow, m, apex, under, Vec3d.ZERO, 2 + merge * 4, 0xFFFFFF, 0.6F * (float) merge);
 			}
-			for (int i = 0; i < Prism.BEAMS; i++) {
-				float flick = 0.85F + 0.15F * MathHelper.sin(t * 0.9F + i);
-				FxDraw.beam(glow, m, src, ends[i], Vec3d.ZERO, 2.2 * flick, Prism.COLORS[i], 0.45F);
-				FxDraw.beam(glow, m, src, ends[i], Vec3d.ZERO, 0.6, 0xFFFFFF, 0.8F);
-				FxDraw.disc(glow, m, ends[i].add(0, 0.15, 0), new Vec3d(1, 0, 0), new Vec3d(0, 0, 1), 3.4, Prism.COLORS[i], 0.6F, 0.0F, 24);
-				Solids.flare(glow, m, ends[i].add(0, 0.6, 0), cb, 3.0, Prism.COLORS[i], 0.8F);
+		}
+
+		/** A glory of rainbow round the gem: seven soft rings, slowly breathing. */
+		private void halo(VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d gem, float a) {
+			float on = smooth((a - 30) / 40.0F);
+			double breathe = 1 + 0.05 * Math.sin(a * 0.05);
+			for (int i = 0; i < Prism.SPOTS; i++) {
+				double r0 = (14 + i * 1.6) * breathe;
+				FxDraw.ring(glow, m, gem, cb[0], cb[1], r0, r0 + 1.6, Prism.COLORS[Prism.SPOTS - 1 - i], 0.0F, 0.22F * on, 0.0F, 48);
+			}
+		}
+
+		/**
+		 * The gem: a tall octahedron of clear crystal turning slowly, each facet catching a different colour, light
+		 * burning at its heart; as the light gathers, it cracks with white.
+		 */
+		private void gem(VertexConsumer glow, VertexConsumer shade, VertexConsumerProvider consumers, Matrix4f m, Vec3d[] cb, Vec3d c, float a) {
+			double spin = a * 0.015;
+			double h = Prism.GEM, w = Prism.GEM * 0.62;
+			Vec3d top = c.add(0, h, 0), bot = c.add(0, -h, 0);
+			Vec3d[] ring = new Vec3d[6];
+			for (int k = 0; k < 6; k++) {
+				double ang = spin + k * MathHelper.TAU / 6;
+				ring[k] = c.add(Math.cos(ang) * w, (k % 2 == 0 ? 0.8 : -0.8), Math.sin(ang) * w);
+			}
+			double heat = smooth((a - Prism.CONVERGE) / (Prism.SHATTER - Prism.CONVERGE));
+			for (int k = 0; k < 6; k++) {
+				Vec3d r0 = ring[k], r1 = ring[(k + 1) % 6];
+				int col = Prism.COLORS[(k + (int) (a / 20)) % Prism.SPOTS];
+				for (Vec3d tip : new Vec3d[]{top, bot}) {
+					Solids.quad(shade, m, tip, r0, r1, r1, Solids.mix(0xDCEEFF, 0xFFFFFF, heat), 0.38F);
+					Solids.quad(glow, m, tip, r0, r1, r1, col, 0.16F + 0.3F * (float) heat);
+				}
+				FxDraw.ribbon(glow, m, top, r0, Vec3d.ZERO, 0.18, 0xFFFFFF, 0.7F, 0.7F);
+				FxDraw.ribbon(glow, m, bot, r0, Vec3d.ZERO, 0.18, 0xFFFFFF, 0.7F, 0.7F);
+				FxDraw.ribbon(glow, m, r0, r1, Vec3d.ZERO, 0.18, 0xFFFFFF, 0.7F, 0.7F);
+				Solids.flare(glow, m, r0, cb, 0.9 + heat * 2, 0xFFFFFF, 0.6F + 0.4F * MathHelper.sin(a * 0.3F + k));
+			}
+			Solids.flare(glow, m, c, cb, 4 + heat * 10, 0xFFFFFF, 0.8F);
+			FxKit.halo(consumers, m, cb, c, 8 + heat * 20, 0xFFFFFF, 0.25F + 0.4F * (float) heat);
+		}
+
+		/** The shards: sparks of every colour falling from where the gem was to where they land. */
+		private void shards(VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d o, Vec3d cam, float a) {
+			if (a < Prism.SHATTER) {
+				return;
+			}
+			Vec3d from = o.add(0, Prism.GEM_Y, 0);
+			for (int k = 0; k < Prism.SHARDS; k++) {
+				int land = Prism.shardLand(k);
+				double u = (a - Prism.SHATTER) / (land - Prism.SHATTER);
+				if (u < 0 || u > 1) {
+					continue;
+				}
+				Vec3d at = Prism.shard(k);
+				Vec3d to = new Vec3d(g.x + at.x, NewFx.groundY(g.x + at.x, g.z + at.z, g.y), g.z + at.z).subtract(cam);
+				Vec3d mid = from.lerp(to, 0.5).add(0, 14, 0);
+				Vec3d p = from.multiply((1 - u) * (1 - u)).add(mid.multiply(2 * u * (1 - u))).add(to.multiply(u * u));
+				int col = Prism.COLORS[(int) (Prism.hash(k, 14) * Prism.SPOTS) % Prism.SPOTS];
+				Solids.flare(glow, m, p, cb, 1.4, col, 1.0F);
+				Solids.dot(glow, m, p, cb, 0.5, 0xFFFFFF, 0.9F);
 			}
 		}
 	}
