@@ -59,11 +59,31 @@ final class AiFx extends FxEffect {
 		if (t >= AiShapes.BOOTED && t < AiShapes.EMP && t % 8 == 0) {
 			ClientFx.light(c.add(0, AiShapes.EYE_Y, 0), 1.0F, white(t) > 0.5 ? 0xF0F0FF : 0xFF2010);
 		}
+		for (int k = 0; k < AiShapes.MISSILES; k++) {
+			int at = AiShapes.missileAt(k);
+			if (t >= at && t < at + AiShapes.MISSILE_FLIGHT) {
+				Vec3d p = c.add(AiShapes.missile(k, t, seed, missileDy(k))), q = c.add(AiShapes.missile(k, t + 1, seed, missileDy(k)));
+				FxEngine.playMoving(VfxIds.AI_MISSILE_TRAIL, p.x, p.y, p.z, 0, 1, 0, 1.0F, 0, t * 131L + k, (float) (q.x - p.x), (float) (q.y - p.y),
+						(float) (q.z - p.z));
+			}
+		}
 		if (t >= AiShapes.UPLOAD && t < AiShapes.EMP && t % 2 == 0) {
 			Vec3d e = c.add(0, AiShapes.EYE_Y + 2, 0);
 			FxEngine.play(VfxIds.AI_UPLOAD, e.x, e.y, e.z, 0, 1, 0, 1.0F, 0, t * 37L);
 		}
 		return super.tick(world);
+	}
+
+	private final double[] mdy = new double[AiShapes.MISSILES];
+	private final boolean[] mknown = new boolean[AiShapes.MISSILES];
+
+	private double missileDy(int k) {
+		if (!mknown[k]) {
+			Vec3d tg = AiShapes.missileTarget(k, seed);
+			mdy[k] = NewFx.groundY(c.x + tg.x, c.z + tg.z, c.y) - c.y;
+			mknown[k] = true;
+		}
+		return mdy[k];
 	}
 
 	@Override
@@ -92,6 +112,15 @@ final class AiFx extends FxEffect {
 		if (a >= AiShapes.PURGE && a < AiShapes.PURGE_END + 20) {
 			purge(glow, m, cb, o, a);
 		}
+		missiles(solid, glow, m, cb, o, a);
+		if (a >= AiShapes.WALK - 40 && a < AiShapes.WALK_END + 30) {
+			walkers(solid, glow, m, cb, o, cam, a);
+		}
+		if (a >= AiShapes.NETWORK && a < AiShapes.EMP) {
+			hologram(glow, m, cb, o, a);
+			glitches(glow, m, cb, o, a);
+			arcs(glow, m, o, a);
+		}
 		if (a >= AiShapes.UPLOAD && a < AiShapes.EMP + 10) {
 			float u = smooth((a - AiShapes.UPLOAD) / 20.0) * (1 - smooth((a - AiShapes.EMP) / 6.0));
 			Vec3d e = o.add(0, AiShapes.EYE_Y, 0);
@@ -107,15 +136,16 @@ final class AiFx extends FxEffect {
 		Vec3d e = o.add(0, AiShapes.EYE_Y, 0);
 		Solids.sphere(solid, m, e, 4.0, 0x101014, 10, 14, true);
 		Vec3d toCam = e.multiply(-1).normalize();
-		Vec3d lens = e.add(toCam.multiply(4.1));
+		// The lens floats proud of the orb, each layer well clear of the last so nothing flickers.
+		Vec3d lens = e.add(toCam.multiply(4.6));
 		float w = white(a);
 		int hot = mix(0xFF1A10, 0xF0F4FF, w), core = mix(0xFFE0C0, 0xFFFFFF, w);
-		FxDraw.disc(shade, m, lens, cb[0], cb[1], 3.4, 0x6A6E78, 0.98F, 0.98F, 32);
-		FxDraw.disc(shade, m, lens.add(toCam.multiply(0.05)), cb[0], cb[1], 2.8, 0x080808, 0.98F, 0.98F, 32);
+		FxDraw.disc(shade, m, lens, cb[0], cb[1], 3.6, 0x6A6E78, 0.98F, 0.98F, 32);
+		FxDraw.disc(shade, m, lens.add(toCam.multiply(0.4)), cb[0], cb[1], 3.0, 0x080808, 0.98F, 0.98F, 32);
 		float pulse = 0.85F + 0.15F * MathHelper.sin(a * 0.15F);
-		FxDraw.disc(glow, m, lens.add(toCam.multiply(0.1)), cb[0], cb[1], 2.6, hot, 1.0F * on * pulse, 0.0F, 32);
-		FxDraw.disc(glow, m, lens.add(toCam.multiply(0.12)), cb[0], cb[1], 0.8, core, 1.0F * on, 0.2F * on, 20);
-		Solids.flare(glow, m, lens.add(toCam.multiply(0.15)).add(cb[0].multiply(-0.9)).add(cb[1].multiply(0.9)), cb, 0.5, 0xFFFFFF, 0.6F * on);
+		FxDraw.disc(glow, m, lens.add(toCam.multiply(0.8)), cb[0], cb[1], 2.7, hot, 1.0F * on * pulse, 0.0F, 32);
+		FxDraw.disc(glow, m, lens.add(toCam.multiply(1.0)), cb[0], cb[1], 0.9, core, 1.0F * on, 0.2F * on, 20);
+		Solids.flare(glow, m, lens.add(toCam.multiply(1.2)).add(cb[0].multiply(-1.0)).add(cb[1].multiply(1.0)), cb, 0.5, 0xFFFFFF, 0.6F * on);
 		FxKit.halo(consumers, m, cb, lens, 9 + 3 * w, hot, 0.35F * on * pulse);
 	}
 
@@ -237,6 +267,161 @@ final class AiFx extends FxEffect {
 				// The emitters at the leading ends.
 				Solids.flare(glow, m, p0.add(0, 3.5, 0), cb, 2.4, 0xFFFFFF, on);
 				Solids.flare(glow, m, p1.add(0, 3.5, 0), cb, 2.4, 0xFFFFFF, on);
+			}
+		}
+	}
+
+	/** Missiles in flight: slim black bodies with a red-hot nose and a burning tail. */
+	private void missiles(VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d o, float a) {
+		for (int k = 0; k < AiShapes.MISSILES; k++) {
+			int at = AiShapes.missileAt(k);
+			if (a < at || a >= at + AiShapes.MISSILE_FLIGHT) {
+				continue;
+			}
+			Vec3d p = o.add(AiShapes.missile(k, a, seed, missileDy(k)));
+			Vec3d d = AiShapes.missile(k, a + 0.5, seed, missileDy(k)).subtract(AiShapes.missile(k, a - 0.5, seed, missileDy(k)));
+			d = d.lengthSquared() < 1.0E-6 ? UP : d.normalize();
+			Solids.tube(solid, m, p.subtract(d.multiply(2.5)), p.add(d.multiply(1.5)), 0.45, 0.45, 6, 0x18181C, 1.0F, true);
+			Solids.tube(solid, m, p.add(d.multiply(1.5)), p.add(d.multiply(2.6)), 0.45, 0.02, 6, 0xC01010, 1.0F, true);
+			Solids.flare(glow, m, p.subtract(d.multiply(2.7)), cb, 1.8, 0xFFB060, 1.0F);
+		}
+	}
+
+	/**
+	 * The tripods: war machines rising out of the streets on three long jointed legs, a black hull with a red eye,
+	 * striding across the city sweeping a beam over everything in front of them.
+	 */
+	private void walkers(VertexConsumer solid, VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d o, Vec3d cam, float a) {
+		double up = AiShapes.walkerUp(a);
+		if (up <= 0.01) {
+			return;
+		}
+		for (int i = 0; i < AiShapes.WALKERS; i++) {
+			Vec3d w = AiShapes.walker(i, Math.max(a, AiShapes.WALK), seed);
+			double gy = NewFx.groundY(c.x + w.x, c.z + w.z, c.y) - c.y;
+			Vec3d foot = o.add(w.x, gy, w.z);
+			double bob = Math.sin(a * 0.2 + i) * 1.2;
+			Vec3d hull = foot.add(0, (AiShapes.WALKER_H + bob) * up - (1 - up) * 10, 0);
+			Vec3d d = AiShapes.walker(i, a + 1, seed).subtract(AiShapes.walker(i, a, seed));
+			d = new Vec3d(d.x, 0, d.z);
+			d = d.lengthSquared() < 1.0E-6 ? new Vec3d(1, 0, 0) : d.normalize();
+			// Three legs, each stepping in turn.
+			for (int k = 0; k < 3; k++) {
+				double ang = k * MathHelper.TAU / 3 + Math.atan2(d.z, d.x);
+				double step = Math.sin(a * 0.12 + k * 2.1);
+				Vec3d out = new Vec3d(Math.cos(ang), 0, Math.sin(ang));
+				Vec3d hip = hull.add(out.multiply(3.5));
+				Vec3d toe = foot.add(out.multiply(16)).add(d.multiply(step * 5)).add(0, Math.max(0, step) * 3, 0);
+				Vec3d knee = hip.lerp(toe, 0.5).add(out.multiply(4)).add(0, 10 * up, 0);
+				Solids.tube(solid, m, hip, knee, 0.9, 0.7, 6, 0x202024, 1.0F, true);
+				Solids.tube(solid, m, knee, toe, 0.7, 0.3, 6, 0x202024, 1.0F, true);
+				Solids.dot(glow, m, knee, cb, 0.6, 0xFF2010, 0.8F);
+			}
+			// The hull: a squat black dome with a ring of red lights and a red eye under it.
+			Solids.sphere(solid, m, hull, 5.0, 0x141418, 8, 12, true);
+			Solids.tube(solid, m, hull.add(0, -1.2, 0), hull.add(0, -2.6, 0), 5.6, 4.0, 14, 0x2A2A30, 1.0F, true);
+			for (int k = 0; k < 10; k++) {
+				double ang = k * MathHelper.TAU / 10 + a * 0.05;
+				Solids.dot(glow, m, hull.add(Math.cos(ang) * 5.4, -1.6, Math.sin(ang) * 5.4), cb, 0.5, 0xFF2010, ((int) (a * 0.5) + k) % 3 == 0 ? 1.0F : 0.4F);
+			}
+			Vec3d eye = hull.add(d.multiply(3.2)).add(0, -2.4, 0);
+			Solids.flare(glow, m, eye, cb, 2.2, 0xFF2010, (float) up);
+			// Its beam sweeping the ground ahead.
+			if (a >= AiShapes.WALK && a < AiShapes.WALK_END) {
+				Vec3d b = AiShapes.beam(i, a, seed);
+				Vec3d hit = new Vec3d(c.x + b.x, NewFx.groundY(c.x + b.x, c.z + b.z, c.y), c.z + b.z).subtract(cam);
+				float fl = 0.8F + 0.2F * MathHelper.sin(a * 2.3F + i);
+				FxDraw.beam(glow, m, eye, hit, Vec3d.ZERO, 0.6, 0xFFE0D0, fl);
+				FxDraw.beam(glow, m, eye, hit, Vec3d.ZERO, 2.4, 0xFF1A10, 0.45F * fl);
+				Solids.flare(glow, m, hit, cb, 3.5, 0xFFA060, fl);
+			}
+		}
+	}
+
+	/** A giant hologram of the eye hanging over the city, flickering, ringed with turning glyphs and warning bars. */
+	private void hologram(VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d o, float a) {
+		float on = smooth((a - AiShapes.NETWORK - 40) / 40.0) * (1 - smooth((a - AiShapes.UPLOAD) / 20.0));
+		if (on <= 0.01F) {
+			return;
+		}
+		float flick = ((int) (a * 1.3)) % 17 == 0 ? 0.2F : 1.0F;
+		float w = white(a);
+		int col = mix(0xFF2010, 0xE0F0FF, w);
+		Vec3d p = o.add(0, AiShapes.EYE_Y + 42, 0);
+		// The face: concentric rings with a pupil that tracks the camera, scan lines through it.
+		FxDraw.ring(glow, m, p, cb[0], cb[1], 15, 17, col, 0.0F, 0.6F * on * flick, 0.0F, 48);
+		FxDraw.ring(glow, m, p, cb[0], cb[1], 9, 10.5, col, 0.0F, 0.5F * on * flick, 0.0F, 40);
+		Vec3d toCam = p.multiply(-1).normalize();
+		Vec3d pupil = p.add(cb[0].multiply(toCam.dotProduct(cb[0]) * 3)).add(cb[1].multiply(toCam.dotProduct(cb[1]) * 3));
+		FxDraw.disc(glow, m, pupil, cb[0], cb[1], 4.5, col, 0.7F * on * flick, 0.1F * on, 24);
+		for (int k = -6; k <= 6; k++) {
+			double y = k * 2.6 + ((a * 0.4) % 2.6);
+			double half = Math.sqrt(Math.max(0, 17 * 17 - y * y));
+			FxDraw.ribbon(glow, m, p.add(cb[1].multiply(y)).add(cb[0].multiply(-half)), p.add(cb[1].multiply(y)).add(cb[0].multiply(half)), Vec3d.ZERO, 0.15, col,
+					0.15F * on * flick, 0.15F * on * flick);
+		}
+		// Rings of glyphs turning round it.
+		for (int r = 0; r < 2; r++) {
+			int n = 34;
+			for (int k = 0; k < n; k++) {
+				double ang = k * MathHelper.TAU / n + a * 0.01 * (r == 0 ? 1 : -1);
+				double rr = 22 + r * 5;
+				Vec3d q = p.add(cb[0].multiply(Math.cos(ang) * rr)).add(cb[1].multiply(Math.sin(ang) * rr));
+				Solids.glyph(glow, m, q, cb[0], cb[1], 1.8, k * 13 + r * 71 + (int) (a / 8), col, 0.7F * on * flick);
+			}
+		}
+		// Warning bars stacked beneath it.
+		for (int k = 0; k < 3; k++) {
+			Vec3d b = p.add(cb[1].multiply(-30 - k * 4));
+			double len = 16 - k * 3;
+			boolean blink = ((int) (a * 0.25) + k) % 2 == 0;
+			FxDraw.ribbon(glow, m, b.add(cb[0].multiply(-len)), b.add(cb[0].multiply(len)), Vec3d.ZERO, 2.2, col, (blink ? 0.6F : 0.2F) * on, (blink ? 0.6F : 0.2F) * on);
+		}
+	}
+
+	/** Glitches in the air over the city: cubes of wrong colour jittering, split into red and cyan. */
+	private void glitches(VertexConsumer glow, Matrix4f m, Vec3d[] cb, Vec3d o, float a) {
+		float on = smooth((a - AiShapes.NETWORK_END + 100) / 60.0) * (1 - smooth((a - AiShapes.EMP) / 10.0));
+		if (on <= 0.01F) {
+			return;
+		}
+		for (int k = 0; k < 50; k++) {
+			int epoch = (int) (a / 6) + k * 7;
+			double ang = AiShapes.hash(k, epoch) * MathHelper.TAU, r = 15 + AiShapes.hash(epoch, k) * (AiShapes.R - 20);
+			double y = 4 + AiShapes.hash(k + 3, epoch) * 60;
+			Vec3d p = o.add(Math.cos(ang) * r, y, Math.sin(ang) * r);
+			double sz = 0.8 + AiShapes.hash(epoch, k + 5) * 2.2;
+			float al = 0.5F * on * (AiShapes.hash(epoch, k + 9) < 0.7 ? 1 : 0);
+			Vec3d jit = cb[0].multiply(Math.sin(a * 3 + k) * 0.4);
+			FxDraw.disc(glow, m, p.add(jit), cb[0], cb[1], sz, 0xFF2020, al, al, 4);
+			FxDraw.disc(glow, m, p.subtract(jit).add(cb[0].multiply(0.5)), cb[0], cb[1], sz, 0x20E0FF, al * 0.8F, al * 0.8F, 4);
+		}
+	}
+
+	/** Red lightning crackling between the rooftops and the core. */
+	private void arcs(VertexConsumer glow, Matrix4f m, Vec3d o, float a) {
+		float on = smooth((a - AiShapes.NETWORK - 60) / 40.0) * (1 - smooth((a - AiShapes.EMP) / 6.0));
+		if (on <= 0.01F) {
+			return;
+		}
+		for (int k = 0; k < 5; k++) {
+			int epoch = (int) (a / 5) + k * 31;
+			if (AiShapes.hash(epoch, k) < 0.45) {
+				continue;
+			}
+			java.util.Random rnd = new java.util.Random(epoch * 7919L + k);
+			double ang = rnd.nextDouble() * MathHelper.TAU, r = 20 + rnd.nextDouble() * (AiShapes.R - 30);
+			Vec3d from = o.add(0, AiShapes.CORE_H * (0.4 + rnd.nextDouble() * 0.5), 0);
+			Vec3d to = o.add(Math.cos(ang) * r, 15 + rnd.nextDouble() * 35, Math.sin(ang) * r);
+			Vec3d prev = from;
+			for (int j = 1; j <= 10; j++) {
+				Vec3d q = from.lerp(to, j / 10.0).add(rnd.nextGaussian() * 2.5, rnd.nextGaussian() * 2.5, rnd.nextGaussian() * 2.5);
+				if (j == 10) {
+					q = to;
+				}
+				FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 0.35, 0xFF3020, 0.9F * on, 0.9F * on);
+				FxDraw.ribbon(glow, m, prev, q, Vec3d.ZERO, 1.6, 0xA00808, 0.25F * on, 0.25F * on);
+				prev = q;
 			}
 		}
 	}

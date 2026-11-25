@@ -88,7 +88,10 @@ before it implodes, leaving the cracked gate over scorched land.
 AI TAKEOVER (City Destruction): a black core erupts from the middle of the city and opens a red lens-eye, and static
 crawls over every screen. Circuit traces race out across the streets behind a wall of red hologram, and everything they
 reach is assimilated: glass blacked out, walls turned black, lights gone red, the ground a black circuit board. A swarm
-of drones pours out of the core and hunts anything alive with lasers. Then the eye goes white, alarms sound, and a grid
+of drones pours out of the core and hunts anything alive with lasers, missiles rain on the streets, three tripod war
+machines rise out of the city and stride through it sweeping beams that blow burning trails through everything, red
+lightning crackles between the rooftops, chunks of buildings corrupt into glitch blocks and a giant hologram of the eye
+flickers over it all. Then the eye goes white, alarms sound, and a grid
 of laser walls expands from the core, cutting every building straight down into blocks. The drones return, the core
 uploads itself into the sky, and an EMP blast ends it.
 

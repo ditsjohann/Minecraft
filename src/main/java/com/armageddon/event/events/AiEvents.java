@@ -82,7 +82,8 @@ public final class AiEvents {
 				Kit.sound(world, eye, SoundEvents.BLOCK_BEACON_ACTIVATE, 128.0F, 0.5F);
 				Kit.sound(world, eye, SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, 128.0F, 0.6F);
 			}
-			if (t > AiShapes.BOOTED && t < AiShapes.EMP && t % 70 == 0) {
+			chaos(t);
+			if (t > AiShapes.BOOTED && t < AiShapes.EMP && t % 35 == 0) {
 				Vfx.screen(world, base, 400, 3, 0.25F + world.random.nextFloat() * 0.2F, 4);
 				Kit.sound(world, base, SoundEvents.BLOCK_BEACON_AMBIENT, 96.0F, 0.4F);
 			}
@@ -273,6 +274,83 @@ public final class AiEvents {
 				Kit.sound(world, target, SoundEvents.ENTITY_GUARDIAN_ATTACK, 32.0F, 1.6F);
 				e.damage(ModDamageTypes.source(world, ModDamageTypes.PLASMA, null, owner()), 5.0F);
 				e.setOnFireFor(2);
+			}
+		}
+
+		/** Missiles, the tripods' beams, and reality itself starting to glitch. */
+		private void chaos(int t) {
+			for (int k = 0; k < AiShapes.MISSILES; k++) {
+				int at = AiShapes.missileAt(k);
+				if (t == at) {
+					Kit.sound(world, base.add(0, AiShapes.CORE_H, 0), SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 128.0F, 0.5F);
+				}
+				if (t == at + AiShapes.MISSILE_FLIGHT) {
+					Vec3d tg = AiShapes.missileTarget(k, seed());
+					Vec3d hit = Kit.ground(world, base.x + tg.x, base.z + tg.z);
+					Vfx.play(world, VfxIds.AI_MISSILE_HIT, hit, 1.0F);
+					Vfx.shake(world, hit, 160, 0.9F);
+					Kit.sound(world, hit, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 128.0F, 0.7F);
+					Kit.damage(world, hit, 8, 20.0F, ModDamageTypes.PLASMA, null, owner());
+					Destruction.explode(world, owner(), hit.x, hit.y, hit.z, 5.0F, true);
+				}
+			}
+			if (t == AiShapes.WALK - 40) {
+				for (int i = 0; i < AiShapes.WALKERS; i++) {
+					Vec3d w = AiShapes.walker(i, AiShapes.WALK, seed());
+					Vec3d g = Kit.ground(world, base.x + w.x, base.z + w.z);
+					Vfx.play(world, VfxIds.AI_RISE, g, 2.0F);
+					Kit.sound(world, g, SoundEvents.ENTITY_IRON_GOLEM_REPAIR, 128.0F, 0.4F);
+					Kit.sound(world, g, SoundEvents.BLOCK_PISTON_EXTEND, 128.0F, 0.4F);
+					if (Destruction.enabled(world)) {
+						Destruction.explode(world, owner(), g.x, g.y, g.z, 4.0F, false);
+					}
+				}
+			}
+			if (t >= AiShapes.WALK && t < AiShapes.WALK_END) {
+				for (int i = 0; i < AiShapes.WALKERS; i++) {
+					if (t % 3 == i % 3) {
+						Vec3d b = AiShapes.beam(i, t, seed());
+						Vec3d hit = Kit.ground(world, base.x + b.x, base.z + b.z);
+						Vfx.play(world, VfxIds.AI_ZAP, hit, 1.6F);
+						Kit.damage(world, hit, 4, 12.0F, ModDamageTypes.PLASMA, null, owner());
+						if (Destruction.enabled(world) && t % 6 == i % 3) {
+							Destruction.explode(world, owner(), hit.x, hit.y, hit.z, 2.4F, true);
+						}
+					}
+					if (t % 16 == i * 5) {
+						Vec3d w = AiShapes.walker(i, t, seed());
+						Vec3d g = Kit.ground(world, base.x + w.x, base.z + w.z);
+						Kit.sound(world, g, SoundEvents.ENTITY_IRON_GOLEM_STEP, 128.0F, 0.3F);
+						Kit.sound(world, g, SoundEvents.BLOCK_ANVIL_LAND, 64.0F, 0.4F);
+						Vfx.shake(world, g, 90, 0.5F);
+					}
+					if (t % 12 == i * 4) {
+						Vec3d w = AiShapes.walker(i, t, seed());
+						Kit.sound(world, base.add(w).add(0, AiShapes.WALKER_H, 0), SoundEvents.ENTITY_GUARDIAN_ATTACK, 96.0F, 0.6F);
+					}
+				}
+			}
+			// Reality glitching: chunks of the city corrupted into checkerboards of wrong blocks.
+			if (t >= AiShapes.NETWORK_END - 100 && t < AiShapes.PURGE && t % 8 == 0 && Destruction.enabled(world)) {
+				double a = world.random.nextDouble() * MathHelper.TAU, d = 12 + world.random.nextDouble() * (AiShapes.R - 14);
+				int x = MathHelper.floor(base.x + Math.cos(a) * d), z = MathHelper.floor(base.z + Math.sin(a) * d);
+				int top = world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
+				int y = MathHelper.floor(base.y) + world.random.nextInt(Math.max(1, top - MathHelper.floor(base.y) + 1));
+				BlockState[] glitch = {Blocks.MAGENTA_CONCRETE.getDefaultState(), Blocks.CYAN_CONCRETE.getDefaultState(), Blocks.BLACK_CONCRETE.getDefaultState(),
+						Blocks.RED_CONCRETE.getDefaultState(), Blocks.LIME_CONCRETE.getDefaultState()};
+				int n = 1 + world.random.nextInt(2);
+				for (int dx = -n; dx <= n; dx++) {
+					for (int dy = -n; dy <= n; dy++) {
+						for (int dz = -n; dz <= n; dz++) {
+							BlockPos p = new BlockPos(x + dx, y + dy, z + dz);
+							if (!world.getBlockState(p).isAir()) {
+								put(p, glitch[Math.floorMod(dx + dy * 2 + dz * 3 + t, glitch.length)]);
+							}
+						}
+					}
+				}
+				Vfx.play(world, VfxIds.AI_GLITCH, new Vec3d(x + 0.5, y + 0.5, z + 0.5), 1.0F);
+				Kit.sound(world, new Vec3d(x, y, z), SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, 48.0F, 1.8F);
 			}
 		}
 

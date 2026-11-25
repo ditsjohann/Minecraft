@@ -46,6 +46,31 @@ final class AiVfx {
 						.color(Gradient.of(0, 0x3A3030, 1, 0x201A1A)).alpha(0.5F).build())
 				.build());
 
+		// A missile's trail: a red-hot jet and a ribbon of black smoke.
+		FxEngine.register(EffectDef.builder(VfxIds.AI_MISSILE_TRAIL).lod(300, 2000)
+				.emit(EmitterDef.builder("jet").burst(3).inherit(0.1F).life(6, 12).size(0.8F, 1.3F).sprite(FxSprites.FIRE, 2).color(RED).build())
+				.emit(smoke("smoke").burst(2).inherit(0.02F).velocity(Velocity.random(0.01F, 0.04F)).life(40, 70).size(1.2F, 2.2F).sizeOverLife(Curve.RISE)
+						.color(Gradient.of(0, 0x2A2626, 1, 0x1A1818)).alpha(0.6F).build())
+				.build());
+
+		// A missile hits: a red fireball, debris, a column of black smoke.
+		FxEngine.register(EffectDef.builder(VfxIds.AI_MISSILE_HIT).lod(400, 2600).maxAge(160)
+				.cue(0, EffectDef.light(1.4F, 0xFF3020))
+				.emit(flash("flash", 18, 8, 0xFF6040).build())
+				.emit(EmitterDef.builder("ball").priority(Priority.HERO).burst(40).shape(Shape.sphere(2)).velocity(Velocity.radial(0.4F, 0.9F))
+						.velocity(Velocity.up(0.2F, 0.5F, 0.3F)).drag(0.06F).life(14, 28).size(2.5F, 4.5F).sprite(FxSprites.FIRE, 2).color(RED).build())
+				.emit(smoke("column").burst(18).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.3F, 0.7F, 0.3F)).drag(0.03F).life(70, 120).size(4, 7)
+						.sizeOverLife(Curve.RISE).color(Gradient.of(0, 0x302828, 1, 0x1A1616)).alpha(0.7F).build())
+				.emit(EmitterDef.builder("debris").burst(30).onGround().velocity(Velocity.up(0.6F, 1.2F, 0.8F)).gravity(0.05F).collide(0.3F, 0.5F, 1).life(30, 60)
+						.size(0.2F, 0.4F).spin(-0.5F, 0.5F).sprite(FxSprites.DUST).color(0x3A3434).build())
+				.build());
+
+		// Reality glitching: a burst of wrong-coloured pixels snapping in and out.
+		FxEngine.register(EffectDef.builder(VfxIds.AI_GLITCH).lod(200, 1400).maxAge(30)
+				.emit(EmitterDef.builder("pixels").burst(30).shape(Shape.box(2, 2, 2)).life(4, 14).size(0.3F, 0.6F).fixedRotation().sprite(FxSprites.GLOW)
+						.color(Gradient.of(0, 0xFF20C0, 0.5F, 0x20FFF0, 1, 0x40FF40)).alphaOverLife(FLICKER).build())
+				.build());
+
 		// Uploading: red data rising out of the core in straight lines, and pixels winking out.
 		FxEngine.register(EffectDef.builder(VfxIds.AI_UPLOAD).lod(500, 3200)
 				.emit(EmitterDef.builder("data").burst(6).shape(Shape.disc(3)).velocity(Velocity.up(2.0F, 3.5F, 0)).life(30, 60).size(0.2F, 0.35F)

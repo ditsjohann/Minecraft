@@ -336,6 +336,9 @@ public final class VfxIds {
 	public static final String AI_ZAP = "ai_zap";
 	public static final String AI_EMP = "ai_emp";
 	public static final String AI_UPLOAD = "ai_upload";
+	public static final String AI_MISSILE_HIT = "ai_missile_hit";
+	public static final String AI_MISSILE_TRAIL = "ai_missile_trail";
+	public static final String AI_GLITCH = "ai_glitch";
 	public static final String HELLGATE_HEAT = "hellgate_heat";
 	public static final String HELLGATE_EMERGE = "hellgate_emerge";
 	public static final String HELLGATE_RISE = "hellgate_rise";
@@ -586,7 +589,7 @@ public final class VfxIds {
 			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER, MANIAC_GEYSER, MANIAC_BLEED, MANIAC_GORE, MANIAC_BLOOD_RAIN,
 			HORSE_APPEAR, HORSE_VANISH, HORSE_HOOF, HORSE_PUMPKIN, HORSE_SLASH, HORSE_TRAIL, HORSE_MIST,
 			HELLGATE_HEAT, HELLGATE_EMERGE, HELLGATE_RISE, HELLGATE_OPEN, HELLGATE_SOULS, HELLGATE_FIRE_TRAIL, HELLGATE_IMPACT, HELLGATE_SLAM, HELLGATE_IMPLODE, HELLGATE_LAVA_SPLASH,
-			AI_BOOT, AI_RISE, AI_ZAP, AI_EMP, AI_UPLOAD);
+			AI_BOOT, AI_RISE, AI_ZAP, AI_EMP, AI_UPLOAD, AI_MISSILE_HIT, AI_MISSILE_TRAIL, AI_GLITCH);
 
 	private VfxIds() {
 	}

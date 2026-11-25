@@ -107,4 +107,57 @@ public final class AiShapes {
 		double back = smooth((t - UPLOAD - (i % 12) * 3) / 40.0);
 		return eye.lerp(orbit, out * (1 - back));
 	}
+
+	// ---------------------------------------------------------------- missiles
+
+	public static final int MISSILES = 26, MISSILE0 = 420, MISSILE_GAP = 22, MISSILE_FLIGHT = 40;
+
+	public static int missileAt(int k) {
+		return MISSILE0 + k * MISSILE_GAP;
+	}
+
+	/** Where missile {@code k} comes down, relative to the core's foot (y = 0). */
+	public static Vec3d missileTarget(int k, int seed) {
+		double a = hash(seed + k, 61) * MathHelper.TAU, r = 22 + hash(seed + k, 62) * (R - 30);
+		return new Vec3d(Math.cos(a) * r, 0, Math.sin(a) * r);
+	}
+
+	/** Missile {@code k} in flight at tick {@code t}: up out of the core's crown, over, and down; {@code dy} is its target's ground height. */
+	public static Vec3d missile(int k, double t, int seed, double dy) {
+		double u = MathHelper.clamp((t - missileAt(k)) / MISSILE_FLIGHT, 0.0, 1.0);
+		Vec3d from = new Vec3d(0, CORE_H + 4, 0), to = missileTarget(k, seed).add(0, dy, 0);
+		Vec3d mid = from.lerp(to, 0.4).add(0, 45, 0);
+		return from.multiply((1 - u) * (1 - u)).add(mid.multiply(2 * u * (1 - u))).add(to.multiply(u * u));
+	}
+
+	// ---------------------------------------------------------------- tripods
+
+	public static final int WALKERS = 3, WALK = 420, WALK_END = 990;
+	public static final double WALKER_H = 30, LEG = 34;
+
+	/** Where walker {@code i} stands at tick {@code t}: striding across the city from one edge to the other. */
+	public static Vec3d walker(int i, double t, int seed) {
+		double a = i * MathHelper.TAU / WALKERS + hash(seed + i, 71) * 0.8;
+		Vec3d from = new Vec3d(Math.cos(a) * R * 0.85, 0, Math.sin(a) * R * 0.85);
+		double b = a + Math.PI + (hash(seed + i, 72) - 0.5) * 1.2;
+		Vec3d to = new Vec3d(Math.cos(b) * R * 0.85, 0, Math.sin(b) * R * 0.85);
+		double u = MathHelper.clamp((t - WALK) / (WALK_END - WALK), 0.0, 1.0);
+		Vec3d p = from.lerp(to, u);
+		Vec3d d = to.subtract(from).normalize(), side = new Vec3d(-d.z, 0, d.x);
+		return p.add(side.multiply(Math.sin(u * 9 + i) * 10));
+	}
+
+	/** How far walker {@code i} has risen out of the street (0..1), and how far it has sunk back at the end. */
+	public static double walkerUp(double t) {
+		return smooth((t - WALK + 40) / 40.0) * (1 - smooth((t - WALK_END) / 30.0));
+	}
+
+	/** Where walker {@code i}'s beam strikes the ground: ahead of it, sweeping from side to side. */
+	public static Vec3d beam(int i, double t, int seed) {
+		Vec3d p = walker(i, t, seed), q = walker(i, t + 1, seed);
+		Vec3d d = q.subtract(p);
+		d = d.lengthSquared() < 1.0E-6 ? new Vec3d(1, 0, 0) : d.normalize();
+		Vec3d side = new Vec3d(-d.z, 0, d.x);
+		return p.add(d.multiply(16)).add(side.multiply(Math.sin(t * 0.06 + i * 2) * 18));
+	}
 }
