@@ -45,6 +45,17 @@ final class HorrorFx {
 		return (float) HorrorShapes.smooth(u);
 	}
 
+	private static final int BLOOD = 0x6E0505, BLOOD_LIT = 0xA00A0A;
+
+	/** Drops of blood falling from {@code p}, one after another, each a short dark streak. */
+	static void drips(VertexConsumer shade, Matrix4f m, Vec3d p, float a, int salt, double fall, double rate) {
+		for (int k = 0; k < 3; k++) {
+			double ph = ((a * rate + k / 3.0 + HorrorShapes.hash(salt, k)) % 1.0);
+			Vec3d d = p.add(0, -ph * ph * fall, 0);
+			FxDraw.ribbon(shade, m, d, d.add(0, -0.45, 0), Vec3d.ZERO, 0.12, BLOOD, 0.95F, 0.6F);
+		}
+	}
+
 	// ====================================================================== TERROR MANIAC
 
 	/**
@@ -81,6 +92,13 @@ final class HorrorFx {
 				ClientFx.light(new Vec3d(c.x + Math.cos(a) * d, c.y + 60, c.z + Math.sin(a) * d), 1.0F, 0xFF2010);
 			}
 			bolts.removeIf(b -> t - b[4] > 9);
+			// Blood raining down while the curse lasts.
+			if (t >= Maniac.CURSE && t < Maniac.SHATTER + 60 && t % 2 == 0) {
+				Vec3d eye = camera(c);
+				if (Math.hypot(eye.x - c.x, eye.z - c.z) < Maniac.ROT + 20) {
+					FxEngine.play(VfxIds.MANIAC_BLOOD_RAIN, eye.x, eye.y, eye.z, 0, 1, 0, 1.0F, 0, t * 6151L);
+				}
+			}
 			// Red ash drifting up out of the ground round the watcher.
 			if (t % 3 == 0 && t < Maniac.END - 30) {
 				Vec3d eye = camera(c);
@@ -107,7 +125,9 @@ final class HorrorFx {
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
 			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
 			VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
+			moon(consumers, glow, shade, m, cb, o, a);
 			lightning(glow, m, cam, a);
+			pool(glow, shade, m, o, a);
 			veins(glow, shade, m, cb, cam, a);
 			rift(glow, shade, m, o, a);
 			if (a >= Maniac.RISE && a < Maniac.SHATTER + 3) {
@@ -154,12 +174,47 @@ final class HorrorFx {
 				double phase = ((a / beat) - v[2] / 40.0) % 1.0;
 				float pulse = (float) Math.exp(-phase * 6) * 0.8F + 0.15F;
 				Vec3d p = new Vec3d(c.x + v[0], vy[i], c.z + v[1]).subtract(cam);
-				Solids.dot(shade, m, p, cb, 0.7 + v[3] * 0.55, 0x2A0405, 0.85F * fade);
+				Solids.dot(shade, m, p, cb, 0.8 + v[3] * 0.6, BLOOD, 0.9F * fade);
 				Solids.dot(glow, m, p, cb, 0.5 + v[3] * 0.4, 0xD01008, pulse * fade);
 			}
 		}
 
 		/** The rift: a jagged red-lit crack in the ground under it, wider once it has climbed out. */
+		/** A blood moon hanging over the inside-out world, huge and mottled, haloed in red. */
+		private void moon(VertexConsumerProvider consumers, VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d[] cb, Vec3d o, float a) {
+			float vis = smooth((a - 40) / 120.0) * (1 - smooth((a - (Maniac.END - 60)) / 60.0));
+			if (vis <= 0.01F) {
+				return;
+			}
+			Vec3d p = o.add(f.multiply(-140)).add(r.multiply(50)).add(0, 130, 0);
+			FxKit.halo(consumers, m, cb, p, 90, 0xA00808, 0.35F * vis);
+			FxDraw.disc(shade, m, p, cb[0], cb[1], 30, 0x8A1008, 0.97F * vis, 0.97F * vis, 48);
+			for (int k = 0; k < 10; k++) {
+				double ang = HorrorShapes.hash(k, 51) * MathHelper.TAU, d = Math.sqrt(HorrorShapes.hash(k, 52)) * 22;
+				Vec3d q = p.add(cb[0].multiply(Math.cos(ang) * d)).add(cb[1].multiply(Math.sin(ang) * d));
+				FxDraw.disc(shade, m, q, cb[0], cb[1], 3 + HorrorShapes.hash(k, 53) * 6, 0x4A0604, 0.6F * vis, 0.0F, 20);
+			}
+			FxDraw.ring(glow, m, p, cb[0], cb[1], 29, 34, 0xFF2010, 0.0F, 0.45F * vis, 0.0F, 48);
+		}
+
+		/** A pool of blood spreading round the rift, glossy, its edge creeping outward. */
+		private void pool(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d o, float a) {
+			float grow = smooth((a - Maniac.RISE) / 160.0) * (1 - smooth((a - (Maniac.END - 40)) / 40.0));
+			if (grow <= 0.01F) {
+				return;
+			}
+			double rad = 16 * grow;
+			Vec3d X = new Vec3d(1, 0, 0), Z = new Vec3d(0, 0, 1);
+			FxDraw.disc(shade, m, o.add(0, 0.12, 0), X, Z, rad, BLOOD, 0.92F, 0.75F, 40);
+			for (int k = 0; k < 6; k++) {
+				double ang = k * 1.1 + 0.3, len = rad * (0.8 + 0.5 * HorrorShapes.hash(k, 61));
+				FxDraw.ribbon(shade, m, o.add(0, 0.13, 0), o.add(Math.cos(ang) * len, 0.13, Math.sin(ang) * len), Vec3d.ZERO, 2.5, BLOOD, 0.9F, 0.5F);
+			}
+			// A wet sheen sliding over it.
+			double sh = (a * 0.05) % 1.0;
+			FxDraw.ring(glow, m, o.add(0, 0.15, 0), X, Z, rad * sh * 0.9, rad * sh, 0xFF3020, 0.0F, 0.12F * grow, 0.0F, 40);
+		}
+
 		private void rift(VertexConsumer glow, VertexConsumer shade, Matrix4f m, Vec3d o, float a) {
 			float open = smooth((a - Maniac.RISE + 30) / 40.0) * (1 - smooth((a - Maniac.SHATTER - 20) / 60.0));
 			if (open <= 0.01F) {
@@ -208,6 +263,14 @@ final class HorrorFx {
 				Solids.tube(solid, m, waist, mid, 1.2 * sc, 0.8 * sc, 6, BODY, 1.0F, true);
 				Solids.tube(solid, m, mid, end, 0.8 * sc, 0.1, 6, BODY, 1.0F, true);
 			}
+			// Blood pouring out of its ribcage and running down to the pool.
+			Vec3d gash = at.apply(16.0, 3.2);
+			for (int k = -1; k <= 1; k++) {
+				Vec3d top = gash.add(r.multiply(k * 1.2));
+				double wob = Math.sin(a * 0.3 + k) * 0.2;
+				FxDraw.ribbon(shade, m, top, top.add(f.multiply(1.5 + wob)).add(0, -16 * sc, 0), Vec3d.ZERO, 0.7 - Math.abs(k) * 0.2, BLOOD, 0.95F, 0.8F);
+				FxDraw.ribbon(glow, m, top, top.add(f.multiply(1.5 + wob)).add(0, -16 * sc, 0), Vec3d.ZERO, 0.2, BLOOD_LIT, 0.35F, 0.2F);
+			}
 			// Spine and ribs.
 			Solids.tube(solid, m, waist, chest, 2.0 * sc, 2.6 * sc, 8, BODY, 1.0F, true);
 			Solids.tube(solid, m, chest, neck, 2.4 * sc, 1.2 * sc, 8, BODY, 1.0F, true);
@@ -248,6 +311,11 @@ final class HorrorFx {
 						Solids.tube(solid, m, p, q, (0.35 - j * 0.08) * sc, (0.27 - j * 0.08) * sc, 5, BODY, 1.0F, true);
 						p = q;
 						dir = bend;
+					}
+					// Its claws drip.
+					FxDraw.ribbon(shade, m, p, p.add(0, -0.6, 0), Vec3d.ZERO, 0.18, BLOOD, 0.95F, 0.9F);
+					if (k % 2 == 0) {
+						drips(shade, m, p.add(0, -0.6, 0), a, k * 7 + s, 14, 0.04);
 					}
 				}
 			}
@@ -290,8 +358,12 @@ final class HorrorFx {
 			for (int s = -1; s <= 1; s += 2) {
 				Vec3d e = front.add(r.multiply(s * 0.95)).add(upH.multiply(0.7)).add(tilt.multiply(0.05));
 				FxDraw.disc(shade, m, e, r.add(upH.multiply(s * -0.25)), upH.multiply(1.9), 0.62 * sc, 0x050202, 0.98F, 0.98F, 14);
-				// Black tears running down from the eyes.
-				FxDraw.ribbon(shade, m, e.add(upH.multiply(-1.0)), e.add(upH.multiply(-3.2)).add(r.multiply(s * 0.2)), Vec3d.ZERO, 0.16, 0x140606, 0.95F, 0.6F);
+				// It weeps blood: streams running down the mask and dripping off its chin.
+				Vec3d tear0 = e.add(upH.multiply(-0.9)), tear1 = e.add(upH.multiply(-3.4)).add(r.multiply(s * 0.25)), tear2 = tear1.add(upH.multiply(-1.4));
+				FxDraw.ribbon(shade, m, tear0, tear1, Vec3d.ZERO, 0.3, BLOOD, 0.97F, 0.95F);
+				FxDraw.ribbon(shade, m, tear1, tear2, Vec3d.ZERO, 0.22, BLOOD, 0.95F, 0.7F);
+				FxDraw.ribbon(glow, m, tear0, tear1, Vec3d.ZERO, 0.1, BLOOD_LIT, 0.3F, 0.3F);
+				drips(shade, m, tear2, a, s * 31, 20, 0.05);
 				Solids.flare(glow, m, e.add(tilt.multiply(0.1)), cb, 0.6, 0xFF2010, eyeFl);
 				FxKit.halo(consumers, m, cb, e, 2.2, 0xFF1008, 0.45F * eyeFl);
 			}
@@ -307,6 +379,13 @@ final class HorrorFx {
 					FxDraw.ribbon(shade, m, g.add(upH.multiply(0.28)), g.add(upH.multiply(-0.28)), Vec3d.ZERO, 0.08, 0x1A0A0A, 0.95F, 0.95F);
 				}
 				prevG = g;
+			}
+			// Blood drooling through the stitches.
+			for (int k = -2; k <= 2; k += 2) {
+				Vec3d lip = front.add(r.multiply(k * 0.55)).add(upH.multiply(-2.0 + k * k * 0.05));
+				double len = 1.5 + 0.8 * Math.sin(a * 0.07 + k);
+				FxDraw.ribbon(shade, m, lip, lip.add(upH.multiply(-len)), Vec3d.ZERO, 0.18, BLOOD, 0.95F, 0.85F);
+				drips(shade, m, lip.add(upH.multiply(-len)), a, k + 40, 26, 0.035);
 			}
 			Vec3d mouthTop = front.add(upH.multiply(-1.9)), mouthBot = front.add(upH.multiply(-2.0 - shriek * 2.4));
 			FxDraw.ribbon(shade, m, mouthTop, mouthBot, Vec3d.ZERO, 0.1 + shriek * 1.8, 0x050202, 0.98F, 0.98F);

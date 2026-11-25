@@ -85,6 +85,10 @@ public final class HorrorEvents {
 			}
 			if (t == Maniac.RISE) {
 				Vfx.play(world, VfxIds.MANIAC_RIFT, Kit.ground(world, c.x, c.z), 1.0F);
+				Vfx.play(world, VfxIds.MANIAC_GEYSER, Kit.ground(world, c.x, c.z), 1.0F);
+				Kit.sound(world, c, SoundEvents.BLOCK_HONEY_BLOCK_SLIDE, 96.0F, 0.4F);
+				Kit.sound(world, c, SoundEvents.ENTITY_SLIME_SQUISH, 96.0F, 0.3F);
+				splat(Kit.ground(world, c.x, c.z), 9);
 				Kit.sound(world, c, SoundEvents.ENTITY_WARDEN_EMERGE, 96.0F, 0.4F);
 				Kit.sound(world, c, SoundEvents.ENTITY_WARDEN_DIG, 96.0F, 0.4F);
 				Vfx.shake(world, c, 300, 1.2F);
@@ -95,6 +99,14 @@ public final class HorrorEvents {
 			if (t > Maniac.RISE && t < Maniac.RISEN && t % 10 == 0) {
 				Vfx.shake(world, c, 300, 0.6F);
 				Kit.sound(world, c, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 64.0F, 0.4F);
+			}
+			// Blood rain: spatter falling on the land while the curse lasts.
+			if (t >= Maniac.CURSE && t < Maniac.SHATTER + 60 && t % 4 == 0 && Destruction.enabled(world)) {
+				double a = world.random.nextDouble() * MathHelper.TAU, d = Math.sqrt(world.random.nextDouble()) * Maniac.R;
+				splat(Kit.ground(world, c.x + Math.cos(a) * d, c.z + Math.sin(a) * d), 1 + world.random.nextInt(2));
+			}
+			if (t >= Maniac.CURSE && t < Maniac.SHATTER && t % 50 == 25) {
+				Kit.sound(world, c, SoundEvents.ENTITY_GHAST_SCREAM, 64.0F, 0.35F + world.random.nextFloat() * 0.2F);
 			}
 			if (t == Maniac.CURSE) {
 				Kit.sound(world, c, SoundEvents.ENTITY_WARDEN_ROAR, 96.0F, 0.4F);
@@ -202,9 +214,17 @@ public final class HorrorEvents {
 					e.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 120, 0, false, false));
 					Vfx.play(world, VfxIds.MANIAC_CURSE, e.getPos(), Math.max(0.6F, e.getHeight() * 0.6F));
 				}
+				if (t % 6 == 0) {
+					// They bleed, dripping onto the ground under them.
+					Vfx.play(world, VfxIds.MANIAC_BLEED, e.getPos().add(0, e.getHeight() * 0.5, 0), Math.max(0.6F, e.getHeight() * 0.5F));
+				}
 				if (t % 40 == 0) {
 					e.damage(world.getDamageSources().magic(), 1.0F);
 					Kit.sound(world, e.getPos(), SoundEvents.ENTITY_SKELETON_HURT, 16.0F, 0.4F);
+					Kit.sound(world, e.getPos(), SoundEvents.ENTITY_SLIME_SQUISH_SMALL, 16.0F, 0.5F);
+					if (Destruction.enabled(world)) {
+						splat(Kit.ground(world, e.getX(), e.getZ()), 1);
+					}
 				}
 			}
 		}
@@ -215,17 +235,43 @@ public final class HorrorEvents {
 			Kit.sound(world, c, SoundEvents.ENTITY_PLAYER_BIG_FALL, 128.0F, 0.4F);
 			Kit.sound(world, c, SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, 128.0F, 0.4F);
 			Vfx.screen(world, c, 400, 4, 0.8F, 3);
+			Vfx.flash(world, c, 0.5F, 400, 0xB00000);
 			Vfx.shake(world, c, 400, 1.2F);
+			Kit.sound(world, c, SoundEvents.ENTITY_SLIME_SQUISH, 128.0F, 0.3F);
 			for (LivingEntity e : victims) {
 				if (!e.isAlive()) {
 					continue;
 				}
 				Vfx.play(world, VfxIds.MANIAC_SNAP, e.getPos().add(0, e.getHeight() * 0.5, 0), Math.max(0.6F, e.getHeight() * 0.6F));
+				Vfx.play(world, VfxIds.MANIAC_GORE, e.getPos().add(0, e.getHeight() * 0.5, 0), Math.max(0.8F, e.getHeight() * 0.7F));
 				Kit.sound(world, e.getPos(), SoundEvents.ENTITY_SKELETON_HURT, 32.0F, 0.3F);
+				Kit.sound(world, e.getPos(), SoundEvents.BLOCK_HONEY_BLOCK_BREAK, 32.0F, 0.5F);
+				if (Destruction.enabled(world)) {
+					splat(Kit.ground(world, e.getX(), e.getZ()), 3);
+				}
 				Kit.velocity(e, new Vec3d(0, -2.2, 0));
 				e.damage(ModDamageTypes.source(world, ModDamageTypes.ANNIHILATION, null, owner()), 34.0F);
 			}
 			victims.clear();
+		}
+
+		/** A splash of blood on the ground: an irregular pool of reds, darkest at its heart. */
+		private void splat(Vec3d at, int r) {
+			for (int dx = -r; dx <= r; dx++) {
+				for (int dz = -r; dz <= r; dz++) {
+					double d = Math.hypot(dx, dz);
+					double rag = HorrorShapes.hash(MathHelper.floor(at.x) + dx * 7, MathHelper.floor(at.z) + dz * 13);
+					if (d > r + 0.3 - rag * 0.9) {
+						continue;
+					}
+					BlockPos s = Kit.surface(world, MathHelper.floor(at.x) + dx, MathHelper.floor(at.z) + dz);
+					BlockState g = world.getBlockState(s);
+					if (!g.isOpaqueFullCube(world, s) || g.hasBlockEntity()) {
+						continue;
+					}
+					put(s, (d < r * 0.45 ? Blocks.RED_CONCRETE : rag < 0.5 ? Blocks.NETHER_WART_BLOCK : Blocks.RED_TERRACOTTA).getDefaultState());
+				}
+			}
 		}
 
 		/** The rot: grass dies to podzol and mud, leaves fall away, flowers turn to wither roses. */

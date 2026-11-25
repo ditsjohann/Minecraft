@@ -320,6 +320,10 @@ public final class VfxIds {
 	public static final String MANIAC_CURSE = "maniac_curse";
 	public static final String MANIAC_SNAP = "maniac_snap";
 	public static final String MANIAC_SHATTER = "maniac_shatter";
+	public static final String MANIAC_GEYSER = "maniac_geyser";
+	public static final String MANIAC_BLEED = "maniac_bleed";
+	public static final String MANIAC_GORE = "maniac_gore";
+	public static final String MANIAC_BLOOD_RAIN = "maniac_blood_rain";
 	public static final String HORSE_APPEAR = "horse_appear";
 	public static final String HORSE_VANISH = "horse_vanish";
 	public static final String HORSE_HOOF = "horse_hoof";
@@ -578,7 +582,7 @@ public final class VfxIds {
 			MAMMOTH_TRUMPET, MAMMOTH_FRONT, MAMMOTH_SNOW, MAMMOTH_STOMP, MAMMOTH_SPIKE, LEVI_BREACH, LEVI_BUBBLES, LEVI_CREST, LEVI_ROAR, PTERO_BURST, PTERO_TRAIL,
 			PTERO_SCREECH, PTERO_IMPACT, PTERO_CRUMBLE,
 			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART,
-			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER,
+			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER, MANIAC_GEYSER, MANIAC_BLEED, MANIAC_GORE, MANIAC_BLOOD_RAIN,
 			HORSE_APPEAR, HORSE_VANISH, HORSE_HOOF, HORSE_PUMPKIN, HORSE_SLASH, HORSE_TRAIL, HORSE_MIST,
 			HELLGATE_HEAT, HELLGATE_RISE, HELLGATE_OPEN, HELLGATE_SOULS, HELLGATE_FIRE_TRAIL, HELLGATE_IMPACT, HELLGATE_SLAM, HELLGATE_IMPLODE, HELLGATE_LAVA_SPLASH,
 			AI_BOOT, AI_RISE, AI_ZAP, AI_EMP, AI_UPLOAD);

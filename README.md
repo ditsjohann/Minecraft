@@ -73,8 +73,9 @@ lava, before blue fire sweeps the country).
 
 Three horror celestials. TERROR MANIAC: the colour drains from the world, the sky turns to old blood with red lightning
 in the clouds, and black veins crawl out pulsing with an underground heartbeat. A towering thing of roots and sinew with
-a cracked white mask, black tears and a stitched grin rises from a rift, lifts everything living into the air, twitching
-and blind while a bell tolls, and then closes its fists and breaks them. It shrieks, bursts into a storm of black moths,
+a cracked white mask, weeping blood and drooling it through a stitched grin, rises from a geyser of blood under a blood
+moon. It lifts everything living into the air, bleeding, twitching and blind, while a bell tolls and blood rains on the
+land, and then closes its fists and bursts them in sprays of gore. It shrieks, bursts into a storm of black moths,
 and the land rots to podzol, mud and wither roses. PUMPKIN HORSEMAN: a headless rider the height of a tower on a horse of
 night gallops round the land leaving burning hoofprints, hurls his blazing jack-o'-lantern six times (each a crater
 ringed with grinning pumpkins), then charges through the middle with his scythe and rides into the sky, leaving the land

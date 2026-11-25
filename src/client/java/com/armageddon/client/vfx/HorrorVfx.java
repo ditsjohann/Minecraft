@@ -18,6 +18,7 @@ final class HorrorVfx {
 
 	static final Gradient BLOOD = Gradient.of(0, 0xFF6040, 0.3F, 0xFF2010, 0.7F, 0x900808, 1, argb(0x400404, 0));
 	static final Gradient ASH = Gradient.of(0, 0x3A2020, 0.5F, 0x241414, 1, 0x140A0A);
+	static final Gradient GORE = Gradient.of(0, 0xB01010, 0.5F, 0x8A0808, 1, 0x5A0404);
 
 	static void register() {
 		maniac();
@@ -237,6 +238,44 @@ final class HorrorVfx {
 						.color(Gradient.of(0, 0x301010, 1, 0x180808)).alpha(0.7F).build())
 				.emit(EmitterDef.builder("shards").burst(16).shape(Shape.sphere(0.4F)).velocity(Velocity.random(0.3F, 0.6F)).gravity(0.04F).life(14, 24)
 						.size(0.08F, 0.14F).mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK).color(BLOOD).build())
+				.build());
+
+		// The rift erupting blood: a fountain of it, heavy drops arcing down, a red mist.
+		FxEngine.register(EffectDef.builder(VfxIds.MANIAC_GEYSER).lod(400, 2400).maxAge(160)
+				.emit(EmitterDef.builder("column").priority(Priority.HERO).rate(40, 70, Curve.FALL).shape(Shape.disc(2.5F)).velocity(Velocity.up(1.2F, 2.2F, 0.18F))
+						.gravity(0.06F).collide(0.1F, 0.8F, 1).life(30, 50).size(0.5F, 0.9F).mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK)
+						.layer(EmitterDef.Layer.SMOKE).color(GORE).emissive(Curve.constant(0.25F)).build())
+				.emit(EmitterDef.builder("drops").rate(30, 70, Curve.FALL).shape(Shape.disc(3)).velocity(Velocity.up(0.8F, 1.6F, 0.6F)).gravity(0.06F)
+						.collide(0.1F, 0.8F, 1).life(30, 60).size(0.25F, 0.45F).sprite(FxSprites.DUST).layer(EmitterDef.Layer.SMOKE).color(GORE)
+						.emissive(Curve.constant(0.2F)).build())
+				.emit(smoke("mist").rate(4, 70).shape(Shape.disc(4)).velocity(Velocity.up(0.1F, 0.3F, 0.3F)).life(60, 100).size(4, 7)
+						.color(Gradient.of(0, 0x6A0808, 1, 0x3A0404)).alpha(0.45F).build())
+				.build());
+
+		// Bleeding: heavy drops falling from the victim and spattering where they land.
+		FxEngine.register(EffectDef.builder(VfxIds.MANIAC_BLEED).lod(120, 700).maxAge(80)
+				.emit(EmitterDef.builder("drops").burst(5).shape(Shape.sphere(0.4F)).velocity(Velocity.up(-0.15F, 0.0F, 0.1F)).gravity(0.05F)
+						.collide(0.0F, 0.9F, 1).life(30, 60).size(0.08F, 0.14F).mode(Mode.STRETCHED).stretch(2).sprite(FxSprites.STREAK)
+						.layer(EmitterDef.Layer.SMOKE).color(GORE).emissive(Curve.constant(0.2F)).build())
+				.build());
+
+		// Burst: a spray of gore flung out in every direction, a red mist hanging after.
+		FxEngine.register(EffectDef.builder(VfxIds.MANIAC_GORE).lod(160, 1000).maxAge(120)
+				.emit(EmitterDef.builder("spray").priority(Priority.HERO).burst(70).shape(Shape.sphere(0.5F)).velocity(Velocity.random(0.3F, 0.9F))
+						.velocity(Velocity.up(0.1F, 0.4F, 0.2F)).gravity(0.06F).collide(0.0F, 0.9F, 1).life(30, 60).size(0.12F, 0.3F).mode(Mode.STRETCHED)
+						.stretch(2).sprite(FxSprites.STREAK).layer(EmitterDef.Layer.SMOKE).color(GORE).emissive(Curve.constant(0.25F)).build())
+				.emit(EmitterDef.builder("chunks").burst(18).shape(Shape.sphere(0.4F)).velocity(Velocity.random(0.2F, 0.6F)).gravity(0.06F).collide(0.0F, 0.9F, 1)
+						.life(40, 80).size(0.2F, 0.35F).spin(-0.5F, 0.5F).sprite(FxSprites.DUST).layer(EmitterDef.Layer.SMOKE).color(0x5A0606)
+						.emissive(Curve.constant(0.1F)).build())
+				.emit(smoke("mist").burst(6).shape(Shape.sphere(1)).velocity(Velocity.random(0.05F, 0.15F)).drag(0.05F).life(50, 90).size(2, 3.5F)
+						.color(Gradient.of(0, 0x8A0A0A, 1, 0x4A0505)).alpha(0.5F).build())
+				.build());
+
+		// Blood rain round the watcher: dark red streaks falling, splashing where they hit.
+		FxEngine.register(EffectDef.builder(VfxIds.MANIAC_BLOOD_RAIN).lod(60, 300)
+				.emit(EmitterDef.builder("rain").burst(18).shape(Shape.box(16, 2, 16)).offset(0, 18, 0).velocity(Velocity.up(-1.4F, -1.0F, 0.02F))
+						.collide(0.0F, 1.0F, 1).life(20, 30).size(0.05F, 0.08F).mode(Mode.STRETCHED).stretch(5).sprite(FxSprites.STREAK)
+						.layer(EmitterDef.Layer.SMOKE).color(GORE).emissive(Curve.constant(0.15F)).build())
 				.build());
 
 		// It comes apart: a storm of black moths bursting out and fluttering away, embers, a dark red shockwave.
