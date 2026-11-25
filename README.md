@@ -80,9 +80,10 @@ and the land rots to podzol, mud and wither roses. PUMPKIN HORSEMAN: a headless 
 night gallops round the land leaving burning hoofprints, hurls his blazing jack-o'-lantern six times (each a crater
 ringed with grinning pumpkins), then charges through the middle with his scythe and rides into the sky, leaving the land
 hallowed with pumpkins, cobwebs and soul fire. PORTAL OF HELL: a gothic gate of blackstone the height of a cathedral heaves
-out of the earth; its arch becomes a vortex of hellfire with an eye that follows you, souls and fireballs pour out, lava
-falls from its sill, Nether mobs come through, and a clawed arm reaches out and slams the ground before the portal
-implodes, leaving the cracked gate over scorched land.
+out of the earth; its arch becomes a vortex of hellfire with a bloodshot eye that follows you, wave after wave of ghasts,
+blazes, wither skeletons, magma cubes and zoglins come through, lava falls from its sill, and a huge clawed demon arm
+reaches out, digs into the land, rips out a great chunk of it and drags it - and anyone on it - back through the portal
+before it implodes, leaving the cracked gate over scorched land.
 
 AI TAKEOVER (City Destruction): a black core erupts from the middle of the city and opens a red lens-eye, and static
 crawls over every screen. Circuit traces race out across the streets behind a wall of red hologram, and everything they

@@ -56,6 +56,17 @@ final class HorrorVfx {
 						.color(Gradient.of(0, 0x301010, 1, 0x180808)).alpha(0.7F).build())
 				.build());
 
+		// Something coming through: a gout of fire and black smoke blown out of the arch, embers and souls with it.
+		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_EMERGE).lod(400, 2400).maxAge(120)
+				.cue(0, EffectDef.light(1.4F, 0xFF5010))
+				.emit(EmitterDef.builder("gout").priority(Priority.HERO).burst(90).shape(Shape.disc(9)).velocity(Velocity.along(0.6F, 1.4F, 0.5F)).drag(0.05F)
+						.life(20, 40).size(2.5F, 4.5F).sprite(FxSprites.FIRE, 2).color(HELLFIRE).build())
+				.emit(smoke("smoke").burst(20).shape(Shape.disc(9)).velocity(Velocity.along(0.4F, 0.8F, 0.5F)).drag(0.03F).life(70, 120).size(4, 7)
+						.color(Gradient.of(0, 0x301010, 1, 0x180808)).alpha(0.65F).build())
+				.emit(EmitterDef.builder("souls").burst(14).shape(Shape.disc(8)).velocity(Velocity.along(0.5F, 0.9F, 0.6F)).module(Module.curl(8, 0.02F))
+						.life(50, 80).size(1.4F, 2.4F).sprite(FxSprites.WISP).color(SOUL).alpha(0.7F).build())
+				.build());
+
 		// Souls pouring out of the portal, wailing and spiralling.
 		FxEngine.register(EffectDef.builder(VfxIds.HELLGATE_SOULS).lod(300, 2000)
 				.emit(EmitterDef.builder("souls").burst(3).shape(Shape.disc(10)).velocity(Velocity.along(0.4F, 0.8F, 0.6F)).velocity(Velocity.swirl(0.2F, 0.4F))

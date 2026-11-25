@@ -1730,23 +1730,51 @@ BOMBS.update({"pumpkin_horseman": pumpkin_horseman})
 
 
 def portal_of_hell():
-    # A little gothic gate of blackstone and crying obsidian with spikes, its arch full of swirling hellfire and an eye.
-    m = [B(0, 0, 0, 16, 1.2, 16, "obsidian"), B(1, 1.2, 1, 15, 1.8, 15, "black")]
-    for (x0, x1) in ((2, 4), (12, 14)):
-        m += [B(x0, 1.8, 6.5, x1, 10, 9.5, "black")]
-    for i in range(6):
-        t = i / 5.0
-        x = 2 + t * 5.5
-        y = 10 + (1 - (1 - t) ** 2) * 4.5
-        m += [B(x, y, 6.5, x + 1.6, y + 1.6, 9.5, "black"), B(14 - x - 1.6, y, 6.5, 14 - x, y + 1.6, 9.5, "black")]
-    m += [B(7, 14.4, 6.5, 9, 16, 9.5, "black")]
-    m += [B(4, 1.8, 7.4, 12, 10, 8.6, "glow_orange"), B(5, 10, 7.4, 11, 13, 8.6, "glow_orange"), B(6.5, 13, 7.4, 9.5, 14.4, 8.6, "glow_orange")]
-    m += [B(5.5, 5.0, 7.2, 10.5, 8.0, 7.4, "glow_gold"), B(7.6, 5.2, 7.1, 8.4, 7.8, 7.2, "black")]
-    for (x, y) in ((4.0, 2.4), (11.6, 2.4), (4.0, 9.2), (11.6, 9.2)):
-        m += [B(x, y, 7.3, x + 0.4, y + 0.4, 7.4, "crimson")]
-    for (x, y, dx) in ((1.4, 4, -1), (1.4, 8, -1), (14.6, 4, 1), (14.6, 8, 1)):
-        m += [B(min(x, x + dx * 1.4), y, 7.6, max(x, x + dx * 1.4), y + 0.5, 8.4, "obsidian")]
-    m += [B(7.7, 16, 7.7, 8.3, 16, 8.3, "obsidian")]
+    # A miniature of the gate: a stepped base, a pointed gothic arch of blackstone with spikes and a glowing rim,
+    # and inside it a vortex of hellfire with the eye in it.
+    import math as mm
+    m = [B(0, 0, 0, 16, 1, 16, "obsidian"), B(1, 1, 3, 15, 2, 13, "black"), B(2, 2, 5, 14, 2.6, 11, "obsidian")]
+    W, SIDES, T, Z0, Z1 = 4.6, 6.0, 1.4, 6.9, 9.1
+
+    def inside(u, v, grow):
+        if v < 0 or abs(u) > W + grow:
+            return False
+        if v <= SIDES:
+            return True
+        r = 2 * W + grow
+        return mm.hypot(u - W, v - SIDES) <= r and mm.hypot(u + W, v - SIDES) <= r
+    step = 0.5
+
+    def cell(cu, cv):
+        if inside(cu, cv, T) and not inside(cu, cv, 0):
+            return ("glow_purple" if inside(cu, cv, 0.55) else "black", Z0, Z1)
+        if inside(cu, cv, 0):
+            r = mm.hypot(cu, cv - 5.2)
+            return ("glow_gold" if r < 1.6 else "glow_orange" if r < 3.4 else "crimson", 7.6, 8.4)
+        return None
+    # Each column of the arch, with runs of the same material merged into one box.
+    u = -W - T
+    while u < W + T:
+        v, run = 0.0, None
+        while v <= 16 - 2.6:
+            c = cell(u + step / 2, v + step / 2) if v < 16 - 2.6 else None
+            if run and c != run[0]:
+                mat, z0, z1 = run[0]
+                m += [B(8 + u, 2.6 + run[1], z0, 8 + u + step, 2.6 + v, z1, mat)]
+                run = None
+            if c and not run:
+                run = (c, v)
+            v += step
+        u += step
+    # The eye: an amber sclera, a red iris ring, a black slit.
+    m += [B(6.2, 7.0, 7.35, 9.8, 8.6, 7.5, "glow_gold"), B(7.2, 6.8, 7.3, 8.8, 8.8, 7.4, "glow_red"), B(7.8, 6.9, 7.2, 8.2, 8.7, 7.3, "black")]
+    # Spikes along the outside of the arch.
+    for (x, y, dx, dy) in ((2.0, 4.0, -1.6, 0), (2.0, 7.0, -1.6, 0.2), (14.0, 4.0, 1.6, 0), (14.0, 7.0, 1.6, 0.2), (3.0, 10.5, -1.2, 1.0),
+                           (13.0, 10.5, 1.2, 1.0), (5.2, 13.2, -0.8, 1.2), (10.8, 13.2, 0.8, 1.2)):
+        m += [B(min(x, x + dx), y, 7.6, max(x, x + dx) + 0.01, y + 0.6, 8.4, "obsidian")]
+    m += [B(7.7, 15.0, 7.7, 8.3, 16, 8.3, "obsidian")]
+    # Lava spilling down the steps.
+    m += [B(6.5, 2.0, 9.1, 9.5, 2.65, 12.5, "glow_orange"), B(7, 1.0, 12.5, 9, 2.05, 13.6, "glow_orange")]
     return m
 
 

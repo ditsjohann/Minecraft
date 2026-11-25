@@ -193,8 +193,7 @@ public final class HorrorShapes {
 	 * cracked and the land round it scorched.
 	 */
 	public static final class HellGate {
-		public static final int RISE = 60, RISEN = 240, OPEN = 260, EYE = 300, FIRE0 = 360, FIRES = 14, FIRE_GAP = 22, FLIGHT = 30, LAVA = 420,
-				HORDE = 440, ARM = 700, REACH = 760, RAISE = 790, SLAM = 800, WITHDRAW = 840, ARM_END = 890, CLOSE = 890, IMPLODE = 925, END = 1040;
+		public static final int RISE = 60, RISEN = 240, OPEN = 260, EYE = 300, LAVA = 420, HORDE = 340, WAVES = 8, ARM = 700, REACH = 760, RAISE = 790, SLAM = 800, WITHDRAW = 840, ARM_END = 890, CLOSE = 890, IMPLODE = 925, END = 1040;
 		/** Half-width of the opening, height of its straight sides, frame thickness, frame depth, scorch radius. */
 		public static final double W = 16, SIDES = 26, T = 4, DEPTH = 2, SCORCH = 72;
 		/** Height of the arch's apex, of the eye, and the eye's radius. */
@@ -237,16 +236,9 @@ public final class HorrorShapes {
 			return smooth((t - OPEN) / 30.0) * (1 - smooth((t - IMPLODE + 10) / 20.0));
 		}
 
-		/** Tick fireball {@code k} leaves the portal. */
-		public static int fireAt(int k) {
-			return FIRE0 + k * FIRE_GAP;
-		}
-
-		/** Where fireball {@code k} lands: in front of the gate, in local (across, 0, forward) terms. */
-		public static Vec3d target(int k, int seed) {
-			double a = (hash(seed + k, 31) - 0.5) * 2.6;
-			double r = 18 + hash(seed + k, 32) * 46;
-			return new Vec3d(Math.sin(a) * r, 0, Math.cos(a) * r);
+		/** Tick wave {@code w} of the horde comes through. */
+		public static int waveAt(int w) {
+			return HORDE + w * 45;
 		}
 
 		/**
@@ -271,9 +263,9 @@ public final class HorrorShapes {
 			return down.lerp(in, smooth((t - WITHDRAW) / (ARM_END - WITHDRAW)));
 		}
 
-		/** How tightly the hand is clenched (0 open claws .. 1 fist). */
+		/** How tightly the hand is clenched (0 open claws .. 1 fist): open as it reaches and slams, gripping the ground after. */
 		public static double fist(double t) {
-			return smooth((t - REACH) / 25.0) * (1 - smooth((t - WITHDRAW) / 20.0));
+			return smooth((t - SLAM - 2) / 8.0) * (1 - smooth((t - ARM_END + 6) / 8.0));
 		}
 	}
 }
