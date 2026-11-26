@@ -6,6 +6,11 @@ railguns, plasma weapons, power armour and more. Every weapon has a hand-built 3
 dedicated visual effects: custom particles, energy beams, shockwaves, screen shake and a
 full-screen post-processing shader.
 
+> **Full list of every item, bomb and event:** [docs/CONTENT.md](docs/CONTENT.md) (226 items and blocks, 91 bombs,
+> 113 scripted events).
+> **Continuing development (new account or new session):** start with [docs/HANDOFF.md](docs/HANDOFF.md). The newest
+> code is on the branch `claude/cool-ramanujan-da0d9h`.
+
 ## Highlights
 
 | | |
@@ -255,6 +260,10 @@ check recipes in-game (REI/EMI/JEI work out of the box).
 | `armageddonBlockDamage` | `true` | When `false`, weapons hurt entities and look spectacular but leave terrain untouched. |
 | `armageddonFallout` | `true` | When `false`, nukes leave no radioactive fallout zones. |
 | `armageddonCraterSpeed` | `60000` | Block checks per tick for crater carving. Lower it on weak servers. |
+| `armageddonMaxRadius` | `256` | Upper bound for any destruction radius, in blocks (4 to 512). |
+| `armageddonAllowCelestial` | `true` | When `false`, Celestial, City Destruction and World Destruction bombs are disabled. |
+| `armageddonRecordRestore` | `false` | Records every destroyed block so `/armageddon restore [count]` can undo it (uses memory). |
+| `armageddonMaxDebris` | `400` | Hard cap on flying debris entities at once. |
 
 ## Building
 
@@ -280,17 +289,29 @@ python3 tools/generate_assets.py
 
 - `tools/models.py` — the cuboid 3D models (guns point along -Z, melee along +Y, projectiles along +X).
   Display transforms (first/third person, GUI) are computed automatically from each model's grip point.
-- `tools/gen_textures.py` — pixel-art texture painter (materials, ores, armour layers, particles, icons).
-- `tools/armageddon_fx.fsh` — the post-processing fragment shader.
+- `tools/models_arsenal.py` — models for the newer bombs (`BOMBS.update({...})`).
+- `tools/arsenal_data.py` — names, descriptions and recipes for the newer bombs.
+- `tools/gen_textures.py`, `tools/tex_arsenal.py`, `tools/texkit.py` — pixel-art texture painter and materials.
+- `tools/armageddon_fx.fsh`, `armageddon_fx_core.*`, `armageddon_vision.fsh` — the post-processing shaders.
 - `tools/lang.py` — English strings.
+- `tools/list_content.py` — regenerates [docs/CONTENT.md](docs/CONTENT.md) from the registries.
+- `tools/preview_sheet.py` — tiles the frames of `./gradlew fxPreview` into one contact sheet.
+
+### Previewing effects without the game
+
+`preview.txt` lists frames (`scene tick [camera offset [target]]`); `./gradlew fxPreview -q` renders them to
+`build/fx-previews/`. See [docs/HANDOFF.md](docs/HANDOFF.md#5-testing) for details.
 
 ## Project layout
 
 ```
 src/main/java/com/armageddon/      common code (items, blocks, entities, detonation engine, networking)
 src/client/java/com/armageddon/    client code (renderers, particles, FX engine, post shader, HUD, mixins)
+src/preview/java/com/armageddon/   offline effect preview harness (fxPreview, boneDump, cityDump)
 src/main/resources/                generated assets + data
-tools/                             asset generator
+tools/                             asset generator and helper scripts
+docs/CONTENT.md                    generated list of every item, bomb and event
+docs/HANDOFF.md                    developer handoff: architecture, how to add a bomb, testing, current state
 docs/vfx/                          visual-effects research and roadmap (start at docs/vfx/README.md)
 ```
 
