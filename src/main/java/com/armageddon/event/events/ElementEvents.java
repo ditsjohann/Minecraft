@@ -178,7 +178,7 @@ public final class ElementEvents {
 				Kit.sound(world, g, SoundEvents.BLOCK_ANVIL_LAND, 256.0F, 0.2F);
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 256.0F, 0.6F);
 				bigCrater(g, 22);
-				blast(this, g, 45, 40.0F, 2.2, 0);
+				PlasmaEvents.blast(this, g, 45, 40.0F, 2.2, 0);
 			}
 			debris.tick(world, 0x9098A0, p -> impact(p, 0x9098A0));
 			drain();
@@ -991,11 +991,11 @@ public final class ElementEvents {
 				Kit.sound(world, g, ModSounds.NUKE_DETONATE, 256.0F, 0.6F);
 				Kit.sound(world, g, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 256.0F, 0.4F);
 				bigCrater(g, 12);
-				blast(this, g, 45, 40.0F, 2.0, 8);
+				PlasmaEvents.blast(this, g, 45, 40.0F, 2.0, 8);
 			} else {
 				Vfx.play(world, VfxIds.THUNDER_HIT, g, 1.0F);
 				Vfx.shake(world, g, 120, 0.8F);
-				blast(this, g, 7, 14.0F, 0.6, 5);
+				PlasmaEvents.blast(this, g, 7, 14.0F, 0.6, 5);
 			}
 			PlasmaEvents.lightning(world, g);
 			if (!Destruction.enabled(world)) {
