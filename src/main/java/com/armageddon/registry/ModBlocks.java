@@ -157,7 +157,7 @@ public final class ModBlocks {
 	public static final BombBlock AMBER_FOSSIL = tiered(bomb("amber_fossil", BombType.AMBER_FOSSIL, Rarity.EPIC), Tier.LEGENDARY);
 	public static final BombBlock SABRE_FOSSIL = tiered(bomb("sabre_fossil", BombType.SABRE_FOSSIL, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock AMMONITE_FOSSIL = tiered(bomb("ammonite_fossil", BombType.AMMONITE_FOSSIL, Rarity.EPIC), Tier.MYTHIC);
-	public static final BombBlock PLASMOID_SWARM = tiered(bomb("plasmoid_swarm", BombType.PLASMOID_SWARM, Rarity.EPIC), Tier.EPIC);
+	public static final BombBlock PLASMOID_SWARM = tiered(bomb("plasmoid_swarm", BombType.PLASMOID_SWARM, Rarity.EPIC), Tier.LEGENDARY);
 	public static final BombBlock SOLAR_ARCH = tiered(bomb("solar_arch", BombType.SOLAR_ARCH, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock FUSION_GEYSER = tiered(bomb("fusion_geyser", BombType.FUSION_GEYSER, Rarity.EPIC), Tier.LEGENDARY);
 	public static final BombBlock Z_PINCH = tiered(bomb("z_pinch", BombType.Z_PINCH, Rarity.EPIC), Tier.MYTHIC);

@@ -24,8 +24,8 @@ final class PlasmaBombFx {
 
 	static FxEffect create(int kind, Vec3d a, Vec3d b, FxPayload p) {
 		return switch (kind) {
-			case 68 -> new PlasmoidFx(a, p.duration());
-			case 69 -> new BottleFx(a, p.duration());
+			case 68 -> new PlasmoidFx(a, b, p.duration());
+			case 69 -> new BottleFx(a, b, p.duration());
 			default -> null;
 		};
 	}
@@ -39,44 +39,54 @@ final class PlasmaBombFx {
 
 	// ====================================================================== PLASMOID SWARM
 
-	/** Ball lightning: each orb a flickering knot of violet light with sparks jumping off it; arcs from the core to the newest. */
+	/**
+	 * Ball lightning out of control: every orb a flickering knot of violet light spitting sparks, arcs jumping between
+	 * any two that come close and from the core to the newest, the core itself jerking about and crackling.
+	 */
 	static final class PlasmoidFx extends FxEffect {
-		private final Vec3d c;
+		private final Vec3d c, h;
 
-		PlasmoidFx(Vec3d c, int life) {
+		PlasmoidFx(Vec3d c, Vec3d heading, int life) {
 			super(Math.max(40, life));
 			this.c = c;
+			this.h = heading.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : new Vec3d(heading.x, 0, heading.z).normalize();
 		}
 
-		/** Orb {@code k} in the world at tick {@code t}, riding over the ground. */
-		private Vec3d orb(int k, double t) {
-			Vec3d l = Plasmoid.pos(k, t);
-			if (l == null) {
+		/** An orb in the world at tick {@code t}, riding over the ground (null when it is not out). */
+		private Vec3d orb(Plasmoid.Ball b, double t) {
+			if (t < b.start() || t > b.end()) {
 				return null;
 			}
-			double x = c.x + l.x, z = c.z + l.z;
-			return new Vec3d(x, NewFx.groundY(x, z, c.y) + l.y, z);
+			Vec3d l = Plasmoid.pos(b, t);
+			Vec3d w = c.add(com.armageddon.util.FossilShapes.frame(h, l.x, 0, l.z));
+			return new Vec3d(w.x, NewFx.groundY(w.x, w.z, c.y) + l.y, w.z);
+		}
+
+		/** The core, shaking harder as it builds to its end. */
+		private Vec3d core(float a) {
+			double k = 0.3 + 1.4 * smooth((a - Plasmoid.FINALE + 60) / 100.0);
+			return c.add(Math.sin(a * 1.9) * 0.4 * k, Plasmoid.CORE_Y + Math.sin(a * 2.7) * 0.3 * k, Math.cos(a * 2.3) * 0.4 * k);
 		}
 
 		@Override
 		public boolean tick(ClientWorld world) {
 			int t = age;
-			for (int k = 0; k < Plasmoid.N; k++) {
-				Vec3d p = orb(k, t), q = orb(k, t - 1);
+			for (Plasmoid.Ball b : Plasmoid.BALLS) {
+				Vec3d p = orb(b, t), q = orb(b, t - 1);
 				if (p == null || q == null) {
 					continue;
 				}
-				if ((t + k) % 2 == 0) {
+				if ((t + b.id()) % 2 == 0) {
 					Vec3d v = p.subtract(q);
-					FxEngine.playMoving(VfxIds.PLASMOID_TRAIL, p.x, p.y, p.z, 0, 1, 0, (float) (0.6 + Plasmoid.size(k) * 0.4), 0, t * 31L + k,
+					FxEngine.playMoving(VfxIds.PLASMOID_TRAIL, p.x, p.y, p.z, 0, 1, 0, (float) (0.5 + b.size() * 0.45), 0, t * 31L + b.id(),
 							(float) v.x, (float) v.y, (float) v.z);
 				}
-				if ((t + k) % 8 == 0) {
-					ClientFx.light(p, 0.35F, 0xB070FF);
+				if ((t + b.id()) % 8 == 0) {
+					ClientFx.light(p, 0.3F + 0.15F * (float) b.size(), 0xB070FF);
 				}
 			}
-			if (t < Plasmoid.BURST && t % 6 == 0) {
-				ClientFx.light(c.add(0, Plasmoid.CORE_Y, 0), 0.6F, 0xC090FF);
+			if (t < Plasmoid.BURST && t % 5 == 0) {
+				ClientFx.light(core(t), 0.7F, 0xC090FF);
 			}
 			return super.tick(world);
 		}
@@ -86,44 +96,62 @@ final class PlasmaBombFx {
 			float a = age + td;
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			Vec3d core = c.add(0, Plasmoid.CORE_Y, 0).subtract(cam);
+			Vec3d core = core(a).subtract(cam);
 			if (a < Plasmoid.BURST) {
-				float grow = smooth(a / Plasmoid.CHARGE);
-				float pulse = 0.85F + 0.15F * MathHelper.sin(a * 0.9F) + 0.1F * MathHelper.sin(a * 2.3F);
-				FxKit.halo(consumers, m, cb, core, 7 * grow * pulse, 0x9040FF, 0.35F);
-				FxKit.halo(consumers, m, cb, core, 3.2 * grow * pulse, 0xE0C0FF, 0.7F);
-				Solids.flare(glow, m, core, cb, 2.0 * grow, 0xFFFFFF, 0.8F * grow);
-				for (int i = 0; i < 4; i++) {
+				float grow = smooth(a / Plasmoid.CHARGE) * (1 + 0.6F * smooth((a - Plasmoid.FINALE) / 40.0));
+				float pulse = 0.8F + 0.2F * MathHelper.sin(a * 1.3F) + 0.15F * MathHelper.sin(a * 3.1F);
+				FxKit.halo(consumers, m, cb, core, 8 * grow * pulse, 0x9040FF, 0.4F);
+				FxKit.halo(consumers, m, cb, core, 3.6 * grow * pulse, 0xE0C0FF, 0.75F);
+				Solids.flare(glow, m, core, cb, 2.4 * grow, 0xFFFFFF, 0.85F * Math.min(1, grow));
+				for (int i = 0; i < 6; i++) {
 					int seed = (int) a * 7 + i * 131;
 					double th = Effects.hash(seed, 1) * MathHelper.TAU, ph = Effects.hash(seed, 2) * Math.PI;
-					Vec3d out = new Vec3d(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)).multiply(3 + 3 * Effects.hash(seed, 3));
-					Effects.bolt(glow, m, core, core.add(out), 0.08, 0xB080FF, 0.7F * grow, seed);
+					Vec3d out = new Vec3d(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)).multiply(3 + 5 * Effects.hash(seed, 3));
+					Effects.bolt(glow, m, core, core.add(out), 0.08, 0xB080FF, 0.75F * Math.min(1, grow), seed);
 				}
 			}
-			for (int k = 0; k < Plasmoid.N; k++) {
-				Vec3d w = orb(k, a);
+			java.util.List<Vec3d> live = new java.util.ArrayList<>();
+			java.util.List<Plasmoid.Ball> who = new java.util.ArrayList<>();
+			for (Plasmoid.Ball b : Plasmoid.BALLS) {
+				Vec3d w = orb(b, a);
 				if (w == null) {
 					continue;
 				}
 				Vec3d p = w.subtract(cam);
-				double s = Plasmoid.size(k);
-				float fl = 0.75F + 0.25F * MathHelper.sin(a * 1.7F + k * 2) * MathHelper.sin(a * 0.9F + k);
-				float born = smooth((a - Plasmoid.launch(k)) / 6.0);
-				// Swelling just before it goes.
-				float swell = 1 + 0.5F * smooth((a - (Plasmoid.pop(k) - 12)) / 12.0);
-				FxKit.halo(consumers, m, cb, p, s * 3.0 * fl * swell * born, 0x8A40FF, 0.4F);
-				FxKit.halo(consumers, m, cb, p, s * 1.4 * fl * swell * born, 0xE8D0FF, 0.75F);
-				Solids.dot(glow, m, p, cb, s * 0.45 * swell, 0xFFFFFF, 0.9F * born);
-				int seed = (int) (a * 0.5F) * 17 + k * 97;
-				for (int i = 0; i < 2; i++) {
+				live.add(p);
+				who.add(b);
+				double s = b.size();
+				float fl = 0.7F + 0.3F * MathHelper.sin(a * 2.1F + b.id() * 2) * MathHelper.sin(a * 1.1F + b.id());
+				float born = smooth((a - b.start()) / 4.0);
+				float swell = 1 + 0.7F * smooth((a - (b.end() - 10)) / 10.0);
+				FxKit.halo(consumers, m, cb, p, s * 3.2 * fl * swell * born, 0x8A40FF, 0.45F);
+				FxKit.halo(consumers, m, cb, p, s * 1.5 * fl * swell * born, 0xE8D0FF, 0.8F);
+				Solids.dot(glow, m, p, cb, s * 0.5 * swell, 0xFFFFFF, 0.95F * born);
+				int seed = (int) (a * 0.7F) * 17 + b.id() * 97;
+				for (int i = 0; i < 3; i++) {
 					double th = Effects.hash(seed + i, 5) * MathHelper.TAU, ph = Effects.hash(seed + i, 6) * Math.PI;
-					Vec3d out = new Vec3d(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)).multiply(s * (1.5 + Effects.hash(seed + i, 7)));
-					Effects.bolt(glow, m, p, p.add(out), 0.05, 0xC090FF, 0.6F * born, seed + i);
+					Vec3d out = new Vec3d(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)).multiply(s * (1.6 + 1.4 * Effects.hash(seed + i, 7)));
+					Effects.bolt(glow, m, p, p.add(out), 0.05, 0xC090FF, 0.65F * born, seed + i);
 				}
-				// An arc back to the core while it is still close.
-				if (a < Plasmoid.BURST && a - Plasmoid.launch(k) < 30) {
-					float link = 1 - (float) (a - Plasmoid.launch(k)) / 30;
-					Effects.bolt(glow, m, core, p, 0.1, 0xB080FF, 0.6F * link, (int) a * 3 + k);
+				// Arcs down to the ground under it, now and then.
+				if (Effects.hash(seed, 9) < 0.25) {
+					Effects.bolt(glow, m, p, new Vec3d(p.x, NewFx.groundY(w.x, w.z, c.y) - cam.y, p.z), 0.07, 0xC0A0FF, 0.7F, seed + 5);
+				}
+				if (a < Plasmoid.BURST && a - b.start() < 20 && b.gen() != 1) {
+					float link = 1 - (float) (a - b.start()) / 20;
+					Effects.bolt(glow, m, core, p, 0.1, 0xB080FF, 0.7F * link, (int) a * 3 + b.id());
+				}
+			}
+			// Arcs jumping between any two orbs that come close.
+			int arcs = 0;
+			for (int i = 0; i < live.size() && arcs < 40; i++) {
+				for (int j = i + 1; j < live.size() && arcs < 40; j++) {
+					double d = live.get(i).distanceTo(live.get(j));
+					if (d < 11 && Effects.hash((int) (a * 0.5F) + who.get(i).id() * 7, who.get(j).id()) < 0.75) {
+						float al = (float) (1 - d / 11) * 0.8F;
+						Effects.bolt(glow, m, live.get(i), live.get(j), 0.07, 0xB890FF, al, (int) a * 13 + i * 31 + j);
+						arcs++;
+					}
 				}
 			}
 		}
@@ -137,11 +165,19 @@ final class PlasmaBombFx {
 	 */
 	static final class BottleFx extends FxEffect {
 		private static final int MERIDIANS = 12;
-		private final Vec3d c;
+		private final Vec3d c, h;
 
-		BottleFx(Vec3d c, int life) {
+		BottleFx(Vec3d c, Vec3d heading, int life) {
 			super(Math.max(40, life));
 			this.c = c;
+			this.h = heading.lengthSquared() < 1.0E-4 ? new Vec3d(1, 0, 0) : new Vec3d(heading.x, 0, heading.z).normalize();
+		}
+
+		/** Point {@code u} out along lash {@code k}, on the ground, in the world. */
+		private Vec3d lashPoint(int k, double u) {
+			Vec3d l = Bottle.lash(k, u);
+			Vec3d w = c.add(com.armageddon.util.FossilShapes.frame(h, l.x, 0, l.z));
+			return new Vec3d(w.x, NewFx.groundY(w.x, w.z, c.y) + 0.4, w.z);
 		}
 
 		private Vec3d sun(double t) {
@@ -221,6 +257,36 @@ final class PlasmaBombFx {
 							prev = q;
 						}
 					}
+				}
+			}
+			// Field lines whipping down onto the ground: a loop of light flung out from the sun and slammed along the
+			// lash's path, then the line it burned glowing and cooling.
+			for (int k = 0; k < Bottle.LASHES + Bottle.FLARES.length; k++) {
+				float d = a - (Bottle.lashAt(k) - 6);
+				if (d < 0 || d > 60) {
+					continue;
+				}
+				Vec3d sunW = sun(Bottle.lashAt(k) - 6);
+				float whip = smooth(d / 6.0);
+				float cool = 1 - smooth((d - 6) / 54.0);
+				int col = k >= Bottle.LASHES ? 0xFF80E8 : (k % 2 == 0 ? 0xFF50E0 : 0x70C8FF);
+				Vec3d prev = sunW.subtract(cam);
+				int n = 28;
+				for (int i = 1; i <= n; i++) {
+					double u = i / (double) n;
+					Vec3d end = lashPoint(k, u * whip);
+					// Bowed up high while it whips over, flattening onto the ground as it lands.
+					double bow = Math.sin(Math.PI * u) * (1 - whip) * 14 + Math.sin(Math.PI * u) * 2 * (1 - smooth((d - 4) / 6.0));
+					Vec3d p = sunW.lerp(end, Math.min(1, u * 1.4)).add(0, bow, 0).subtract(cam);
+					if (u * 1.4 >= 1) {
+						p = end.add(0, bow, 0).subtract(cam);
+					}
+					float al = (d < 8 ? 0.9F : 0.6F * cool);
+					FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, d < 8 ? 0.7 : 1.4, col, al, al);
+					if (d < 8) {
+						FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 2.4, col, 0.25F, 0.25F);
+					}
+					prev = p;
 				}
 			}
 			// The jets out of both poles.

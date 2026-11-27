@@ -212,6 +212,15 @@ public interface Module {
 	 * {@code tube} from the centre line and wind {@code twist} times from foot to foot.
 	 */
 	static Module arch(float span, float height, float rise, float tube, float twist) {
+		return arch(span, height, rise, tube, twist, Integer.MAX_VALUE, 1);
+	}
+
+	/**
+	 * {@link #arch(float, float, float, float, float)} that, from tick {@code lashAt} of the effect, whips over about
+	 * the line between its feet and slams down flat in front of it (perpendicular to the effect's direction) over
+	 * {@code lashTicks}.
+	 */
+	static Module arch(float span, float height, float rise, float tube, float twist, int lashAt, int lashTicks) {
 		return (em, p) -> {
 			float[] d = em.fx.dir;
 			float hx = d[0], hz = d[2], hl = (float) Math.sqrt(hx * hx + hz * hz);
@@ -222,8 +231,13 @@ public interface Module {
 				hx /= hl;
 				hz /= hl;
 			}
-			float sx = -hz, sz = hx;
-			float S = span * em.scale, H = (height + rise * em.fx.age) * em.scale, T = tube * em.scale;
+			// Forward (where it lashes to), and the arch's tipped up and forward axes.
+			float fx = hz, fz = -hx;
+			float k = Math.max(0, Math.min(1, (em.fx.age - lashAt) / (float) Math.max(1, lashTicks)));
+			float tilt = k * k * (3 - 2 * k) * 1.5708F, ct = (float) Math.cos(tilt), st = (float) Math.sin(tilt);
+			float ux = fx * st, uy = ct, uz = fz * st;
+			float sx = -fx * ct, sy = st, sz = -fz * ct;
+			float S = span * em.scale, H = (height + rise * Math.min(em.fx.age, lashAt)) * em.scale, T = tube * em.scale;
 			float spin = em.fx.age * 0.06F;
 			for (int i = 0; i < p.count; i++) {
 				float u = Math.min(1, (p.age[i] + 1) / p.life[i]);
@@ -233,13 +247,13 @@ public interface Module {
 				}
 				float th = (float) Math.PI * u;
 				float c = (float) Math.cos(th), s = (float) Math.sin(th);
-				float cx = em.ox - hx * S * c, cy = em.oy + H * s, cz = em.oz - hz * S * c;
+				float cx = em.ox - hx * S * c + ux * H * s, cy = em.oy + uy * H * s, cz = em.oz - hz * S * c + uz * H * s;
 				// Outward from the arch's middle, in its plane.
-				float nx = -c * hx, ny = s, nz = -c * hz;
+				float nx = -c * hx + s * ux, ny = s * uy, nz = -c * hz + s * uz;
 				float frac = (sd * 37.31F) % 1, ph = (sd * 91.7F) % 1 * 6.2832F + twist * th * 2 + spin;
 				float r = T * (0.25F + 0.75F * frac) * (0.6F + 0.4F * s);
 				float co = (float) Math.cos(ph) * r, si = (float) Math.sin(ph) * r;
-				float tx = cx + nx * co + sx * si, ty = cy + ny * co, tz = cz + nz * co + sz * si;
+				float tx = cx + nx * co + sx * si, ty = cy + ny * co + sy * si, tz = cz + nz * co + sz * si;
 				p.vx[i] = tx - p.x[i];
 				p.vy[i] = ty - p.y[i];
 				p.vz[i] = tz - p.z[i];

@@ -57,8 +57,8 @@ deadly it is.
 | Fun | harmless or temporary | Disco Ball, Balloon, Party Popper, Chinese Lantern |
 | Uncommon | under 5 blocks | Frag, Incendiary, Gravity Grenade, Flamethrower |
 | Rare | 5 to 12 blocks, gadgets | Thermobaric, Thermite, Sinkhole, Pocket Nuke, Rocket Launcher, Plasma Rifle |
-| Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun, Plasmoid Swarm |
-| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil, Amber Fossil, Fusion Geyser |
+| Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun |
+| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil, Amber Fossil, Fusion Geyser, Plasmoid Swarm |
 | Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil, Sabre-Tooth Fossil, Ammonite Fossil, Solar Arch, Z-Pinch, Magnetic Bottle |
 | Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit, Terror Maniac, Pumpkin Horseman, Portal of Hell |
 | City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence, AI Takeover |
@@ -210,16 +210,21 @@ light races in along the grid to the monolith, a ring-shaped ship hundreds of bl
 the monolith's beam locks on to it, the Watchers dissolve up into it, and it leaves in a streak of light that throws a
 shockwave across the sky. No cutscene: you watch it all yourself.
 
-**Plasma bombs** - five ways plasma behaves, built almost entirely from the particle engine (with three new engine
-forces: a twisting flux rope, a magnetic dipole and a Z-pinch). PLASMOID SWARM (epic): a crackling core spits out ball
-lightning that hops and wanders out over the land, arcing to whatever it passes, and bursts where it ends up. SOLAR ARCH
-(mythic): two footpoints burst open and a twisted rope of plasma arches between them like a loop on the sun, climbing and
-winding tighter until it snaps and erupts forward, scorching a seventy-block wedge of land. FUSION GEYSER (legendary): a
-geyser of cyan plasma eighty blocks high with a rolling mushroom cap, raining back down in burning drops. Z-PINCH
-(mythic): a column of blue-white plasma is crushed by magnetic rings until it breaks into beads that fly off and burst,
-then collapses into a fusion flash and a shockwave that strips the land flat. MAGNETIC BOTTLE (mythic): a little magenta
-sun caged in glowing field lines sinks toward the ground until the cage fails: jets burst from its poles, one drilling a
-shaft into the earth, and a ring of plasma slices through everything at waist height for sixty blocks around.
+**Plasma bombs** - five ways plasma behaves and five ways of wrecking the land, built almost entirely from the
+particle engine (with three new engine forces: a twisting flux rope, a magnetic dipole and a Z-pinch) and real flying
+debris: terrain is torn up, steered through the air and thrown back down burning. PLASMOID SWARM (legendary): ball
+lightning out of control - eighteen big plasmoids ricochet over the land burning through trees and walls, arc to each
+other, burst in explosions and split into three, some calling lightning down; then the core fires a last volley and
+detonates. SOLAR ARCH (mythic): a twisted rope of plasma arches between two footpoints and carries the land round its
+loop, then lashes down flat, burning a molten half-ring trench and flinging what it carried, and erupts forward, peeling
+up a seventy-block wedge of land and leaving it burning with lava running in it. FUSION GEYSER (legendary): a blowout
+crater, then an eighty-block geyser that tears up the land round it and spirals it skyward before flinging it out as
+burning meteors; the vent is left a lava lake. Z-PINCH (mythic): a column crushed by magnetic rings rips the land up
+for thirty blocks and drags it in to be eaten, breaks into beads that land as explosions, then collapses into a fusion
+flash: a crater with a fused core, lightning round the rim, and a shockwave that throws the land outward. MAGNETIC BOTTLE
+(mythic): a caged magenta sun pulls the land and everything alive into orbit round it; when the cage fails twelve field
+lines whip down carving molten trenches like spokes, the orbit is flung out, jets drill a shaft, a ring slices
+everything at waist height, and what is left of the sun implodes and detonates.
 
 **Oddities (Legendary and Mythic)** — Sonar (green echo vision; every echo heaves the ground, then the converged
 boom shakes the land around it to pieces), 8-Bit (the world goes low-res on screen and in the blocks, then GAME OVER),

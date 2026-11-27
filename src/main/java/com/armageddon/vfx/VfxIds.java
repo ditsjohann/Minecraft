@@ -350,6 +350,12 @@ public final class VfxIds {
 	public static final String BOTTLE_SNAP = "bottle_snap";
 	public static final String BOTTLE_JET = "bottle_jet";
 	public static final String BOTTLE_RING = "bottle_ring";
+	public static final String DEBRIS_EMBER = "debris_ember";
+	public static final String DEBRIS_IMPACT = "debris_impact";
+	public static final String PLASMOID_SKIP = "plasmoid_skip";
+	public static final String ARCH_LASH = "arch_lash";
+	public static final String BOTTLE_LASH = "bottle_lash";
+	public static final String BOTTLE_NOVA = "bottle_nova";
 	public static final String XENO_UNFOLD = "xeno_unfold";
 	public static final String XENO_TAG = "xeno_tag";
 	public static final String XENO_DEREZ = "xeno_derez";
@@ -634,6 +640,7 @@ public final class VfxIds {
 			PLASMOID_CORE, PLASMOID_TRAIL, PLASMOID_POP, PLASMOID_BURST, ARCH_FOOT, ARCH_ROPE, ARCH_CME, ARCH_SCORCH,
 			GEYSER_BULGE, GEYSER_ERUPT, GEYSER_RAIN, GEYSER_SPLASH, PINCH_COLUMN, PINCH_BEAD, PINCH_POP, PINCH_COLLAPSE,
 			BOTTLE_FIELD, BOTTLE_SNAP, BOTTLE_JET, BOTTLE_RING,
+			DEBRIS_EMBER, DEBRIS_IMPACT, PLASMOID_SKIP, ARCH_LASH, BOTTLE_LASH, BOTTLE_NOVA,
 			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART, XENO_PIXELS,
 			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER, MANIAC_GEYSER, MANIAC_BLEED, MANIAC_GORE, MANIAC_BLOOD_RAIN,
 			HORSE_APPEAR, HORSE_VANISH, HORSE_HOOF, HORSE_PUMPKIN, HORSE_SLASH, HORSE_TRAIL, HORSE_MIST,

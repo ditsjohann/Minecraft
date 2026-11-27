@@ -36,6 +36,7 @@ final class PlasmaBombVfx {
 	static final Gradient STEAM = Gradient.of(0, 0xF0FAFF, 1, 0xC8D8E0);
 
 	static void register() {
+		debris();
 		plasmoids();
 		arch();
 		geyser();
@@ -66,6 +67,34 @@ final class PlasmaBombVfx {
 						.size(2, 3.5F).color(SCORCH).alpha(0.55F).build());
 	}
 
+	// ------------------------------------------------------------------ shared
+
+	/** White-hot to the bomb's own colour: the tint is multiplied in. */
+	static final Gradient HOT = Gradient.of(0, 0xFFFFFF, 0.3F, 0xFFFFFF, 0.7F, 0xC8C8C8, 1, argb(0x606060, 0));
+
+	private static void debris() {
+		// Torn-up land in flight: it burns, shedding plasma (tinted with the bomb's colour) and smoke.
+		FxEngine.register(EffectDef.builder(VfxIds.DEBRIS_EMBER).lod(200, 1400)
+				.emit(EmitterDef.builder("flame").burst(2).inherit(0.3F).shape(Shape.sphere(0.6F)).life(6, 12).size(0.6F, 1.0F).sprite(FxSprites.FIRE, 2)
+						.color(HOT).tinted().alphaOverLife(Curve.FADE).build())
+				.emit(orb("sparks", HOT).burst(2).inherit(0.1F).velocity(Velocity.random(0.05F, 0.15F)).gravity(0.02F).life(8, 16).size(0.1F, 0.18F).tinted().build())
+				.emit(smoke("smoke").burst(1).inherit(0.05F).velocity(Velocity.up(0.02F, 0.06F, 0.4F)).life(30, 50).size(0.8F, 1.4F).color(SCORCH).alpha(0.4F).build())
+				.build());
+
+		// A block of it coming down: a splash of burning plasma, a puff of dust, a little shock.
+		FxEngine.register(EffectDef.builder(VfxIds.DEBRIS_IMPACT).lod(250, 1600).maxAge(100)
+				.emit(EmitterDef.builder("flash").burst(1).offset(0, 0.6F, 0).life(5, 6).size(3, 4).sprite(FxSprites.GLOW).color(0xFFFFFF).tinted().alpha(0.7F)
+						.alphaOverLife(Curve.FADE_OUT).build())
+				.emit(spark("splash", HOT).burst(18).velocity(Velocity.up(0.25F, 0.6F, 0.8F)).gravity(0.04F).life(8, 18).size(0.1F, 0.18F).stretch(2).tinted().build())
+				.emit(EmitterDef.builder("flames").burst(3).shape(Shape.disc(1.2F)).velocity(Velocity.up(0.05F, 0.15F, 0.3F)).life(12, 22).size(1, 1.6F)
+						.sprite(FxSprites.FIRE, 2).color(HOT).tinted().alphaOverLife(Curve.FADE).build())
+				.emit(smoke("dust").burst(3).shape(Shape.disc(1.5F)).velocity(Velocity.up(0.04F, 0.12F, 0.5F)).velocity(Velocity.radial(0.05F, 0.15F)).life(40, 70)
+						.size(1.8F, 3).color(Gradient.of(0, 0x7A6A56, 1, 0x9A8C78)).alpha(0.5F).build())
+				.emit(EmitterDef.builder("ring").burst(1).offset(0, 0.3F, 0).mode(Mode.FLAT).fixedRotation().size(5, 5).life(10, 10).sprite(FxSprites.SHOCK)
+						.sizeOverLife(Curve.EASE_OUT).color(0xFFFFFF).tinted().alpha(0.5F).alphaOverLife(Curve.FADE_OUT).build())
+				.build());
+	}
+
 	// ------------------------------------------------------------------ Plasmoid Swarm
 
 	private static void plasmoids() {
@@ -77,6 +106,17 @@ final class PlasmaBombVfx {
 						.life(3, 6).size(0.06F, 0.1F).stretch(3).build())
 				.emit(EmitterDef.builder("throb").rate(0.5F, Plasmoid.BURST).life(6, 8).size(4, 5.5F).sprite(FxSprites.GLOW).color(0xC890FF).alpha(0.3F)
 						.alphaOverLife(Curve.BELL).build())
+				.emit(spark("spit", VIOLET).rate(2.5F, Plasmoid.BURST, Curve.RISE).shape(Shape.shell(2)).velocity(Velocity.radial(0.4F, 0.9F)).gravity(0.03F)
+						.module(Module.jitter(0.08F)).collide(0.5F, 0.6F, 2).life(12, 26).size(0.08F, 0.14F).stretch(2).build())
+				.build());
+
+		// A plasmoid slamming down: sparks bouncing off the ground, a scorch puff, a flat crackle of light.
+		FxEngine.register(EffectDef.builder(VfxIds.PLASMOID_SKIP).lod(200, 1400).maxAge(80)
+				.emit(spark("sparks", ARC).burst(22).onGround().velocity(Velocity.up(0.3F, 0.8F, 0.9F)).gravity(0.04F).collide(0.5F, 0.6F, 2).module(Module.jitter(0.05F))
+						.life(8, 20).size(0.08F, 0.14F).stretch(2.5F).build())
+				.emit(EmitterDef.builder("crackle").burst(1).onGround().offset(0, 0.2F, 0).mode(Mode.FLAT).fixedRotation().size(3, 4).life(6, 8).sprite(FxSprites.SHOCK)
+						.color(0xC8A0FF).alpha(0.7F).alphaOverLife(Curve.FADE_OUT).build())
+				.emit(smoke("scorch").burst(2).onGround().velocity(Velocity.up(0.04F, 0.1F, 0.5F)).life(30, 60).size(1.5F, 2.5F).color(SCORCH).alpha(0.5F).build())
 				.build());
 
 		// A plasmoid's wake: violet wisps peeling off it, sparks dropping away.
@@ -117,16 +157,29 @@ final class PlasmaBombVfx {
 		// The rope itself: thousands of points of plasma streaming foot to foot round a twisting core, bright filaments
 		// winding tighter through it, drops of plasma raining off it.
 		int rope = Arch.SNAP - Arch.ARCH;
+		int lie = rope + Arch.LASH + 20;
 		EmitterDef drip = orb("drip", SOLAR).burst(1).velocity(Velocity.up(-0.1F, 0.0F, 0.4F)).gravity(0.03F).collide(0.1F, 0.3F, 0).life(20, 40)
 				.size(0.15F, 0.25F).build();
-		FxEngine.register(EffectDef.builder(VfxIds.ARCH_ROPE).lod(400, 2600).maxAge(rope + 70)
-				.emit(orb("rope", SOLAR).priority(Priority.HERO).max(4000).rate(42, rope).module(Module.arch((float) Arch.SPAN, (float) Arch.HEIGHT, (float) Arch.RISE, 2.4F, 1.5F))
+		float span = (float) Arch.SPAN, h0 = (float) Arch.HEIGHT, rise = (float) Arch.RISE;
+		FxEngine.register(EffectDef.builder(VfxIds.ARCH_ROPE).lod(400, 2600).maxAge(lie + 70)
+				.emit(orb("rope", SOLAR).priority(Priority.HERO).max(4000).rate(42, lie).module(Module.arch(span, h0, rise, 2.4F, 1.5F, rope, Arch.LASH))
 						.life(40, 60).size(0.35F, 0.6F).onDeath(0.06F, drip).build())
-				.emit(spark("filaments", Gradient.of(0, 0xFFFFFF, 0.5F, 0xFFF0B0, 1, argb(0xFFA040, 0))).max(1200).rate(10, rope)
-						.module(Module.arch((float) Arch.SPAN, (float) Arch.HEIGHT, (float) Arch.RISE, 1.1F, 3.2F)).life(50, 70).size(0.12F, 0.18F).stretch(1.5F)
+				.emit(spark("filaments", Gradient.of(0, 0xFFFFFF, 0.5F, 0xFFF0B0, 1, argb(0xFFA040, 0))).max(1200).rate(10, lie)
+						.module(Module.arch(span, h0, rise, 1.1F, 3.2F, rope, Arch.LASH)).life(50, 70).size(0.12F, 0.18F).stretch(1.5F)
 						.alphaOverLife(Curve.FADE).build())
-				.emit(EmitterDef.builder("glow").max(400).rate(2, rope).module(Module.arch((float) Arch.SPAN, (float) Arch.HEIGHT, (float) Arch.RISE, 0.2F, 0))
+				.emit(EmitterDef.builder("glow").max(400).rate(2, lie).module(Module.arch(span, h0, rise, 0.2F, 0, rope, Arch.LASH))
 						.life(40, 60).size(3.5F, 4.5F).sprite(FxSprites.GLOW).color(0xFFA030).alpha(0.22F).alphaOverLife(Curve.FADE).build())
+				.build());
+
+		// The rope slamming down: molten rock sprayed up along the trench, flames, a wall of smoke.
+		FxEngine.register(EffectDef.builder(VfxIds.ARCH_LASH).lod(400, 2600).maxAge(160)
+				.cue(0, EffectDef.light(1.2F, 0xFFA040))
+				.emit(orb("spray", SOLAR).priority(Priority.HERO).burst(50).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.5F, 1.2F, 0.5F)).gravity(0.05F)
+						.collide(0.1F, 0.3F, 0).life(20, 40).size(0.25F, 0.45F).build())
+				.emit(EmitterDef.builder("flames").burst(8).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.1F, 0.3F, 0.4F)).module(Module.buoyancy(0.012F))
+						.life(14, 26).size(1.5F, 2.5F).sprite(FxSprites.FIRE, 2).color(SOLAR).alphaOverLife(Curve.FADE).build())
+				.emit(smoke("wall").burst(5).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.15F, 0.35F, 0.3F)).module(Module.curl(8, 0.008F)).life(70, 120)
+						.size(4, 6).color(SCORCH).alpha(0.55F).emissive(Curve.keys(0, 0.9F, 0.3F, 0.2F, 1, 0)).build())
 				.build());
 
 		// The eruption: the arch blown forward as a bubble of plasma, streamers raking the land, a ring of shock.
@@ -284,6 +337,36 @@ final class PlasmaBombVfx {
 						.velocity(Velocity.along(2.4F, 3.2F, 0.04F)).life(18, 28).size(0.8F, 1.4F).build())
 				.emit(EmitterDef.builder("sheath").rate(10, 60, Curve.FALL).velocity(Velocity.along(1.4F, 2.0F, 0.12F)).life(14, 24).size(2, 3)
 						.sprite(FxSprites.GLOW).color(0xFF70E0).alpha(0.3F).alphaOverLife(Curve.FADE).build())
+				.build());
+
+		// A field line lashing the ground: molten rock thrown up along it, magenta sparks, smoke.
+		FxEngine.register(EffectDef.builder(VfxIds.BOTTLE_LASH).lod(400, 2600).maxAge(140)
+				.cue(0, EffectDef.light(0.9F, 0xFF70E0))
+				.emit(orb("spray", MAGENTA).priority(Priority.HERO).burst(40).onGround().shape(Shape.disc(2.5F)).velocity(Velocity.up(0.5F, 1.2F, 0.5F)).gravity(0.05F)
+						.collide(0.1F, 0.3F, 0).life(18, 36).size(0.25F, 0.4F).build())
+				.emit(spark("whip", MAGENTA).burst(24).onGround().velocity(Velocity.up(0.6F, 1.4F, 0.3F)).module(Module.jitter(0.1F)).life(6, 12).size(0.12F, 0.2F)
+						.stretch(3).build())
+				.emit(smoke("smoke").burst(4).onGround().shape(Shape.disc(2.5F)).velocity(Velocity.up(0.1F, 0.3F, 0.3F)).module(Module.curl(8, 0.008F)).life(60, 100)
+						.size(3, 5).color(SCORCH).alpha(0.5F).emissive(Curve.keys(0, 0.9F, 0.3F, 0.1F, 1, 0)).build())
+				.build());
+
+		// The nova: the emptied sun falls in on itself, then a white-out, a sphere of magenta streaks, a ring of
+		// light racing out over the ground, a mushroom of smoke climbing out of the crater.
+		FxEngine.register(EffectDef.builder(VfxIds.BOTTLE_NOVA).lod(800, 5000).maxAge(260)
+				.cue(0, EffectDef.light(2.5F, 0xFFA0F0))
+				.emit(EmitterDef.builder("implode").priority(Priority.HERO).burst(300).shape(Shape.shell(14)).module(Module.attract(0.1F, 1.5F)).life(10, 14)
+						.size(0.3F, 0.5F).sprite(FxSprites.FLARE).color(MAGENTA).build())
+				.emit(10, flash("flash", 60, 22, 0xFFF0FC).build())
+				.emit(10, spark("nova", MAGENTA).priority(Priority.HERO).burst(600).shape(Shape.sphere(3)).velocity(Velocity.radial(1.3F, 2.6F)).drag(0.02F)
+						.life(30, 60).size(0.2F, 0.4F).stretch(3).build())
+				.emit(10, EmitterDef.builder("shock").burst(1).offset(0, 0.5F, 0).mode(Mode.FLAT).fixedRotation().size(110, 110).life(40, 40).sprite(FxSprites.SHOCK)
+						.sizeOverLife(Curve.EASE_OUT).color(0xFFC8F4).alpha(0.85F).alphaOverLife(Curve.FADE_OUT).build())
+				.emit(10, smoke("dust").burst(140).shape(Shape.ring(8, 4)).velocity(Velocity.radial(1.4F, 1.9F)).velocity(Velocity.up(0.05F, 0.25F, 0.2F)).drag(0.03F)
+						.life(60, 110).size(4, 7).color(Gradient.of(0, 0x8A7A62, 1, 0xA09078)).alpha(0.6F).build())
+				.emit(10, smoke("stem").burst(50).shape(Shape.column(5, 12)).velocity(Velocity.up(0.4F, 0.8F, 0.15F)).drag(0.025F).module(Module.curl(12, 0.01F))
+						.life(100, 160).size(6, 9).color(SCORCH).alpha(0.55F).emissive(Curve.keys(0, 1, 0.3F, 0.3F, 1, 0)).build())
+				.emit(30, smoke("cap").burst(40).shape(Shape.torus(10, 4)).offset(0, 40, 0).velocity(Velocity.radial(0.2F, 0.4F)).module(Module.roll(0.3F, 5, 0.05F))
+						.life(100, 160).size(7, 10).color(SCORCH).alpha(0.5F).emissive(Curve.keys(0, 0.8F, 0.4F, 0.2F, 1, 0)).build())
 				.build());
 
 		// The ring: a sheet of plasma flying out of the equator, thin and bright, dust thrown up under it.

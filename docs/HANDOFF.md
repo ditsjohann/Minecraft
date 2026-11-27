@@ -160,6 +160,9 @@ Done and pushed (all builds, CI green):
   client parts in `PlasmaBombFx`. They added three engine modules: `Module.arch` (flux rope along the effect's
   direction), `Module.dipole` (particles stream along a magnetic dipole's field lines) and `Module.pinch` (a column
   crushed into beads).
+- Flying debris: `PlasmaEvents.Debris` lifts terrain into real falling-block entities (`tear`), steers them each tick
+  (`steer`), lets go of them (`release`/`throwOne`) and reports where each lands (`tick`), trailing tinted
+  `DEBRIS_EMBER` plasma off them; `PlasmaBase.trench` carves molten trenches along a path. Reuse them for new bombs.
 - Terrain painters should find the ground with `FossilEvents2.groundY(column)`: a column's `surface()` counts tree
   trunks as ground.
 
