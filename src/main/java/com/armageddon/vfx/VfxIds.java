@@ -316,12 +316,13 @@ public final class VfxIds {
 	public static final String AMBER_SWARM = "amber_swarm";
 	public static final String AMBER_GUST = "amber_gust";
 	public static final String AMBER_SEAL = "amber_seal";
-	public static final String TAR_FRONT = "tar_front";
-	public static final String TAR_SPLASH = "tar_splash";
-	public static final String TAR_BUBBLE = "tar_bubble";
-	public static final String TAR_DRIP = "tar_drip";
-	public static final String TAR_SINK = "tar_sink";
 	public static final String SABRE_POUNCE = "sabre_pounce";
+	public static final String SABRE_DUSK = "sabre_dusk";
+	public static final String SABRE_RAKE = "sabre_rake";
+	public static final String SABRE_EMERGE = "sabre_emerge";
+	public static final String SABRE_EMBERS = "sabre_embers";
+	public static final String SABRE_BITE = "sabre_bite";
+	public static final String SABRE_STONE = "sabre_stone";
 	public static final String SABRE_ROAR = "sabre_roar";
 	public static final String AMMO_HEAVE = "ammo_heave";
 	public static final String AMMO_GROW = "ammo_grow";
@@ -329,6 +330,26 @@ public final class VfxIds {
 	public static final String AMMO_FRONT = "ammo_front";
 	public static final String AMMO_PULSE = "ammo_pulse";
 	public static final String AMMO_PETRIFY = "ammo_petrify";
+	public static final String PLASMOID_CORE = "plasmoid_core";
+	public static final String PLASMOID_TRAIL = "plasmoid_trail";
+	public static final String PLASMOID_POP = "plasmoid_pop";
+	public static final String PLASMOID_BURST = "plasmoid_burst";
+	public static final String ARCH_FOOT = "arch_foot";
+	public static final String ARCH_ROPE = "arch_rope";
+	public static final String ARCH_CME = "arch_cme";
+	public static final String ARCH_SCORCH = "arch_scorch";
+	public static final String GEYSER_BULGE = "geyser_bulge";
+	public static final String GEYSER_ERUPT = "geyser_erupt";
+	public static final String GEYSER_RAIN = "geyser_rain";
+	public static final String GEYSER_SPLASH = "geyser_splash";
+	public static final String PINCH_COLUMN = "pinch_column";
+	public static final String PINCH_BEAD = "pinch_bead";
+	public static final String PINCH_POP = "pinch_pop";
+	public static final String PINCH_COLLAPSE = "pinch_collapse";
+	public static final String BOTTLE_FIELD = "bottle_field";
+	public static final String BOTTLE_SNAP = "bottle_snap";
+	public static final String BOTTLE_JET = "bottle_jet";
+	public static final String BOTTLE_RING = "bottle_ring";
 	public static final String XENO_UNFOLD = "xeno_unfold";
 	public static final String XENO_TAG = "xeno_tag";
 	public static final String XENO_DEREZ = "xeno_derez";
@@ -608,8 +629,11 @@ public final class VfxIds {
 			MAMMOTH_TRUMPET, MAMMOTH_FRONT, MAMMOTH_SNOW, MAMMOTH_STOMP, MAMMOTH_SPIKE, LEVI_BREACH, LEVI_BUBBLES, LEVI_CREST, LEVI_ROAR, PTERO_BURST, PTERO_TRAIL,
 			PTERO_SCREECH, PTERO_IMPACT, PTERO_CRUMBLE,
 			AMBER_HEAVE, AMBER_DRIP, AMBER_FRONT, AMBER_SHATTER, AMBER_SWARM, AMBER_GUST, AMBER_SEAL,
-			TAR_FRONT, TAR_SPLASH, TAR_BUBBLE, TAR_DRIP, TAR_SINK, SABRE_POUNCE, SABRE_ROAR,
+			SABRE_DUSK, SABRE_RAKE, SABRE_EMERGE, SABRE_EMBERS, SABRE_BITE, SABRE_STONE, SABRE_POUNCE, SABRE_ROAR,
 			AMMO_HEAVE, AMMO_GROW, AMMO_MOTES, AMMO_FRONT, AMMO_PULSE, AMMO_PETRIFY,
+			PLASMOID_CORE, PLASMOID_TRAIL, PLASMOID_POP, PLASMOID_BURST, ARCH_FOOT, ARCH_ROPE, ARCH_CME, ARCH_SCORCH,
+			GEYSER_BULGE, GEYSER_ERUPT, GEYSER_RAIN, GEYSER_SPLASH, PINCH_COLUMN, PINCH_BEAD, PINCH_POP, PINCH_COLLAPSE,
+			BOTTLE_FIELD, BOTTLE_SNAP, BOTTLE_JET, BOTTLE_RING,
 			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART, XENO_PIXELS,
 			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER, MANIAC_GEYSER, MANIAC_BLEED, MANIAC_GORE, MANIAC_BLOOD_RAIN,
 			HORSE_APPEAR, HORSE_VANISH, HORSE_HOOF, HORSE_PUMPKIN, HORSE_SLASH, HORSE_TRAIL, HORSE_MIST,

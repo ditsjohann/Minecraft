@@ -55,6 +55,8 @@ public final class Catalog {
 			com.armageddon.block.BombType.FIREWORK_HAVOC, com.armageddon.block.BombType.CHINESE_LANTERN,
 			com.armageddon.block.BombType.MAMMOTH_FOSSIL, com.armageddon.block.BombType.LEVIATHAN_FOSSIL, com.armageddon.block.BombType.PTEROSAUR_FOSSIL,
 			com.armageddon.block.BombType.AMBER_FOSSIL, com.armageddon.block.BombType.SABRE_FOSSIL, com.armageddon.block.BombType.AMMONITE_FOSSIL,
+			com.armageddon.block.BombType.PLASMOID_SWARM, com.armageddon.block.BombType.SOLAR_ARCH, com.armageddon.block.BombType.FUSION_GEYSER,
+			com.armageddon.block.BombType.Z_PINCH, com.armageddon.block.BombType.MAGNETIC_BOTTLE,
 			com.armageddon.block.BombType.XENOFORM, com.armageddon.block.BombType.TERROR_MANIAC,
 			com.armageddon.block.BombType.PUMPKIN_HORSEMAN,
 			com.armageddon.block.BombType.PORTAL_OF_HELL,

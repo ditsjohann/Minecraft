@@ -88,6 +88,7 @@ final class ThrowVfx {
 		BombVfx5.register();
 		BombVfx6.register();
 		PlasmaVfx.register();
+		PlasmaBombVfx.register();
 		WonderVfx.register();
 		RedoVfx.register();
 		FossilVfx.register();

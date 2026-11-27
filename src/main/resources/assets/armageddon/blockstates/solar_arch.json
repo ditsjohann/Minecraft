@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/solar_arch"
+    },
+    "facing=east": {
+      "model": "armageddon:block/solar_arch",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/solar_arch",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/solar_arch",
+      "y": 270
+    }
+  }
+}

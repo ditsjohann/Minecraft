@@ -20,8 +20,8 @@ final class FossilVfx2 {
 	static final Gradient RESIN = Gradient.of(0, 0xFFD060, 0.5F, 0xE88A18, 1, 0xB05A10);
 	static final Gradient HONEY_MIST = Gradient.of(0, 0xFFE0A0, 1, 0xE0A050);
 	static final Gradient SWARM = Gradient.of(0, 0xFFF0A0, 0.5F, 0xA0FF90, 1, argb(0x40C0FF, 0));
-	static final Gradient TAR = Gradient.of(0, 0x221A14, 1, 0x0C0907);
-	static final Gradient FUME = Gradient.of(0, 0x5A4A38, 0.5F, 0x6E6252, 1, 0x80786C);
+	static final Gradient EMBERS = Gradient.of(0, 0xFFF0B0, 0.3F, 0xFFA040, 0.7F, 0xE04010, 1, argb(0x701008, 0));
+	static final Gradient DUST = Gradient.of(0, 0x7A6A56, 1, 0x9A8C78);
 	static final Gradient EARTH = Gradient.of(0, 0x4A3C2E, 1, 0x6A5C4A);
 	static final Gradient NACRE = Gradient.of(0, 0xFFFFFF, 0.3F, 0xFFC8EC, 0.65F, 0x90E8FF, 1, argb(0xC0A0FF, 0));
 	static final Gradient CHALK = Gradient.of(0, 0xF4F0E6, 1, 0xD4CEC0);
@@ -111,66 +111,93 @@ final class FossilVfx2 {
 	// ------------------------------------------------------------------ Sabre-Tooth
 
 	private static void sabre() {
-		// The tar's front: black ooze heaving up, a brown fume coming off it.
-		FxEngine.register(EffectDef.builder(VfxIds.TAR_FRONT).lod(220, 1400)
-				.emit(blob("ooze").burst(10).onGround().shape(Shape.disc(2.5F)).velocity(Velocity.up(0.15F, 0.4F, 0.5F)).gravity(0.05F).collide(0.0F, 0.1F, 0)
-						.life(16, 30).size(0.2F, 0.35F).color(TAR).build())
-				.emit(smoke("fume").burst(1).onGround().shape(Shape.disc(2)).velocity(Velocity.up(0.03F, 0.08F, 0.3F)).module(Module.wind(0.01F)).life(60, 100)
-						.size(2.5F, 4).color(FUME).alpha(0.3F).build())
+		// Dusk: embers drifting on the air, ash flakes settling, all of it lit red.
+		int dusk = com.armageddon.util.FossilShapes.Sabre.END;
+		FxEngine.register(EffectDef.builder(VfxIds.SABRE_DUSK).lod(300, 2000).maxAge(dusk + 80)
+				.emit(EmitterDef.builder("embers").rate(3, dusk - 60).shape(Shape.box(46, 6, 46)).offset(0, 5, 0).velocity(Velocity.up(0.02F, 0.06F, 0.6F))
+						.module(Module.curl(10, 0.006F)).module(Module.wind(0.03F)).life(80, 140).size(0.08F, 0.16F).sprite(FxSprites.FLARE).color(EMBERS)
+						.alphaOverLife(VfxLibrary.FLICKER).build())
+				.emit(EmitterDef.builder("ash").rate(2, dusk - 60).shape(Shape.box(40, 3, 40)).offset(0, 16, 0).velocity(Velocity.up(-0.06F, -0.02F, 0.4F))
+						.module(Module.wind(0.04F)).module(Module.jitter(0.008F)).life(120, 200).size(0.06F, 0.12F).spin(-0.1F, 0.1F).layer(Layer.SMOKE)
+						.sprite(FxSprites.DUST).color(0x3A3430).shade(0.9F).alphaOverLife(Curve.FADE).build())
 				.build());
 
-		// A splash of tar: claws dragging, the cat climbing out.
-		FxEngine.register(EffectDef.builder(VfxIds.TAR_SPLASH).lod(250, 1600)
-				.emit(blob("tar").burst(40).onGround().shape(Shape.disc(4)).velocity(Velocity.up(0.4F, 1.0F, 0.6F)).gravity(0.06F).collide(0.0F, 0.1F, 0)
-						.life(20, 40).size(0.25F, 0.5F).color(TAR).build())
-				.emit(smoke("fume").burst(5).onGround().shape(Shape.disc(4)).velocity(Velocity.up(0.04F, 0.1F, 0.4F)).module(Module.curl(6, 0.006F)).life(60, 100)
-						.size(3, 5).color(FUME).alpha(0.35F).build())
+		// A claw raking the ground: clods and dust flung along the cut, sparks of ember off the claw.
+		FxEngine.register(EffectDef.builder(VfxIds.SABRE_RAKE).lod(300, 2000).maxAge(120)
+				.emit(blob("clods").burst(18).onGround().shape(Shape.disc(2.5F)).velocity(Velocity.along(0.3F, 0.7F, 0.6F)).velocity(Velocity.up(0.3F, 0.7F, 0.4F))
+						.gravity(0.05F).collide(0.2F, 0.5F, 1).life(20, 40).size(0.2F, 0.4F).color(EARTH).alphaOverLife(Curve.ONE).build())
+				.emit(EmitterDef.builder("sparks").burst(14).onGround().shape(Shape.disc(2)).velocity(Velocity.along(0.5F, 1.0F, 0.4F)).velocity(Velocity.up(0.1F, 0.4F, 0.4F))
+						.gravity(0.03F).life(10, 22).size(0.08F, 0.14F).mode(Mode.STRETCHED).stretch(2.5F).sprite(FxSprites.STREAK).color(EMBERS).build())
+				.emit(smoke("dust").burst(3).onGround().shape(Shape.disc(2.5F)).velocity(Velocity.along(0.1F, 0.25F, 0.6F)).velocity(Velocity.up(0.05F, 0.12F, 0.4F))
+						.module(Module.curl(6, 0.006F)).life(50, 90).size(2.5F, 4).color(DUST).alpha(0.5F).build())
 				.build());
 
-		// A bubble swelling out of a pit and popping: a black splash, a breath of fume.
-		FxEngine.register(EffectDef.builder(VfxIds.TAR_BUBBLE).lod(150, 900)
-				.emit(blob("pop").burst(1, 12).velocity(Velocity.up(0.15F, 0.35F, 0.8F)).gravity(0.05F).life(12, 22).size(0.15F, 0.28F).color(TAR).build())
-				.emit(smoke("fume").burst(1, 1).velocity(Velocity.up(0.03F, 0.06F, 0.2F)).life(40, 70).size(1.2F, 2).color(FUME).alpha(0.3F).build())
-				.emit(EmitterDef.builder("ring").burst(1, 1).offset(0, 0.06F, 0).mode(Mode.FLAT).fixedRotation().size(0.8F, 1.4F).life(14, 18).sprite(FxSprites.RING)
-						.sizeOverLife(Curve.EASE_OUT).color(0x8A7050).alpha(0.4F).alphaOverLife(Curve.FADE_OUT).build())
+		// The ground bursting as it claws its way out: earth and rocks thrown up, a ring of dust, embers.
+		FxEngine.register(EffectDef.builder(VfxIds.SABRE_EMERGE).lod(400, 2600).maxAge(200)
+				.cue(0, EffectDef.light(0.8F, 0xFF7030))
+				.emit(blob("earth").priority(Priority.HERO).burst(90).onGround().shape(Shape.disc(6)).velocity(Velocity.up(0.5F, 1.2F, 0.5F)).gravity(0.05F)
+						.collide(0.2F, 0.5F, 1).life(30, 60).size(0.3F, 0.6F).color(EARTH).alphaOverLife(Curve.ONE).build())
+				.emit(EmitterDef.builder("rocks").burst(30).onGround().shape(Shape.disc(5)).velocity(Velocity.up(0.6F, 1.3F, 0.5F)).gravity(0.06F).collide(0.3F, 0.5F, 2)
+						.life(40, 70).size(0.25F, 0.45F).spin(-0.4F, 0.4F).layer(Layer.SMOKE).sprite(FxSprites.DUST).color(0x6A625A).shade(0.75F).build())
+				.emit(smoke("ring").burst(40).onGround().shape(Shape.ring(5, 2)).velocity(Velocity.radial(0.6F, 1.1F)).velocity(Velocity.up(0.05F, 0.2F, 0.3F))
+						.drag(0.05F).life(60, 100).size(3.5F, 5.5F).color(DUST).alpha(0.6F).build())
+				.emit(EmitterDef.builder("embers").burst(40).onGround().shape(Shape.disc(5)).velocity(Velocity.up(0.3F, 0.8F, 0.4F)).module(Module.curl(5, 0.01F))
+						.life(40, 80).size(0.12F, 0.22F).sprite(FxSprites.FLARE).color(EMBERS).alphaOverLife(VfxLibrary.FLICKER).build())
 				.build());
 
-		// Tar running off the bones in strings and drops.
-		FxEngine.register(EffectDef.builder(VfxIds.TAR_DRIP).lod(150, 900)
-				.emit(blob("drip").burst(2).velocity(Velocity.up(-0.05F, 0.0F, 0.2F)).gravity(0.04F).collide(0.0F, 0.1F, 0).life(24, 40).size(0.15F, 0.26F)
-						.sizeOverLife(Curve.keys(0, 0.5F, 0.3F, 1, 1, 0.8F)).color(TAR).build())
+		// Embers coming off its ghost flesh, licking up and dying.
+		FxEngine.register(EffectDef.builder(VfxIds.SABRE_EMBERS).lod(200, 1400)
+				.emit(EmitterDef.builder("lick").burst(2).inherit(0.6F).shape(Shape.sphere(1.5F)).velocity(Velocity.up(0.03F, 0.08F, 0.4F)).module(Module.buoyancy(0.006F))
+						.life(10, 18).size(0.5F, 0.9F).sprite(FxSprites.FIRE, 2).color(EMBERS).alpha(0.55F).alphaOverLife(Curve.FADE).build())
+				.emit(EmitterDef.builder("sparks").burst(3).inherit(0.4F).shape(Shape.sphere(2)).velocity(Velocity.up(0.05F, 0.2F, 0.5F)).module(Module.curl(4, 0.01F))
+						.life(20, 40).size(0.08F, 0.14F).sprite(FxSprites.FLARE).color(EMBERS).alphaOverLife(VfxLibrary.FLICKER).build())
 				.build());
 
-		// The cat going under: great gloops of tar, bubbles rising all round, a pall of fume.
-		FxEngine.register(EffectDef.builder(VfxIds.TAR_SINK).lod(300, 1800).maxAge(140)
-				.emit(blob("gloop").burst(30).onGround().shape(Shape.disc(7)).velocity(Velocity.up(0.2F, 0.6F, 0.5F)).gravity(0.05F).life(20, 40).size(0.3F, 0.6F)
-						.color(TAR).build())
-				.emit(EmitterDef.builder("rings").burst(8).onGround().shape(Shape.disc(8)).offset(0, 0.06F, 0).mode(Mode.FLAT).fixedRotation().size(1.5F, 3)
-						.life(20, 30).sprite(FxSprites.RING).sizeOverLife(Curve.EASE_OUT).color(0x8A7050).alpha(0.4F).alphaOverLife(Curve.FADE_OUT).build())
-				.emit(smoke("fume").burst(6).onGround().shape(Shape.disc(7)).velocity(Velocity.up(0.04F, 0.1F, 0.3F)).module(Module.curl(8, 0.006F)).life(70, 120)
-						.size(3, 5).color(FUME).alpha(0.35F).build())
-				.build());
-
-		// A pounce landing: a crown of tar thrown up, earth and dust rolling out, a shock ring.
+		// A pounce landing: a crown of earth thrown up, dust rolling out, a ring of shock, embers.
 		FxEngine.register(EffectDef.builder(VfxIds.SABRE_POUNCE).lod(400, 2600).maxAge(200)
-				.cue(0, EffectDef.light(0.8F, 0xFFB060))
-				.emit(blob("crown").priority(Priority.HERO).burst(160).onGround().shape(Shape.ring(3, 2)).velocity(Velocity.radial(0.4F, 1.0F))
-						.velocity(Velocity.up(0.6F, 1.3F, 0.3F)).gravity(0.06F).collide(0.0F, 0.1F, 0).life(30, 55).size(0.3F, 0.6F).color(TAR).build())
-				.emit(smoke("earth").burst(30).onGround().shape(Shape.ring(3, 1)).velocity(Velocity.radial(0.9F, 1.5F)).velocity(Velocity.up(0.05F, 0.2F, 0.2F))
-						.drag(0.06F).life(50, 90).size(3, 5).color(EARTH).alpha(0.6F).build())
-				.emit(smoke("fume").burst(12).onGround().shape(Shape.disc(4)).velocity(Velocity.up(0.2F, 0.5F, 0.4F)).drag(0.03F).module(Module.curl(8, 0.01F))
-						.life(70, 120).size(4, 6).sizeOverLife(Curve.RISE).color(FUME).alpha(0.5F).build())
+				.cue(0, EffectDef.light(0.8F, 0xFF8040))
+				.emit(blob("crown").priority(Priority.HERO).burst(120).onGround().shape(Shape.ring(3, 2)).velocity(Velocity.radial(0.4F, 1.0F))
+						.velocity(Velocity.up(0.5F, 1.1F, 0.3F)).gravity(0.06F).collide(0.2F, 0.5F, 1).life(30, 55).size(0.3F, 0.55F).color(EARTH).alphaOverLife(Curve.ONE).build())
+				.emit(smoke("dust").burst(40).onGround().shape(Shape.ring(3, 1)).velocity(Velocity.radial(0.9F, 1.5F)).velocity(Velocity.up(0.05F, 0.2F, 0.2F))
+						.drag(0.06F).life(50, 90).size(3, 5).color(DUST).alpha(0.6F).build())
+				.emit(EmitterDef.builder("embers").burst(30).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.3F, 0.8F, 0.6F)).module(Module.curl(5, 0.01F))
+						.life(30, 60).size(0.12F, 0.2F).sprite(FxSprites.FLARE).color(EMBERS).alphaOverLife(VfxLibrary.FLICKER).build())
 				.emit(EmitterDef.builder("shock").burst(1).onGround().offset(0, 0.3F, 0).mode(Mode.FLAT).fixedRotation().size(28, 28).life(20, 20)
-						.sprite(FxSprites.SHOCK).sizeOverLife(Curve.EASE_OUT).color(0xC0A080).alpha(0.5F).alphaOverLife(Curve.FADE_OUT).build())
+						.sprite(FxSprites.SHOCK).sizeOverLife(Curve.EASE_OUT).color(0xFFB080).alpha(0.5F).alphaOverLife(Curve.FADE_OUT).build())
 				.build());
 
-		// The roar: rings of breath pouring out of the jaws, tar spattered from the teeth.
+		// The roar: rings of sound pouring out of the jaws, hot breath, embers blown out ahead of it.
 		FxEngine.register(EffectDef.builder(VfxIds.SABRE_ROAR).lod(300, 2000).maxAge(80)
 				.emit(EmitterDef.builder("rings").rate(1, 30).velocity(Velocity.along(0.9F, 1.0F, 0)).mode(Mode.FLAT).life(18, 24).size(2, 3).sizeOverLife(Curve.RISE)
-						.sprite(FxSprites.SHOCK).color(0xFFD0A0).alpha(0.45F).alphaOverLife(Curve.FADE_OUT).build())
-				.emit(blob("spit").burst(30).velocity(Velocity.along(0.5F, 1.0F, 0.5F)).gravity(0.04F).life(20, 36).size(0.12F, 0.22F).color(TAR).build())
+						.sprite(FxSprites.SHOCK).color(0xFFC090).alpha(0.45F).alphaOverLife(Curve.FADE_OUT).build())
+				.emit(EmitterDef.builder("embers").burst(40).velocity(Velocity.along(0.5F, 1.1F, 0.45F)).drag(0.03F).life(20, 40).size(0.1F, 0.2F)
+						.sprite(FxSprites.FLARE).color(EMBERS).alphaOverLife(VfxLibrary.FLICKER).build())
 				.emit(smoke("breath").rate(3, 24, Curve.FALL).velocity(Velocity.along(0.3F, 0.6F, 0.3F)).drag(0.05F).life(30, 50).size(1.5F, 2.5F)
-						.color(FUME).alpha(0.3F).build())
+						.color(DUST).alpha(0.3F).emissive(Curve.keys(0, 0.8F, 1, 0.1F)).build())
+				.build());
+
+		// A sabre of the ghost skull driving into the ground: rock and earth erupting, a fountain of embers, a shock ring.
+		FxEngine.register(EffectDef.builder(VfxIds.SABRE_BITE).lod(600, 4000).maxAge(220)
+				.cue(0, EffectDef.light(1.6F, 0xFF7030))
+				.emit(flash("flash", 30, 12, 0xFFB070).build())
+				.emit(blob("earth").priority(Priority.HERO).burst(200).onGround().shape(Shape.disc(4)).velocity(Velocity.along(0.4F, 1.2F, 0.5F))
+						.velocity(Velocity.up(0.8F, 1.8F, 0.4F)).gravity(0.06F).collide(0.2F, 0.5F, 1).life(40, 70).size(0.4F, 0.8F).color(EARTH).alphaOverLife(Curve.ONE).build())
+				.emit(EmitterDef.builder("rocks").burst(60).onGround().shape(Shape.disc(4)).velocity(Velocity.up(0.8F, 1.6F, 0.5F)).gravity(0.06F).collide(0.3F, 0.5F, 2)
+						.life(50, 80).size(0.35F, 0.7F).spin(-0.4F, 0.4F).layer(Layer.SMOKE).sprite(FxSprites.DUST).color(0x5E5650).shade(0.75F).build())
+				.emit(EmitterDef.builder("fountain").burst(120).onGround().shape(Shape.disc(3)).velocity(Velocity.up(0.6F, 1.4F, 0.35F)).gravity(0.025F)
+						.module(Module.curl(6, 0.01F)).life(40, 80).size(0.15F, 0.28F).sprite(FxSprites.FLARE).color(EMBERS).alphaOverLife(VfxLibrary.FLICKER).build())
+				.emit(smoke("column").burst(40).onGround().shape(Shape.disc(5)).velocity(Velocity.up(0.3F, 0.8F, 0.3F)).drag(0.03F).module(Module.curl(10, 0.01F))
+						.life(90, 150).size(5, 8).sizeOverLife(Curve.RISE).color(DUST).alpha(0.65F).emissive(Curve.keys(0, 0.7F, 0.3F, 0, 1, 0)).build())
+				.emit(EmitterDef.builder("shock").burst(1).onGround().offset(0, 0.3F, 0).mode(Mode.FLAT).fixedRotation().size(46, 46).life(26, 26)
+						.sprite(FxSprites.SHOCK).sizeOverLife(Curve.EASE_OUT).color(0xFFA070).alpha(0.6F).alphaOverLife(Curve.FADE_OUT).build())
+				.build());
+
+		// Turned to stone: the last of the ghost flesh burning off in a rush of embers, grey dust settling.
+		FxEngine.register(EffectDef.builder(VfxIds.SABRE_STONE).lod(400, 2600).maxAge(200)
+				.emit(EmitterDef.builder("burnoff").priority(Priority.HERO).burst(200).shape(Shape.box(9, 5, 9)).velocity(Velocity.up(0.1F, 0.4F, 0.5F))
+						.module(Module.curl(6, 0.012F)).life(30, 70).size(0.12F, 0.24F).sprite(FxSprites.FLARE).color(EMBERS).alphaOverLife(VfxLibrary.FLICKER).build())
+				.emit(smoke("dust").burst(30).shape(Shape.box(9, 4, 9)).velocity(Velocity.random(0.03F, 0.1F)).gravity(0.004F).life(70, 120).size(3, 5)
+						.color(Gradient.of(0, 0xA8A498, 1, 0xC4C0B4)).alpha(0.5F).build())
 				.build());
 	}
 

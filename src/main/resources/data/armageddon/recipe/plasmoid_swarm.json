@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "GLG",
+    "LPL",
+    "GLG"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:purple_stained_glass"
+    },
+    "L": {
+      "item": "minecraft:lightning_rod"
+    },
+    "P": {
+      "item": "armageddon:plasma_cell"
+    }
+  },
+  "result": {
+    "id": "armageddon:plasmoid_swarm",
+    "count": 1
+  }
+}

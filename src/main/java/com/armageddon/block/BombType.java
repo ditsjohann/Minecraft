@@ -122,7 +122,13 @@ public enum BombType {
 	// more fossils (kept last: primed bombs save their type by position)
 	AMBER_FOSSIL(160, 0xFFA020),
 	SABRE_FOSSIL(200, 0x3A2A1E),
-	AMMONITE_FOSSIL(200, 0xF0C0E0);
+	AMMONITE_FOSSIL(200, 0xF0C0E0),
+	// plasma
+	PLASMOID_SWARM(120, 0xC080FF),
+	SOLAR_ARCH(160, 0xFFA030),
+	FUSION_GEYSER(160, 0x40F0FF),
+	Z_PINCH(200, 0xA0B8FF),
+	MAGNETIC_BOTTLE(200, 0xFF50E0);
 
 	public final int fuse;
 	public final int color;

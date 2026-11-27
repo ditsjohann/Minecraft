@@ -87,7 +87,7 @@ docs/vfx/          visual-effects research and roadmap
    - below 40: `OddFx`; 40-49: `SciFx`; 50 and up: `WildFx`, where
    - 55-57 FossilFx (mammoth, leviathan, pterosaur), 58 XenoFx, 59-61 HorrorFx (maniac, horseman, hell gate),
      62 AiFx, 63 RocketFx (Firework Havoc), 64 ShiftFx (Dimension Shift), 65-67 FossilFx2 (amber, sabre-tooth,
-     ammonite). **The next free kind is 68.**
+     ammonite), 68-69 PlasmaBombFx (plasmoid swarm, magnetic bottle). **The next free kind is 70.**
    - Smaller bursts use the particle engine: `Vfx` calls by id from `VfxIds`.
    - Screen effects: `Vfx.screen` (0 desaturate, 1 whiteout, 2 blackout, 3 static, 4 invert), `Vfx.beam`,
      `Vfx.flash`, `Vfx.skyTint`.
@@ -149,11 +149,19 @@ Done and pushed (all builds, CI green):
   Dimension Shift (purple portal outline), Prism (refraction storm with spotlights and crystal shards), and earlier
   Sixteen Chunks, Zombie Apocalypse, Spectral Ice, Aurora, Big Bang.
 
-- Three more fossils: Amber (dragonfly sealed in amber, freed, then sealed again in a drop on a stalk), Sabre-Tooth
-  (tar pits, a prowling, pouncing cat skeleton that sinks and leaves its skull and sabres) and Ammonite (a coiled shell
+- Three more fossils: Amber (dragonfly sealed in amber, freed with a brood, then sealed again; an amber tide floods the
+  land), Sabre-Tooth (a hunt at dusk: claw rakes, a cat skeleton with ghost ember flesh, a colossal ghost skull that
+  bites two trenches, then it petrifies) and Ammonite (a coiled shell
   that grows chamber by chamber and presses the land into its imprint). Events in `FossilEvents2`, effects in
   `FossilFx2`/`FossilVfx2`, timings in `FossilShapes.Amber/Sabre/Ammonite`, skeleton poses in `util/FossilPoses`.
   New `BombType`s are appended at the end of the enum on purpose: primed bombs save their type by position.
+- Five plasma bombs: Plasmoid Swarm, Solar Arch, Fusion Geyser, Z-Pinch, Magnetic Bottle. Events in `PlasmaEvents`,
+  timings in `util/PlasmaShapes`, engine effects in `PlasmaBombVfx` (the weapons' `PlasmaVfx` is a different file),
+  client parts in `PlasmaBombFx`. They added three engine modules: `Module.arch` (flux rope along the effect's
+  direction), `Module.dipole` (particles stream along a magnetic dipole's field lines) and `Module.pinch` (a column
+  crushed into beads).
+- Terrain painters should find the ground with `FossilEvents2.groundY(column)`: a column's `surface()` counts tree
+  trunks as ground.
 
 Not done or not verified:
 - **None of the latest batch has been played in the real game yet**, only built and previewed offline. Expect tuning

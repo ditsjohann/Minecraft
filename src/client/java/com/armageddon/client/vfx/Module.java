@@ -205,6 +205,111 @@ public interface Module {
 		};
 	}
 
+	/**
+	 * A twisted flux rope: every particle rides an arch from one foot to the other over its life (half go each way),
+	 * winding round the arch's centre line as it goes. The arch stands along the effect's direction, {@code span}
+	 * blocks to each side of the emitter and {@code height} high (growing by {@code rise} a tick); its strands sit up to
+	 * {@code tube} from the centre line and wind {@code twist} times from foot to foot.
+	 */
+	static Module arch(float span, float height, float rise, float tube, float twist) {
+		return (em, p) -> {
+			float[] d = em.fx.dir;
+			float hx = d[0], hz = d[2], hl = (float) Math.sqrt(hx * hx + hz * hz);
+			if (hl < 1.0E-3F) {
+				hx = 1;
+				hz = 0;
+			} else {
+				hx /= hl;
+				hz /= hl;
+			}
+			float sx = -hz, sz = hx;
+			float S = span * em.scale, H = (height + rise * em.fx.age) * em.scale, T = tube * em.scale;
+			float spin = em.fx.age * 0.06F;
+			for (int i = 0; i < p.count; i++) {
+				float u = Math.min(1, (p.age[i] + 1) / p.life[i]);
+				float sd = p.seed[i];
+				if (sd < 0.5F) {
+					u = 1 - u;
+				}
+				float th = (float) Math.PI * u;
+				float c = (float) Math.cos(th), s = (float) Math.sin(th);
+				float cx = em.ox - hx * S * c, cy = em.oy + H * s, cz = em.oz - hz * S * c;
+				// Outward from the arch's middle, in its plane.
+				float nx = -c * hx, ny = s, nz = -c * hz;
+				float frac = (sd * 37.31F) % 1, ph = (sd * 91.7F) % 1 * 6.2832F + twist * th * 2 + spin;
+				float r = T * (0.25F + 0.75F * frac) * (0.6F + 0.4F * s);
+				float co = (float) Math.cos(ph) * r, si = (float) Math.sin(ph) * r;
+				float tx = cx + nx * co + sx * si, ty = cy + ny * co, tz = cz + nz * co + sz * si;
+				p.vx[i] = tx - p.x[i];
+				p.vy[i] = ty - p.y[i];
+				p.vz[i] = tz - p.z[i];
+			}
+		};
+	}
+
+	/**
+	 * A magnetic bottle: particles stream along the field lines of an upright dipole at the emitter, looping out of one
+	 * pole and back into the other, at {@code speed} blocks a tick (half each way). Anything straying past
+	 * {@code radius} is reined back in, so the lines stay a cage and never run off to the sky.
+	 */
+	static Module dipole(float radius, float speed) {
+		return (em, p) -> {
+			float R = radius * em.scale, v = speed * em.scaleSpeed;
+			for (int i = 0; i < p.count; i++) {
+				float rx = p.x[i] - em.ox, ry = p.y[i] - em.oy, rz = p.z[i] - em.oz;
+				float r = (float) Math.sqrt(rx * rx + ry * ry + rz * rz);
+				if (r < 0.3F) {
+					continue;
+				}
+				float m = ry / r;
+				// B ~ 3 (m.r^) r^ - m, with m straight up.
+				float bx = 3 * m * rx / r, by = 3 * m * ry / r - 1, bz = 3 * m * rz / r;
+				float bl = (float) Math.sqrt(bx * bx + by * by + bz * bz);
+				if (bl < 1.0E-4F) {
+					continue;
+				}
+				float sgn = p.seed[i] < 0.5F ? v : -v;
+				float tx = bx / bl * sgn, ty = by / bl * sgn, tz = bz / bl * sgn;
+				if (r > R) {
+					float pull = (r - R) / r * 0.3F;
+					tx -= rx * pull;
+					ty -= ry * pull;
+					tz -= rz * pull;
+				}
+				p.vx[i] += (tx - p.vx[i]) * 0.35F;
+				p.vy[i] += (ty - p.vy[i]) * 0.35F;
+				p.vz[i] += (tz - p.vz[i]) * 0.35F;
+			}
+		};
+	}
+
+	/**
+	 * A Z-pinch: particles are held to a column standing on the emitter whose radius is crushed from {@code radius}
+	 * toward a third of it over {@code squeeze} ticks, and as it narrows it breaks into beads (the sausage
+	 * instability) every {@code wavelength} blocks, while the plasma spirals round it at {@code spin}.
+	 */
+	static Module pinch(float radius, float wavelength, int squeeze, float spin) {
+		return (em, p) -> {
+			float k = Math.min(1, em.fx.age / (float) Math.max(1, squeeze));
+			float R = radius * em.scale * (1 - 0.66F * k);
+			float w = (float) (Math.PI * 2 / (wavelength * em.scale));
+			float sp = spin * em.scaleSpeed, ph = em.fx.age * 0.12F;
+			for (int i = 0; i < p.count; i++) {
+				float dx = p.x[i] - em.ox, dz = p.z[i] - em.oz, y = p.y[i] - em.oy;
+				float h = (float) Math.sqrt(dx * dx + dz * dz);
+				if (h < 1.0E-3F) {
+					dx = 1.0E-3F;
+					h = 1.0E-3F;
+				}
+				float target = R * (1 + 0.75F * k * (float) Math.sin(y * w + ph));
+				float ux = dx / h, uz = dz / h, vr = (target - h) * 0.18F;
+				float tx = ux * vr - uz * sp, tz = uz * vr + ux * sp;
+				p.vx[i] += (tx - p.vx[i]) * 0.3F;
+				p.vz[i] += (tz - p.vz[i]) * 0.3F;
+			}
+		};
+	}
+
 	final class Curl implements Module {
 		private final float wavelength, strength;
 

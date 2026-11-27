@@ -32,7 +32,7 @@ import java.util.List;
 
 /**
  * Three more fossils: the AMBER (a giant dragonfly sealed in a drop of amber, freed, then sealed again), the
- * SABRE-TOOTH (a sabre-toothed cat out of a tar pit) and the AMMONITE (a coiled shell that presses the land into its
+ * SABRE-TOOTH (a sabre-toothed cat's hunt at dusk) and the AMMONITE (a coiled shell that presses the land into its
  * own imprint).
  */
 public final class FossilEvents2 {
@@ -58,6 +58,21 @@ public final class FossilEvents2 {
 				|| g.isIn(BlockTags.BASE_STONE_OVERWORLD) || g.isOf(Blocks.CLAY) || g.isIn(BlockTags.TERRACOTTA) || g.isOf(Blocks.SNOW_BLOCK);
 	}
 
+	/**
+	 * The real ground under a column: its surface counts tree trunks as ground, so this looks down through logs,
+	 * leaves, plants and snow to the first block of earth, rock or water (at most 48 down).
+	 */
+	static int groundY(TerrainJob.Column c) {
+		int y = c.top();
+		for (int i = 0; i < 48 && y > c.bottomY(); i++, y--) {
+			BlockState s = c.get(y);
+			if (!(s.isAir() || s.isIn(BlockTags.LOGS) || s.isIn(BlockTags.LEAVES) || plant(s) || s.isOf(Blocks.VINE) || s.isOf(Blocks.BEE_NEST))) {
+				return y;
+			}
+		}
+		return c.surface();
+	}
+
 	static boolean plant(BlockState s) {
 		return s.isReplaceable() || s.isIn(BlockTags.FLOWERS) || s.isIn(BlockTags.SAPLINGS) || s.isOf(Blocks.SNOW);
 	}
@@ -75,7 +90,8 @@ public final class FossilEvents2 {
 		private Vec3d heading, base;
 		private Bones shell = new Bones(), seal = new Bones();
 		private int placed, sealed;
-		private TerrainJob resin;
+		private TerrainJob resin, tide;
+		private final java.util.Set<Long> spared = new java.util.HashSet<>();
 
 		private static BlockState mat(int k) {
 			return (switch (k) {
@@ -122,6 +138,9 @@ public final class FossilEvents2 {
 				Kit.sound(world, base, SoundEvents.BLOCK_BEACON_ACTIVATE, 64.0F, 0.5F);
 				Kit.sound(world, base, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 64.0F, 0.5F);
 			}
+			if (t >= Amber.CRACK && t < Amber.END - 60 && t % 40 == 0) {
+				Vfx.skyTint(world, base, Amber.R + 100, 0xFFA040, 0.45F);
+			}
 			if (t >= Amber.CRACK && t < Amber.SHATTER && t % 14 == 0) {
 				float k = (t - Amber.CRACK) / (float) (Amber.SHATTER - Amber.CRACK);
 				Kit.sound(world, base.add(0, Amber.CY, 0), SoundEvents.BLOCK_GLASS_BREAK, 24.0F + 40.0F * k, 0.4F + 0.3F * k);
@@ -154,6 +173,9 @@ public final class FossilEvents2 {
 			if (t == Amber.SHATTER) {
 				shatter();
 			}
+			if (t == Amber.SHATTER + 14) {
+				shards();
+			}
 			if (t > Amber.SHATTER && t < Amber.ENTOMB) {
 				Vec3d p = at(base, heading, Amber.pos(t));
 				if (t % 12 == 0) {
@@ -183,8 +205,76 @@ public final class FossilEvents2 {
 					Kit.sound(world, base.add(0, Amber.SEAL_Y, 0), SoundEvents.BLOCK_HONEY_BLOCK_PLACE, 48.0F, 0.6F);
 				}
 			}
+			if (t == Amber.TIDE) {
+				Kit.sound(world, base, SoundEvents.BLOCK_HONEY_BLOCK_SLIDE, 128.0F, 0.3F);
+				Kit.sound(world, base, SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 128.0F, 0.3F);
+				if (Destruction.enabled(world)) {
+					// Whoever is standing in it keeps a pocket of air.
+					for (LivingEntity e : Kit.living(world, base, Amber.R + 2)) {
+						BlockPos f = e.getBlockPos();
+						for (int x = -1; x <= 1; x++) {
+							for (int z = -1; z <= 1; z++) {
+								for (int y = -1; y <= 2 + (int) e.getHeight(); y++) {
+									spared.add(f.add(x, y, z).asLong());
+								}
+							}
+						}
+					}
+					tide = TerrainJob.disc(world, base, Amber.R, this::tide);
+					tide.limit = 0;
+				}
+			}
+			if (tide != null) {
+				tide.limit = t >= Amber.TIDE_END ? Amber.R + 1 : Amber.tide(t);
+				tide.step(3000);
+			}
+			if (t > Amber.TIDE && t < Amber.TIDE_END && t % 8 == 0) {
+				Vec3d edge = base.add(heading.multiply(Amber.tide(t)));
+				Kit.sound(world, edge, SoundEvents.BLOCK_HONEY_BLOCK_SLIDE, 96.0F, 0.4F);
+				Kit.sound(world, edge, SoundEvents.BLOCK_GLASS_PLACE, 96.0F, 0.5F);
+			}
 			drain();
-			return t >= Amber.END;
+			return t >= Amber.END && (tide == null || tide.isDone());
+		}
+
+		/** The amber tide reaching a column: everything up to {@value Amber#TIDE_H} over the ground set in amber. */
+		private void tide(TerrainJob.Column c) {
+			double d = Math.hypot(c.x + 0.5 - base.x, c.z + 0.5 - base.z);
+			if (d < 10) {
+				return;
+			}
+			int g = groundY(c);
+			for (int y = g + 1; y <= g + Amber.TIDE_H; y++) {
+				if (spared.contains(BlockPos.asLong(c.x, y, c.z))) {
+					continue;
+				}
+				BlockState s = c.get(y);
+				if (s.isAir() || plant(s) || s.isIn(BlockTags.LEAVES)) {
+					c.set(y, (y == g + Amber.TIDE_H && c.noise(y + 3) < 0.25 ? Blocks.YELLOW_STAINED_GLASS : Blocks.ORANGE_STAINED_GLASS).getDefaultState());
+				}
+			}
+		}
+
+		/** Shards of the burst drop speared into the ground all round, leaning out, yellow at the tips. */
+		private void shards() {
+			Kit.sound(world, base, SoundEvents.BLOCK_AMETHYST_CLUSTER_PLACE, 96.0F, 0.6F);
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			for (int i = 0; i < Amber.SHARDS; i++) {
+				double[] sh = Amber.shard(i);
+				Vec3d foot = at(base, heading, new Vec3d(sh[0], 0, sh[1]));
+				foot = Kit.ground(world, foot.x, foot.z).add(0, -1, 0);
+				Vec3d out = FossilShapes.frame(heading, Math.cos(sh[2]), 0, Math.sin(sh[2]));
+				Vec3d tip = foot.add(out.multiply(sh[3] * 0.45)).add(0, sh[3], 0);
+				Bones b = new Bones();
+				b.line(foot, foot.lerp(tip, 0.7), 1.0, 0.6, 0);
+				b.line(foot.lerp(tip, 0.7), tip, 0.6, 0.45, 1);
+				b.dedupe();
+				for (int[] v : b.list) {
+					q().add(v[0], v[1], v[2], mat(v[3]), BlockQueue.ANY);
+				}
+			}
 		}
 
 		/** The drop's skin: amber glass with yellow veins, rising from the ground up. */
@@ -234,7 +324,7 @@ public final class FossilEvents2 {
 			if (d < 9) {
 				return;
 			}
-			int surf = c.surface();
+			int surf = groundY(c);
 			for (int y = Math.min(c.top(), surf + 28); y > surf; y--) {
 				BlockState s = c.get(y);
 				if (s.isAir()) {
@@ -299,6 +389,24 @@ public final class FossilEvents2 {
 			Vec3d g = Kit.ground(world, p.x, p.z);
 			if ((age() & 1) == 0) {
 				Vfx.play(world, VfxIds.AMBER_GUST, g, 1.0F);
+			}
+			if (Destruction.enabled(world)) {
+				// The wind of its wings cuts a swath through the trees and grass.
+				int gx = MathHelper.floor(g.x), gz = MathHelper.floor(g.z), gy = MathHelper.floor(g.y);
+				for (int x = -3; x <= 3; x++) {
+					for (int z = -3; z <= 3; z++) {
+						if (x * x + z * z > 10) {
+							continue;
+						}
+						for (int y = -1; y <= 12; y++) {
+							BlockPos b = new BlockPos(gx + x, gy + y, gz + z);
+							BlockState s = world.getBlockState(b);
+							if (s.isIn(BlockTags.LEAVES) || !s.isAir() && plant(s)) {
+								q().add(b, Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
+							}
+						}
+					}
+				}
 			}
 			for (LivingEntity e : Kit.living(world, p, 7)) {
 				if (Kit.creativeOrSpectator(e)) {
@@ -381,56 +489,61 @@ public final class FossilEvents2 {
 	// ====================================================================== SABRE-TOOTH
 
 	/**
-	 * SABRE-TOOTH FOSSIL. The ground goes black and soft out from the bomb and opens into bubbling tar pits; trees die
-	 * standing, bones break the surface. A sabre-toothed cat's skeleton, as big as a house, claws its way out of the
-	 * biggest pit dripping tar and roars. It prowls round the pits and pounces three times, each landing a blast of tar
-	 * and earth; then it leaps into the middle, roars a last time and sinks back into the tar, leaving its skull and its
-	 * sabres standing out of it.
+	 * SABRE-TOOTH FOSSIL. The light goes red as dusk falls all at once; a pair of eyes burns in the gloom, and something
+	 * unseen rakes glowing claw marks across the land, twice. Then the ground bursts and a sabre-toothed cat's skeleton
+	 * as big as a house claws its way out, wrapped in a ghost of ember flesh, and roars. It prowls round and pounces
+	 * three times, each landing raking the ground again. It leaps to the middle and a colossal ghost of its skull rises
+	 * over it, jaws gaping wider and wider, and bites: its sabres tear two great trenches into the land. Then the cat
+	 * turns to stone where it stands, roaring, and is left there.
 	 */
 	public static class SabreFossil extends OddBombEvents.Base {
 		private Vec3d heading, base;
-		private TerrainJob tar;
 
 		@Override
 		public boolean tick() {
 			int t = age();
 			Vec3d g = center();
 			if (t == 0) {
-				name("sabre_fossil", Formatting.DARK_GRAY);
+				name("sabre_fossil", Formatting.GOLD);
 				heading = Kit.dir(data.getFloat("Yaw"));
 				base = Kit.ground(world, g.x, g.z);
-				Vfx.newFx(world, FX_SABRE, base, heading, 1.0F, 0xFFA030, 0, 0, Sabre.END);
-				Vfx.play(world, VfxIds.TAR_SPLASH, base, 1.4F);
-				Kit.sound(world, base, SoundEvents.BLOCK_MUD_BREAK, 64.0F, 0.4F);
-				Kit.sound(world, base, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 32.0F, 0.4F);
-				Vfx.shake(world, base, 100, 0.8F);
-				if (Destruction.enabled(world)) {
-					tar = TerrainJob.disc(world, base, Sabre.R, this::tar);
-					tar.limit = 0;
+				Vfx.newFx(world, FX_SABRE, base, heading, 1.0F, 0xFF6A20, 0, 0, Sabre.END);
+				Vfx.play(world, VfxIds.SABRE_DUSK, base, 1.0F);
+				Kit.sound(world, base, SoundEvents.ENTITY_WOLF_GROWL, 96.0F, 0.3F);
+				Kit.sound(world, base, SoundEvents.AMBIENT_CAVE.value(), 96.0F, 0.6F);
+			}
+			if (t < Sabre.END - 60 && t % 40 == 0) {
+				Vfx.skyTint(world, base, Sabre.R + 120, t >= Sabre.GIANT ? 0xC01808 : 0x9A3010, t >= Sabre.GIANT ? 0.75F : 0.6F);
+			}
+			if (t > 10 && t < Sabre.EMERGE && t % 30 == 15) {
+				Kit.sound(world, base.add(FossilShapes.frame(heading, -28, 0, 10)), SoundEvents.ENTITY_WOLF_GROWL, 64.0F, 0.25F);
+			}
+			for (int k = 0; k < Sabre.N_RAKES; k++) {
+				if (t == Sabre.rakeAt(k)) {
+					rake(k);
 				}
 			}
-			if (tar != null) {
-				tar.limit = t >= Sabre.TAR_END ? Sabre.R + 1 : Sabre.front(t);
-				tar.step(3500);
+			if (t == Sabre.EMERGE) {
+				Vfx.play(world, VfxIds.SABRE_EMERGE, base, 1.0F);
+				Vfx.shake(world, base, 120, 1.2F);
+				Kit.sound(world, base, SoundEvents.ENTITY_WARDEN_EMERGE, 96.0F, 0.6F);
+				Kit.sound(world, base, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 64.0F, 0.5F);
+				if (Destruction.enabled(world)) {
+					Kit.ringCrack(world, base, 7, 2, Blocks.COARSE_DIRT.getDefaultState(), 0.6F);
+					Kit.ringCrack(world, base, 12, 1, null, 0.4F);
+				}
 			}
-			if (t <= Sabre.TAR_END && t % 8 == 0) {
-				Kit.sound(world, base, SoundEvents.BLOCK_MUD_PLACE, 64.0F, 0.4F);
-				Kit.sound(world, base, SoundEvents.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 64.0F, 0.4F);
-			}
-			if (t > 20 && t < Sabre.SUNK && t % 10 == 0) {
-				stick();
-			}
-			if (t >= Sabre.EMERGE && t < Sabre.EMERGED && t % 8 == 0) {
+			if (t > Sabre.EMERGE && t < Sabre.EMERGED && t % 8 == 0) {
+				Kit.sound(world, base, SoundEvents.ENTITY_WARDEN_DIG, 64.0F, 0.5F);
 				Kit.sound(world, base, SoundEvents.ENTITY_SKELETON_STEP, 48.0F, 0.4F);
-				Kit.sound(world, base, SoundEvents.ENTITY_SLIME_SQUISH, 48.0F, 0.4F);
-				Vfx.play(world, VfxIds.TAR_SPLASH, base.add(FossilShapes.frame(heading, Sabre.pos(t).x + 7, 0, 0)), 0.8F);
+				Vfx.play(world, VfxIds.SABRE_EMERGE, base, 0.45F);
 			}
-			if (t == Sabre.ROAR || t == Sabre.ROAR2) {
-				roar(t == Sabre.ROAR2 ? 1.4F : 1.0F);
+			if (t == Sabre.ROAR) {
+				roar(1.0F);
 			}
-			if (t >= Sabre.STALK && t < Sabre.FINAL && !Sabre.leaping(t) && !Sabre.crouching(t) && t % 11 == 0) {
+			if (t >= Sabre.STALK && t < Sabre.FINAL && !Sabre.leaping(t) && !Sabre.crouching(t) && t % 10 == 0) {
 				Vec3d p = at(base, heading, Sabre.pos(t));
-				Kit.sound(world, p, SoundEvents.ENTITY_IRON_GOLEM_STEP, 64.0F, 0.5F);
+				Kit.sound(world, p, SoundEvents.ENTITY_IRON_GOLEM_STEP, 64.0F, 0.45F);
 				Kit.sound(world, p, SoundEvents.ENTITY_SKELETON_STEP, 64.0F, 0.4F);
 			}
 			for (int k = 0; k < Sabre.POUNCES.length; k++) {
@@ -439,7 +552,7 @@ public final class FossilEvents2 {
 					Kit.sound(world, at(base, heading, Sabre.pos(t)), SoundEvents.ENTITY_WOLF_GROWL, 96.0F, 0.3F);
 				}
 				if (t == p + Sabre.CROUCH) {
-					Kit.sound(world, at(base, heading, Sabre.pos(t)), SoundEvents.ENTITY_RAVAGER_ROAR, 96.0F, 1.2F);
+					Kit.sound(world, at(base, heading, Sabre.pos(t)), SoundEvents.ENTITY_RAVAGER_ROAR, 96.0F, 1.1F);
 					Kit.sound(world, at(base, heading, Sabre.pos(t)), SoundEvents.ENTITY_PHANTOM_SWOOP, 96.0F, 0.5F);
 				}
 				if (t == p + Sabre.CROUCH + Sabre.LEAP) {
@@ -453,16 +566,24 @@ public final class FossilEvents2 {
 				Kit.sound(world, at(base, heading, Sabre.pos(t)), SoundEvents.ENTITY_RAVAGER_ROAR, 128.0F, 1.0F);
 			}
 			if (t == Sabre.LAND) {
-				land(Vec3d.ZERO, 1.8);
+				land(Vec3d.ZERO, 1.6);
 			}
-			if (t >= Sabre.SINK && t < Sabre.SUNK && t % 10 == 0) {
-				Kit.sound(world, base, SoundEvents.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 96.0F, 0.3F);
-				Kit.sound(world, base, SoundEvents.ENTITY_SLIME_SQUISH, 96.0F, 0.3F);
-				Kit.sound(world, base, SoundEvents.BLOCK_MUD_PLACE, 96.0F, 0.3F);
-				Vfx.play(world, VfxIds.TAR_SINK, base, 1.2F);
+			if (t == Sabre.GIANT) {
+				Vec3d sky = base.add(FossilShapes.frame(heading, -Sabre.GIANT_BACK, Sabre.GIANT_UP, 0));
+				Kit.sound(world, sky, SoundEvents.ENTITY_WARDEN_ROAR, 128.0F, 0.4F);
+				Kit.sound(world, sky, SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, 128.0F, 0.4F);
+				Kit.sound(world, sky, SoundEvents.BLOCK_BELL_RESONATE, 128.0F, 0.4F);
+				Vfx.shake(world, base, 200, 0.8F);
 			}
-			if (t == Sabre.SUNK) {
-				skull();
+			if (t > Sabre.GIANT && t < Sabre.BITE && t % 12 == 0) {
+				Kit.sound(world, base, SoundEvents.ENTITY_RAVAGER_ROAR, 128.0F, 0.3F + (t - Sabre.GIANT) * 0.004F);
+				Vfx.shake(world, base, 200, 0.4F + (t - Sabre.GIANT) * 0.01F);
+			}
+			if (t == Sabre.BITE) {
+				bite();
+			}
+			if (t == Sabre.PETRIFY) {
+				petrify();
 			}
 			drain();
 			return t >= Sabre.END;
@@ -493,22 +614,68 @@ public final class FossilEvents2 {
 			}
 		}
 
-		/** A landing: a blast of tar and earth, the ground cracked round the paws, everything near thrown and hurt. */
+		/** Three claw marks raked into the ground, glowing at the bottom, everything in their way cut. */
+		private void rake(int k) {
+			double[] r = Sabre.rake(k);
+			Vec3d dir = FossilShapes.frame(heading, Math.cos(r[2]), 0, Math.sin(r[2])), side = new Vec3d(-dir.z, 0, dir.x);
+			Vec3d start = at(base, heading, new Vec3d(r[0], 0, r[1]));
+			Vec3d mid = Kit.ground(world, start.x + dir.x * r[3] * 0.5, start.z + dir.z * r[3] * 0.5);
+			Kit.sound(world, mid, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 128.0F, 0.4F);
+			Kit.sound(world, mid, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 128.0F, 0.5F);
+			Kit.sound(world, mid, SoundEvents.ENTITY_RAVAGER_ROAR, 96.0F, 0.6F);
+			Vfx.shake(world, mid, 100, 0.8F);
+			for (double u = 0; u <= r[3]; u += 3) {
+				Vec3d p = Kit.ground(world, start.x + dir.x * u, start.z + dir.z * u);
+				Vfx.play(world, VfxIds.SABRE_RAKE, p, dir, (float) (0.8 + 0.4 * Math.sin(Math.PI * u / r[3])), 0);
+			}
+			for (LivingEntity e : Kit.living(world, mid, r[3] * 0.5 + 4)) {
+				if (Kit.creativeOrSpectator(e)) {
+					continue;
+				}
+				Vec3d to = e.getPos().subtract(start);
+				double along = to.x * dir.x + to.z * dir.z, off = Math.abs(to.x * side.x + to.z * side.z);
+				if (along > -2 && along < r[3] + 2 && off < 5) {
+					e.damage(world.getDamageSources().generic(), 14.0F);
+					Kit.push(e, side.multiply(to.x * side.x + to.z * side.z > 0 ? 1.0 : -1.0).add(0, 0.6, 0));
+				}
+			}
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			for (int c = -1; c <= 1; c++) {
+				for (double u = 0; u <= r[3]; u += 0.5) {
+					double f = Math.sin(Math.PI * u / r[3]);
+					// Claws curve a little, the middle one longest and deepest.
+					double bend = Math.sin(u / r[3] * 2.2) * 1.2 * c;
+					int depth = (int) Math.round((c == 0 ? 3.2 : 2.4) * f);
+					if (depth <= 0 || (c != 0 && (u < r[3] * 0.08 || u > r[3] * 0.92))) {
+						continue;
+					}
+					Vec3d p = start.add(dir.multiply(u)).add(side.multiply(c * 2.6 + bend));
+					int x = MathHelper.floor(p.x), z = MathHelper.floor(p.z);
+					BlockPos top = surface(x, z);
+					for (int y = 0; y < depth; y++) {
+						q().add(top.down(y), Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
+					}
+					for (int y = 1; y <= 4; y++) {
+						q().add(top.up(y), Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
+					}
+					BlockState floor = (FossilShapes.hash(x, z) < 0.45 ? Blocks.MAGMA_BLOCK : Blocks.COARSE_DIRT).getDefaultState();
+					q().add(top.down(depth), floor, BlockQueue.SOLID_ONLY);
+				}
+			}
+		}
+
+		/** A landing: earth and dust blasted up, the ground cracked round the paws, everything near thrown and hurt, a fresh rake. */
 		private void land(Vec3d local, double power) {
 			Vec3d g = Kit.ground(world, at(base, heading, local).x, at(base, heading, local).z);
 			Kit.sound(world, g, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 128.0F, 0.5F);
-			Kit.sound(world, g, SoundEvents.BLOCK_MUD_BREAK, 128.0F, 0.4F);
 			Kit.sound(world, g, SoundEvents.ENTITY_RAVAGER_STEP, 128.0F, 0.3F);
+			Kit.sound(world, g, SoundEvents.BLOCK_ROOTED_DIRT_BREAK, 128.0F, 0.5F);
 			Vfx.play(world, VfxIds.SABRE_POUNCE, g, (float) power);
 			Vfx.shake(world, g, 160, (float) (1.2 * power));
 			if (Destruction.enabled(world)) {
-				Kit.ringCrack(world, g, 7 * power, 2, Blocks.BLACK_CONCRETE_POWDER.getDefaultState(), 0.6F);
-				// Tar flung out over the ground round it.
-				for (int i = 0; i < 60 * power; i++) {
-					double a = FossilShapes.hash(i, age()) * MathHelper.TAU, r = 3 + FossilShapes.hash(age(), i) * 11 * power;
-					BlockPos top = surface(MathHelper.floor(g.x + Math.cos(a) * r), MathHelper.floor(g.z + Math.sin(a) * r));
-					q().add(top, Blocks.BLACK_CONCRETE_POWDER.getDefaultState(), BlockQueue.SOLID_ONLY);
-				}
+				Kit.ringCrack(world, g, 7 * power, 2, Blocks.COARSE_DIRT.getDefaultState(), 0.6F);
 			}
 			for (LivingEntity e : Kit.living(world, g, 13 * power)) {
 				if (Kit.creativeOrSpectator(e)) {
@@ -522,88 +689,71 @@ public final class FossilEvents2 {
 			}
 		}
 
-		/** Anyone in a pit is stuck and dragged down. */
-		private void stick() {
-			for (LivingEntity e : Kit.living(world, base, Sabre.front(age()))) {
+		/**
+		 * The ghost skull's bite: its jaws slam shut and its sabres tear two trenches deep into the land in front of the
+		 * cat, glowing at the bottom; the ground between them heaves and everything there is crushed.
+		 */
+		private void bite() {
+			Vec3d c = at(base, heading, new Vec3d((Sabre.BITE_FROM + Sabre.BITE_TO) * 0.5, 0, 0));
+			for (int s = -1; s <= 1; s += 2) {
+				Vec3d hit = Kit.ground(world, at(base, heading, new Vec3d(Sabre.BITE_FROM + 2, 0, s * Sabre.BITE_GAP)).x,
+						at(base, heading, new Vec3d(Sabre.BITE_FROM + 2, 0, s * Sabre.BITE_GAP)).z);
+				Vfx.play(world, VfxIds.SABRE_BITE, hit, heading, 1.0F, 0);
+			}
+			Vfx.flash(world, c.add(0, 10, 0), 0.6F, 400, 0xFF9050);
+			Vfx.shake(world, c, 400, 2.2F);
+			Kit.sound(world, c, SoundEvents.BLOCK_ANVIL_LAND, 128.0F, 0.3F);
+			Kit.sound(world, c, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 128.0F, 0.4F);
+			Kit.sound(world, c, SoundEvents.ENTITY_RAVAGER_ROAR, 128.0F, 0.4F);
+			Kit.sound(world, c, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 128.0F, 0.5F);
+			for (LivingEntity e : Kit.living(world, c, (Sabre.BITE_TO - Sabre.BITE_FROM) * 0.5 + 10)) {
 				if (Kit.creativeOrSpectator(e)) {
 					continue;
 				}
 				double[] l = local(base, heading, e.getX(), e.getZ());
-				for (int i = 0; i < Sabre.POOLS; i++) {
-					double[] p = Sabre.pool(i);
-					if (Math.hypot(l[0] - p[0], l[1] - p[1]) < p[2]) {
-						e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 30, 4, true, false));
-						Kit.velocity(e, new Vec3d(e.getVelocity().x * 0.3, Math.min(e.getVelocity().y, -0.08), e.getVelocity().z * 0.3));
-						if (age() % 40 == 0) {
-							e.damage(world.getDamageSources().generic(), 2.0F);
-						}
-						break;
-					}
+				if (l[0] > Sabre.BITE_FROM - 4 && l[0] < Sabre.BITE_TO + 4 && Math.abs(l[1]) < Sabre.BITE_GAP + 8) {
+					e.damage(world.getDamageSources().generic(), Math.abs(l[1]) < Sabre.BITE_GAP + 3 ? 40.0F : 16.0F);
+					Kit.push(e, new Vec3d(0, 1.2, 0).add(FossilShapes.frame(heading, 0, 0, Math.signum(l[1]) * 1.2)));
 				}
 			}
-		}
-
-		/** The tar reaching a column: the ground goes black and soft, pits open, plants die, trees die standing. */
-		private void tar(TerrainJob.Column c) {
-			double[] l = local(base, heading, c.x + 0.5, c.z + 0.5);
-			int surf = c.surface();
-			for (int y = Math.min(c.top(), surf + 28); y > surf; y--) {
-				BlockState s = c.get(y);
-				if (s.isAir()) {
-					continue;
-				}
-				if (s.isIn(BlockTags.LEAVES) ? c.noise(y + 7) < 0.8 : plant(s)) {
-					c.set(y, Blocks.AIR.getDefaultState());
-				}
-			}
-			BlockState g = c.get(surf);
-			for (int i = 0; i < Sabre.POOLS; i++) {
-				double[] p = Sabre.pool(i);
-				double d = Math.hypot(l[0] - p[0], l[1] - p[1]);
-				if (d < p[2]) {
-					// A bowl of tar, its surface a block below the land.
-					double k = 1 - (d / p[2]) * (d / p[2]);
-					int depth = 1 + (int) Math.round((i == 0 ? 4.5 : 2.5) * k);
-					c.set(surf, Blocks.AIR.getDefaultState());
-					c.set(surf - 1, Blocks.BLACK_CONCRETE_POWDER.getDefaultState());
-					for (int y = surf - 2; y >= surf - depth; y--) {
-						c.set(y, Blocks.BLACK_CONCRETE.getDefaultState());
-					}
-					return;
-				}
-			}
-			if (!g.getFluidState().isEmpty() || !earth(g)) {
-				return;
-			}
-			double n = c.noise(61);
-			Block top = n < 0.34 ? Blocks.BLACK_CONCRETE_POWDER : n < 0.58 ? Blocks.COARSE_DIRT : n < 0.8 ? Blocks.MUD : n < 0.93 ? Blocks.BLACKSTONE : Blocks.COAL_BLOCK;
-			c.set(surf, top.getDefaultState());
-			// Old bones breaking the surface: a rib here and there.
-			double m = c.noise(63);
-			if (m < 0.006 && c.get(surf + 1).isAir()) {
-				c.set(surf + 1, Blocks.BONE_BLOCK.getDefaultState());
-				if (m < 0.0025) {
-					c.set(surf + 2, Blocks.BONE_BLOCK.getDefaultState());
-				}
-			}
-		}
-
-		/** What is left: its skull and sabres standing out of the tar, jaws open. */
-		private void skull() {
-			Kit.sound(world, base, SoundEvents.BLOCK_BONE_BLOCK_PLACE, 96.0F, 0.4F);
-			Kit.sound(world, base, SoundEvents.ENTITY_SKELETON_DEATH, 96.0F, 0.3F);
-			Vfx.play(world, VfxIds.TAR_SINK, base, 1.6F);
 			if (!Destruction.enabled(world)) {
 				return;
 			}
-			FossilPoses.Cat cat = pose(Sabre.SUNK);
-			double floor = base.y - 2;
-			Bones bones = new Bones();
-			for (Seg s : cat.segs) {
-				if (s.a().y + base.y < floor && s.b().y + base.y < floor) {
-					continue;
+			for (int s = -1; s <= 1; s += 2) {
+				for (double u = Sabre.BITE_FROM; u <= Sabre.BITE_TO; u += 0.5) {
+					double k = (u - Sabre.BITE_FROM) / (Sabre.BITE_TO - Sabre.BITE_FROM);
+					int depth = (int) Math.round(Sabre.BITE_DEPTH * (1 - 0.7 * k) * Math.min(1, k * 8 + 0.3));
+					double w = Sabre.BITE_W * (1 - 0.5 * k);
+					for (double v = -w; v <= w; v += 0.5) {
+						Vec3d p = at(base, heading, new Vec3d(u, 0, s * Sabre.BITE_GAP + v));
+						int x = MathHelper.floor(p.x), z = MathHelper.floor(p.z);
+						BlockPos top = surface(x, z);
+						for (int y = -depth; y <= 5; y++) {
+							q().add(top.up(y), Blocks.AIR.getDefaultState(), BlockQueue.NOT_AIR);
+						}
+						q().add(top.down(depth + 1), (FossilShapes.hash(x, z) < 0.6 ? Blocks.MAGMA_BLOCK : Blocks.BLACKSTONE).getDefaultState(), BlockQueue.SOLID_ONLY);
+					}
 				}
-				double sc = FossilPoses.CAT_SC;
+			}
+			// Earth thrown up along the lips of the trenches.
+			Kit.ringCrack(world, c, 14, 2, Blocks.COARSE_DIRT.getDefaultState(), 0.5F);
+		}
+
+		/** The ghost burns off and the cat is left standing in stone, roaring, sabres bared. */
+		private void petrify() {
+			FossilPoses.Cat cat = pose(Sabre.PETRIFY);
+			Vec3d body = base.add(cat.body);
+			Vfx.play(world, VfxIds.SABRE_STONE, body, 1.0F);
+			Kit.sound(world, body, SoundEvents.ENTITY_RAVAGER_ROAR, 128.0F, 0.5F);
+			Kit.sound(world, body, SoundEvents.BLOCK_BONE_BLOCK_PLACE, 96.0F, 0.4F);
+			Kit.sound(world, body, SoundEvents.BLOCK_DEEPSLATE_BRICKS_PLACE, 96.0F, 0.5F);
+			Vfx.shake(world, body, 120, 0.8F);
+			if (!Destruction.enabled(world)) {
+				return;
+			}
+			Bones bones = new Bones();
+			double sc = FossilPoses.CAT_SC;
+			for (Seg s : cat.segs) {
 				bones.line(base.add(s.a()), base.add(s.b()), Math.max(0.45, s.ra() * sc), Math.max(0.45, s.rb() * sc), s.fire() ? 1 : 0);
 			}
 			for (Vec3d e : cat.eyes) {
@@ -611,9 +761,6 @@ public final class FossilEvents2 {
 			}
 			bones.dedupe();
 			for (int[] b : bones.list) {
-				if (b[1] < floor) {
-					continue;
-				}
 				BlockState s = (b[3] == 1 ? Blocks.SMOOTH_QUARTZ : b[3] == 2 ? Blocks.SHROOMLIGHT : Blocks.BONE_BLOCK).getDefaultState();
 				q().add(b[0], b[1], b[2], s, BlockQueue.ANY);
 			}
@@ -796,7 +943,7 @@ public final class FossilEvents2 {
 			if (n == null) {
 				return;
 			}
-			int surf = c.surface();
+			int surf = groundY(c);
 			for (int y = Math.min(c.top(), surf + 28); y > surf; y--) {
 				BlockState s = c.get(y);
 				if (s.isAir()) {

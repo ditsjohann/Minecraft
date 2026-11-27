@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "RLR",
+    "PFP",
+    "RLR"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:lightning_rod"
+    },
+    "L": {
+      "item": "minecraft:copper_block"
+    },
+    "P": {
+      "item": "armageddon:plasma_cell"
+    },
+    "F": {
+      "item": "armageddon:fusion_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:z_pinch",
+    "count": 1
+  }
+}

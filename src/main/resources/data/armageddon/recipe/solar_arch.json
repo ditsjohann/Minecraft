@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "MBM",
+    "CPC",
+    "MBM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:magma_block"
+    },
+    "B": {
+      "item": "minecraft:blaze_rod"
+    },
+    "C": {
+      "item": "minecraft:copper_block"
+    },
+    "P": {
+      "item": "armageddon:plasma_cell"
+    }
+  },
+  "result": {
+    "id": "armageddon:solar_arch",
+    "count": 1
+  }
+}

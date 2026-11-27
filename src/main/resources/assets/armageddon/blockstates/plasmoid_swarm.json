@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/plasmoid_swarm"
+    },
+    "facing=east": {
+      "model": "armageddon:block/plasmoid_swarm",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/plasmoid_swarm",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/plasmoid_swarm",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/fusion_geyser"
+    },
+    "facing=east": {
+      "model": "armageddon:block/fusion_geyser",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/fusion_geyser",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/fusion_geyser",
+      "y": 270
+    }
+  }
+}

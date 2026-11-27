@@ -191,7 +191,13 @@ public final class FossilShapes {
 	 */
 	public static final class Amber {
 		public static final int RISE = 20, RISEN = 140, CRACK = 200, OOZE = 230, OOZE_END = 420, SHATTER = 450, FREE = 480, FLY_END = 650,
-				ENTOMB = 680, END = 800;
+				ENTOMB = 680, TIDE = 750, TIDE_END = 840, END = 920;
+		/** How deep the amber tide floods the land at the end. */
+		public static final int TIDE_H = 4;
+		/** The brood of smaller dragonflies that follows the big one out of the amber. */
+		public static final int BROOD = 6;
+		/** Amber shards left speared into the ground round the drop when it bursts. */
+		public static final int SHARDS = 28;
 		/** Strafing runs: each dives low across the land for {@link #ZIP} ticks. */
 		public static final int[] ZIPS = {505, 560, 615};
 		public static final int ZIP = 30;
@@ -257,6 +263,25 @@ public final class FossilShapes {
 			return eight(FLY_END).lerp(new Vec3d(1.5, SEAL_Y, 0), u);
 		}
 
+		/** How far the amber tide has flooded out from the middle at tick {@code t}. */
+		public static double tide(double t) {
+			return R * smooth((t - TIDE) / (double) (TIDE_END - TIDE - 10));
+		}
+
+		/** Shard {@code i}: where it is speared (heading frame), how it leans (angle) and how tall it is. */
+		public static double[] shard(int i) {
+			double a = hash(i, 61) * Math.PI * 2, r = 11 + Math.sqrt(hash(i, 62)) * 25;
+			return new double[]{Math.cos(a) * r, Math.sin(a) * r, a, 3 + hash(i, 63) * 4};
+		}
+
+		/** Where brood dragonfly {@code k} is flying: behind the leader on its path, off to one side. */
+		public static Vec3d brood(int k, double t) {
+			double lag = 7 + k * 5;
+			double side = (k % 2 == 0 ? 1 : -1) * (4 + k * 1.3);
+			Vec3d p = pos(Math.max(FREE, t - lag));
+			return p.add(Math.sin(t * 0.07 + k) * 1.5, -1.5 + (k % 3) * 1.5 + Math.sin(t * 0.11 + k * 2) * 1.2, side);
+		}
+
 		/** True while a strafing run is skimming the ground. */
 		public static boolean low(double t) {
 			for (int z : ZIPS) {
@@ -271,36 +296,48 @@ public final class FossilShapes {
 	// ====================================================================== SABRE-TOOTH
 
 	/**
-	 * The land turns to tar pits. A sabre-toothed cat's skeleton climbs out of the biggest one, roars, prowls round the
-	 * pits and pounces three times; then it leaps into the middle, roars a last time and sinks back into the tar,
-	 * leaving its skull and sabres sticking out of it.
+	 * A hunt at dusk. The light goes red and something unseen rakes claw marks across the land; a sabre-toothed cat's
+	 * skeleton bursts out of the ground wrapped in a ghost of ember flesh, roars, prowls and pounces three times. Then
+	 * it leaps to the middle, a colossal ghost of its skull rises behind it and bites the land, and the cat turns to
+	 * stone mid-roar.
 	 */
 	public static final class Sabre {
-		public static final int TAR_END = 140, EMERGE = 150, EMERGED = 260, ROAR = 270, STALK = 285, PROWL = 345, FINAL = 580, LAND = 616, ROAR2 = 625,
-				SINK = 650, SUNK = 730, END = 790;
-		public static final int[] POUNCES = {360, 435, 510};
+		public static final int EMERGE = 100, EMERGED = 170, ROAR = 180, STALK = 195, PROWL = 240, FINAL = 490, LAND = 526, GIANT = 545, BITE = 612,
+				PETRIFY = 660, END = 780;
+		public static final int[] POUNCES = {270, 345, 420};
+		/** The unseen beast's claw rakes before it shows itself. */
+		public static final int[] RAKES = {30, 64};
 		/** A pounce: crouch, leap, then land and recover. */
 		public static final int CROUCH = 14, LEAP = 22, RECOVER = 14;
-		public static final double R = 60, CIRCLE = 26, SPEED = 0.026, JUMP = 2.3, LEAP_H = 13;
-		public static final int POOLS = 10;
+		public static final double R = 50, CIRCLE = 24, SPEED = 0.03, JUMP = 2.3, LEAP_H = 13;
+		/** The ghost skull: how far behind the cat it rises, how high, and how much bigger than the real one. */
+		public static final double GIANT_BACK = 16, GIANT_UP = 30, GIANT_SCALE = 4.2;
+		/** The bite's two trenches: from and to (ahead of the bomb), half the gap between them, width and depth. */
+		public static final double BITE_FROM = 8, BITE_TO = 46, BITE_GAP = 3.5, BITE_W = 1.6, BITE_DEPTH = 9;
 
 		private Sabre() {
 		}
 
-		/** How far the tar has spread. */
-		public static double front(double t) {
-			return R * smooth(t / (double) TAR_END);
+		/** Claw rake {@code k} (heading frame): start x, start z, direction angle, length. 0-1 are the unseen rakes. */
+		public static double[] rake(int k) {
+			if (k < RAKES.length) {
+				double a = k == 0 ? 0.9 : -2.3;
+				double r = k == 0 ? 30 : 26;
+				double dir = a + Math.PI + (k == 0 ? 0.5 : -0.4);
+				return new double[]{Math.cos(a) * r, Math.sin(a) * r, dir, 34};
+			}
+			int p = k - RAKES.length;
+			Vec3d at = target(p);
+			double dir = Math.atan2(at.z - circle(angle(POUNCES[p])).z, at.x - circle(angle(POUNCES[p])).x);
+			return new double[]{at.x + Math.cos(dir) * 2, at.z + Math.sin(dir) * 2, dir, 18};
 		}
 
-		/** Pool {@code i} in the heading's frame: x, z and radius. The first is the big one in the middle. */
-		public static double[] pool(int i) {
-			if (i == 0) {
-				return new double[]{0, 0, 9.5};
-			}
-			double a = i * 2.39996 + 0.5;
-			double r = 17 + 31 * Math.sqrt(hash(i, 41));
-			return new double[]{Math.cos(a) * r, Math.sin(a) * r, 3.5 + 3 * hash(i, 42)};
+		/** When rake {@code k} strikes. */
+		public static int rakeAt(int k) {
+			return k < RAKES.length ? RAKES[k] : POUNCES[k - RAKES.length] + CROUCH + LEAP;
 		}
+
+		public static final int N_RAKES = RAKES.length + POUNCES.length;
 
 		/** Ticks spent prowling by {@code t} (prowling stops while it pounces). */
 		private static double walked(double t) {
@@ -321,7 +358,7 @@ public final class FossilShapes {
 			return n;
 		}
 
-		/** Its angle round the pits. */
+		/** Its angle round the bomb. */
 		public static double angle(double t) {
 			return 0.6 + SPEED * walked(t) + JUMP * jumps(t);
 		}
@@ -340,16 +377,16 @@ public final class FossilShapes {
 		}
 
 		/**
-		 * The body in the heading's frame: x and z on the ground, y how far it is above (leaping) or below (climbing
-		 * out, sinking) the ground under it.
+		 * The body in the heading's frame: x and z on the ground, y how far it is above (leaping) or below (still in the
+		 * ground) the ground under it.
 		 */
 		public static Vec3d pos(double t) {
 			if (t < EMERGE) {
-				return new Vec3d(-6, -12, 0);
+				return new Vec3d(-4, -13, 0);
 			}
 			if (t < EMERGED) {
 				double u = smooth((t - EMERGE) / (double) (EMERGED - EMERGE));
-				return new Vec3d(-6 + 6 * u, -12 + 12 * u, 0);
+				return new Vec3d(-4 + 4 * u, -13 + 13 * u, 0);
 			}
 			if (t < STALK) {
 				return Vec3d.ZERO;
@@ -382,11 +419,7 @@ public final class FossilShapes {
 			if (t < LAND) {
 				return arc(from, Vec3d.ZERO, (d - CROUCH) / (LAND - FINAL - CROUCH), LEAP_H + 4);
 			}
-			if (t < SINK) {
-				return new Vec3d(0, -1.6 * (1 - smooth((t - LAND) / 12.0)), 0);
-			}
-			double u = smooth((t - SINK) / (double) (SUNK - SINK));
-			return new Vec3d(1.5 * u, -11.5 * u, 0);
+			return new Vec3d(0, -1.6 * (1 - smooth((t - LAND) / 12.0)), 0);
 		}
 
 		/** True while it is in the air. */
@@ -399,14 +432,14 @@ public final class FossilShapes {
 			return t >= FINAL + CROUCH && t < LAND;
 		}
 
-		/** True while it is crouched to spring. */
+		/** True while it is crouched to spring (or braced as its ghost bites). */
 		public static boolean crouching(double t) {
 			for (int p : POUNCES) {
 				if (t >= p && t < p + CROUCH) {
 					return true;
 				}
 			}
-			return t >= FINAL && t < FINAL + CROUCH;
+			return t >= FINAL && t < FINAL + CROUCH || t >= BITE - 30 && t < BITE + 10;
 		}
 
 		/** Which way it faces (heading's frame, horizontal). */
@@ -416,34 +449,51 @@ public final class FossilShapes {
 			}
 			for (int p : POUNCES) {
 				if (t >= p && t < p + CROUCH + LEAP) {
-					return flat(circle(angle(p) + JUMP).subtract(circle(angle(p))), t);
+					return flat(circle(angle(p) + JUMP).subtract(circle(angle(p))));
 				}
 			}
 			if (t >= FINAL) {
-				// Facing the middle as it springs for it, and still facing that way as it goes under.
-				return flat(circle(angle(FINAL)).multiply(-1), t);
+				// Springing for the middle, then turning to face forward, where its ghost will bite.
+				Vec3d in = flat(circle(angle(FINAL)).multiply(-1));
+				double u = smooth((t - LAND) / 16.0);
+				return flat(in.multiply(1 - u).add(new Vec3d(1, 0, 0).multiply(u + 1.0E-3)));
 			}
 			Vec3d v = pos(t + 1).subtract(pos(t - 1));
 			if (v.horizontalLengthSquared() > 0.01) {
-				return flat(v, t);
+				return flat(v);
 			}
-			// Prowling round anticlockwise: the tangent of its circle.
 			double a = angle(t);
 			return new Vec3d(-Math.sin(a), 0, Math.cos(a));
 		}
 
-		private static Vec3d flat(Vec3d v, double t) {
+		private static Vec3d flat(Vec3d v) {
 			Vec3d f = new Vec3d(v.x, 0, v.z);
 			return f.lengthSquared() < 1.0E-6 ? new Vec3d(1, 0, 0) : f.normalize();
 		}
 
-		/** How wide its jaws are open (0 shut, 1 gaping): it roars as it climbs out, on each pounce and at the end. */
+		/** How wide its jaws are open (0 shut, 1 gaping). */
 		public static double gape(double t) {
-			double g = bump(t, ROAR - 8, ROAR + 28) + bump(t, ROAR2 - 6, ROAR2 + 34) + bump(t, SINK + 40, SUNK);
+			double g = bump(t, ROAR - 8, ROAR + 30) + bump(t, GIANT, BITE - 4) * 0.9 + (t >= PETRIFY - 20 ? smooth((t - (PETRIFY - 20)) / 14.0) : 0);
 			for (int p : POUNCES) {
 				g += 0.8 * bump(t, p + 6, p + CROUCH + LEAP + 4);
 			}
 			return Math.min(1, g);
+		}
+
+		/** The ghost skull's jaws: wide as it rises, wider, then slammed shut on the bite. */
+		public static double giantGape(double t) {
+			if (t < GIANT || t > BITE + 30) {
+				return 0;
+			}
+			if (t < BITE - 6) {
+				return smooth((t - GIANT) / 40.0) * (1 + 0.15 * Math.sin(t * 0.3));
+			}
+			return Math.max(0, 1 - (t - (BITE - 6)) / 6.0);
+		}
+
+		/** How much of the ghost skull is there: rising, then burning away after the bite. */
+		public static double giant(double t) {
+			return smooth((t - GIANT) / 30.0) * (1 - smooth((t - BITE - 10) / 50.0));
 		}
 
 		/** 0 outside (a, b), rising to 1 in the middle and back. */

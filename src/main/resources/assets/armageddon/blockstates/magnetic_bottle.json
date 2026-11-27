@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/magnetic_bottle"
+    },
+    "facing=east": {
+      "model": "armageddon:block/magnetic_bottle",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/magnetic_bottle",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/magnetic_bottle",
+      "y": 270
+    }
+  }
+}

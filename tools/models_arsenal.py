@@ -1673,26 +1673,26 @@ def amber_fossil():
 
 
 def sabre_fossil():
-    # A sabre-tooth's skull rising out of a pool of tar, its sabres reaching down into it, embers in its eyes.
-    m = [B(0, 0, 0, 16, 1.6, 16, "rock"), B(1, 1.6, 1, 15, 3.0, 15, "tar")]
-    for (x, z, r) in ((3.0, 4.0, 1.2), (12.4, 3.2, 0.9), (13.0, 12.0, 1.1)):
-        m += [B(x - r, 3.0, z - r, x + r, 3.6, z + r, "tar")]
-    # Cranium (high at the back), brow, a short deep muzzle, the sagittal crest along the top.
-    m += [B(5.4, 6.6, 8.0, 10.6, 10.2, 13.0, "bone"), B(5.8, 6.2, 12.6, 10.2, 9.0, 13.8, "bone")]
-    m += [B(5.6, 7.0, 6.0, 10.4, 9.4, 8.0, "bone"), B(6.0, 5.2, 3.2, 10.0, 7.8, 6.2, "bone"), B(6.6, 7.8, 3.6, 9.4, 8.4, 6.0, "bone")]
-    m += [B(7.5, 10.2, 7.4, 8.5, 11.0, 12.6, "bone")]
-    # Cheekbones flaring out to the sides.
-    m += [B(4.4, 6.2, 6.8, 5.6, 7.2, 10.0, "bone"), B(10.4, 6.2, 6.8, 11.6, 7.2, 10.0, "bone")]
-    # The sockets, deep in the brow, with fire in them.
-    m += [B(5.9, 8.0, 5.9, 7.1, 8.9, 6.1, "glow_orange"), B(8.9, 8.0, 5.9, 10.1, 8.9, 6.1, "glow_orange")]
-    # The sabres, long and flat, curving down and a little back from the front of the muzzle.
-    for side in (-1, 1):
-        x = 8 + side * 1.25
-        for i, (y, z) in enumerate(((5.2, 3.9), (4.3, 4.1), (3.4, 4.4), (2.6, 4.8), (1.9, 5.2))):
-            w = 0.5 - i * 0.06
-            m += [B(x - w * 0.7, y - 0.95, z - w, x + w * 0.7, y, z + w, "pearl")]
-    # The lower jaw, dropped wide open, its tip under the tar.
-    m += [B(6.4, 4.4, 7.6, 9.6, 5.2, 9.6, "bone"), B(6.6, 3.2, 5.0, 9.4, 4.4, 7.8, "bone")]
+    # A sabre-tooth's skull in profile, jaws gaping wide, sabres long and bared, on a slab of dark stone raked with
+    # three glowing claw marks. Faces +x so the inventory shows its side.
+    m = [B(0, 0, 0, 16, 1.6, 16, "obsidian")]
+    for z in (3.0, 5.4, 7.8):
+        m += [B(1.0, 1.6, z, 9.5, 1.75, z + 0.7, "glow_orange")]
+    # Cranium: long and low, the crest rising behind; the brow and the short deep muzzle in front.
+    m += [B(2.6, 8.0, 6.0, 8.8, 11.0, 10.0, "bone"), B(1.6, 8.6, 6.6, 3.0, 11.4, 9.4, "bone"), B(3.0, 11.0, 7.6, 7.6, 12.2, 8.4, "bone")]
+    m += [B(8.8, 7.4, 6.4, 11.6, 10.0, 9.6, "bone"), B(11.6, 7.2, 6.8, 13.0, 9.0, 9.2, "bone")]
+    # Cheekbone flaring out, the eye socket burning.
+    m += [B(5.0, 7.4, 5.4, 9.4, 8.4, 10.6, "bone"), B(8.0, 9.2, 5.8, 9.2, 10.2, 6.0, "glow_orange"), B(8.0, 9.2, 10.0, 9.2, 10.2, 10.2, "glow_orange")]
+    # The sabres: long, flat, curving down and back.
+    for i, (x, y) in enumerate(((11.6, 7.2), (11.9, 6.0), (11.9, 4.8), (11.6, 3.7), (11.1, 2.8))):
+        w = 0.55 - i * 0.07
+        for z in (7.0, 9.0):
+            m += [B(x - w, y - 1.2, z - 0.35, x + w, y, z + 0.35, "pearl")]
+    # The lower jaw dropped open at a steep angle, chin on the slab.
+    m += [B(3.0, 5.6, 6.6, 4.8, 7.4, 9.4, "bone"), B(4.4, 4.0, 6.8, 6.4, 5.8, 9.2, "bone"), B(6.0, 2.4, 7.0, 8.4, 4.2, 9.0, "bone"),
+          B(8.0, 1.6, 7.2, 10.0, 2.8, 8.8, "bone")]
+    # The back of the skull, the neck vertebra.
+    m += [B(0.8, 6.2, 7.0, 2.6, 8.8, 9.0, "bone"), B(0.2, 1.6, 7.3, 1.6, 6.4, 8.7, "bone")]
     return m
 
 
@@ -1720,6 +1720,68 @@ def ammonite_fossil():
 
 
 BOMBS.update({"amber_fossil": amber_fossil, "sabre_fossil": sabre_fossil, "ammonite_fossil": ammonite_fossil})
+
+
+def plasmoid_swarm():
+    # Three balls of lightning caught in a frame of dark glass over a tech plinth, a white core between them.
+    m = [B(1, 0, 1, 15, 2, 15, "gunmetal"), B(2, 2, 2, 14, 2.6, 14, "black")]
+    for (x, z) in ((2, 2), (13.4, 2), (2, 13.4), (13.4, 13.4)):
+        m += [B(x, 2.6, z, x + 0.6, 14, z + 0.6, "glass_purple")]
+    m += [B(2, 14, 2, 14, 14.6, 2.6, "glass_purple"), B(2, 14, 13.4, 14, 14.6, 14, "glass_purple"),
+          B(2, 14, 2.6, 2.6, 14.6, 13.4, "glass_purple"), B(13.4, 14, 2.6, 14, 14.6, 13.4, "glass_purple")]
+    m += ball(8, 8, 8, 2.6, "glow_purple") + ball(4.6, 5.2, 5.4, 1.4, "glow_purple") + ball(11.2, 10.8, 10.6, 1.6, "glow_purple")
+    m += ball(8, 8, 8, 1.1, "glow_white")
+    return m
+
+
+def solar_arch():
+    # A loop of plasma arching between two black pylons over a slab of scorched stone, glowing at its feet.
+    m = [B(0, 0, 0, 16, 1.5, 16, "black"), B(1, 1.5, 6, 4, 4, 10, "obsidian"), B(12, 1.5, 6, 15, 4, 10, "obsidian")]
+    m += [B(1.6, 4, 6.6, 3.4, 4.4, 9.4, "glow_gold"), B(12.6, 4, 6.6, 14.4, 4.4, 9.4, "glow_gold")]
+    for i in range(13):
+        a = 3.14159 * i / 12
+        x, y = 8 - _m.cos(a) * 5.5, 4.2 + _m.sin(a) * 9.5
+        m += [B(x - 0.9, y - 0.9, 7.1, x + 0.9, y + 0.9, 8.9, "glow_orange" if i % 2 else "glow_gold")]
+    return m
+
+
+def fusion_geyser():
+    # A vent of black rock with a column of cyan plasma pouring up out of it through rings of field.
+    m = [B(0, 0, 0, 16, 1.5, 16, "rock"), B(3, 1.5, 3, 13, 3.5, 13, "black"), B(4.5, 3.5, 4.5, 11.5, 5, 11.5, "black")]
+    m += [B(6, 5, 6, 10, 5.4, 10, "glow_cyan")]
+    m += [B(6.8, 5, 6.8, 9.2, 16, 9.2, "glow_cyan"), B(7.4, 5, 7.4, 8.6, 16.2, 8.6, "glow_white")]
+    for y in (8.0, 12.0):
+        m += [B(5.6, y, 5.6, 10.4, y + 0.7, 6.3, "chrome"), B(5.6, y, 9.7, 10.4, y + 0.7, 10.4, "chrome"),
+              B(5.6, y, 6.3, 6.3, y + 0.7, 9.7, "chrome"), B(9.7, y, 6.3, 10.4, y + 0.7, 9.7, "chrome")]
+    return m
+
+
+def z_pinch():
+    # A white-hot column pinched by blue rings, standing between two electrodes.
+    m = [B(2, 0, 2, 14, 2, 14, "gunmetal"), B(5.5, 2, 5.5, 10.5, 3.2, 10.5, "chrome"), B(5.5, 14.8, 5.5, 10.5, 16, 10.5, "chrome")]
+    for (y0, y1, r) in ((3.2, 5.2, 1.6), (5.2, 6.2, 0.9), (6.2, 8.2, 1.6), (8.2, 9.2, 0.9), (9.2, 11.2, 1.6), (11.2, 12.2, 0.9), (12.2, 14.8, 1.6)):
+        m += [B(8 - r, y0, 8 - r, 8 + r, y1, 8 + r, "glow_white")]
+    for y in (5.2, 8.2, 11.2):
+        r = 2.4
+        m += [B(8 - r, y, 8 - r, 8 + r, y + 1, 8 - r + 0.6, "glow_blue"), B(8 - r, y, 8 + r - 0.6, 8 + r, y + 1, 8 + r, "glow_blue"),
+              B(8 - r, y, 8 - r, 8 - r + 0.6, y + 1, 8 + r, "glow_blue"), B(8 + r - 0.6, y, 8 - r, 8 + r, y + 1, 8 + r, "glow_blue")]
+    return m
+
+
+def magnetic_bottle():
+    # A little magenta sun held in two crossed loops of chrome field coil over a plinth.
+    m = [B(2, 0, 2, 14, 1.6, 14, "gunmetal"), B(6, 1.6, 6, 10, 3, 10, "chrome")]
+    m += ball(8, 9, 8, 3.2, "glow_magenta") + ball(8, 9, 8, 1.4, "glow_white")
+    r, t = 5.6, 0.6
+    m += [B(8 - r, 9 - r, 7.7, 8 - r + t, 9 + r, 8.3, "chrome"), B(8 + r - t, 9 - r, 7.7, 8 + r, 9 + r, 8.3, "chrome"),
+          B(8 - r, 9 + r - t, 7.7, 8 + r, 9 + r, 8.3, "chrome"), B(8 - r, 9 - r, 7.7, 8 + r, 9 - r + t, 8.3, "chrome")]
+    m += [B(7.7, 9 - r, 8 - r, 8.3, 9 + r, 8 - r + t, "glass_magenta"), B(7.7, 9 - r, 8 + r - t, 8.3, 9 + r, 8 + r, "glass_magenta"),
+          B(7.7, 9 + r - t, 8 - r, 8.3, 9 + r, 8 + r, "glass_magenta"), B(7.7, 9 - r, 8 - r, 8.3, 9 - r + t, 8 + r, "glass_magenta")]
+    return m
+
+
+BOMBS.update({"plasmoid_swarm": plasmoid_swarm, "solar_arch": solar_arch, "fusion_geyser": fusion_geyser, "z_pinch": z_pinch,
+              "magnetic_bottle": magnetic_bottle})
 
 
 def xenoform():

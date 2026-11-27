@@ -57,13 +57,20 @@ final class FossilFx2 {
 	 * inside the drop, cracks of light running over it, the resin's glossy lip rolling out, the swarm.
 	 */
 	static final class AmberFx extends FxEffect {
-		private static final int CRACKS = 11;
+		private static final int CRACKS = 11, RINGS = 16, SEGS = 56;
 		private final Vec3d c, h;
+		/** Ground heights under the amber tide's surface, taken just before it floods (after, the ground is the amber). */
+		private double[][] tideGround;
 
 		AmberFx(Vec3d c, Vec3d heading, int life) {
 			super(Math.max(40, life));
 			this.c = c;
 			this.h = unit(heading);
+		}
+
+		private Vec3d tidePoint(int i, int j) {
+			double r = Amber.R * i / RINGS, ang = MathHelper.TAU * j / SEGS;
+			return new Vec3d(c.x + Math.cos(ang) * r, 0, c.z + Math.sin(ang) * r);
 		}
 
 		@Override
@@ -85,6 +92,23 @@ final class FossilFx2 {
 					double a = world.random.nextDouble() * MathHelper.TAU;
 					double x = c.x + Math.cos(a) * front, z = c.z + Math.sin(a) * front;
 					FxEngine.play(VfxIds.AMBER_FRONT, x, NewFx.groundY(x, z, c.y), z, 0, 1, 0, 1.0F, 0, t * 131L + i);
+				}
+			}
+			if (t == Amber.TIDE - 2 && tideGround == null) {
+				tideGround = new double[RINGS + 1][SEGS + 1];
+				for (int i = 0; i <= RINGS; i++) {
+					for (int j = 0; j <= SEGS; j++) {
+						Vec3d p = tidePoint(i, j);
+						tideGround[i][j] = NewFx.groundY(p.x, p.z, c.y);
+					}
+				}
+			}
+			if (t >= Amber.TIDE && t < Amber.TIDE_END && t % 3 == 0) {
+				double front = Amber.tide(t);
+				for (int i = 0; i < 3; i++) {
+					double a = world.random.nextDouble() * MathHelper.TAU;
+					double x = c.x + Math.cos(a) * front, z = c.z + Math.sin(a) * front;
+					FxEngine.play(VfxIds.AMBER_FRONT, x, NewFx.groundY(x, z, c.y) + 1, z, 0, 1, 0, 1.4F, 0, t * 191L + i);
 				}
 			}
 			if (t > Amber.SHATTER && t < Amber.ENTOMB + 20) {
@@ -158,6 +182,45 @@ final class FossilFx2 {
 					}
 				}
 			}
+			// Light streaming out through the cracks: god rays, longer as it gives.
+			if (a >= Amber.CRACK + 20 && a < Amber.SHATTER + 6) {
+				float k = smooth((a - Amber.CRACK - 20) / (double) (Amber.SHATTER - Amber.CRACK - 20)) * (1 - smooth((a - Amber.SHATTER) / 6.0));
+				Vec3d core = c.add(0, Amber.CY, 0).subtract(cam);
+				for (int i = 0; i < CRACKS; i++) {
+					double th = Effects.hash(i, 201) * MathHelper.TAU, y = MathHelper.clamp(Effects.hash(i, 202) * 1.4 - 0.6, -0.9, 0.9), r = Math.sqrt(1 - y * y);
+					Vec3d from = skin(Math.cos(th) * r, y, Math.sin(th) * r, 1.0).subtract(cam);
+					Vec3d dir = from.subtract(core).normalize();
+					double len = 10 + 34 * k * (0.6 + 0.4 * Effects.hash(i, 206));
+					float fl = 0.8F + 0.2F * MathHelper.sin(a * 0.4F + i * 2);
+					FxDraw.ribbon(glow, m, from, from.add(dir.multiply(len)), Vec3d.ZERO, 2.6 + 2 * k, 0xFFB040, 0.3F * k * fl, 0.0F);
+					FxDraw.ribbon(glow, m, from, from.add(dir.multiply(len * 0.6)), Vec3d.ZERO, 0.8, 0xFFF0C0, 0.5F * k * fl, 0.0F);
+				}
+			}
+			// The amber tide: a glossy surface rising over the land, light crawling over it, its lip racing outward.
+			if (tideGround != null && a >= Amber.TIDE && a < Amber.TIDE_END + 30) {
+				double front = Amber.tide(a);
+				float on = 1 - smooth((a - Amber.TIDE_END) / 30.0);
+				VertexConsumer tshade = consumers.getBuffer(FxRenderLayers.SHADE);
+				for (int i = 0; i < RINGS; i++) {
+					double r0 = Amber.R * i / RINGS, r1 = Amber.R * (i + 1) / RINGS;
+					if (r0 > front) {
+						break;
+					}
+					float e0 = (float) MathHelper.clamp((front - r0) / 4.0, 0.0, 1.0), e1 = (float) MathHelper.clamp((front - r1) / 4.0, 0.0, 1.0);
+					for (int j = 0; j < SEGS; j++) {
+						Vec3d[] q = new Vec3d[4];
+						int[][] ix = {{i, j}, {i + 1, j}, {i + 1, j + 1}, {i, j + 1}};
+						for (int v = 0; v < 4; v++) {
+							Vec3d p = tidePoint(ix[v][0], ix[v][1]);
+							double rise = (ix[v][0] == i ? e0 : e1) * Amber.TIDE_H;
+							q[v] = new Vec3d(p.x, tideGround[ix[v][0]][ix[v][1]] + rise + 0.05 + 0.08 * Math.sin(p.x * 0.3 + a * 0.1), p.z).subtract(cam);
+						}
+						quad(tshade, m, q[0], q[1], q[2], q[3], 0xC06A10, 0.4F * on * e0, 0.4F * on * e1, 0.4F * on * e1, 0.4F * on * e0);
+						float cs = (float) (0.5 + 0.5 * Math.sin(q[0].x * 0.35 + cam.x * 0.35 + a * 0.08) * Math.sin(q[0].z * 0.4 + cam.z * 0.4 - a * 0.07));
+						quad(glow, m, q[0], q[1], q[2], q[3], 0xFFC060, 0.12F * on * cs * e0, 0.12F * on * cs * e1, 0.12F * on * cs * e1, 0.12F * on * cs * e0);
+					}
+				}
+			}
 			// The resin's lip rolling out: a glossy amber band riding the ground.
 			if (a >= Amber.OOZE && a < Amber.OOZE_END + 30) {
 				double front = Amber.front(a);
@@ -178,10 +241,16 @@ final class FossilFx2 {
 					prev = p;
 				}
 			}
-			// Alive: the dragonfly flies.
+			// Alive: the dragonfly flies, its brood trailing it out of the amber, and they scatter as it is sealed again.
 			if (a >= Amber.SHATTER && a < Amber.ENTOMB + 2) {
 				FossilPoses.Fly fly = FossilPoses.fly(a, h, false);
 				drawFly(consumers, m, o, cb, fly, a, 1.0F, 1.0F);
+				float brood = smooth((a - Amber.SHATTER - 10) / 20.0) * (1 - smooth((a - Amber.FLY_END) / 30.0));
+				if (brood > 0.02F) {
+					for (int k = 0; k < Amber.BROOD; k++) {
+						drawFly(consumers, m, o, cb, FossilPoses.fly(a, h, false, k), a + k * 9, 1.0F, brood);
+					}
+				}
 			}
 			// Sealed again: resin glowing as it closes over it.
 			if (a >= Amber.ENTOMB && a < Amber.ENTOMB + 90) {
@@ -197,15 +266,15 @@ final class FossilFx2 {
 			int body = Solids.scale(0x6A4A28, bright), band = Solids.scale(0x2A8090, bright);
 			if (alpha > 0.5F) {
 				for (Seg s : fly.segs) {
-					double sc = FossilPoses.FLY_SC;
+					double sc = fly.sc;
 					Solids.tube(solid, m, o.add(s.a()), o.add(s.b()), s.ra() * sc, s.rb() * sc, 7, s.fire() ? band : body, 1.0F, true);
 				}
 				for (Vec3d e : fly.eyes) {
-					Solids.sphere(solid, m, o.add(e), 0.85, Solids.scale(0x30A890, bright), 6, 10, true);
+					Solids.sphere(solid, m, o.add(e), 0.85 * fly.sc, Solids.scale(0x30A890, bright), 6, 10, true);
 				}
 			}
 			for (Vec3d e : fly.eyes) {
-				FxKit.halo(consumers, m, cb, o.add(e), 1.6, 0x40FFD0, 0.35F * alpha * bright);
+				FxKit.halo(consumers, m, cb, o.add(e), 1.6 * fly.sc, 0x40FFD0, 0.35F * alpha * bright);
 			}
 			// Wings: a sheen that shifts with the angle, veins along them.
 			for (int i = 0; i < fly.wings.size(); i++) {
@@ -215,14 +284,14 @@ final class FossilFx2 {
 				int col = Solids.mix(0x60E0FF, 0xFFD070, hue);
 				quad(glow, m, A, B, C, D, col, 0.2F * alpha, 0.1F * alpha, 0.1F * alpha, 0.2F * alpha);
 				quad(glow, m, D, C, B, A, col, 0.2F * alpha, 0.1F * alpha, 0.1F * alpha, 0.2F * alpha);
-				FxDraw.ribbon(glow, m, A, B, Vec3d.ZERO, 0.14, 0xE0FFF8, 0.4F * alpha, 0.2F * alpha);
-				FxDraw.ribbon(glow, m, D, C, Vec3d.ZERO, 0.1, 0xE0FFF8, 0.25F * alpha, 0.12F * alpha);
+				FxDraw.ribbon(glow, m, A, B, Vec3d.ZERO, 0.14 * fly.sc, 0xE0FFF8, 0.4F * alpha, 0.2F * alpha);
+				FxDraw.ribbon(glow, m, D, C, Vec3d.ZERO, 0.1 * fly.sc, 0xE0FFF8, 0.25F * alpha, 0.12F * alpha);
 				for (int v = 1; v <= 3; v++) {
 					double u = v / 4.0;
-					FxDraw.ribbon(glow, m, A.lerp(B, u), D.lerp(C, u), Vec3d.ZERO, 0.08, 0xE0FFF8, 0.2F * alpha, 0.2F * alpha);
+					FxDraw.ribbon(glow, m, A.lerp(B, u), D.lerp(C, u), Vec3d.ZERO, 0.08 * fly.sc, 0xE0FFF8, 0.2F * alpha, 0.2F * alpha);
 				}
 				// A bright stigma spot near each wingtip.
-				FxKit.halo(consumers, m, cb, A.lerp(B, 0.86).lerp(D.lerp(C, 0.86), 0.15), 0.6, 0xFFE0A0, 0.4F * alpha);
+				FxKit.halo(consumers, m, cb, A.lerp(B, 0.86).lerp(D.lerp(C, 0.86), 0.15), 0.6 * fly.sc, 0xFFE0A0, 0.4F * alpha);
 			}
 		}
 	}
@@ -230,25 +299,18 @@ final class FossilFx2 {
 	// ====================================================================== SABRE-TOOTH
 
 	/**
-	 * The tar pits' glossy surfaces, swelling and popping bubbles, and the sabre-tooth itself, bone by bone, black with
-	 * tar where it has been under, embers of amber in its eye sockets.
+	 * The hunt: eyes burning in the dusk, claw swipes of ember light across the ground, then the cat itself - bones
+	 * wrapped in a rim-lit ghost of ember flesh, eyes ablaze - and at the end the colossal ghost of its skull.
 	 */
 	static final class SabreFx extends FxEffect {
-		private static final int BONE = 0xD8CCB0, TAR = 0x15100C, IVORY = 0xF4ECD8;
+		private static final int BONE = 0xE6DAC0, IVORY = 0xFAF2DE, EMBER = 0xFF5A18;
 		private final Vec3d c, h;
-		private final double[] poolY = new double[Sabre.POOLS];
 		private double gait, prevGait;
 
 		SabreFx(Vec3d c, Vec3d heading, int life) {
 			super(Math.max(40, life));
 			this.c = c;
 			this.h = unit(heading);
-			java.util.Arrays.fill(poolY, Double.NaN);
-		}
-
-		private Vec3d poolCentre(int i) {
-			double[] p = Sabre.pool(i);
-			return c.add(FossilShapes.frame(h, p[0], 0, p[1]));
 		}
 
 		private double ground(double t) {
@@ -261,46 +323,39 @@ final class FossilFx2 {
 			return FossilPoses.cat(t, g, ground(t), h);
 		}
 
+		/** Where the watcher's eyes burn before it shows itself. */
+		private Vec3d watcher() {
+			Vec3d w = c.add(FossilShapes.frame(h, -28, 0, 10));
+			return new Vec3d(w.x, NewFx.groundY(w.x, w.z, c.y) + 3.2, w.z);
+		}
+
 		@Override
 		public boolean tick(ClientWorld world) {
 			int t = age;
 			prevGait = gait;
 			Vec3d d = Sabre.pos(t).subtract(Sabre.pos(t - 1));
 			gait += Math.hypot(d.x, d.z) / FossilPoses.CAT_SC;
-			double front = Sabre.front(t);
-			for (int i = 0; i < Sabre.POOLS; i++) {
-				double[] p = Sabre.pool(i);
-				if (Double.isNaN(poolY[i]) && Math.hypot(p[0], p[1]) + p[2] < front - 2 && t > 10) {
-					Vec3d pc = poolCentre(i);
-					poolY[i] = NewFx.groundY(pc.x, pc.z, c.y);
-				}
-			}
-			if (t <= Sabre.TAR_END) {
-				for (int i = 0; i < 3; i++) {
-					double a = world.random.nextDouble() * MathHelper.TAU;
-					double x = c.x + Math.cos(a) * front, z = c.z + Math.sin(a) * front;
-					FxEngine.play(VfxIds.TAR_FRONT, x, NewFx.groundY(x, z, c.y), z, 0, 1, 0, 1.0F, 0, t * 131L + i);
-				}
-			}
-			if (t % 3 == 0 && t < Sabre.END - 20) {
-				int i = world.random.nextInt(Sabre.POOLS);
-				if (!Double.isNaN(poolY[i])) {
-					double[] p = Sabre.pool(i);
-					double a = world.random.nextDouble() * MathHelper.TAU, r = Math.sqrt(world.random.nextDouble()) * p[2] * 0.8;
-					Vec3d q = poolCentre(i).add(Math.cos(a) * r, 0, Math.sin(a) * r);
-					FxEngine.play(VfxIds.TAR_BUBBLE, q.x, poolY[i] + 0.05, q.z, 0, 1, 0, 1.0F, 0, t * 53L);
-				}
-			}
-			boolean dripping = t > Sabre.EMERGE && t < Sabre.PROWL || t > Sabre.LAND && t < Sabre.SUNK;
-			if (dripping && t % 2 == 0) {
+			boolean alive = t > Sabre.EMERGE + 20 && t < Sabre.PETRIFY;
+			if (alive && t % 2 == 0) {
 				FossilPoses.Cat cat = pose(t, gait);
-				Seg s = cat.segs.get(world.random.nextInt(cat.segs.size()));
+				Seg s = cat.flesh.get(world.random.nextInt(cat.flesh.size()));
 				Vec3d p = c.add(s.a().lerp(s.b(), world.random.nextDouble()));
-				FxEngine.play(VfxIds.TAR_DRIP, p.x, p.y, p.z, 0, 1, 0, 1.0F, 0, t * 71L);
+				Vec3d v = FossilShapes.frame(h, d);
+				FxEngine.playMoving(VfxIds.SABRE_EMBERS, p.x, p.y, p.z, 0, 1, 0, 1.0F, 0, t * 71L, (float) v.x, (float) v.y, (float) v.z);
 			}
-			if (t > Sabre.EMERGE + 30 && t < Sabre.SUNK && t % 10 == 0) {
+			if (alive && t % 8 == 0) {
 				FossilPoses.Cat cat = pose(t, gait);
-				ClientFx.light(c.add(cat.eyes[0]), 0.45F, 0xFFA030);
+				ClientFx.light(c.add(cat.body), 0.55F, 0xFF6020);
+			}
+			if (t < Sabre.EMERGE && t % 10 == 0) {
+				ClientFx.light(watcher(), 0.3F, 0xFF5010);
+			}
+			if (t >= Sabre.GIANT && t < Sabre.BITE + 40 && t % 4 == 0) {
+				FossilPoses.Cat g = FossilPoses.giantSkull(t, h);
+				ClientFx.light(c.add(g.head), (float) (1.2 * Sabre.giant(t)), 0xFF5010);
+				Seg s = g.skull.get(world.random.nextInt(g.skull.size()));
+				Vec3d p = c.add(s.a().lerp(s.b(), world.random.nextDouble()));
+				FxEngine.play(VfxIds.SABRE_EMBERS, p.x, p.y, p.z, 0, 1, 0, 3.0F, 0, t * 13L);
 			}
 			return super.tick(world);
 		}
@@ -310,58 +365,96 @@ final class FossilFx2 {
 			float a = age + td;
 			Vec3d[] cb = FxDraw.cameraBasis(yaw, pitch);
 			VertexConsumer glow = consumers.getBuffer(FxRenderLayers.GLOW);
-			VertexConsumer shade = consumers.getBuffer(FxRenderLayers.SHADE);
-			float end = 1 - smooth((a - (Sabre.END - 30)) / 30.0);
-			// The pits: black, glossy, a sheen sliding over them, bubbles swelling and bursting.
-			for (int i = 0; i < Sabre.POOLS; i++) {
-				if (Double.isNaN(poolY[i])) {
+			Vec3d o = c.subtract(cam);
+			// The watcher: two eyes in the gloom, blinking, gone when it breaks out of the ground.
+			if (a < Sabre.EMERGE + 6) {
+				float in = smooth((a - 8) / 20.0) * (1 - smooth((a - Sabre.EMERGE + 6) / 10.0));
+				boolean blink = (a % 47) > 44;
+				if (in > 0.01F && !blink) {
+					Vec3d w = watcher().subtract(cam), side = FossilShapes.frame(h, 0, 0, 1);
+					for (int s = -1; s <= 1; s += 2) {
+						Vec3d e = w.add(side.multiply(s * 0.9));
+						FxKit.halo(consumers, m, cb, e, 1.4, 0xFF4010, 0.5F * in);
+						Solids.dot(glow, m, e, cb, 0.22, 0xFFE0A0, 0.95F * in);
+					}
+				}
+			}
+			// Claw swipes: three streaks of ember light raked along each cut, then cooling.
+			for (int k = 0; k < Sabre.N_RAKES; k++) {
+				float d = a - Sabre.rakeAt(k);
+				if (d < -2 || d > 40) {
 					continue;
 				}
-				double r = Sabre.pool(i)[2];
-				Vec3d pc = poolCentre(i);
-				Vec3d p = new Vec3d(pc.x, poolY[i] + 0.03, pc.z).subtract(cam);
-				FxDraw.disc(shade, m, p, X, Z, r * 0.98, 0x0C0906, 0.75F * end, 0.6F * end, 32);
-				FxDraw.ring(glow, m, p.add(0, 0.02, 0), X, Z, r * 0.55, r * 0.95, 0x8A7458, 0.0F, 0.07F * end, 0.0F, 32);
-				double sa = a * 0.01 + i * 1.3;
-				Vec3d sheen = p.add(Math.cos(sa) * r * 0.4, 0.04, Math.sin(sa) * r * 0.4);
-				FxDraw.disc(glow, m, sheen, X, Z.multiply(0.4), r * 0.35, 0xB09878, 0.08F * end, 0.0F, 16);
-				for (int k = 0; k < 3; k++) {
-					double period = 34 + 9 * Effects.hash(i, k + 5);
-					double ph = ((a + Effects.hash(i, k) * period) % period) / period;
-					double ang = Effects.hash(i * 3 + k, (int) ((a + Effects.hash(i, k) * period) / period)) * MathHelper.TAU;
-					double rr = Math.sqrt(Effects.hash(k, i + 9)) * r * 0.7;
-					double br = (0.4 + 0.8 * Effects.hash(i, k + 11)) * Math.sin(ph * Math.PI * 0.5) * (ph < 0.92 ? 1 : 0);
-					if (br > 0.05) {
-						Vec3d bp = p.add(Math.cos(ang) * rr, 0, Math.sin(ang) * rr);
-						FxDraw.sphere(shade, m, bp, br, Vec3d.ZERO, 0x1A1410, 0.85F * end, 0.9F * end, 6, 10);
-						Solids.dot(glow, m, bp.add(0, br * 0.7, 0).add(cb[0].multiply(-br * 0.3)), cb, br * 0.3, 0x9A8466, 0.3F * end);
+				double[] r = Sabre.rake(k);
+				Vec3d dir = FossilShapes.frame(h, Math.cos(r[2]), 0, Math.sin(r[2])), side = new Vec3d(-dir.z, 0, dir.x);
+				Vec3d start = c.add(FossilShapes.frame(h, r[0], 0, r[1]));
+				double sweep = r[3] * smooth((d + 2) / 5.0);
+				float cool = 1 - smooth(d / 40.0);
+				for (int cl = -1; cl <= 1; cl++) {
+					Vec3d prev = null;
+					for (double u = 0; u <= sweep; u += 1.5) {
+						double bend = Math.sin(u / r[3] * 2.2) * 1.2 * cl;
+						Vec3d p = start.add(dir.multiply(u)).add(side.multiply(cl * 2.6 + bend));
+						p = new Vec3d(p.x, NewFx.groundY(p.x, p.z, c.y) + 0.3, p.z).subtract(cam);
+						if (prev != null) {
+							float tip = (float) Math.min(1, (sweep - u) / 6.0 + 0.4);
+							FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 0.6, 0xFFB060, 0.8F * cool * tip, 0.8F * cool * tip);
+							FxDraw.ribbon(glow, m, prev, p, Vec3d.ZERO, 2.2, EMBER, 0.25F * cool, 0.25F * cool);
+						}
+						prev = p;
 					}
 				}
 			}
 			// The cat.
-			if (a >= Sabre.EMERGE - 2 && a < Sabre.SUNK) {
+			if (a >= Sabre.EMERGE - 2 && a < Sabre.PETRIFY + 1) {
 				double g = MathHelper.lerp(td, prevGait, gait);
 				FossilPoses.Cat cat = pose(a, g);
-				Vec3d o = c.subtract(cam);
 				VertexConsumer solid = consumers.getBuffer(FxRenderLayers.SOLID);
-				double gr = ground(a);
-				// Tar clings to whatever has been under: everything while it climbs out, rising up the legs as it sinks.
-				double tarLine = a < Sabre.PROWL + 40 ? 6 * (1 - smooth((a - Sabre.EMERGED) / 120.0)) + 1.2 : a >= Sabre.SINK ? 2.5 : 1.0;
+				double sc = FossilPoses.CAT_SC;
 				for (Seg s : cat.segs) {
-					double y = (s.a().y + s.b().y) * 0.5 - gr;
-					double tar = MathHelper.clamp((tarLine - y) / 2.5, 0.0, 0.92);
-					int col = s.fire() ? Solids.mix(IVORY, TAR, tar * 0.5) : Solids.mix(BONE, TAR, tar);
-					double sc = FossilPoses.CAT_SC;
-					Solids.tube(solid, m, o.add(s.a()), o.add(s.b()), s.ra() * sc, s.rb() * sc, 7, col, 1.0F, true);
+					Solids.tube(solid, m, o.add(s.a()), o.add(s.b()), s.ra() * sc, s.rb() * sc, 8, s.fire() ? IVORY : BONE, 1.0F, true);
 				}
-				float eye = smooth((a - Sabre.EMERGE - 20) / 30.0) * (1 - smooth((a - (Sabre.SUNK - 15)) / 15.0));
-				float hot = 1 + 0.6F * (float) Sabre.gape(a);
+				// The ghost of its flesh: soft, rim-lit, flickering like a banked fire, burning off at the end.
+				float flesh = smooth((a - Sabre.EMERGED + 40) / 50.0) * (1 - smooth((a - (Sabre.PETRIFY - 25)) / 25.0));
+				if (flesh > 0.01F) {
+					float fl = 0.85F + 0.15F * MathHelper.sin(a * 0.37F) * MathHelper.sin(a * 0.13F + 1);
+					for (Seg s : cat.flesh) {
+						Vec3d A = o.add(s.a()), B = o.add(s.b());
+						double len = A.distanceTo(B), ra = s.ra() * sc, rb = s.rb() * sc;
+						int n = Math.max(1, (int) Math.ceil(len / (Math.min(ra, rb) * 0.9)));
+						for (int i = 0; i <= n; i++) {
+							double u = i / (double) n;
+							FxDraw.sphere(glow, m, A.lerp(B, u), MathHelper.lerp(u, ra, rb), Vec3d.ZERO, EMBER, 0.025F * flesh * fl, 0.16F * flesh * fl, 8, 12);
+						}
+					}
+				}
+				float eye = smooth((a - Sabre.EMERGE - 20) / 30.0) * (1 - smooth((a - Sabre.PETRIFY) / 4.0));
+				float hot = 1 + 0.8F * (float) Sabre.gape(a);
 				for (Vec3d e : cat.eyes) {
 					Vec3d q = o.add(e);
 					float fl = 0.8F + 0.2F * MathHelper.sin(a * 0.7F + (float) e.z);
-					FxKit.halo(consumers, m, cb, q, 2.2 * fl * hot, 0xFF9010, 0.5F * eye);
-					Solids.flare(glow, m, q, cb, 0.9 * hot, 0xFFE0A0, 0.85F * eye);
+					FxKit.halo(consumers, m, cb, q, 2.4 * fl * hot, 0xFF6010, 0.55F * eye);
+					Solids.flare(glow, m, q, cb, 1.0 * hot, 0xFFE0A0, 0.9F * eye);
 				}
+			}
+			// The ghost skull: a colossal skull of ember light, jaws gaping, lunging down to bite.
+			float gs = (float) Sabre.giant(a);
+			if (gs > 0.01F) {
+				FossilPoses.Cat g = FossilPoses.giantSkull(a, h);
+				double sc = FossilPoses.CAT_SC;
+				float fl = 0.85F + 0.15F * MathHelper.sin(a * 0.5F);
+				for (Seg s : g.skull) {
+					Vec3d A = o.add(s.a()), B = o.add(s.b());
+					Solids.tube(glow, m, A, B, s.ra() * sc, s.rb() * sc, 10, s.fire() ? 0xFFC080 : EMBER, 0.09F * gs * fl, false);
+					FxDraw.ribbon(glow, m, A, B, Vec3d.ZERO, Math.max(0.6, (s.ra() + s.rb()) * sc * 0.25), s.fire() ? 0xFFE8C0 : 0xFF9040, 0.35F * gs * fl,
+							0.35F * gs * fl);
+				}
+				for (Vec3d e : g.eyes) {
+					Vec3d q = o.add(e);
+					FxKit.halo(consumers, m, cb, q, 12 * fl, 0xFF3010, 0.6F * gs);
+					Solids.flare(glow, m, q, cb, 5, 0xFFE0A0, 0.9F * gs);
+				}
+				FxKit.halo(consumers, m, cb, o.add(g.head), 40, 0xFF4010, 0.12F * gs);
 			}
 		}
 	}

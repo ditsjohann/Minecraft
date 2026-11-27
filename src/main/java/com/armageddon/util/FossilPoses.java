@@ -45,9 +45,13 @@ public final class FossilPoses {
 		public final List<Seg> segs = new ArrayList<>();
 		public final Vec3d[] eyes = new Vec3d[2];
 		public final Vec3d[] sabres = new Vec3d[2];
-		public Vec3d mouth, body, f;
-		/** Paws, for footfalls and tar splashes. */
+		public Vec3d mouth, body, f, head;
+		/** Paws, for footfalls. */
 		public final Vec3d[] paws = new Vec3d[4];
+		/** The skull's bones alone (for the ghost skull and the fossil left behind). */
+		public final List<Seg> skull = new ArrayList<>();
+		/** Capsules of the ghost of its flesh: torso, neck, head, legs, tail (radii in body units). */
+		public final List<Seg> flesh = new ArrayList<>();
 	}
 
 	public static final double CAT_SC = 1.55;
@@ -63,27 +67,29 @@ public final class FossilPoses {
 		Vec3d base = floor.add(0, local.y, 0);
 		Vec3d fh = FossilShapes.frame(h, Sabre.facing(t)).normalize();
 		Vec3d r = rightOf(fh);
-		// Pitch: up as it climbs out and on the way up a leap, nose down on the way down and as it sinks.
+		// Pitch: up as it claws its way out and on the way up a leap, nose down on the way down; reared up to roar at the end.
 		double pitch = 0;
 		if (t < Sabre.EMERGED) {
 			pitch = 0.55 * (1 - FossilShapes.smooth((t - Sabre.EMERGE) / (double) (Sabre.EMERGED - Sabre.EMERGE)));
 		} else if (Sabre.leaping(t)) {
 			double vy = Sabre.pos(t + 1).y - Sabre.pos(t - 1).y;
 			pitch = MathHelper.clamp(vy * 0.35, -0.5, 0.5);
-		} else if (t >= Sabre.SINK) {
-			pitch = 0.12;
+		} else if (t >= Sabre.PETRIFY - 20) {
+			pitch = 0.22 * FossilShapes.smooth((t - (Sabre.PETRIFY - 20)) / 14.0);
 		}
 		Vec3d f = rotate(fh, r, pitch);
 		Vec3d u = r.crossProduct(f).normalize();
-		Frame b = new Frame(base, f, u, r, CAT_SC);
+		// Pitched about the middle of its body, not its feet, so it does not lurch as it tips.
+		double mid0 = 6.2 * CAT_SC;
+		Frame b = new Frame(base.add(0, mid0, 0).subtract(u.multiply(mid0)), f, u, r, CAT_SC);
 		p.body = b.at(0, 6.2, 0);
 		p.f = fh;
 		boolean crouch = Sabre.crouching(t);
 		boolean air = Sabre.leaping(t);
-		// The head: low while prowling, up to roar, thrown up as it sinks.
+		// The head: low while prowling, up to roar.
 		double g = Sabre.gape(t);
-		double headUp = t >= Sabre.SINK ? 3.6 * FossilShapes.smooth((t - Sabre.SINK) / 40.0) : crouch ? -1.0 : -0.6 + 1.6 * g;
-		double headPitch = t >= Sabre.SINK ? 0.55 : -0.15 + 0.4 * g + (crouch ? -0.15 : 0);
+		double headUp = crouch ? -1.0 : -0.6 + 1.8 * g;
+		double headPitch = -0.15 + 0.45 * g + (crouch ? -0.15 : 0);
 		// Spine, slightly arched, and a short bobbed tail.
 		Vec3d hip = b.at(-4.2, 6.0, 0), mid = b.at(-0.6, 6.7, 0), shoulder = b.at(3.4, 6.5, 0);
 		p.segs.add(new Seg(hip, mid, 0.55, 0.6, false));
@@ -125,9 +131,6 @@ public final class FossilPoses {
 					// Climbing out: forepaws reaching and clawing at the rim.
 					double claw = Math.sin(t * 0.18 + s) * 1.2;
 					foot = isFront ? b.at(hx + 2.6 + claw, 1.2 + Math.max(0, claw), s * 1.5) : b.at(hx - 0.6, 0.2, s * 1.4);
-				} else if (t >= Sabre.SINK) {
-					// Going under: legs folded beneath it, sinking with it.
-					foot = b.at(hx + (isFront ? 1.2 : -0.8), 0.6, s * 1.5);
 				} else {
 					// Feet on the real ground, even while the body is crouched low or still dipped from a landing.
 					double swing = -Math.cos(ph) * stride, lift = Math.max(0, Math.sin(ph)) * 0.9;
@@ -139,6 +142,8 @@ public final class FossilPoses {
 				Vec3d paw = foot.add(fh.multiply(0.9 * CAT_SC));
 				p.segs.add(new Seg(top, knee, isFront ? 0.5 : 0.55, 0.4, false));
 				p.segs.add(new Seg(knee, foot, 0.4, 0.32, false));
+				p.flesh.add(new Seg(top, knee, 1.3, 0.8, false));
+				p.flesh.add(new Seg(knee, foot, 0.75, 0.5, false));
 				p.segs.add(new Seg(foot, paw, 0.36, 0.26, false));
 				for (int c = -1; c <= 1; c++) {
 					p.segs.add(new Seg(paw, paw.add(fh.multiply(0.5 * CAT_SC)).add(r.multiply(c * 0.25 * CAT_SC)).add(0, -0.25 * CAT_SC, 0), 0.12, 0.04, false));
@@ -151,32 +156,84 @@ public final class FossilPoses {
 		p.segs.add(new Seg(shoulder, neck, 0.6, 0.55, false));
 		p.segs.add(new Seg(neck, head, 0.55, 0.5, false));
 		Vec3d hf = rotate(f, r, headPitch), hu = r.crossProduct(hf).normalize();
-		Frame k = new Frame(head, hf, hu, r, CAT_SC);
-		// Cranium, short muzzle, cheekbones, the sagittal crest.
-		p.segs.add(new Seg(k.at(-0.8, 0.2, 0), k.at(1.6, 0.3, 0), 1.15, 0.95, false));
-		p.segs.add(new Seg(k.at(1.4, 0.1, 0), k.at(3.0, -0.3, 0), 0.85, 0.6, false));
-		p.segs.add(new Seg(k.at(-0.9, 0.9, 0), k.at(1.0, 1.2, 0), 0.25, 0.15, false));
+		skull(p, head, hf, hu, r, CAT_SC, 1.0, g);
+		p.segs.addAll(p.skull);
+		// The ghost of its flesh: a deep chest, a lean waist, heavy shoulders, a thick neck, the legs.
+		p.flesh.add(new Seg(b.at(-3.8, 5.8, 0), b.at(-1.0, 5.4, 0), 2.0, 2.3, false));
+		p.flesh.add(new Seg(b.at(-1.0, 5.4, 0), b.at(3.2, 5.6, 0), 2.3, 2.6, false));
+		p.flesh.add(new Seg(shoulder, neck, 2.0, 1.6, false));
+		p.flesh.add(new Seg(neck, head.add(hf.multiply(0.6 * CAT_SC)), 1.6, 1.5, false));
+		p.flesh.add(new Seg(hip, t2, 0.8, 0.4, false));
+		return p;
+	}
+
+	/**
+	 * A sabre-tooth's skull at {@code head} facing {@code hf} (up {@code hu}, right {@code r}), {@code sc} blocks to a
+	 * unit, its radii multiplied by {@code thick}, jaws open {@code gape}: a long low cranium with a high crest, flared
+	 * cheekbones, deep sockets, a short heavy muzzle, the two long flat sabres and a lower jaw that drops very wide.
+	 * Adds the bones to {@code p.skull} and fills in its eyes, sabres and mouth.
+	 */
+	static void skull(Cat p, Vec3d head, Vec3d hf, Vec3d hu, Vec3d r, double sc, double thick, double gape) {
+		Frame k = new Frame(head, hf, hu, r, sc);
+		List<Seg> o = p.skull;
+		double w = thick;
+		p.head = head;
+		// Cranium: a low dome tapering back to the crest; the crest itself.
+		o.add(new Seg(k.at(-1.2, 0.3, 0), k.at(0.6, 0.55, 0), 0.85 * w, 1.15 * w, false));
+		o.add(new Seg(k.at(0.6, 0.55, 0), k.at(1.7, 0.35, 0), 1.15 * w, 0.95 * w, false));
+		o.add(new Seg(k.at(-1.5, 1.0, 0), k.at(1.0, 1.45, 0), 0.22 * w, 0.14 * w, false));
+		// Muzzle: short and deep, the nose bridge over it.
+		o.add(new Seg(k.at(1.6, 0.1, 0), k.at(3.1, -0.35, 0), 0.9 * w, 0.62 * w, false));
+		o.add(new Seg(k.at(1.4, 0.75, 0), k.at(3.0, 0.15, 0), 0.32 * w, 0.22 * w, false));
 		for (int s = -1; s <= 1; s += 2) {
-			p.segs.add(new Seg(k.at(0.2, -0.2, s * 0.95), k.at(1.9, -0.4, s * 0.7), 0.3, 0.25, false));
+			// Cheekbones flaring wide, and the ring of each socket.
+			o.add(new Seg(k.at(-0.3, -0.25, s * 1.0), k.at(1.5, -0.2, s * 1.25), 0.3 * w, 0.32 * w, false));
+			o.add(new Seg(k.at(1.5, -0.2, s * 1.25), k.at(2.0, 0.35, s * 0.85), 0.3 * w, 0.22 * w, false));
+			o.add(new Seg(k.at(2.0, 0.35, s * 0.85), k.at(1.5, 0.9, s * 0.55), 0.2 * w, 0.2 * w, false));
+			// The back of the skull flaring to the jaw joint.
+			o.add(new Seg(k.at(-1.2, 0.2, 0), k.at(-0.6, -0.6, s * 0.95), 0.35 * w, 0.3 * w, false));
 		}
-		// The sabres: long, flat, curving down and back from the upper jaw.
+		// The sabres: long, flat, curving down and a little back; a row of small incisors between them.
 		for (int s = 0; s < 2; s++) {
 			double side = s * 2 - 1;
-			Vec3d root = k.at(2.3, -0.6, side * 0.45), m1 = k.at(2.45, -2.0, side * 0.5), tip = k.at(2.0, -3.5, side * 0.45);
-			p.segs.add(new Seg(root, m1, 0.34, 0.27, true));
-			p.segs.add(new Seg(m1, tip, 0.27, 0.05, true));
+			Vec3d root = k.at(2.55, -0.55, side * 0.5), m1 = k.at(2.75, -2.2, side * 0.55), m2 = k.at(2.55, -3.5, side * 0.52), tip = k.at(2.1, -4.4, side * 0.48);
+			o.add(new Seg(root, m1, 0.36 * w, 0.3 * w, true));
+			o.add(new Seg(m1, m2, 0.3 * w, 0.2 * w, true));
+			o.add(new Seg(m2, tip, 0.2 * w, 0.04 * w, true));
 			p.sabres[s] = tip;
-			p.eyes[s] = k.at(1.5, 0.45, side * 0.72);
+			p.eyes[s] = k.at(1.55, 0.45, side * 0.78);
 		}
-		// The lower jaw hinges open wide (sabre cats gaped far).
-		Vec3d hinge = k.at(0.2, -0.8, 0);
-		Vec3d jaw = rotate(hf, r, -0.2 - 1.25 * g);
-		Vec3d jawEnd = hinge.add(jaw.multiply(2.9 * CAT_SC));
+		for (int i = -1; i <= 1; i++) {
+			o.add(new Seg(k.at(3.05, -0.55, i * 0.22), k.at(3.15, -1.0, i * 0.22), 0.1 * w, 0.05 * w, true));
+		}
+		// The lower jaw: hinged at the back, dropping very wide, with a tall coronoid hook and a broad chin.
+		Vec3d hinge = k.at(-0.4, -0.8, 0);
+		Vec3d jaw = rotate(hf, r, -0.15 - 1.35 * gape), ju = r.crossProduct(jaw).normalize();
+		Frame j = new Frame(hinge, jaw, ju, r, sc);
 		for (int s = -1; s <= 1; s += 2) {
-			p.segs.add(new Seg(hinge.add(r.multiply(s * 0.7 * CAT_SC)), jawEnd.add(r.multiply(s * 0.3 * CAT_SC)), 0.3, 0.22, false));
+			o.add(new Seg(j.at(0, 0, s * 0.85), j.at(3.0, -0.15, s * 0.42), 0.33 * w, 0.26 * w, false));
+			o.add(new Seg(j.at(0.5, 0, s * 0.8), j.at(0.9, 0.9, s * 0.75), 0.18 * w, 0.1 * w, false));
 		}
-		p.segs.add(new Seg(jawEnd.add(r.multiply(-0.35 * CAT_SC)), jawEnd.add(r.multiply(0.35 * CAT_SC)), 0.25, 0.25, false));
-		p.mouth = hinge.lerp(k.at(2.6, -0.8, 0), 0.6);
+		o.add(new Seg(j.at(3.0, -0.15, -0.42), j.at(3.0, -0.15, 0.42), 0.3 * w, 0.3 * w, false));
+		o.add(new Seg(j.at(3.0, -0.15, 0), j.at(3.2, -0.6, 0), 0.32 * w, 0.2 * w, false));
+		p.mouth = hinge.lerp(k.at(2.8, -0.9, 0), 0.6);
+	}
+
+	/**
+	 * The colossal ghost of its skull at tick {@code t}: rising over the cat with its jaws open wide, then lunging
+	 * forward and down as they slam shut on the land. Relative to the bomb's ground.
+	 */
+	public static Cat giantSkull(double t, Vec3d h) {
+		Cat p = new Cat();
+		double lunge = FossilShapes.smooth((t - (Sabre.BITE - 8)) / 8.0);
+		double rise = FossilShapes.smooth((t - Sabre.GIANT) / 40.0);
+		Vec3d at = FossilShapes.frame(h, MathHelper.lerp(lunge, -Sabre.GIANT_BACK, 8), MathHelper.lerp(lunge, Sabre.GIANT_UP + 6 * rise - 6, 16), 0);
+		double pitch = MathHelper.lerp(lunge, 0.3 + 0.1 * Math.sin(t * 0.08), -0.45);
+		Vec3d r = rightOf(h);
+		Vec3d hf = rotate(h, r, pitch), hu = r.crossProduct(hf).normalize();
+		skull(p, at, hf, hu, r, CAT_SC * Sabre.GIANT_SCALE, Sabre.GIANT_SCALE, Sabre.giantGape(t));
+		p.segs.addAll(p.skull);
+		p.f = hf;
 		return p;
 	}
 
@@ -213,32 +270,45 @@ public final class FossilPoses {
 		public final List<Vec3d[]> wings = new ArrayList<>();
 		public final Vec3d[] eyes = new Vec3d[2];
 		public Vec3d body, f, u, r, tail;
+		/** Its scale: bone radii are multiplied by this when drawn. */
+		public double sc = FLY_SC;
 	}
 
 	public static final double FLY_SC = 1.0;
 
 	/** The dragonfly at tick {@code t}; {@code still} holds it in its resting pose (sealed in amber). */
 	public static Fly fly(double t, Vec3d h, boolean still) {
+		return fly(t, h, still, -1);
+	}
+
+	/**
+	 * The dragonfly at tick {@code t}, or brood dragonfly {@code brood} (0 and up; -1 for the big one), which is
+	 * smaller and follows the big one's path.
+	 */
+	public static Fly fly(double t, Vec3d h, boolean still, int brood) {
 		Fly p = new Fly();
-		Vec3d pos = FossilShapes.frame(h, Amber.pos(t));
+		final double sc = brood < 0 ? FLY_SC : 0.42;
+		p.sc = sc;
+		java.util.function.DoubleFunction<Vec3d> path = brood < 0 ? Amber::pos : tt -> Amber.brood(brood, tt);
+		Vec3d pos = FossilShapes.frame(h, path.apply(t));
 		Vec3d f = h;
 		double roll = 0, pitch = 0;
 		if (!still && t > Amber.SHATTER) {
-			Vec3d vel = FossilShapes.frame(h, Amber.pos(t + 0.5).subtract(Amber.pos(t - 0.5)));
+			Vec3d vel = FossilShapes.frame(h, path.apply(t + 0.5).subtract(path.apply(t - 0.5)));
 			if (vel.lengthSquared() > 1.0E-3) {
 				f = vel.normalize();
 				Vec3d flat = new Vec3d(f.x, 0, f.z);
 				pitch = Math.asin(MathHelper.clamp(f.y, -0.8, 0.8));
 				f = flat.lengthSquared() > 1.0E-4 ? flat.normalize() : h;
 			}
-			Vec3d acc = FossilShapes.frame(h, Amber.pos(t + 1).subtract(Amber.pos(t).multiply(2)).add(Amber.pos(t - 1)));
+			Vec3d acc = FossilShapes.frame(h, path.apply(t + 1).subtract(path.apply(t).multiply(2)).add(path.apply(t - 1)));
 			roll = MathHelper.clamp(acc.dotProduct(rightOf(f)) * 4, -0.8, 0.8);
 		}
 		Vec3d r = rightOf(f);
 		Vec3d fp = rotate(f, r, pitch);
 		Vec3d u = r.crossProduct(fp).normalize();
 		Vec3d r2 = rotate(r, fp, roll), u2 = rotate(u, fp, roll);
-		Frame b = new Frame(pos, fp, u2, r2, FLY_SC);
+		Frame b = new Frame(pos, fp, u2, r2, sc);
 		p.body = pos;
 		p.f = fp;
 		p.u = u2;
@@ -262,7 +332,7 @@ public final class FossilPoses {
 		p.tail = prev;
 		// Claspers at the tip.
 		for (int s = -1; s <= 1; s += 2) {
-			p.segs.add(new Seg(prev, prev.add(fp.multiply(-0.9)).add(r2.multiply(s * 0.3)), 0.15, 0.05, false));
+			p.segs.add(new Seg(prev, prev.add(fp.multiply(-0.9 * sc)).add(r2.multiply(s * 0.3 * sc)), 0.15, 0.05, false));
 		}
 		// Six legs, held basket-wise under the thorax.
 		for (int i = 0; i < 3; i++) {
@@ -282,8 +352,8 @@ public final class FossilPoses {
 			for (int s = -1; s <= 1; s += 2) {
 				Vec3d root = b.at(rootX, 0.9, s * 0.6);
 				Vec3d span = r2.multiply(s * Math.cos(flap)).add(u2.multiply(Math.sin(flap))).add(fp.multiply(sweep)).normalize();
-				Vec3d tip = root.add(span.multiply(len * FLY_SC));
-				Vec3d back = fp.multiply(-chord * FLY_SC);
+				Vec3d tip = root.add(span.multiply(len * sc));
+				Vec3d back = fp.multiply(-chord * sc);
 				p.wings.add(new Vec3d[]{root, tip, tip.add(back.multiply(0.45)).subtract(span.multiply(0.6)), root.add(back)});
 				p.segs.add(new Seg(root, tip, 0.12, 0.05, false));
 			}

@@ -6,8 +6,8 @@ railguns, plasma weapons, power armour and more. Every weapon has a hand-built 3
 dedicated visual effects: custom particles, energy beams, shockwaves, screen shake and a
 full-screen post-processing shader.
 
-> **Full list of every item, bomb and event:** [docs/CONTENT.md](docs/CONTENT.md) (229 items and blocks, 94 bombs,
-> 116 scripted events).
+> **Full list of every item, bomb and event:** [docs/CONTENT.md](docs/CONTENT.md) (234 items and blocks, 99 bombs,
+> 121 scripted events).
 > **Continuing development (new account or new session):** start with [docs/HANDOFF.md](docs/HANDOFF.md). The newest
 > code is on the branch `claude/cool-ramanujan-da0d9h`.
 
@@ -57,9 +57,9 @@ deadly it is.
 | Fun | harmless or temporary | Disco Ball, Balloon, Party Popper, Chinese Lantern |
 | Uncommon | under 5 blocks | Frag, Incendiary, Gravity Grenade, Flamethrower |
 | Rare | 5 to 12 blocks, gadgets | Thermobaric, Thermite, Sinkhole, Pocket Nuke, Rocket Launcher, Plasma Rifle |
-| Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun |
-| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil, Amber Fossil |
-| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil, Sabre-Tooth Fossil, Ammonite Fossil |
+| Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun, Plasmoid Swarm |
+| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil, Amber Fossil, Fusion Geyser |
+| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil, Sabre-Tooth Fossil, Ammonite Fossil, Solar Arch, Z-Pinch, Magnetic Bottle |
 | Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit, Terror Maniac, Pumpkin Horseman, Portal of Hell |
 | City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence, AI Takeover |
 | World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami, Xenoform |
@@ -119,20 +119,22 @@ up and the whole sea gathers into one great curling wave that rolls out and leav
 burst out of the ground and assemble mid-air into a pterosaur thirty blocks across that flies, screeches, dive-bombs
 the land three times, then lands on a spire of bone and turns to stone, its fossil left perched there.
 
-And three more. AMBER FOSSIL (legendary): a drop of amber the size of a house wells up with a giant dragonfly caught
-inside it. Resin floods the land, glazing it with honey and turning the trees to amber glass; the amber cracks with light
-and shatters, and the dragonfly comes alive, circling with a swarm of glowing insects and strafing the land three times.
-Then resin wells up round it again: it is left sealed in a drop of amber on a stalk over the bomb, and everything caught in
-the resin is encased with it. SABRE-TOOTH FOSSIL (mythic): the land goes black and soft and opens into bubbling tar pits.
-A sabre-toothed cat's skeleton as big as a house claws its way out of the biggest one dripping tar, roars, prowls round the
-pits and pounces three times; then it leaps into the middle and sinks back into the tar, leaving its skull and sabres
-standing out of it. AMMONITE FOSSIL (mythic): a coiled shell taller than a house grows out of the ground chamber by
-chamber, its sutures lighting in pearl, and the ghost of the animal reaches out of it. A spiral of light then unwinds
-across the land, three turns out to seventy blocks, and presses the whole countryside into the ridged, ribbed imprint of
-a giant ammonite, turned to stone, with the shell standing at its heart.
+And three more. AMBER FOSSIL (legendary): the sky turns amber and a drop of amber the size of a house wells up with a
+giant dragonfly caught inside it. Resin floods the land, glazing it with honey and turning the trees to amber glass; light
+pours out through its cracks until it bursts, spearing shards of amber into the ground all round. The dragonfly and a brood
+of smaller ones fly free with a swarm of glowing insects and strafe the land three times, cutting swaths through the
+trees; then resin wells up round it again, sealing it in a drop of amber on a stalk, and an amber tide floods the land four
+blocks deep, setting everything in it. SABRE-TOOTH FOSSIL (mythic): a hunt at dusk. The light goes red, eyes burn in the
+gloom and something unseen rakes glowing claw marks across the land; then a sabre-toothed cat's skeleton as big as a house
+claws its way out of the ground wrapped in a ghost of ember flesh, roars, prowls and pounces three times, raking the ground
+where it lands. It leaps to the middle and a colossal ghost of its skull rises over it, jaws gaping, and bites: its sabres
+tear two great trenches into the land, and the cat turns to stone mid-roar. AMMONITE FOSSIL (mythic): a coiled shell
+taller than a house grows out of the ground chamber by chamber, its sutures lighting in pearl, and the ghost of the animal
+reaches out of it. A spiral of light then unwinds across the land, three turns out to seventy blocks, and presses the whole
+countryside into the ridged, ribbed imprint of a giant ammonite, turned to stone, with the shell standing at its heart.
 
 The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern and
-the Mammoth, Leviathan, Pterosaur, Amber, Sabre-Tooth and Ammonite fossils, Xenoform, Terror Maniac, Pumpkin Horseman, Portal of Hell and AI Takeover) sit
+the Mammoth, Leviathan, Pterosaur, Amber, Sabre-Tooth and Ammonite fossils, the five plasma bombs, Xenoform, Terror Maniac, Pumpkin Horseman, Portal of Hell and AI Takeover) sit
 in their own creative tab, "Armageddon: New", for now.
 
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-6]`, to build a city to destroy:
@@ -207,6 +209,17 @@ edge of the harvest facing you, glitching a step closer now and then, and an eye
 light races in along the grid to the monolith, a ring-shaped ship hundreds of blocks across comes down out of the sky,
 the monolith's beam locks on to it, the Watchers dissolve up into it, and it leaves in a streak of light that throws a
 shockwave across the sky. No cutscene: you watch it all yourself.
+
+**Plasma bombs** - five ways plasma behaves, built almost entirely from the particle engine (with three new engine
+forces: a twisting flux rope, a magnetic dipole and a Z-pinch). PLASMOID SWARM (epic): a crackling core spits out ball
+lightning that hops and wanders out over the land, arcing to whatever it passes, and bursts where it ends up. SOLAR ARCH
+(mythic): two footpoints burst open and a twisted rope of plasma arches between them like a loop on the sun, climbing and
+winding tighter until it snaps and erupts forward, scorching a seventy-block wedge of land. FUSION GEYSER (legendary): a
+geyser of cyan plasma eighty blocks high with a rolling mushroom cap, raining back down in burning drops. Z-PINCH
+(mythic): a column of blue-white plasma is crushed by magnetic rings until it breaks into beads that fly off and burst,
+then collapses into a fusion flash and a shockwave that strips the land flat. MAGNETIC BOTTLE (mythic): a little magenta
+sun caged in glowing field lines sinks toward the ground until the cage fails: jets burst from its poles, one drilling a
+shaft into the earth, and a ring of plasma slices through everything at waist height for sixty blocks around.
 
 **Oddities (Legendary and Mythic)** — Sonar (green echo vision; every echo heaves the ground, then the converged
 boom shakes the land around it to pieces), 8-Bit (the world goes low-res on screen and in the blocks, then GAME OVER),
