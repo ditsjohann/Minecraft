@@ -87,7 +87,7 @@ public final class PlasmaEvents {
 		}
 	}
 
-	static boolean ground(BlockState g) {
+	static boolean isGround(BlockState g) {
 		return FossilEvents2.earth(g);
 	}
 
@@ -116,7 +116,7 @@ public final class PlasmaEvents {
 			for (int k = 0; k < Plasmoid.N; k++) {
 				if (t == Plasmoid.launch(k)) {
 					Kit.sound(world, core, SoundEvents.ENTITY_BLAZE_SHOOT, 48.0F, 1.6F);
-					Kit.sound(world, core, SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE, 32.0F, 1.8F);
+					Kit.sound(world, core, SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE.value(), 32.0F, 1.8F);
 				}
 				Vec3d p = orb(k, t);
 				if (p == null) {
@@ -305,7 +305,7 @@ public final class PlasmaEvents {
 				c.set(surf, (c.noise(81) < 0.6 ? Blocks.ORANGE_STAINED_GLASS : Blocks.GLASS).getDefaultState());
 				return;
 			}
-			if (!ground(g)) {
+			if (!isGround(g)) {
 				return;
 			}
 			double n = c.noise(83);
@@ -413,7 +413,7 @@ public final class PlasmaEvents {
 				q().add(top, Blocks.AIR.getDefaultState(), BlockQueue.ANY);
 				return;
 			}
-			if (!ground(s)) {
+			if (!isGround(s)) {
 				return;
 			}
 			double n = PlasmaShapes.hash(i, 34);
@@ -474,7 +474,7 @@ public final class PlasmaEvents {
 					Vec3d d = to.subtract(from);
 					Vfx.play(world, VfxIds.PINCH_BEAD, from, d.normalize(), (float) (d.length() / Pinch.BEAD_FLIGHT), 0);
 					Kit.sound(world, from, SoundEvents.ENTITY_BLAZE_SHOOT, 96.0F, 1.2F);
-					Kit.sound(world, from, SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE, 64.0F, 1.4F);
+					Kit.sound(world, from, SoundEvents.BLOCK_RESPAWN_ANCHOR_DEPLETE.value(), 64.0F, 1.4F);
 				}
 				if (t == b + Pinch.BEAD_FLIGHT) {
 					Vec3d to = ground(base.x + Pinch.beadTo(k).x, base.z + Pinch.beadTo(k).z);
@@ -665,7 +665,7 @@ public final class PlasmaEvents {
 		private void slice(TerrainJob.Column c) {
 			int surf = FossilEvents2.groundY(c);
 			int by = MathHelper.floor(base.y) - 1;
-			if (surf > by + 4 && !ground(c.get(surf))) {
+			if (surf > by + 4 && !isGround(c.get(surf))) {
 				surf = by;
 			}
 			int top = c.top();
