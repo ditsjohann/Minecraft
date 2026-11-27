@@ -139,6 +139,9 @@ public final class Events {
 		EVENTS.put("mammoth_fossil", com.armageddon.event.events.FossilEvents.MammothFossil::new);
 		EVENTS.put("leviathan_fossil", com.armageddon.event.events.FossilEvents.LeviathanFossil::new);
 		EVENTS.put("pterosaur_fossil", com.armageddon.event.events.FossilEvents.PterosaurFossil::new);
+		EVENTS.put("amber_fossil", com.armageddon.event.events.FossilEvents2.AmberFossil::new);
+		EVENTS.put("sabre_fossil", com.armageddon.event.events.FossilEvents2.SabreFossil::new);
+		EVENTS.put("ammonite_fossil", com.armageddon.event.events.FossilEvents2.AmmoniteFossil::new);
 		EVENTS.put("xenoform", com.armageddon.event.events.XenoEvents.Xenoform::new);
 		EVENTS.put("terror_maniac", com.armageddon.event.events.HorrorEvents.TerrorManiac::new);
 		EVENTS.put("pumpkin_horseman", com.armageddon.event.events.HorrorEvents.PumpkinHorseman::new);

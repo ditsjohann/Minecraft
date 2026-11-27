@@ -154,6 +154,9 @@ public final class ModBlocks {
 	public static final BombBlock MAMMOTH_FOSSIL = tiered(bomb("mammoth_fossil", BombType.MAMMOTH_FOSSIL, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock LEVIATHAN_FOSSIL = tiered(bomb("leviathan_fossil", BombType.LEVIATHAN_FOSSIL, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock PTEROSAUR_FOSSIL = tiered(bomb("pterosaur_fossil", BombType.PTEROSAUR_FOSSIL, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock AMBER_FOSSIL = tiered(bomb("amber_fossil", BombType.AMBER_FOSSIL, Rarity.EPIC), Tier.LEGENDARY);
+	public static final BombBlock SABRE_FOSSIL = tiered(bomb("sabre_fossil", BombType.SABRE_FOSSIL, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock AMMONITE_FOSSIL = tiered(bomb("ammonite_fossil", BombType.AMMONITE_FOSSIL, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock XENOFORM = tiered(bomb("xenoform", BombType.XENOFORM, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock TERROR_MANIAC = tiered(bomb("terror_maniac", BombType.TERROR_MANIAC, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock PUMPKIN_HORSEMAN = tiered(bomb("pumpkin_horseman", BombType.PUMPKIN_HORSEMAN, Rarity.EPIC), Tier.CELESTIAL);

@@ -91,6 +91,7 @@ final class ThrowVfx {
 		WonderVfx.register();
 		RedoVfx.register();
 		FossilVfx.register();
+		FossilVfx2.register();
 		XenoVfx.register();
 		HorrorVfx.register();
 		AiVfx.register();

@@ -6,8 +6,8 @@ railguns, plasma weapons, power armour and more. Every weapon has a hand-built 3
 dedicated visual effects: custom particles, energy beams, shockwaves, screen shake and a
 full-screen post-processing shader.
 
-> **Full list of every item, bomb and event:** [docs/CONTENT.md](docs/CONTENT.md) (226 items and blocks, 91 bombs,
-> 113 scripted events).
+> **Full list of every item, bomb and event:** [docs/CONTENT.md](docs/CONTENT.md) (229 items and blocks, 94 bombs,
+> 116 scripted events).
 > **Continuing development (new account or new session):** start with [docs/HANDOFF.md](docs/HANDOFF.md). The newest
 > code is on the branch `claude/cool-ramanujan-da0d9h`.
 
@@ -58,8 +58,8 @@ deadly it is.
 | Uncommon | under 5 blocks | Frag, Incendiary, Gravity Grenade, Flamethrower |
 | Rare | 5 to 12 blocks, gadgets | Thermobaric, Thermite, Sinkhole, Pocket Nuke, Rocket Launcher, Plasma Rifle |
 | Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun |
-| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil |
-| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil |
+| Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil, Amber Fossil |
+| Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil, Sabre-Tooth Fossil, Ammonite Fossil |
 | Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit, Terror Maniac, Pumpkin Horseman, Portal of Hell |
 | City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence, AI Takeover |
 | World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami, Xenoform |
@@ -119,8 +119,20 @@ up and the whole sea gathers into one great curling wave that rolls out and leav
 burst out of the ground and assemble mid-air into a pterosaur thirty blocks across that flies, screeches, dive-bombs
 the land three times, then lands on a spire of bone and turns to stone, its fossil left perched there.
 
+And three more. AMBER FOSSIL (legendary): a drop of amber the size of a house wells up with a giant dragonfly caught
+inside it. Resin floods the land, glazing it with honey and turning the trees to amber glass; the amber cracks with light
+and shatters, and the dragonfly comes alive, circling with a swarm of glowing insects and strafing the land three times.
+Then resin wells up round it again: it is left sealed in a drop of amber on a stalk over the bomb, and everything caught in
+the resin is encased with it. SABRE-TOOTH FOSSIL (mythic): the land goes black and soft and opens into bubbling tar pits.
+A sabre-toothed cat's skeleton as big as a house claws its way out of the biggest one dripping tar, roars, prowls round the
+pits and pounces three times; then it leaps into the middle and sinks back into the tar, leaving its skull and sabres
+standing out of it. AMMONITE FOSSIL (mythic): a coiled shell taller than a house grows out of the ground chamber by
+chamber, its sutures lighting in pearl, and the ghost of the animal reaches out of it. A spiral of light then unwinds
+across the land, three turns out to seventy blocks, and presses the whole countryside into the ridged, ribbed imprint of
+a giant ammonite, turned to stone, with the shell standing at its heart.
+
 The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern and
-the Mammoth, Leviathan and Pterosaur fossils, Xenoform, Terror Maniac, Pumpkin Horseman, Portal of Hell and AI Takeover) sit
+the Mammoth, Leviathan, Pterosaur, Amber, Sabre-Tooth and Ammonite fossils, Xenoform, Terror Maniac, Pumpkin Horseman, Portal of Hell and AI Takeover) sit
 in their own creative tab, "Armageddon: New", for now.
 
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-6]`, to build a city to destroy:

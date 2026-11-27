@@ -309,6 +309,26 @@ public final class VfxIds {
 	public static final String PTERO_SCREECH = "ptero_screech";
 	public static final String PTERO_IMPACT = "ptero_impact";
 	public static final String PTERO_CRUMBLE = "ptero_crumble";
+	public static final String AMBER_HEAVE = "amber_heave";
+	public static final String AMBER_DRIP = "amber_drip";
+	public static final String AMBER_FRONT = "amber_front";
+	public static final String AMBER_SHATTER = "amber_shatter";
+	public static final String AMBER_SWARM = "amber_swarm";
+	public static final String AMBER_GUST = "amber_gust";
+	public static final String AMBER_SEAL = "amber_seal";
+	public static final String TAR_FRONT = "tar_front";
+	public static final String TAR_SPLASH = "tar_splash";
+	public static final String TAR_BUBBLE = "tar_bubble";
+	public static final String TAR_DRIP = "tar_drip";
+	public static final String TAR_SINK = "tar_sink";
+	public static final String SABRE_POUNCE = "sabre_pounce";
+	public static final String SABRE_ROAR = "sabre_roar";
+	public static final String AMMO_HEAVE = "ammo_heave";
+	public static final String AMMO_GROW = "ammo_grow";
+	public static final String AMMO_MOTES = "ammo_motes";
+	public static final String AMMO_FRONT = "ammo_front";
+	public static final String AMMO_PULSE = "ammo_pulse";
+	public static final String AMMO_PETRIFY = "ammo_petrify";
 	public static final String XENO_UNFOLD = "xeno_unfold";
 	public static final String XENO_TAG = "xeno_tag";
 	public static final String XENO_DEREZ = "xeno_derez";
@@ -587,6 +607,9 @@ public final class VfxIds {
 			SPECTRAL_MOTES, SPECTRAL_WISPS, SPECTRAL_NOVA, CHUNK_STATIC, BLIGHT_AMBIENT, BLIGHT_EDGE, BLIGHT_PULSE, MAMMOTH_HEAVE, MAMMOTH_BREATH,
 			MAMMOTH_TRUMPET, MAMMOTH_FRONT, MAMMOTH_SNOW, MAMMOTH_STOMP, MAMMOTH_SPIKE, LEVI_BREACH, LEVI_BUBBLES, LEVI_CREST, LEVI_ROAR, PTERO_BURST, PTERO_TRAIL,
 			PTERO_SCREECH, PTERO_IMPACT, PTERO_CRUMBLE,
+			AMBER_HEAVE, AMBER_DRIP, AMBER_FRONT, AMBER_SHATTER, AMBER_SWARM, AMBER_GUST, AMBER_SEAL,
+			TAR_FRONT, TAR_SPLASH, TAR_BUBBLE, TAR_DRIP, TAR_SINK, SABRE_POUNCE, SABRE_ROAR,
+			AMMO_HEAVE, AMMO_GROW, AMMO_MOTES, AMMO_FRONT, AMMO_PULSE, AMMO_PETRIFY,
 			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART, XENO_PIXELS,
 			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER, MANIAC_GEYSER, MANIAC_BLEED, MANIAC_GORE, MANIAC_BLOOD_RAIN,
 			HORSE_APPEAR, HORSE_VANISH, HORSE_HOOF, HORSE_PUMPKIN, HORSE_SLASH, HORSE_TRAIL, HORSE_MIST,

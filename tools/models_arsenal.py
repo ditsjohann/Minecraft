@@ -1651,6 +1651,77 @@ def pterosaur_fossil():
 BOMBS.update({"mammoth_fossil": mammoth_fossil, "leviathan_fossil": leviathan_fossil, "pterosaur_fossil": pterosaur_fossil})
 
 
+def amber_fossil():
+    # A drop of amber on a slab of stone with a dragonfly caught inside it, wings spread, a warm glow at its heart.
+    m = [B(0, 0, 0, 16, 1.4, 16, "rock"), B(1, 1.4, 1, 15, 2.0, 15, "glass_amber")]
+    # The drop: stacked rounded layers, widest low down, pinched to a point at the top.
+    for (y0, y1, r) in ((2.0, 4.0, 5.6), (4.0, 7.5, 6.6), (7.5, 10.5, 6.0), (10.5, 12.5, 4.6), (12.5, 14.0, 3.0), (14.0, 15.4, 1.6)):
+        m += [B(8 - r, y0, 8 - r * 0.85, 8 + r, y1, 8 + r * 0.85, "glass_amber")]
+    m += [B(7.2, 6.6, 7.2, 8.8, 8.2, 8.8, "glow_gold")]
+    # The dragonfly: head, thorax and a long banded abdomen, four clear wings.
+    y = 7.6
+    m += [B(7.3, y, 11.2, 8.7, y + 1.3, 12.4, "mud"), B(7.0, y + 0.3, 12.0, 7.5, y + 1.1, 12.6, "glass_cyan"), B(8.5, y + 0.3, 12.0, 9.0, y + 1.1, 12.6, "glass_cyan")]
+    m += [B(7.2, y, 9.2, 8.8, y + 1.5, 11.2, "mud")]
+    for i, z in enumerate((8.4, 7.4, 6.4, 5.4, 4.4, 3.4)):
+        m += [B(7.5, y + 0.25, z, 8.5, y + 1.05, z + 0.9, "glow_cyan" if i % 2 else "mud")]
+    for side in (-1, 1):
+        x0 = 8 + side * 0.8
+        x1 = 8 + side * 6.2
+        m += [B(min(x0, x1), y + 1.3, 10.4, max(x0, x1), y + 1.5, 11.4, "glass_cyan"),
+              B(min(x0, x1 - side * 0.4), y + 1.3, 9.1, max(x0, x1 - side * 0.4), y + 1.5, 10.2, "glass_cyan")]
+    return m
+
+
+def sabre_fossil():
+    # A sabre-tooth's skull rising out of a pool of tar, its sabres reaching down into it, embers in its eyes.
+    m = [B(0, 0, 0, 16, 1.6, 16, "rock"), B(1, 1.6, 1, 15, 3.0, 15, "tar")]
+    for (x, z, r) in ((3.0, 4.0, 1.2), (12.4, 3.2, 0.9), (13.0, 12.0, 1.1)):
+        m += [B(x - r, 3.0, z - r, x + r, 3.6, z + r, "tar")]
+    # Cranium (high at the back), brow, a short deep muzzle, the sagittal crest along the top.
+    m += [B(5.4, 6.6, 8.0, 10.6, 10.2, 13.0, "bone"), B(5.8, 6.2, 12.6, 10.2, 9.0, 13.8, "bone")]
+    m += [B(5.6, 7.0, 6.0, 10.4, 9.4, 8.0, "bone"), B(6.0, 5.2, 3.2, 10.0, 7.8, 6.2, "bone"), B(6.6, 7.8, 3.6, 9.4, 8.4, 6.0, "bone")]
+    m += [B(7.5, 10.2, 7.4, 8.5, 11.0, 12.6, "bone")]
+    # Cheekbones flaring out to the sides.
+    m += [B(4.4, 6.2, 6.8, 5.6, 7.2, 10.0, "bone"), B(10.4, 6.2, 6.8, 11.6, 7.2, 10.0, "bone")]
+    # The sockets, deep in the brow, with fire in them.
+    m += [B(5.9, 8.0, 5.9, 7.1, 8.9, 6.1, "glow_orange"), B(8.9, 8.0, 5.9, 10.1, 8.9, 6.1, "glow_orange")]
+    # The sabres, long and flat, curving down and a little back from the front of the muzzle.
+    for side in (-1, 1):
+        x = 8 + side * 1.25
+        for i, (y, z) in enumerate(((5.2, 3.9), (4.3, 4.1), (3.4, 4.4), (2.6, 4.8), (1.9, 5.2))):
+            w = 0.5 - i * 0.06
+            m += [B(x - w * 0.7, y - 0.95, z - w, x + w * 0.7, y, z + w, "pearl")]
+    # The lower jaw, dropped wide open, its tip under the tar.
+    m += [B(6.4, 4.4, 7.6, 9.6, 5.2, 9.6, "bone"), B(6.6, 3.2, 5.0, 9.4, 4.4, 7.8, "bone")]
+    return m
+
+
+def ammonite_fossil():
+    # An ammonite standing on its keel on a slab of stone: a coiled, ribbed shell with a rim of pearl round its mouth.
+    m = [B(0, 0, 0, 16, 1.4, 16, "rock"), B(1, 1.4, 1, 15, 2.0, 15, "chalk")]
+    cx, cy, top = 7.0, 8.6, 13.0
+    th, i = 2.0, 0
+    while th <= top:
+        rho = 0.5 * _m.exp(0.18 * th)
+        a = th - top - _m.pi / 2 + 0.6
+        x, y = cx + _m.cos(a) * rho, cy + _m.sin(a) * rho
+        tr = 0.36 * rho + 0.25
+        w = max(0.7, tr * 0.7)
+        if th > top - 0.3:
+            # The mouth: a thin rim of pearl.
+            m += [B(x - 0.35, y - tr * 1.1, 8 - w * 1.1, x + 0.35, y + tr * 1.1, 8 + w * 1.1, "glow_pink")]
+        else:
+            mat = "bone" if i % 3 == 0 else ("nacre" if th < 8 else "chalk")
+            k = 1.1 if i % 3 == 0 else 1.0
+            m += [B(x - tr * k, y - tr * k, 8 - w * k, x + tr * k, y + tr * k, 8 + w * k, mat)]
+        th += max(0.3, 0.8 / rho)
+        i += 1
+    return m
+
+
+BOMBS.update({"amber_fossil": amber_fossil, "sabre_fossil": sabre_fossil, "ammonite_fossil": ammonite_fossil})
+
+
 def xenoform():
     # A wireframe hypercube hanging over a black plinth ruled with light: a cube inside a cube, joined corner to corner.
     m = [B(1, 0, 1, 15, 1.4, 15, "black")]

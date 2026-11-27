@@ -99,6 +99,9 @@ public final class PreviewMain {
 			case "mammoth" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0x80E0FF, 55, 0, 0, com.armageddon.util.FossilShapes.Mammoth.END - com.armageddon.util.FossilShapes.Mammoth.EYES));
 			case "leviathan" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0x40E0D0, 56, 0, 0, com.armageddon.util.FossilShapes.Leviathan.END));
 			case "ptero" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xFF8030, 57, 0, 0, com.armageddon.util.FossilShapes.Ptero.END));
+			case "amber" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xFFA020, 65, 0, 0, com.armageddon.util.FossilShapes.Amber.END));
+			case "sabre" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xFFA030, 66, 0, 0, com.armageddon.util.FossilShapes.Sabre.END));
+			case "ammonite" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xF0C0E0, 67, 0, 0, com.armageddon.util.FossilShapes.Ammonite.END));
 			case "glitch" -> new ChunkGlitchFx(payload(FxType.CHUNK_GLITCH, a, new Vec3d(1, 0, 0), 1, 0x60E0FF, 0, (float) a.y, 0, 700));
 			case "blight" -> new CelestialIIFx.BlightFog(a, 1820);
 			case "spear" -> new MegaEffects.Spear(a, 92, 60, 120 + 24 + 60 + 50);

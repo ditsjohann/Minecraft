@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CNC",
+    "PFP",
+    "CNC"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:calcite"
+    },
+    "N": {
+      "item": "minecraft:nautilus_shell"
+    },
+    "P": {
+      "item": "minecraft:pearlescent_froglight"
+    },
+    "F": {
+      "item": "armageddon:fossil_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:ammonite_fossil",
+    "count": 1
+  }
+}

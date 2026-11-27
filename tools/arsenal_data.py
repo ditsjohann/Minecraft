@@ -122,6 +122,7 @@ NEW_BOMBS.update({
     "plasma_koi": "PLASMA KOI",
     "dimension_shift": "DIMENSION SHIFT", "firework_havoc": "Firework Havoc", "chinese_lantern": "Chinese Lantern",
     "mammoth_fossil": "MAMMOTH FOSSIL", "leviathan_fossil": "LEVIATHAN FOSSIL", "pterosaur_fossil": "Pterosaur Fossil",
+    "amber_fossil": "Amber Fossil", "sabre_fossil": "SABRE-TOOTH FOSSIL", "ammonite_fossil": "AMMONITE FOSSIL",
     "xenoform": "XENOFORM",
     "terror_maniac": "TERROR MANIAC", "pumpkin_horseman": "PUMPKIN HORSEMAN", "portal_of_hell": "PORTAL OF HELL",
     "ai_takeover": "AI TAKEOVER",
@@ -137,6 +138,9 @@ BLOCK_DESC = {
     "mammoth_fossil": "A frozen fissure opens and a woolly mammoth's skeleton rises out of the permafrost, tusks curling. Its eyes catch a cold blue light and it trumpets: an ice age rolls out over the land, freezing water, burying it in snow and bursting spikes of ice out of the ground. It stomps the frozen ground to pieces, trumpets a last time as lines of giant ice spikes race out across the land, and a glacier closes over it, leaving it entombed in ice. Light twice.",
     "leviathan_fossil": "The ancient sea floods back over the land as a ghost, with jellyfish and shoals drifting through it, and the fossil of a sea serpent breaches out of the ground in great arches. Its skull rears up with its jaws wide, its eyes light, and the whole ghost sea gathers into one great curling wave that rolls out across the land, sweeping everything before it and leaving a sea floor of sand, clay and dead coral. Light twice.",
     "pterosaur_fossil": "Bones burst out of the ground and assemble in the air into a pterosaur thirty blocks across, with fire in its eyes and the ghost of its wings between the bones. It circles high and dives three times, screeching, blasting the ground where it pulls up. Then it lands on a spire of bone and turns to stone, leaving its fossil perched there.",
+    "amber_fossil": "A drop of amber the size of a house wells up out of the ground with a giant dragonfly caught inside it. Resin floods out over the land, glazing the ground with honey and turning the trees to amber glass. The amber cracks and shatters, and the dragonfly comes alive: it circles with a swarm of glowing insects and makes three strafing runs low over the land. Then resin wells up round it again, sealing it in a drop of amber over the bomb, and everything caught in the resin is encased with it.",
+    "sabre_fossil": "The ground goes black and soft and opens into bubbling tar pits; trees die standing and old bones break the surface. A sabre-toothed cat's skeleton as big as a house claws its way out of the biggest pit, dripping tar, and roars. It prowls round the pits and pounces three times, each landing a blast of tar and earth. Then it leaps into the middle, roars a last time and sinks back into the tar, leaving its skull and sabres standing out of it. Light twice.",
+    "ammonite_fossil": "An ammonite's shell, coiled like a wheel and taller than a house, grows up out of the ground chamber by chamber, its sutures lighting up in pearl. The ghost of the animal reaches out of its mouth. Then a spiral of light unwinds from it across the land, three turns out to seventy blocks, turning everything it passes to stone: the countryside is left pressed into the ridged, ribbed imprint of a giant ammonite with the shell standing at its heart. Light twice.",
     "dimension_shift": "A rift tears open in the air and a wave runs out from it, shifting everything it passes into the Nether: nylium and netherrack, soul sand, crimson and warped trees, lava where the water was, a red sky and falling ash. Then the locals arrive. Light twice.",
     "firework_havoc": "One firework the size of a tower climbs screaming into the sky and bursts, setting off a cascade of fireworks at every angle while fountains and roman candles go off all over the ground. Ends in a golden willow.",
     "chinese_lantern": "Hundreds of paper lanterns rise and fill the sky while a golden dragon flies slowly round over them to a flute tune, and at the end climbs and bursts into gold. Harmless.",
@@ -359,6 +363,11 @@ def bomb_recipes3(shaped):
     shaped("xenoform", ["EGE", "NCN", "EGE"], {"E": "minecraft:end_crystal", "G": "minecraft:echo_shard", "N": "minecraft:nether_star",
                                              "C": "celestial_core"}, category=cat)
     shaped("pterosaur_fossil", ["MBM", "BFB", "MBM"], {"M": "minecraft:phantom_membrane", "B": "minecraft:bone_block", "F": "fossil_bomb"}, category=cat)
+    shaped("amber_fossil", ["HGH", "GFG", "HGH"], {"H": "minecraft:honey_block", "G": "minecraft:orange_stained_glass", "F": "fossil_bomb"}, category=cat)
+    shaped("sabre_fossil", ["CBC", "TFT", "CBC"], {"C": "minecraft:coal_block", "B": "minecraft:bone_block", "T": "minecraft:black_concrete_powder",
+                                                 "F": "fossil_bomb"}, category=cat)
+    shaped("ammonite_fossil", ["CNC", "PFP", "CNC"], {"C": "minecraft:calcite", "N": "minecraft:nautilus_shell", "P": "minecraft:pearlescent_froglight",
+                                                    "F": "fossil_bomb"}, category=cat)
     shaped("plasma_koi", ["SFS", "PNP", "SFS"], {"S": "minecraft:sea_lantern", "F": "minecraft:tropical_fish", "P": "minecraft:prismarine_crystals",
                                                "N": "minecraft:nether_star"}, category=cat)
 

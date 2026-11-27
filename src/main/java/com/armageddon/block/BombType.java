@@ -118,7 +118,11 @@ public enum BombType {
 	TERROR_MANIAC(200, 0xB01010),
 	PUMPKIN_HORSEMAN(200, 0xFF8020),
 	PORTAL_OF_HELL(200, 0xFF3010),
-	AI_TAKEOVER(300, 0xFF2020);
+	AI_TAKEOVER(300, 0xFF2020),
+	// more fossils (kept last: primed bombs save their type by position)
+	AMBER_FOSSIL(160, 0xFFA020),
+	SABRE_FOSSIL(200, 0x3A2A1E),
+	AMMONITE_FOSSIL(200, 0xF0C0E0);
 
 	public final int fuse;
 	public final int color;

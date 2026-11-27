@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "HGH",
+    "GFG",
+    "HGH"
+  ],
+  "key": {
+    "H": {
+      "item": "minecraft:honey_block"
+    },
+    "G": {
+      "item": "minecraft:orange_stained_glass"
+    },
+    "F": {
+      "item": "armageddon:fossil_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:amber_fossil",
+    "count": 1
+  }
+}

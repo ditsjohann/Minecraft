@@ -164,6 +164,9 @@ def tiles():
     t["pumpkin"] = earth_tile(0xE07818, 116, 0.25)
     t["pumpkin_dark"] = earth_tile(0xA84E08, 117, 0.25)
     t["leaf"] = earth_tile(0x3E7A2A, 118, 0.25)
+    t["tar"] = earth_tile(0x17120E, 119, 0.15)
+    t["nacre"] = earth_tile(0xF2DCE8, 120, 0.12)
+    t["chalk"] = earth_tile(0xEEE8DA, 121, 0.3)
     # Every emissive material breathes: animated strips override the static base tiles.
     for name, c in T.GLOWS + [("gold", 0xFFC830), ("crimson", 0xFF2030), ("void", 0x7A30FF), ("pink", 0xFF70C0),
                               ("lime", 0x9AFF3A), ("ice", 0xBFEFFF)]:
@@ -176,6 +179,7 @@ def tiles():
     t["glass_ice"] = T.mat_glass(0xCFF4FF, 110, 111)
     t["glass_slime"] = T.mat_glass(0x70E060, 150, 112)
     t["glass_gold"] = T.mat_glass(0xFFD060, 140, 113)
+    t["glass_amber"] = T.mat_glass(0xFF9418, 175, 122)
     t["celestial"] = celestial()
     ANIMATED["celestial"] = 2
     t["glow_rainbow"] = rainbow_glow()

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CBC",
+    "TFT",
+    "CBC"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:coal_block"
+    },
+    "B": {
+      "item": "minecraft:bone_block"
+    },
+    "T": {
+      "item": "minecraft:black_concrete_powder"
+    },
+    "F": {
+      "item": "armageddon:fossil_bomb"
+    }
+  },
+  "result": {
+    "id": "armageddon:sabre_fossil",
+    "count": 1
+  }
+}
