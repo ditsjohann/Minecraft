@@ -123,6 +123,8 @@ public final class PlasmaEvents {
 		}
 
 		void throwOne(FallingBlockEntity fb, Vec3d kick) {
+			// It breaks up where it lands rather than littering the land with stray blocks.
+			fb.setDestroyedOnLanding();
 			fb.setNoGravity(false);
 			Kit.velocity(fb, kick);
 			thrown.put(fb, fb.getPos());
@@ -267,13 +269,13 @@ public final class PlasmaEvents {
 			}
 		}
 
-		/** A block of thrown debris coming down: it bursts in burning plasma and scorches where it lands. */
+		/**
+		 * A block of thrown debris coming down: it breaks up in a quiet puff of dust and dying embers. Kept small on
+		 * purpose - the big moment is the throw, not a rattle of little bangs after it - and only one in three shows.
+		 */
 		void impact(Vec3d at, int color) {
-			Vfx.play(world, VfxIds.DEBRIS_IMPACT, at, UP, 1.0F, color);
-			blast(this, at, 3.5, 6.0F, 0.4, 3);
-			if (Destruction.enabled(world) && FossilShapes.hash(MathHelper.floor(at.x), MathHelper.floor(at.z)) < 0.35) {
-				BlockPos top = surface(MathHelper.floor(at.x), MathHelper.floor(at.z));
-				q().add(top.up(), Blocks.FIRE.getDefaultState(), BlockQueue.AIR_ONLY);
+			if (FossilShapes.hash(MathHelper.floor(at.x * 3), MathHelper.floor(at.z * 3)) < 0.34) {
+				Vfx.play(world, VfxIds.DEBRIS_IMPACT, at, UP, 1.0F, color);
 			}
 		}
 
@@ -363,12 +365,8 @@ public final class PlasmaEvents {
 				Vfx.shake(world, core, 240, 1.8F);
 				Kit.sound(world, core, SoundEvents.ENTITY_GENERIC_EXPLODE.value(), 128.0F, 0.6F);
 				Kit.sound(world, core, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 128.0F, 0.8F);
-				bigCrater(base, 9);
+				bigCrater(base, 10);
 				blast(this, core, 22, 22.0F, 2.0, 5);
-				for (int i = 0; i < 8; i++) {
-					double a = i * MathHelper.TAU / 8 + 0.3, r = 10 + FossilShapes.hash(i, 13) * 14;
-					lightning(world, ground(base.x + Math.cos(a) * r, base.z + Math.sin(a) * r));
-				}
 			}
 			drain();
 			return t >= Plasmoid.END;
@@ -382,11 +380,10 @@ public final class PlasmaEvents {
 			Vfx.shake(world, p, 50, 0.4F + (float) b.size() * 0.3F);
 			if (b.gen() == 0) {
 				Kit.sound(world, p, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 64.0F, 1.4F);
-				Kit.blast(world, g.add(0, 0.5, 0), 1.6F, null, Destruction.enabled(world));
-				crater(g, 2.6);
+				crater(g, 3.2);
 			} else {
-				crater(g, 1.4 + b.size());
-				if (FossilShapes.hash(b.id(), 17) < (b.gen() == 1 ? 0.35 : 0.15)) {
+				crater(g, 1.2 + b.size());
+				if (b.gen() == 1 && FossilShapes.hash(b.id(), 17) < 0.2) {
 					lightning(world, g);
 				}
 			}
@@ -559,7 +556,7 @@ public final class PlasmaEvents {
 					Vfx.play(world, VfxIds.ARCH_LASH, pts.get(pts.size() - 1), heading, 1.0F, 0);
 				}
 			}
-			trench(pts, 2.2, 4, 0.08);
+			trench(pts, 2.2, 4, 0);
 			Vec3d apex = base.add(heading.multiply(Arch.height(t)));
 			Vfx.play(world, VfxIds.ARCH_CME, apex.add(0, 3, 0), heading, 1.0F, 0);
 			Vfx.flash(world, apex, 0.7F, 400, 0xFFD080);
@@ -621,10 +618,6 @@ public final class PlasmaEvents {
 				return;
 			}
 			double n = c.noise(83);
-			if (n < 0.012) {
-				c.set(surf, Blocks.LAVA.getDefaultState());
-				return;
-			}
 			Block top = n < 0.22 ? Blocks.MAGMA_BLOCK : n < 0.6 ? Blocks.COARSE_DIRT : n < 0.82 ? Blocks.BLACKSTONE : Blocks.NETHERRACK;
 			c.set(surf, top.getDefaultState());
 			if (c.noise(85) < 0.12 && c.get(surf + 1).isAir()) {
@@ -740,7 +733,7 @@ public final class PlasmaEvents {
 		private void land(int i) {
 			Vec3d l = Geyser.drop(i);
 			Vec3d g = ground(base.x + l.x, base.z + l.z);
-			boolean big = i % 5 == 0;
+			boolean big = i % 12 == 0;
 			Vfx.play(world, big ? VfxIds.DEBRIS_IMPACT : VfxIds.GEYSER_SPLASH, g, UP, big ? 1.6F : 1.0F, 0x40F0FF);
 			blast(this, g, big ? 5 : 3, big ? 10.0F : 6.0F, big ? 0.8 : 0, 4);
 			if (!Destruction.enabled(world)) {
@@ -860,8 +853,7 @@ public final class PlasmaEvents {
 					Vec3d to = ground(base.x + Pinch.beadTo(k).x, base.z + Pinch.beadTo(k).z);
 					Vfx.play(world, VfxIds.PINCH_POP, to, 1.0F);
 					Vfx.shake(world, to, 100, 1.0F);
-					Kit.blast(world, to.add(0, 0.5, 0), 2.6F, null, Destruction.enabled(world));
-					crater(to, 4);
+					crater(to, 4.5);
 					blast(this, to, 10, 16.0F, 1.6, 4);
 				}
 			}
@@ -928,11 +920,6 @@ public final class PlasmaEvents {
 				return out.multiply(1.8 + seed(f, 17) * 1.2).add(0, 0.6 + seed(f, 18) * 0.8, 0);
 			});
 			bigCrater(base, Pinch.CRATER);
-			for (int i = 0; i < 10; i++) {
-				double a = i * MathHelper.TAU / 10 + 0.2, r = Pinch.CRATER + 3 + FossilShapes.hash(i, 19) * 12;
-				Vec3d p = ground(base.x + Math.cos(a) * r, base.z + Math.sin(a) * r);
-				DetonationManager.schedule(world, 4 + i * 3, () -> lightning(world, p));
-			}
 			if (Destruction.enabled(world)) {
 				strip = TerrainJob.disc(world, base, Pinch.CRATER, Pinch.R, this::strip);
 				strip.limit = 0;
@@ -1133,7 +1120,7 @@ public final class PlasmaEvents {
 			Kit.sound(world, end, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 96.0F, flare ? 1.4F : 1.0F);
 			Kit.sound(world, pts.get(pts.size() / 2), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 96.0F, 0.5F);
 			Vfx.shake(world, end, 120, flare ? 0.6F : 1.0F);
-			trench(pts, flare ? 1.6 : 2.2, flare ? 3 : 5, 0.06);
+			trench(pts, flare ? 1.6 : 2.2, flare ? 3 : 5, 0);
 			for (Vec3d p : pts) {
 				for (LivingEntity e : Kit.living(world, p, 3)) {
 					if (!Kit.creativeOrSpectator(e)) {
@@ -1203,11 +1190,6 @@ public final class PlasmaEvents {
 			Kit.sound(world, c, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 128.0F, 0.6F);
 			bigCrater(base, Bottle.CRATER);
 			blast(this, c, 50, 30.0F, 2.6, 6);
-			for (int i = 0; i < 6; i++) {
-				double a = i * MathHelper.TAU / 6, r = Bottle.CRATER + 6;
-				Vec3d p = ground(base.x + Math.cos(a) * r, base.z + Math.sin(a) * r);
-				DetonationManager.schedule(world, 3 + i * 2, () -> lightning(world, p));
-			}
 		}
 	}
 }

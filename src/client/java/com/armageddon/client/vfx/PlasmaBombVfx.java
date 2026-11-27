@@ -81,17 +81,12 @@ final class PlasmaBombVfx {
 				.emit(smoke("smoke").burst(1).inherit(0.05F).velocity(Velocity.up(0.02F, 0.06F, 0.4F)).life(30, 50).size(0.8F, 1.4F).color(SCORCH).alpha(0.4F).build())
 				.build());
 
-		// A block of it coming down: a splash of burning plasma, a puff of dust, a little shock.
-		FxEngine.register(EffectDef.builder(VfxIds.DEBRIS_IMPACT).lod(250, 1600).maxAge(100)
-				.emit(EmitterDef.builder("flash").burst(1).offset(0, 0.6F, 0).life(5, 6).size(3, 4).sprite(FxSprites.GLOW).color(0xFFFFFF).tinted().alpha(0.7F)
-						.alphaOverLife(Curve.FADE_OUT).build())
-				.emit(spark("splash", HOT).burst(18).velocity(Velocity.up(0.25F, 0.6F, 0.8F)).gravity(0.04F).life(8, 18).size(0.1F, 0.18F).stretch(2).tinted().build())
-				.emit(EmitterDef.builder("flames").burst(3).shape(Shape.disc(1.2F)).velocity(Velocity.up(0.05F, 0.15F, 0.3F)).life(12, 22).size(1, 1.6F)
-						.sprite(FxSprites.FIRE, 2).color(HOT).tinted().alphaOverLife(Curve.FADE).build())
-				.emit(smoke("dust").burst(3).shape(Shape.disc(1.5F)).velocity(Velocity.up(0.04F, 0.12F, 0.5F)).velocity(Velocity.radial(0.05F, 0.15F)).life(40, 70)
-						.size(1.8F, 3).color(Gradient.of(0, 0x7A6A56, 1, 0x9A8C78)).alpha(0.5F).build())
-				.emit(EmitterDef.builder("ring").burst(1).offset(0, 0.3F, 0).mode(Mode.FLAT).fixedRotation().size(5, 5).life(10, 10).sprite(FxSprites.SHOCK)
-						.sizeOverLife(Curve.EASE_OUT).color(0xFFFFFF).tinted().alpha(0.5F).alphaOverLife(Curve.FADE_OUT).build())
+		// A block of it coming down: it breaks up in a puff of dust, a few embers dying in it. Quiet on purpose.
+		FxEngine.register(EffectDef.builder(VfxIds.DEBRIS_IMPACT).lod(200, 1200).maxAge(100)
+				.emit(smoke("dust").burst(3).shape(Shape.disc(1.2F)).velocity(Velocity.up(0.03F, 0.1F, 0.5F)).velocity(Velocity.radial(0.04F, 0.12F)).life(40, 70)
+						.size(1.6F, 2.6F).color(Gradient.of(0, 0x7A6A56, 1, 0x9A8C78)).alpha(0.45F).build())
+				.emit(orb("embers", HOT).burst(4).velocity(Velocity.up(0.08F, 0.25F, 0.8F)).gravity(0.02F).life(10, 20).size(0.08F, 0.14F).tinted()
+						.alphaOverLife(VfxLibrary.FLICKER).build())
 				.build());
 	}
 
