@@ -59,7 +59,8 @@ public final class FossilPoses {
 	public static Cat cat(double t, double gait, double ground, Vec3d h) {
 		Cat p = new Cat();
 		Vec3d local = Sabre.pos(t);
-		Vec3d base = FossilShapes.frame(h, local.x, 0, local.z).add(0, ground + local.y, 0);
+		Vec3d floor = FossilShapes.frame(h, local.x, 0, local.z).add(0, ground, 0);
+		Vec3d base = floor.add(0, local.y, 0);
 		Vec3d fh = FossilShapes.frame(h, Sabre.facing(t)).normalize();
 		Vec3d r = rightOf(fh);
 		// Pitch: up as it climbs out and on the way up a leap, nose down on the way down and as it sinks.
@@ -115,7 +116,8 @@ public final class FossilPoses {
 				boolean isFront = front == 1;
 				double hx = isFront ? 3.0 : -4.0;
 				Vec3d top = b.at(hx, isFront ? 5.4 : 5.6, s * 1.4);
-				double ph = gait * 0.42 + (isFront ? 0 : Math.PI) + (s > 0 ? Math.PI * 0.5 : 0);
+				// One stride cycle per 4 x stride of travel, so a planted foot keeps pace with the ground.
+				double ph = gait * (Math.PI * 2 / (4 * stride)) + (isFront ? 0 : Math.PI) + (s > 0 ? Math.PI * 0.5 : 0);
 				Vec3d foot;
 				if (air) {
 					foot = isFront ? b.at(hx + 3.4, 2.4, s * 1.2) : b.at(hx - 3.6, 2.6, s * 1.3);
@@ -123,10 +125,14 @@ public final class FossilPoses {
 					// Climbing out: forepaws reaching and clawing at the rim.
 					double claw = Math.sin(t * 0.18 + s) * 1.2;
 					foot = isFront ? b.at(hx + 2.6 + claw, 1.2 + Math.max(0, claw), s * 1.5) : b.at(hx - 0.6, 0.2, s * 1.4);
+				} else if (t >= Sabre.SINK) {
+					// Going under: legs folded beneath it, sinking with it.
+					foot = b.at(hx + (isFront ? 1.2 : -0.8), 0.6, s * 1.5);
 				} else {
-					double swing = Math.cos(ph) * stride, lift = Math.max(0, Math.sin(ph)) * 0.9;
-					Vec3d planted = base.add(fh.multiply((hx + swing) * CAT_SC)).add(r.multiply(s * 1.5 * CAT_SC)).add(0, lift * CAT_SC, 0);
-					foot = crouch ? base.add(fh.multiply((hx + (isFront ? 0.8 : -0.4)) * CAT_SC)).add(r.multiply(s * 1.6 * CAT_SC)) : planted;
+					// Feet on the real ground, even while the body is crouched low or still dipped from a landing.
+					double swing = -Math.cos(ph) * stride, lift = Math.max(0, Math.sin(ph)) * 0.9;
+					Vec3d planted = floor.add(fh.multiply((hx + swing) * CAT_SC)).add(r.multiply(s * 1.5 * CAT_SC)).add(0, lift * CAT_SC, 0);
+					foot = crouch ? floor.add(fh.multiply((hx + (isFront ? 0.8 : -0.4)) * CAT_SC)).add(r.multiply(s * 1.6 * CAT_SC)) : planted;
 				}
 				double l1 = (isFront ? 3.1 : 3.3) * CAT_SC, l2 = (isFront ? 3.0 : 3.2) * CAT_SC;
 				Vec3d knee = knee(top, foot, l1, l2, fh, isFront ? -1 : 1);
