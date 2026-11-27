@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "TGT",
+    "GCG",
+    "TGT"
+  ],
+  "key": {
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "G": {
+      "item": "minecraft:gunpowder"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:mega_creeper",
+    "count": 1
+  }
+}

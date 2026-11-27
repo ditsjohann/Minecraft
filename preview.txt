@@ -95,3 +95,9 @@ vfx:pinch_column 180 -50 20 -50 0 28 0
 vfx:bottle_field 20 -16 8 -16 0 0 0
 vfx:arch_cme 20 -50 20 -50 0 10 0
 vfx:pinch_collapse 16 -90 40 -90 0 10 0
+creeper 200 -130 50 -120 0 50 0
+creeper 340 -140 40 -140 0 50 0
+wyrm 190 -110 40 -100 0 25 0
+wyrm 400 -160 90 -60 0 40 0
+wyrm 1160 -120 40 -60 0 20 0
+vfx:mega_boom 30 -400 150 -400 0 60 0

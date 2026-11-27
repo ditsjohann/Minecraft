@@ -104,6 +104,8 @@ public final class PreviewMain {
 			case "ammonite" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xF0C0E0, 67, 0, 0, com.armageddon.util.FossilShapes.Ammonite.END));
 			case "plasmoid" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xC080FF, 68, 0, 0, com.armageddon.util.PlasmaShapes.Plasmoid.END));
 			case "bottle" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xFF50E0, 69, 0, 0, com.armageddon.util.PlasmaShapes.Bottle.END));
+			case "creeper" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0x40C040, 70, 0, 0, com.armageddon.util.WorldBombShapes.Creeper.END));
+			case "wyrm" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xFF4010, 71, 0, 0, com.armageddon.util.WorldBombShapes.Wyrm.END));
 			case "glitch" -> new ChunkGlitchFx(payload(FxType.CHUNK_GLITCH, a, new Vec3d(1, 0, 0), 1, 0x60E0FF, 0, (float) a.y, 0, 700));
 			case "blight" -> new CelestialIIFx.BlightFog(a, 1820);
 			case "spear" -> new MegaEffects.Spear(a, 92, 60, 120 + 24 + 60 + 50);

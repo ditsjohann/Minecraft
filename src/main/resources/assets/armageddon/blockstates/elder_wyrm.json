@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/elder_wyrm"
+    },
+    "facing=east": {
+      "model": "armageddon:block/elder_wyrm",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/elder_wyrm",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/elder_wyrm",
+      "y": 270
+    }
+  }
+}

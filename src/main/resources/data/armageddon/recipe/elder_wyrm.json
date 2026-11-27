@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "MBM",
+    "SCS",
+    "MBM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:magma_block"
+    },
+    "B": {
+      "item": "minecraft:blaze_rod"
+    },
+    "S": {
+      "item": "minecraft:dragon_breath"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:elder_wyrm",
+    "count": 1
+  }
+}

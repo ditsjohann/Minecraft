@@ -162,6 +162,8 @@ public final class ModBlocks {
 	public static final BombBlock FUSION_GEYSER = tiered(bomb("fusion_geyser", BombType.FUSION_GEYSER, Rarity.EPIC), Tier.LEGENDARY);
 	public static final BombBlock Z_PINCH = tiered(bomb("z_pinch", BombType.Z_PINCH, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock MAGNETIC_BOTTLE = tiered(bomb("magnetic_bottle", BombType.MAGNETIC_BOTTLE, Rarity.EPIC), Tier.MYTHIC);
+	public static final BombBlock MEGA_CREEPER = tiered(bomb("mega_creeper", BombType.MEGA_CREEPER, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock ELDER_WYRM = tiered(bomb("elder_wyrm", BombType.ELDER_WYRM, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock XENOFORM = tiered(bomb("xenoform", BombType.XENOFORM, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock TERROR_MANIAC = tiered(bomb("terror_maniac", BombType.TERROR_MANIAC, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock PUMPKIN_HORSEMAN = tiered(bomb("pumpkin_horseman", BombType.PUMPKIN_HORSEMAN, Rarity.EPIC), Tier.CELESTIAL);

@@ -1784,6 +1784,52 @@ BOMBS.update({"plasmoid_swarm": plasmoid_swarm, "solar_arch": solar_arch, "fusio
               "magnetic_bottle": magnetic_bottle})
 
 
+def mega_creeper():
+    # A creeper's head, eight pixels to a side, mottled green with its black face toward the front, on a block of TNT.
+    m = [B(1, 0, 1, 15, 4, 15, "red"), B(1, 1.4, 1, 15, 2.6, 15, "white")]
+    face = ["........", "........", ".##..##.", ".##..##.", "...##...", "..####..", "..####..", "..#..#.."]
+    m += [B(3, 4, 3, 13, 14, 13, "leaf")]
+    px = 1.25
+    for y in range(8):
+        for x in range(8):
+            x0, y0 = 3 + x * px, 14 - (y + 1) * px
+            if face[y][x] == "#":
+                m += [B(x0, y0, 13.0, x0 + px, y0 + px, 13.1, "black")]
+            elif (x * 7 + y * 3) % 5 == 0:
+                m += [B(x0, y0, 13.0, x0 + px, y0 + px, 13.05, "cactus" if (x + y) % 2 else "glow_lime")]
+    # Mottling on the other faces you see.
+    for y in range(8):
+        for z in range(8):
+            if (z * 5 + y * 3) % 4 == 0:
+                z0, y0 = 3 + z * px, 14 - (y + 1) * px
+                m += [B(13.0, y0, z0, 13.05, y0 + px, z0 + px, "cactus" if (y + z) % 2 else "glow_lime")]
+    for x in range(8):
+        for z in range(8):
+            if (x * 3 + z * 5) % 4 == 1:
+                x0, z0 = 3 + x * px, 3 + z * px
+                m += [B(x0, 14.0, z0, x0 + px, 14.05, z0 + px, "cactus" if (x + z) % 2 else "glow_lime")]
+    return m
+
+
+def elder_wyrm():
+    # A dragon's skull of black scale on a block of obsidian cracked with magma: swept-back horns, burning eyes,
+    # its snout toward the front.
+    m = [B(0, 0, 0, 16, 3, 16, "obsidian")]
+    for (x0, z0, x1, z1) in ((2, 12.4, 9, 13), (8, 4, 8.6, 12.4), (8.6, 4.4, 14, 5)):
+        m += [B(x0, 2.95, z0, x1, 3.05, z1, "glow_orange")]
+    m += [B(4, 3, 3, 12, 8, 12, "black"), B(5, 3, 12, 11, 6.5, 15, "black"), B(5.5, 6.5, 12, 10.5, 7.5, 14.5, "black")]
+    m += [B(5.6, 3.2, 14.8, 10.4, 4.2, 15.2, "glow_orange")]
+    for side in (-1, 1):
+        x = 8 + side * 3.2
+        m += [B(x - 0.7, 8, 4, x + 0.7, 9.6, 6, "obsidian"), B(x - 0.5 + side * 0.4, 9.6, 2, x + 0.5 + side * 0.4, 11.4, 4.5, "obsidian"),
+              B(x - 0.35 + side * 0.8, 11.4, 0.6, x + 0.35 + side * 0.8, 13.2, 2.5, "obsidian")]
+        m += [B(8 + side * 2.6 - 0.6, 6.6, 11.9, 8 + side * 2.6 + 0.6, 7.4, 12.2, "glow_orange")]
+    return m
+
+
+BOMBS.update({"mega_creeper": mega_creeper, "elder_wyrm": elder_wyrm})
+
+
 def xenoform():
     # A wireframe hypercube hanging over a black plinth ruled with light: a cube inside a cube, joined corner to corner.
     m = [B(1, 0, 1, 15, 1.4, 15, "black")]

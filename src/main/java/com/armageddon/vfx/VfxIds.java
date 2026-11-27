@@ -356,6 +356,16 @@ public final class VfxIds {
 	public static final String ARCH_LASH = "arch_lash";
 	public static final String BOTTLE_LASH = "bottle_lash";
 	public static final String BOTTLE_NOVA = "bottle_nova";
+	public static final String CREEPER_RISE = "creeper_rise";
+	public static final String CREEPER_FALL = "creeper_fall";
+	public static final String MEGA_BOOM = "mega_boom";
+	public static final String WYRM_ASH = "wyrm_ash";
+	public static final String WYRM_RISE = "wyrm_rise";
+	public static final String WYRM_ROAR = "wyrm_roar";
+	public static final String WYRM_BREATH = "wyrm_breath";
+	public static final String WYRM_SCORCH = "wyrm_scorch";
+	public static final String WYRM_GALE = "wyrm_gale";
+	public static final String WYRM_NOVA = "wyrm_nova";
 	public static final String XENO_UNFOLD = "xeno_unfold";
 	public static final String XENO_TAG = "xeno_tag";
 	public static final String XENO_DEREZ = "xeno_derez";
@@ -641,6 +651,7 @@ public final class VfxIds {
 			GEYSER_BULGE, GEYSER_ERUPT, GEYSER_RAIN, GEYSER_SPLASH, PINCH_COLUMN, PINCH_BEAD, PINCH_POP, PINCH_COLLAPSE,
 			BOTTLE_FIELD, BOTTLE_SNAP, BOTTLE_JET, BOTTLE_RING,
 			DEBRIS_EMBER, DEBRIS_IMPACT, PLASMOID_SKIP, ARCH_LASH, BOTTLE_LASH, BOTTLE_NOVA,
+			CREEPER_RISE, CREEPER_FALL, MEGA_BOOM, WYRM_ASH, WYRM_RISE, WYRM_ROAR, WYRM_BREATH, WYRM_SCORCH, WYRM_GALE, WYRM_NOVA,
 			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART, XENO_PIXELS,
 			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER, MANIAC_GEYSER, MANIAC_BLEED, MANIAC_GORE, MANIAC_BLOOD_RAIN,
 			HORSE_APPEAR, HORSE_VANISH, HORSE_HOOF, HORSE_PUMPKIN, HORSE_SLASH, HORSE_TRAIL, HORSE_MIST,

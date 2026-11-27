@@ -6,8 +6,8 @@ railguns, plasma weapons, power armour and more. Every weapon has a hand-built 3
 dedicated visual effects: custom particles, energy beams, shockwaves, screen shake and a
 full-screen post-processing shader.
 
-> **Full list of every item, bomb and event:** [docs/CONTENT.md](docs/CONTENT.md) (234 items and blocks, 99 bombs,
-> 121 scripted events).
+> **Full list of every item, bomb and event:** [docs/CONTENT.md](docs/CONTENT.md) (236 items and blocks, 101 bombs,
+> 123 scripted events).
 > **Continuing development (new account or new session):** start with [docs/HANDOFF.md](docs/HANDOFF.md). The newest
 > code is on the branch `claude/cool-ramanujan-da0d9h`.
 
@@ -62,7 +62,7 @@ deadly it is.
 | Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil, Sabre-Tooth Fossil, Ammonite Fossil, Solar Arch, Z-Pinch, Magnetic Bottle |
 | Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit, Terror Maniac, Pumpkin Horseman, Portal of Hell |
 | City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence, AI Takeover |
-| World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami, Xenoform |
+| World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami, Xenoform, Mega Creeper, Elder Wyrm |
 
 Bombs of Mythic tier and up must be lit twice; Celestial and up are gated by `armageddonAllowCelestial` and live in
 the Cataclysms tab.
@@ -134,7 +134,7 @@ reaches out of it. A spiral of light then unwinds across the land, three turns o
 countryside into the ridged, ribbed imprint of a giant ammonite, turned to stone, with the shell standing at its heart.
 
 The newest bombs (Goo, Cactus, Blackforge, Blue Infrit, Plasma Koi, Dimension Shift, Firework Havoc, Chinese Lantern and
-the Mammoth, Leviathan, Pterosaur, Amber, Sabre-Tooth and Ammonite fossils, the five plasma bombs, Xenoform, Terror Maniac, Pumpkin Horseman, Portal of Hell and AI Takeover) sit
+the Mammoth, Leviathan, Pterosaur, Amber, Sabre-Tooth and Ammonite fossils, the five plasma bombs, Mega Creeper, Elder Wyrm, Xenoform, Terror Maniac, Pumpkin Horseman, Portal of Hell and AI Takeover) sit
 in their own creative tab, "Armageddon: New", for now.
 
 **Test city** — use a Test City Capsule on the ground, or run `/armageddon city [1-6]`, to build a city to destroy:
@@ -209,6 +209,18 @@ edge of the harvest facing you, glitching a step closer now and then, and an eye
 light races in along the grid to the monolith, a ring-shaped ship hundreds of blocks across comes down out of the sky,
 the monolith's beam locks on to it, the Watchers dissolve up into it, and it leaves in a streak of light that throws a
 shockwave across the sky. No cutscene: you watch it all yourself.
+
+**Two more world enders.** MEGA CREEPER: the sky turns a sick green and a creeper as tall as a mountain - a hundred
+blocks of mottled green pixels - heaves itself up out of the ground, and its head turns to stare at whoever is watching.
+Then the hiss: it swells and flashes white the way a creeper does, slowly, then faster and faster, and goes off. A
+seventy-block crater, a white-out, a shockwave that strips the land and throws it for three hundred blocks, and the blast
+rains real creepers down over all of it - some of them charged - each going off where it lands. Its face is left pressed
+into the floor of the crater, fifty-six blocks across. ELDER WYRM: the sky turns to blood and ash falls; the ground
+splits and a dragon of black scale and magma, its wings a hundred and eighty blocks across, claws its way up out of the
+world and roars. It makes three passes low over the land breathing rivers of fire that carve molten canyons four hundred
+blocks long in a star, the land burning either side; hovers and beats down a gale that flattens the forests for a hundred
+and fifty blocks; lands, its chest glowing white-hot, and breathes a nova of fire straight down - a crater and a
+firestorm for a hundred and twenty blocks - then climbs into the red sky and is gone.
 
 **Plasma bombs** - five ways plasma behaves and five ways of wrecking the land, built almost entirely from the
 particle engine (with three new engine forces: a twisting flux rope, a magnetic dipole and a Z-pinch) and real flying

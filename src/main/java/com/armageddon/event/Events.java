@@ -147,6 +147,8 @@ public final class Events {
 		EVENTS.put("fusion_geyser", com.armageddon.event.events.PlasmaEvents.FusionGeyser::new);
 		EVENTS.put("z_pinch", com.armageddon.event.events.PlasmaEvents.ZPinch::new);
 		EVENTS.put("magnetic_bottle", com.armageddon.event.events.PlasmaEvents.MagneticBottle::new);
+		EVENTS.put("mega_creeper", com.armageddon.event.events.WorldBombEvents.MegaCreeper::new);
+		EVENTS.put("elder_wyrm", com.armageddon.event.events.WorldBombEvents.ElderWyrm::new);
 		EVENTS.put("xenoform", com.armageddon.event.events.XenoEvents.Xenoform::new);
 		EVENTS.put("terror_maniac", com.armageddon.event.events.HorrorEvents.TerrorManiac::new);
 		EVENTS.put("pumpkin_horseman", com.armageddon.event.events.HorrorEvents.PumpkinHorseman::new);

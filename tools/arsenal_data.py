@@ -125,6 +125,7 @@ NEW_BOMBS.update({
     "amber_fossil": "Amber Fossil", "sabre_fossil": "SABRE-TOOTH FOSSIL", "ammonite_fossil": "AMMONITE FOSSIL",
     "plasmoid_swarm": "Plasmoid Swarm", "solar_arch": "SOLAR ARCH", "fusion_geyser": "Fusion Geyser", "z_pinch": "Z-PINCH",
     "magnetic_bottle": "MAGNETIC BOTTLE",
+    "mega_creeper": "MEGA CREEPER", "elder_wyrm": "ELDER WYRM",
     "xenoform": "XENOFORM",
     "terror_maniac": "TERROR MANIAC", "pumpkin_horseman": "PUMPKIN HORSEMAN", "portal_of_hell": "PORTAL OF HELL",
     "ai_takeover": "AI TAKEOVER",
@@ -148,6 +149,8 @@ BLOCK_DESC = {
     "fusion_geyser": "The ground glows and cracks over a pocket of fusing plasma, then blows out: a crater opens and a geyser of cyan plasma roars eighty blocks into the sky, tearing up the land all round and spiralling it up the column, along with anything standing near. At the top the torn-up land is flung out in every direction and comes down as burning meteors while the plasma rains back down, the biggest drops blowing craters. The vent is left a lake of lava.",
     "z_pinch": "A column of blue-white plasma stands up out of the bomb and magnetic rings crush it. Its field rips the land up for thirty blocks round and drags it spiralling in to be eaten, hauling everything alive toward it. It breaks into beads that fly off and land as explosions. Then it collapses in a fusion flash: a crater opens with a fused core at the bottom, lightning stands round the rim, and a shockwave throws the land outward and strips everything flat. Light twice.",
     "magnetic_bottle": "A little sun of magenta plasma forms over the bomb, caged in glowing field lines, and sinks toward the ground; its magnetism tears up the land and lifts everything alive into orbit round it, and field lines flare out and lash the ground. The bottle fails: all twelve lines snap and whip down, carving molten trenches outward like spokes, and everything in orbit is flung out. Jets burst from its poles, one drilling a shaft deep into the earth, a ring of plasma slices everything at waist height and throws what stood above, and then what is left of the sun implodes and detonates. Light twice.",
+    "mega_creeper": "WORLD DESTRUCTION. The sky turns a sick green and a creeper as tall as a mountain heaves itself up out of the ground and stands there, its head turning to stare at you. Then the hiss: it swells and flashes white, slowly, then faster and faster, and goes off. A crater seventy blocks across, a white-out, a shockwave that strips the land for three hundred blocks, and the blast rains creepers down over all of it, each going off where it lands. Its face is left pressed into the floor of the crater. Light twice.",
+    "elder_wyrm": "WORLD DESTRUCTION. The sky turns to blood and ash falls. The ground splits and a dragon of black scale and magma, its wings a hundred and eighty blocks across, claws its way up out of the world and roars. It makes three passes low over the land breathing rivers of fire that carve molten canyons four hundred blocks long, hovers and beats down a gale that flattens the forests, then lands, its chest glowing white-hot, and breathes a nova of fire straight down: a crater and a firestorm for a hundred and twenty blocks. Then it climbs into the red sky and is gone. Light twice.",
     "dimension_shift": "A rift tears open in the air and a wave runs out from it, shifting everything it passes into the Nether: nylium and netherrack, soul sand, crimson and warped trees, lava where the water was, a red sky and falling ash. Then the locals arrive. Light twice.",
     "firework_havoc": "One firework the size of a tower climbs screaming into the sky and bursts, setting off a cascade of fireworks at every angle while fountains and roman candles go off all over the ground. Ends in a golden willow.",
     "chinese_lantern": "Hundreds of paper lanterns rise and fill the sky while a golden dragon flies slowly round over them to a flute tune, and at the end climbs and bursts into gold. Harmless.",
@@ -382,6 +385,9 @@ def bomb_recipes3(shaped):
     shaped("z_pinch", ["RLR", "PFP", "RLR"], {"R": "minecraft:lightning_rod", "L": "minecraft:copper_block", "P": "plasma_cell", "F": "fusion_core"},
            category=cat)
     shaped("magnetic_bottle", ["IPI", "PSP", "IPI"], {"I": "minecraft:iron_block", "P": "plasma_cell", "S": "minecraft:nether_star"}, category=cat)
+    shaped("mega_creeper", ["TGT", "GCG", "TGT"], {"T": "minecraft:tnt", "G": "minecraft:gunpowder", "C": "celestial_core"}, category=cat)
+    shaped("elder_wyrm", ["MBM", "SCS", "MBM"], {"M": "minecraft:magma_block", "B": "minecraft:blaze_rod", "S": "minecraft:dragon_breath",
+                                                "C": "celestial_core"}, category=cat)
     shaped("plasma_koi", ["SFS", "PNP", "SFS"], {"S": "minecraft:sea_lantern", "F": "minecraft:tropical_fish", "P": "minecraft:prismarine_crystals",
                                                "N": "minecraft:nether_star"}, category=cat)
 

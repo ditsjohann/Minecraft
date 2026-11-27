@@ -128,7 +128,10 @@ public enum BombType {
 	SOLAR_ARCH(160, 0xFFA030),
 	FUSION_GEYSER(160, 0x40F0FF),
 	Z_PINCH(200, 0xA0B8FF),
-	MAGNETIC_BOTTLE(200, 0xFF50E0);
+	MAGNETIC_BOTTLE(200, 0xFF50E0),
+	// world destruction
+	MEGA_CREEPER(300, 0x40C040),
+	ELDER_WYRM(300, 0xFF4010);
 
 	public final int fuse;
 	public final int color;
