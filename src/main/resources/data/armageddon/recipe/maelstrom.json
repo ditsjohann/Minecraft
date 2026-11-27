@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "WHW",
+    "PCP",
+    "WHW"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:water_bucket"
+    },
+    "H": {
+      "item": "minecraft:heart_of_the_sea"
+    },
+    "P": {
+      "item": "minecraft:prismarine"
+    },
+    "C": {
+      "item": "armageddon:celestial_core"
+    }
+  },
+  "result": {
+    "id": "armageddon:maelstrom",
+    "count": 1
+  }
+}

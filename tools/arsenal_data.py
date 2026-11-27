@@ -126,6 +126,9 @@ NEW_BOMBS.update({
     "plasmoid_swarm": "Plasmoid Swarm", "solar_arch": "SOLAR ARCH", "fusion_geyser": "Fusion Geyser", "z_pinch": "Z-PINCH",
     "magnetic_bottle": "MAGNETIC BOTTLE",
     "mega_creeper": "MEGA CREEPER", "elder_wyrm": "ELDER WYRM",
+    "wrecking_ball": "WRECKING BALL", "flattener": "THE FLATTENER", "titans_stride": "TITAN'S STRIDE",
+    "inferno_vortex": "INFERNO VORTEX", "maelstrom": "MAELSTROM", "basalt_uprising": "BASALT UPRISING", "downburst": "DOWNBURST",
+    "thunderhead": "THUNDERHEAD",
     "xenoform": "XENOFORM",
     "terror_maniac": "TERROR MANIAC", "pumpkin_horseman": "PUMPKIN HORSEMAN", "portal_of_hell": "PORTAL OF HELL",
     "ai_takeover": "AI TAKEOVER",
@@ -151,6 +154,14 @@ BLOCK_DESC = {
     "magnetic_bottle": "A little sun of magenta plasma forms over the bomb, caged in glowing field lines, and sinks toward the ground; its magnetism tears up the land and lifts everything alive into orbit round it, and field lines flare out and lash the ground. The bottle fails: all twelve lines snap and whip down, carving molten trenches outward like spokes, and everything in orbit is flung out. Jets burst from its poles, one drilling a shaft deep into the earth, a ring of plasma slices everything at waist height and throws what stood above, and then what is left of the sun implodes and detonates. Light twice.",
     "mega_creeper": "WORLD DESTRUCTION. The sky turns a sick green and a creeper as tall as a mountain heaves itself up out of the ground and stands there, its head turning to stare at you. Then the hiss: it swells and flashes white, slowly, then faster and faster, and goes off. A crater seventy blocks across, a white-out, a shockwave that strips the land for three hundred blocks, and the blast rains creepers down over all of it, each going off where it lands. Its face is left pressed into the floor of the crater. Light twice.",
     "elder_wyrm": "WORLD DESTRUCTION. The sky turns to blood and ash falls. The ground splits and a dragon of black scale and magma, its wings a hundred and eighty blocks across, claws its way up out of the world and roars. It makes three passes low over the land breathing rivers of fire that carve molten canyons four hundred blocks long, hovers and beats down a gale that flattens the forests, then lands, its chest glowing white-hot, and breathes a nova of fire straight down: a crater and a firestorm for a hundred and twenty blocks. Then it climbs into the red sky and is gone. Light twice.",
+    "wrecking_ball": "CITY DESTRUCTION. A chain comes down out of the sky with a ball of steel on the end as big as a house. It swings through the city in six great arcs, each a new way, punching a clean swath through every building it meets and throwing the wreckage ahead of it; then the chain snaps and the ball drops into the middle of it all. Light twice.",
+    "flattener": "CITY DESTRUCTION. A roller of steel a hundred and fifty blocks long comes down out of the sky and rolls right across the city, pressing every tower, house and tree it passes flat into a single layer of whatever stood there, so behind it the city is left a map of itself in coloured blocks. Then it lifts away. Light twice.",
+    "titans_stride": "CITY DESTRUCTION. Something you cannot see walks across the city. Its shadow falls first; then its foot comes down, and where it lands is a footprint ten blocks deep, heel, sole and toes, with whatever stood there gone and the earth heaved up round it. Nine steps, then it jumps and comes down with both feet. Light twice.",
+    "inferno_vortex": "CELESTIAL. Fire. Six whirls of fire spin up round the bomb and spiral in, each burning a black spiral scar into the land and catching up whatever it passes. They merge into one colossal pillar of fire that drags everything up into the flames, then collapse into a sea of flame rolling out for a hundred and forty blocks. Light twice.",
+    "maelstrom": "CELESTIAL. Water. The ground falls away into a vast bowl and the sea comes up into it already turning: a whirlpool seventy blocks across that drags the land at its rim, the trees and everything alive spiralling in and under. Then it erupts as a waterspout a hundred blocks high that comes down as a deluge, and leaves a deep round lake where the land was. Light twice.",
+    "basalt_uprising": "CELESTIAL. Earth. The land cracks into a honeycomb and the cells thrust up as columns of basalt, each its own height and taller toward the middle, in a wave rolling out from the bomb that launches whatever stands on them. Then the middle caves in, a pit opening deep into the earth among the columns. Light twice.",
+    "downburst": "CELESTIAL. Air. A vortex of cloud opens overhead and the air is drawn up out of the land: blocks, trees and creatures lift and float up into it, turning slowly. Then the air comes back down all at once, slamming everything into the ground, and a wall of wind rolls out and flattens the land for a hundred and thirty blocks. Light twice.",
+    "thunderhead": "CELESTIAL. Storm. A supercell builds overhead, a black anvil of cloud with rain sheeting down, and lightning hammers the land again and again, every strike burning a branching scar of black glass and scorch into the ground. Then one last bolt, a superbolt, strikes the middle: a crater, a white-out and a giant glowing scar branching out seventy blocks. Light twice.",
     "dimension_shift": "A rift tears open in the air and a wave runs out from it, shifting everything it passes into the Nether: nylium and netherrack, soul sand, crimson and warped trees, lava where the water was, a red sky and falling ash. Then the locals arrive. Light twice.",
     "firework_havoc": "One firework the size of a tower climbs screaming into the sky and bursts, setting off a cascade of fireworks at every angle while fountains and roman candles go off all over the ground. Ends in a golden willow.",
     "chinese_lantern": "Hundreds of paper lanterns rise and fill the sky while a golden dragon flies slowly round over them to a flute tune, and at the end climbs and bursts into gold. Harmless.",
@@ -388,6 +399,15 @@ def bomb_recipes3(shaped):
     shaped("mega_creeper", ["TGT", "GCG", "TGT"], {"T": "minecraft:tnt", "G": "minecraft:gunpowder", "C": "celestial_core"}, category=cat)
     shaped("elder_wyrm", ["MBM", "SCS", "MBM"], {"M": "minecraft:magma_block", "B": "minecraft:blaze_rod", "S": "minecraft:dragon_breath",
                                                 "C": "celestial_core"}, category=cat)
+    shaped("wrecking_ball", ["CIC", "IBI", "CIC"], {"C": "minecraft:chain", "I": "minecraft:iron_block", "B": "celestial_core"}, category=cat)
+    shaped("flattener", ["III", "PBP", "III"], {"I": "minecraft:iron_block", "P": "minecraft:piston", "B": "celestial_core"}, category=cat)
+    shaped("titans_stride", ["SDS", "DBD", "SDS"], {"S": "minecraft:stone", "D": "minecraft:packed_mud", "B": "celestial_core"}, category=cat)
+    shaped("inferno_vortex", ["FBF", "BCB", "FBF"], {"F": "minecraft:fire_charge", "B": "minecraft:blaze_rod", "C": "celestial_core"}, category=cat)
+    shaped("maelstrom", ["WHW", "PCP", "WHW"], {"W": "minecraft:water_bucket", "H": "minecraft:heart_of_the_sea", "P": "minecraft:prismarine", "C": "celestial_core"},
+           category=cat)
+    shaped("basalt_uprising", ["BOB", "OCO", "BOB"], {"B": "minecraft:basalt", "O": "minecraft:obsidian", "C": "celestial_core"}, category=cat)
+    shaped("downburst", ["PFP", "FCF", "PFP"], {"P": "minecraft:phantom_membrane", "F": "minecraft:feather", "C": "celestial_core"}, category=cat)
+    shaped("thunderhead", ["RLR", "LCL", "RLR"], {"R": "minecraft:lightning_rod", "L": "minecraft:copper_block", "C": "celestial_core"}, category=cat)
     shaped("plasma_koi", ["SFS", "PNP", "SFS"], {"S": "minecraft:sea_lantern", "F": "minecraft:tropical_fish", "P": "minecraft:prismarine_crystals",
                                                "N": "minecraft:nether_star"}, category=cat)
 

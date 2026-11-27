@@ -131,7 +131,16 @@ public enum BombType {
 	MAGNETIC_BOTTLE(200, 0xFF50E0),
 	// world destruction
 	MEGA_CREEPER(300, 0x40C040),
-	ELDER_WYRM(300, 0xFF4010);
+	ELDER_WYRM(300, 0xFF4010),
+	// city destruction and elemental celestials
+	WRECKING_BALL(300, 0x8A9098),
+	FLATTENER(300, 0x9AA0A8),
+	TITANS_STRIDE(300, 0x6A5A4A),
+	INFERNO_VORTEX(240, 0xFF6010),
+	MAELSTROM(240, 0x2080C0),
+	BASALT_UPRISING(240, 0x3A3A40),
+	DOWNBURST(240, 0xA0B8D0),
+	THUNDERHEAD(240, 0x6080FF);
 
 	public final int fuse;
 	public final int color;

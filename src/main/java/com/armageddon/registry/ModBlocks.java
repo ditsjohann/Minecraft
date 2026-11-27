@@ -164,6 +164,14 @@ public final class ModBlocks {
 	public static final BombBlock MAGNETIC_BOTTLE = tiered(bomb("magnetic_bottle", BombType.MAGNETIC_BOTTLE, Rarity.EPIC), Tier.MYTHIC);
 	public static final BombBlock MEGA_CREEPER = tiered(bomb("mega_creeper", BombType.MEGA_CREEPER, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock ELDER_WYRM = tiered(bomb("elder_wyrm", BombType.ELDER_WYRM, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
+	public static final BombBlock WRECKING_BALL = tiered(bomb("wrecking_ball", BombType.WRECKING_BALL, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock FLATTENER = tiered(bomb("flattener", BombType.FLATTENER, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock TITANS_STRIDE = tiered(bomb("titans_stride", BombType.TITANS_STRIDE, Rarity.EPIC), Tier.CITY_DESTRUCTION);
+	public static final BombBlock INFERNO_VORTEX = tiered(bomb("inferno_vortex", BombType.INFERNO_VORTEX, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock MAELSTROM = tiered(bomb("maelstrom", BombType.MAELSTROM, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock BASALT_UPRISING = tiered(bomb("basalt_uprising", BombType.BASALT_UPRISING, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock DOWNBURST = tiered(bomb("downburst", BombType.DOWNBURST, Rarity.EPIC), Tier.CELESTIAL);
+	public static final BombBlock THUNDERHEAD = tiered(bomb("thunderhead", BombType.THUNDERHEAD, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock XENOFORM = tiered(bomb("xenoform", BombType.XENOFORM, Rarity.EPIC), Tier.WORLD_DESTRUCTION);
 	public static final BombBlock TERROR_MANIAC = tiered(bomb("terror_maniac", BombType.TERROR_MANIAC, Rarity.EPIC), Tier.CELESTIAL);
 	public static final BombBlock PUMPKIN_HORSEMAN = tiered(bomb("pumpkin_horseman", BombType.PUMPKIN_HORSEMAN, Rarity.EPIC), Tier.CELESTIAL);

@@ -149,6 +149,14 @@ public final class Events {
 		EVENTS.put("magnetic_bottle", com.armageddon.event.events.PlasmaEvents.MagneticBottle::new);
 		EVENTS.put("mega_creeper", com.armageddon.event.events.WorldBombEvents.MegaCreeper::new);
 		EVENTS.put("elder_wyrm", com.armageddon.event.events.WorldBombEvents.ElderWyrm::new);
+		EVENTS.put("wrecking_ball", com.armageddon.event.events.ElementEvents.WreckingBall::new);
+		EVENTS.put("flattener", com.armageddon.event.events.ElementEvents.Flattener::new);
+		EVENTS.put("titans_stride", com.armageddon.event.events.ElementEvents.TitansStride::new);
+		EVENTS.put("inferno_vortex", com.armageddon.event.events.ElementEvents.InfernoVortex::new);
+		EVENTS.put("maelstrom", com.armageddon.event.events.ElementEvents.MaelstromBomb::new);
+		EVENTS.put("basalt_uprising", com.armageddon.event.events.ElementEvents.BasaltUprising::new);
+		EVENTS.put("downburst", com.armageddon.event.events.ElementEvents.DownburstBomb::new);
+		EVENTS.put("thunderhead", com.armageddon.event.events.ElementEvents.ThunderheadBomb::new);
 		EVENTS.put("xenoform", com.armageddon.event.events.XenoEvents.Xenoform::new);
 		EVENTS.put("terror_maniac", com.armageddon.event.events.HorrorEvents.TerrorManiac::new);
 		EVENTS.put("pumpkin_horseman", com.armageddon.event.events.HorrorEvents.PumpkinHorseman::new);

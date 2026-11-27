@@ -366,6 +366,26 @@ public final class VfxIds {
 	public static final String WYRM_SCORCH = "wyrm_scorch";
 	public static final String WYRM_GALE = "wyrm_gale";
 	public static final String WYRM_NOVA = "wyrm_nova";
+	public static final String WRECK_SMASH = "wreck_smash";
+	public static final String WRECK_LAND = "wreck_land";
+	public static final String ROLLER_DUST = "roller_dust";
+	public static final String ROLLER_LAND = "roller_land";
+	public static final String STRIDE_SHADOW = "stride_shadow";
+	public static final String STRIDE_STOMP = "stride_stomp";
+	public static final String INFERNO_WHIRL = "inferno_whirl";
+	public static final String INFERNO_COLLAPSE = "inferno_collapse";
+	public static final String MAEL_SPRAY = "mael_spray";
+	public static final String MAEL_SPOUT = "mael_spout";
+	public static final String MAEL_RAIN = "mael_rain";
+	public static final String BASALT_CRACK = "basalt_crack";
+	public static final String BASALT_RISE = "basalt_rise";
+	public static final String BASALT_CAVE = "basalt_cave";
+	public static final String DOWN_SKY = "down_sky";
+	public static final String DOWN_SLAM = "down_slam";
+	public static final String THUNDER_CLOUD = "thunder_cloud";
+	public static final String THUNDER_RAIN = "thunder_rain";
+	public static final String THUNDER_HIT = "thunder_hit";
+	public static final String THUNDER_SUPER = "thunder_super";
 	public static final String XENO_UNFOLD = "xeno_unfold";
 	public static final String XENO_TAG = "xeno_tag";
 	public static final String XENO_DEREZ = "xeno_derez";
@@ -652,6 +672,8 @@ public final class VfxIds {
 			BOTTLE_FIELD, BOTTLE_SNAP, BOTTLE_JET, BOTTLE_RING,
 			DEBRIS_EMBER, DEBRIS_IMPACT, PLASMOID_SKIP, ARCH_LASH, BOTTLE_LASH, BOTTLE_NOVA,
 			CREEPER_RISE, CREEPER_FALL, MEGA_BOOM, WYRM_ASH, WYRM_RISE, WYRM_ROAR, WYRM_BREATH, WYRM_SCORCH, WYRM_GALE, WYRM_NOVA,
+			WRECK_SMASH, WRECK_LAND, ROLLER_DUST, ROLLER_LAND, STRIDE_SHADOW, STRIDE_STOMP, INFERNO_WHIRL, INFERNO_COLLAPSE, MAEL_SPRAY, MAEL_SPOUT,
+			MAEL_RAIN, BASALT_CRACK, BASALT_RISE, BASALT_CAVE, DOWN_SKY, DOWN_SLAM, THUNDER_CLOUD, THUNDER_RAIN, THUNDER_HIT, THUNDER_SUPER,
 			XENO_UNFOLD, XENO_TAG, XENO_DEREZ, XENO_FRONT, XENO_LAND, XENO_DEPART, XENO_PIXELS,
 			MANIAC_ASH, MANIAC_RIFT, MANIAC_CURSE, MANIAC_SNAP, MANIAC_SHATTER, MANIAC_GEYSER, MANIAC_BLEED, MANIAC_GORE, MANIAC_BLOOD_RAIN,
 			HORSE_APPEAR, HORSE_VANISH, HORSE_HOOF, HORSE_PUMPKIN, HORSE_SLASH, HORSE_TRAIL, HORSE_MIST,

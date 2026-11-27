@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "armageddon:block/flattener"
+    },
+    "facing=east": {
+      "model": "armageddon:block/flattener",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "armageddon:block/flattener",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "armageddon:block/flattener",
+      "y": 270
+    }
+  }
+}

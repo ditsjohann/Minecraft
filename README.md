@@ -6,8 +6,8 @@ railguns, plasma weapons, power armour and more. Every weapon has a hand-built 3
 dedicated visual effects: custom particles, energy beams, shockwaves, screen shake and a
 full-screen post-processing shader.
 
-> **Full list of every item, bomb and event:** [docs/CONTENT.md](docs/CONTENT.md) (236 items and blocks, 101 bombs,
-> 123 scripted events).
+> **Full list of every item, bomb and event:** [docs/CONTENT.md](docs/CONTENT.md) (244 items and blocks, 109 bombs,
+> 131 scripted events).
 > **Continuing development (new account or new session):** start with [docs/HANDOFF.md](docs/HANDOFF.md). The newest
 > code is on the branch `claude/cool-ramanujan-da0d9h`.
 
@@ -60,8 +60,8 @@ deadly it is.
 | Epic | 12 to 25 blocks | Cryo Bomb, Singularity, Tsunami, Volcano, Geode, KA-BOOM!, Lava Lamp, Nuke Launcher, Goo Bomb, Hyperbeam Raygun |
 | Legendary | 25 to 45 blocks | Atomic, Antimatter, Neutron, Nova, Hellmouth, Doomsday Clock, Zeropoint, Chrono Break, Century, Helix Disruptor, Graviton Lance, Sunfall Mortar, Cactus Bomb, Firework Havoc, Pterosaur Fossil, Amber Fossil, Fusion Geyser, Plasmoid Swarm |
 | Mythic | 45 to 90 blocks | Hydrogen, Omega, Bloodstar, Magnetar, Prism, Fossil, Last Light, Unmaker, Godfall, Big Bang, Colossal Spear, Zombie Apocalypse, Lidar, Shadow Void, Spectral Ice, Ion Scythe, 16 Chunks, Halo Cutter, Obliterator, Blackforge, Plasma Koi, Dimension Shift, Mammoth Fossil, Leviathan Fossil, Sabre-Tooth Fossil, Ammonite Fossil, Solar Arch, Z-Pinch, Magnetic Bottle |
-| Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit, Terror Maniac, Pumpkin Horseman, Portal of Hell |
-| City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence, AI Takeover |
+| Celestial | 90 to 150 blocks | Exploding Cows, Deadly Twister, UFO Invasion, Resonance Cascade, Tesla Dominion, Gravity Killswitch, Blue Infrit, Terror Maniac, Pumpkin Horseman, Portal of Hell, Inferno Vortex, Maelstrom, Basalt Uprising, Downburst, Thunderhead |
+| City Destruction | 150 to 300 blocks | Moonfall, World Eater, Ragnarok, Eternal Sapling, Main Stage, Termite Domain, Final Existence, AI Takeover, Wrecking Ball, The Flattener, Titan's Stride |
 | World Destruction | 300 blocks and up | Galactic Smash, Booming Tick, Alien Death Ray, The Sun Disappears, Dyson Lance, Seismic Tsunami, Xenoform, Mega Creeper, Elder Wyrm |
 
 Bombs of Mythic tier and up must be lit twice; Celestial and up are gated by `armageddonAllowCelestial` and live in
@@ -209,6 +209,23 @@ edge of the harvest facing you, glitching a step closer now and then, and an eye
 light races in along the grid to the monolith, a ring-shaped ship hundreds of blocks across comes down out of the sky,
 the monolith's beam locks on to it, the Watchers dissolve up into it, and it leaves in a streak of light that throws a
 shockwave across the sky. No cutscene: you watch it all yourself.
+
+**Three more ways to wreck a city.** WRECKING BALL: a ball of steel as big as a house on a chain hanging from orbit
+swings through the city in six great arcs, each a new way, punching clean swaths through every building and throwing the
+wreckage ahead of it, then the chain snaps and it drops into the middle. THE FLATTENER: a steel roller a hundred and fifty
+blocks long comes down out of the sky and rolls across the city, pressing every tower, house and tree flat into one layer
+of whatever stood there - behind it the city is a map of itself in coloured blocks. TITAN'S STRIDE: something you cannot
+see walks across the city; its shadow falls first, then each step stamps a footprint ten blocks deep, heel, sole and
+toes, buildings and all, and it ends with a jump.
+
+**The elemental celestials.** INFERNO VORTEX (fire): six fire whirls spiral in, burning black spiral scars into the land,
+merge into a colossal pillar of fire and collapse into a sea of flame. MAELSTROM (water): the ground falls away into a
+whirlpool seventy blocks across that drags everything in and under, then erupts as a hundred-block waterspout and leaves a
+deep round lake. BASALT UPRISING (earth): the land cracks into a honeycomb and the cells thrust up as basalt columns in a
+rolling wave, launching whatever stands on them, then the middle caves in. DOWNBURST (air): a vortex opens overhead and
+the land and everything on it floats up into it, turning, then the air slams back down and a wall of wind flattens
+everything. THUNDERHEAD (storm): a supercell hammers the land with lightning, every strike burning a branching scar of
+black glass into the ground, then a superbolt strikes the middle and burns a giant glowing one.
 
 **Two more world enders.** MEGA CREEPER: the sky turns a sick green and a creeper as tall as a mountain - a hundred
 blocks of mottled green pixels - heaves itself up out of the ground, and its head turns to stare at whoever is watching.

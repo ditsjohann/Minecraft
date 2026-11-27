@@ -1830,6 +1830,103 @@ def elder_wyrm():
 BOMBS.update({"mega_creeper": mega_creeper, "elder_wyrm": elder_wyrm})
 
 
+def wrecking_ball():
+    # A steel wrecking ball hanging on its chain from a gantry over a block of shattered concrete.
+    m = [B(0, 0, 0, 16, 2, 16, "white"), B(2, 2, 2, 5, 4, 6, "rock"), B(11, 2, 10, 14, 3.4, 14, "rock")]
+    m += [B(1, 2, 7, 2.2, 16, 9, "gunmetal"), B(13.8, 2, 7, 15, 16, 9, "gunmetal"), B(1, 15, 7, 15, 16, 9, "gunmetal")]
+    for i, y in enumerate((14.6, 13.4, 12.2, 11.0)):
+        m += [B(7.4, y - 1.1, 7.7, 8.6, y, 8.3, "chrome") if i % 2 else B(7.7, y - 1.1, 7.4, 8.3, y, 8.6, "chrome")]
+    m += ball(8, 7, 8, 4.2, "gunmetal") + [B(7, 9.8, 7, 9, 10.8, 9, "black")]
+    return m
+
+
+def flattener():
+    # A steel roller on its axle, arms rising from its hubs, over a slab pressed flat.
+    m = [B(0, 0, 0, 16, 1.4, 16, "rock"), B(1, 1.4, 1, 15, 1.7, 15, "red"), B(3, 1.4, 6, 7, 1.7, 10, "yellow")]
+    m += [B(1.5, 2, 4, 14.5, 10.4, 12, "steel"), B(1.5, 2.8, 3.2, 14.5, 9.6, 12.8, "steel")]
+    for x in (3.5, 6.5, 9.5, 12.5):
+        m += [B(x, 1.9, 3.1, x + 0.5, 10.6, 12.9, "gunmetal")]
+    for side in (0.5, 14.5):
+        m += [B(side, 5, 6.8, side + 1, 7.6, 9.2, "gunmetal"), B(side, 7.6, 7.4, side + 1, 16, 8.6, "gunmetal")]
+    return m
+
+
+def titans_stride():
+    # A slab of street with a giant's footprint stamped dark into it: heel, sole, five toes, the earth heaved up round it.
+    m = [B(0, 0, 0, 16, 4, 16, "rock"), B(0, 4, 0, 16, 4.6, 16, "white")]
+    y0, y1 = 4.6, 4.72
+    m += [B(5.4, y0, 1.6, 10.6, y1, 4.6, "black"), B(4.6, y0, 4.6, 11.4, y1, 8.6, "black"), B(4.2, y0, 8.6, 11.8, y1, 11.4, "black")]
+    for i, x in enumerate((4.6, 6.4, 8.2, 10.0, 11.6)):
+        z = 12.3 + (0.0 if i in (0, 4) else 0.8)
+        r = 0.95 if i == 0 else 0.75
+        m += [B(x - r, y0, z - r, x + r, y1, z + r, "black")]
+    m += [B(2.8, 4.6, 1.4, 3.6, 5.3, 13.6, "mud"), B(12.4, 4.6, 1.4, 13.2, 5.3, 13.6, "mud"), B(4, 4.6, 0.4, 12, 5.0, 1.2, "mud")]
+    return m
+
+
+def inferno_vortex():
+    # A funnel of fire twisting up out of a scorched base, widening as it climbs.
+    m = [B(0, 0, 0, 16, 2, 16, "black"), B(2, 2, 2, 14, 2.4, 14, "glow_orange")]
+    for i in range(7):
+        y = 2.4 + i * 1.9
+        r = 1.0 + i * 0.85
+        a = i * 0.9
+        cx, cz = 8 + _m.cos(a) * 0.8, 8 + _m.sin(a) * 0.8
+        m += [B(cx - r, y, cz - r, cx + r, y + 1.3, cz + r, "glow_orange" if i % 2 else "glow_gold")]
+    return m
+
+
+def maelstrom():
+    # A whirlpool: rings of foaming water spiralling down to a dark throat in a stone basin.
+    m = [B(0, 0, 0, 16, 3, 16, "rock"), B(1, 3, 1, 15, 3.6, 15, "glass_cyan")]
+    for i in range(10):
+        a = i * 0.9
+        r = 6.2 - i * 0.5
+        x, z = 8 + _m.cos(a) * r, 8 + _m.sin(a) * r
+        m += [B(x - 0.9, 3.4 - i * 0.12, z - 0.9, x + 0.9, 3.9 - i * 0.12, z + 0.9, "white")]
+    m += [B(6.6, 1.2, 6.6, 9.4, 3.62, 9.4, "black")]
+    return m
+
+
+def basalt_uprising():
+    # A cluster of basalt columns of all heights thrust up out of a slab, one glowing at its top.
+    m = [B(0, 0, 0, 16, 1.6, 16, "rock")]
+    cols = [(4, 4, 9), (8, 3.5, 12), (12, 4.5, 7), (3.5, 8.5, 13), (8, 8, 16), (12.5, 8.5, 11), (4.5, 12.5, 8), (8.5, 12.5, 10), (12, 12.5, 14)]
+    for i, (x, z, h) in enumerate(cols):
+        m += [B(x - 1.8, 1.6, z - 1.6, x + 1.8, h, z + 1.6, "black"), B(x - 1.4, h, z - 1.2, x + 1.4, h + 0.3, z + 1.2, "glow_orange" if i == 4 else "obsidian")]
+    return m
+
+
+def downburst():
+    # A vortex of white cloud whirling over a block, streaks of wind pouring down out of it.
+    m = [B(0, 0, 0, 16, 2, 16, "rock"), B(1, 2, 1, 15, 2.3, 15, "white")]
+    for i in range(12):
+        a = i * _m.pi / 6
+        r = 5.6
+        x, z = 8 + _m.cos(a) * r, 8 + _m.sin(a) * r
+        m += [B(x - 1.4, 12.5 + (i % 2) * 0.6, z - 1.4, x + 1.4, 14.5 + (i % 2) * 0.6, z + 1.4, "white" if i % 3 else "pearl")]
+    m += [B(6.6, 11.5, 6.6, 9.4, 13.5, 9.4, "pearl")]
+    for x, z in ((5, 6), (10, 5), (7, 11), (11.5, 10)):
+        m += [B(x - 0.2, 3, z - 0.2, x + 0.2, 11, z + 0.2, "glow_white")]
+    return m
+
+
+def thunderhead():
+    # A black storm cloud over a block of glass, a bolt of lightning forking down out of it.
+    m = [B(0, 0, 0, 16, 2, 16, "rock"), B(1, 2, 1, 15, 2.3, 15, "black")]
+    for (x0, z0, x1, z1, y0, y1) in ((2, 3, 14, 13, 11.5, 14), (3.5, 2, 12.5, 14, 13.5, 15.6), (1, 5, 6, 11, 12.2, 14.6), (10, 4, 15, 12, 12.4, 14.8)):
+        m += [B(x0, y0, z0, x1, y1, z1, "gunmetal")]
+    bolt = [(8.0, 11.5), (7.0, 9.6), (8.6, 8.0), (7.2, 6.0), (8.4, 4.0), (7.6, 2.3)]
+    for (xa, ya), (xb, yb) in zip(bolt, bolt[1:]):
+        m += [B(min(xa, xb) - 0.35, yb, 7.65, max(xa, xb) + 0.35, ya, 8.35, "glow_white")]
+    m += [B(5.6, 2.3, 7, 7.6, 2.5, 9, "glow_cyan"), B(8.4, 5, 7.7, 10.4, 5.6, 8.3, "glow_white")]
+    return m
+
+
+BOMBS.update({"wrecking_ball": wrecking_ball, "flattener": flattener, "titans_stride": titans_stride, "inferno_vortex": inferno_vortex,
+              "maelstrom": maelstrom, "basalt_uprising": basalt_uprising, "downburst": downburst, "thunderhead": thunderhead})
+
+
 def xenoform():
     # A wireframe hypercube hanging over a black plinth ruled with light: a cube inside a cube, joined corner to corner.
     m = [B(1, 0, 1, 15, 1.4, 15, "black")]

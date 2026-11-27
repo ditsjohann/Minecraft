@@ -87,8 +87,8 @@ docs/vfx/          visual-effects research and roadmap
    - below 40: `OddFx`; 40-49: `SciFx`; 50 and up: `WildFx`, where
    - 55-57 FossilFx (mammoth, leviathan, pterosaur), 58 XenoFx, 59-61 HorrorFx (maniac, horseman, hell gate),
      62 AiFx, 63 RocketFx (Firework Havoc), 64 ShiftFx (Dimension Shift), 65-67 FossilFx2 (amber, sabre-tooth,
-     ammonite), 68-69 PlasmaBombFx (plasmoid swarm, magnetic bottle), 70-71 WorldBombFx (mega creeper, elder wyrm). **The next free kind is
-     72.**
+     ammonite), 68-69 PlasmaBombFx (plasmoid swarm, magnetic bottle), 70-71 WorldBombFx (mega creeper, elder wyrm), 72-75 ElementFx (wrecking ball, flattener,
+     inferno vortex, maelstrom). **The next free kind is 76.**
    - Smaller bursts use the particle engine: `Vfx` calls by id from `VfxIds`.
    - Screen effects: `Vfx.screen` (0 desaturate, 1 whiteout, 2 blackout, 3 static, 4 invert), `Vfx.beam`,
      `Vfx.flash`, `Vfx.skyTint`.
@@ -167,6 +167,9 @@ Done and pushed (all builds, CI green):
 - Two world bombs: Mega Creeper and Elder Wyrm (`WorldBombEvents`, `util/WorldBombShapes`, `util/WyrmPose`,
   `WorldBombFx`, `WorldBombVfx`). The wyrm flies a Catmull-Rom spline through keyframes (`Wyrm.pos`), so its route is
   easy to change; the creeper is a box model drawn pixel by pixel and its head turns toward each viewer's own camera.
+- Three city bombs (Wrecking Ball, Flattener, Titan's Stride) and five elemental celestials (Inferno Vortex,
+  Maelstrom, Basalt Uprising, Downburst, Thunderhead): `ElementEvents`, `util/ElementShapes`, `ElementFx`, `ElementVfx`.
+  `ElementEvents.box` builds a terrain job over any heading-frame area with your own ordering key.
 - Terrain painters should find the ground with `FossilEvents2.groundY(column)`: a column's `surface()` counts tree
   trunks as ground.
 

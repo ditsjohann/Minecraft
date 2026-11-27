@@ -106,6 +106,10 @@ public final class PreviewMain {
 			case "bottle" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xFF50E0, 69, 0, 0, com.armageddon.util.PlasmaShapes.Bottle.END));
 			case "creeper" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0x40C040, 70, 0, 0, com.armageddon.util.WorldBombShapes.Creeper.END));
 			case "wyrm" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xFF4010, 71, 0, 0, com.armageddon.util.WorldBombShapes.Wyrm.END));
+			case "wrecker" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0x8A9098, 72, 0, 0, com.armageddon.util.ElementShapes.Wrecker.END));
+			case "roller" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0x9AA0A8, 73, 0, 0, com.armageddon.util.ElementShapes.Roller.END));
+			case "inferno" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0xFF6010, 74, 0, 0, com.armageddon.util.ElementShapes.Inferno.END));
+			case "maelstrom" -> NewFx.create(payload(FxType.NEW_FX, a, new Vec3d(1, 0, 0), 1, 0x2080C0, 75, 0, 0, com.armageddon.util.ElementShapes.Maelstrom.END));
 			case "glitch" -> new ChunkGlitchFx(payload(FxType.CHUNK_GLITCH, a, new Vec3d(1, 0, 0), 1, 0x60E0FF, 0, (float) a.y, 0, 700));
 			case "blight" -> new CelestialIIFx.BlightFog(a, 1820);
 			case "spear" -> new MegaEffects.Spear(a, 92, 60, 120 + 24 + 60 + 50);
